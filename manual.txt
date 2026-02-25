@@ -1,0 +1,23 @@
+ejecuta lo siguiente en Mysql con tu usuario root
+    CREATE DATABASE dulce_migaja CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE USER 'web_user'@'localhost' IDENTIFIED BY '123';
+    GRANT ALL PRIVILEGES ON dulce_migaja.* TO 'web_user'@'localhost';
+    FLUSH PRIVILEGES;
+
+Crea el entorno virtual
+    Windows:
+    python -m venv env o py -3.11 -m venv env
+
+    macOS:
+    python3 -m venv env
+
+Activar el Entorno
+    Windows:
+    .\env\Scripts\activate
+    
+    macOS:
+    source env/bin/activate
+
+Una vez activo el entorno virtual, ejecuta pip install -r requirements.txt
+
+Inicia la aplicación con python app.py para que se generen las tablas automáticamente
