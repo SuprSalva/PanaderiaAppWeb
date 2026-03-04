@@ -1,0 +1,679 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim   { animation: fadeUp .35s ease both; }
+  .anim-1 { animation-delay: .05s; }
+  .anim-2 { animation-delay: .10s; }
+  .anim-3 { animation-delay: .15s; }
+
+  .db-topbar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 24px; gap: 12px; flex-wrap: wrap;
+  }
+  .db-page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 700; color: var(--brown-dk);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+  .db-breadcrumb span { color: var(--tan); }
+
+  /* ── STATS ── */
+  .c-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+  .c-stat {
+    background: var(--white); border: 1px solid var(--tan); border-radius: 12px;
+    padding: 16px 18px; box-shadow: 0 2px 8px var(--shadow);
+    display: flex; align-items: center; gap: 12px; transition: transform .2s;
+  }
+  .c-stat:hover { transform: translateY(-2px); }
+  .c-stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .c-stat-icon.brown { background: #f3e8d8; }
+  .c-stat-icon.green { background: #e2eede; }
+  .c-stat-icon.gold  { background: #fef3d0; }
+  .c-stat-icon.rust  { background: #fce8df; }
+  .c-stat-val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
+  .c-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
+
+  /* ── TOOLBAR ── */
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input {
+    width: 100%; padding: 9px 14px 9px 38px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13.5px; background: var(--white); color: var(--text);
+    outline: none; transition: border .2s; box-sizing: border-box;
+  }
+  .search-wrap input:focus { border-color: var(--brown); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
+  .filter-select {
+    padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13px;
+    background: var(--white); color: var(--text); outline: none; cursor: pointer;
+  }
+  .filter-select:focus { border-color: var(--brown); }
+
+  /* ── TABLE ── */
+  .table-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--warm-bg); }
+  thead th { padding: 12px 16px; font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown); text-align: left; white-space: nowrap; }
+  thead th:first-child { padding-left: 22px; }
+  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
+  tbody tr:hover { background: #fdf3e6; }
+  tbody td { padding: 12px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
+  tbody td:first-child { padding-left: 22px; }
+
+  .folio-chip {
+    font-family: monospace; font-size: 12px; font-weight: 700;
+    background: var(--warm-bg); color: var(--brown-dk);
+    padding: 3px 9px; border-radius: 6px; border: 1px solid var(--tan);
+  }
+  .prov-tag { font-weight: 700; color: var(--brown-dk); }
+  .prov-sub { font-size: 11px; color: var(--brown-lt); }
+  .monto-val { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-active   { background: #e2eede; color: #3a6034; }
+  .badge-warning  { background: #fef3d0; color: #8a6200; }
+  .badge-inactive { background: #fce8df; color: #9c3a1a; }
+
+  .actions-cell { display: flex; gap: 6px; }
+
+  .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+  .table-footer p { font-size: 12px; color: var(--brown-lt); }
+  .pagination { display: flex; gap: 4px; }
+  .page-btn { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); transition: all .15s; }
+  .page-btn:hover { background: var(--warm-bg); }
+  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  /* ── MODAL BASE ── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 700px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
+  .modal-lg { max-width: 820px; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); display: flex; align-items: center; gap: 10px; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 26px; max-height: 76vh; overflow-y: auto; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+
+  /* ── FORM ── */
+  .form-row { display: grid; gap: 14px; }
+  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
+  .form-input, .form-select {
+    padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13.5px; color: var(--text);
+    background: var(--cream); outline: none; transition: border .2s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--brown); background: var(--white); }
+  .form-hint { font-size: 11px; color: var(--brown-lt); }
+  .section-divider { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brown-lt); padding: 6px 0 2px; border-bottom: 1px solid var(--tan); margin-bottom: 2px; grid-column: 1/-1; }
+
+  /* ── DETALLE DE COMPRA (renglones) ── */
+  .detalle-header {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 36px;
+    gap: 8px; padding: 8px 10px;
+    background: var(--warm-bg); border-radius: 8px 8px 0 0;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown);
+    margin-bottom: 0;
+  }
+  .detalle-row {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 36px;
+    gap: 8px; padding: 8px 10px;
+    border: 1px solid var(--tan); border-top: none;
+    align-items: center;
+    background: var(--white);
+  }
+  .detalle-row:first-of-type { border-top: 1px solid var(--tan); }
+  .detalle-row:last-child { border-radius: 0 0 8px 8px; }
+  .detalle-wrap { border: 1px solid var(--tan); border-radius: 8px; overflow: hidden; margin-top: 8px; }
+  .detalle-add-row { padding: 10px; background: var(--cream); border-top: 1px dashed var(--tan); display: flex; justify-content: center; }
+
+  .det-input {
+    width: 100%; padding: 7px 10px; border: 1.5px solid var(--tan); border-radius: 7px;
+    font-family: 'Lato', sans-serif; font-size: 12.5px; color: var(--text);
+    background: var(--white); outline: none; transition: border .2s; box-sizing: border-box;
+  }
+  .det-input:focus { border-color: var(--brown); }
+  .det-select {
+    width: 100%; padding: 7px 8px; border: 1.5px solid var(--tan); border-radius: 7px;
+    font-family: 'Lato', sans-serif; font-size: 12px; color: var(--text);
+    background: var(--white); outline: none; cursor: pointer;
+  }
+  .det-converted {
+    font-size: 11px; color: var(--brown-lt); font-weight: 600;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .det-converted .arrow { color: var(--brown); }
+
+  .btn-remove { width: 28px; height: 28px; border-radius: 6px; background: #fce8df; border: none; color: var(--rust); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; flex-shrink: 0; }
+  .btn-remove:hover { background: var(--rust); color: #fff; }
+
+  /* ── TOTAL BAR ── */
+  .total-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--brown-dk); color: var(--cream);
+    padding: 14px 20px; border-radius: 10px; margin-top: 16px;
+  }
+  .total-bar span { font-size: 13px; opacity: .8; }
+  .total-bar strong { font-family: 'Playfair Display', serif; font-size: 22px; }
+
+  /* ── DETALLE MODAL (ver compra) ── */
+  .detail-section { margin-bottom: 20px; }
+  .detail-section h4 { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: var(--brown-dk); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--tan); }
+  .detail-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .detail-item label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); display: block; margin-bottom: 3px; }
+  .detail-item span  { font-size: 13.5px; color: var(--brown-dk); font-weight: 600; }
+
+  .det-view-table { width: 100%; border-collapse: collapse; }
+  .det-view-table thead { background: var(--warm-bg); }
+  .det-view-table thead th { padding: 9px 12px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown); text-align: left; }
+  .det-view-table tbody tr { border-top: 1px solid var(--tan); }
+  .det-view-table tbody td { padding: 10px 12px; font-size: 12.5px; }
+  .conv-arrow { color: var(--brown-lt); font-size: 11px; }
+
+  /* ── INFO BOX ── */
+  .info-box { background: #f3e8d8; border: 1px solid var(--tan); border-radius: 10px; padding: 11px 14px; font-size: 12px; color: var(--brown-dk); display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; }
+  .info-box .ii { flex-shrink: 0; font-size: 15px; }
+</style>
+
+<!-- TOPBAR -->
+<div class="db-topbar anim">
+  <div>
+    <div class="db-page-title">🛒 Compras de Materias Primas</div>
+    <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Compras</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modal-add')">＋ Registrar Compra</button>
+</div>
+
+<!-- STATS -->
+<div class="c-stats anim anim-1">
+  <div class="c-stat">
+    <div class="c-stat-icon brown">🛒</div>
+    <div><div class="c-stat-val">47</div><div class="c-stat-lbl">Compras Registradas</div></div>
+  </div>
+  <div class="c-stat">
+    <div class="c-stat-icon gold">📅</div>
+    <div><div class="c-stat-val">8</div><div class="c-stat-lbl">Compras este Mes</div></div>
+  </div>
+  <div class="c-stat">
+    <div class="c-stat-icon green">💰</div>
+    <div><div class="c-stat-val">$12,480</div><div class="c-stat-lbl">Gasto este Mes</div></div>
+  </div>
+  <div class="c-stat">
+    <div class="c-stat-icon rust">🏭</div>
+    <div><div class="c-stat-val">5</div><div class="c-stat-lbl">Proveedores Activos</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar anim anim-2">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Buscar por folio o proveedor…" id="searchInput" oninput="filterTable()">
+  </div>
+  <input type="date" class="filter-select" id="filterDesde" onchange="filterTable()" title="Desde">
+  <input type="date" class="filter-select" id="filterHasta" onchange="filterTable()" title="Hasta">
+  <select class="filter-select" id="filterProv" onchange="filterTable()">
+    <option value="">Todos los proveedores</option>
+    <option>Harinera del Molino</option>
+    <option>Distribuidora La Esperanza</option>
+    <option>Lácteos Altos del Valle</option>
+    <option>El Gran Mayoreo</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<div class="table-card anim anim-3">
+  <table id="comprasTable">
+    <thead>
+      <tr>
+        <th>Folio</th>
+        <th>Proveedor</th>
+        <th>Fecha</th>
+        <th>Insumos</th>
+        <th>Total</th>
+        <th>Registró</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td><span class="folio-chip">C-0047</span></td>
+        <td>
+          <div class="prov-tag">Harinera del Molino S.A.</div>
+          <div class="prov-sub">Roberto Sánchez</div>
+        </td>
+        <td>28/02/2026</td>
+        <td><span class="badge badge-active">4 insumos</span></td>
+        <td><span class="monto-val">$2,340.00</span></td>
+        <td>Salvador E.</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td><span class="folio-chip">C-0046</span></td>
+        <td>
+          <div class="prov-tag">Distribuidora La Esperanza</div>
+          <div class="prov-sub">Patricia Leal</div>
+        </td>
+        <td>25/02/2026</td>
+        <td><span class="badge badge-active">3 insumos</span></td>
+        <td><span class="monto-val">$1,890.00</span></td>
+        <td>Juan Pablo R.</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td><span class="folio-chip">C-0045</span></td>
+        <td>
+          <div class="prov-tag">Lácteos Altos del Valle</div>
+          <div class="prov-sub">Miguel Torres</div>
+        </td>
+        <td>20/02/2026</td>
+        <td><span class="badge badge-active">2 insumos</span></td>
+        <td><span class="monto-val">$980.00</span></td>
+        <td>Mariana C.</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td><span class="folio-chip">C-0044</span></td>
+        <td>
+          <div class="prov-tag">El Gran Mayoreo</div>
+          <div class="prov-sub">Sofía Guerrero</div>
+        </td>
+        <td>18/02/2026</td>
+        <td><span class="badge badge-active">5 insumos</span></td>
+        <td><span class="monto-val">$3,150.00</span></td>
+        <td>Salvador E.</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td><span class="folio-chip">C-0043</span></td>
+        <td>
+          <div class="prov-tag">Harinera del Molino S.A.</div>
+          <div class="prov-sub">Roberto Sánchez</div>
+        </td>
+        <td>14/02/2026</td>
+        <td><span class="badge badge-active">3 insumos</span></td>
+        <td><span class="monto-val">$1,720.00</span></td>
+        <td>Juan Pablo R.</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td><span class="folio-chip">C-0042</span></td>
+        <td>
+          <div class="prov-tag">Distribuidora La Esperanza</div>
+          <div class="prov-sub">Patricia Leal</div>
+        </td>
+        <td>10/02/2026</td>
+        <td><span class="badge badge-active">6 insumos</span></td>
+        <td><span class="monto-val">$4,400.00</span></td>
+        <td>Mariana C.</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+  <div class="table-footer">
+    <p>Mostrando <span id="visibleCount">6</span> de 47 compras</p>
+    <div class="pagination">
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">3</div>
+      <div class="page-btn">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: REGISTRAR COMPRA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>🛒 Registrar Nueva Compra</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Cabecera -->
+      <div class="form-row cols-3" style="margin-bottom:20px">
+        <div class="section-divider">Cabecera de Compra</div>
+        <div class="form-group">
+          <label class="form-label">Proveedor</label>
+          <select class="form-select">
+            <option value="">— Seleccionar —</option>
+            <option>Harinera del Molino S.A.</option>
+            <option>Distribuidora La Esperanza</option>
+            <option>Lácteos Altos del Valle</option>
+            <option>El Gran Mayoreo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de Compra</label>
+          <input type="date" class="form-input" id="fecha-compra">
+        </div>
+        <div class="form-group">
+          <label class="form-label">No. Factura / Referencia</label>
+          <input type="text" class="form-input" placeholder="Ej. FAC-2026-001">
+        </div>
+      </div>
+
+      <!-- Detalle -->
+      <div style="margin-bottom: 8px; display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brown-lt);">Detalle de Insumos</span>
+      </div>
+
+      <div class="info-box">
+        <span class="ii">💡</span>
+        <span>Ingresa la cantidad en la <strong>unidad de compra</strong> (ej. kg, litros). El sistema convertirá automáticamente a la unidad base del inventario.</span>
+      </div>
+
+      <div class="detalle-header">
+        <span>Materia Prima</span>
+        <span>Cantidad</span>
+        <span>Unidad Compra</span>
+        <span>Costo Unit.</span>
+        <span>Subtotal</span>
+        <span></span>
+      </div>
+
+      <div id="renglones-container">
+        <!-- Renglón 1 -->
+        <div class="detalle-row" id="renglon-1">
+          <select class="det-select" onchange="updateConversion(1)">
+            <option value="">— Materia prima —</option>
+            <option value="harina" data-base="g">Harina de Trigo (base: g)</option>
+            <option value="azucar" data-base="g">Azúcar Refinada (base: g)</option>
+            <option value="mantequilla" data-base="g">Mantequilla (base: g)</option>
+            <option value="leche" data-base="ml">Leche Entera (base: ml)</option>
+            <option value="levadura" data-base="g">Levadura Seca (base: g)</option>
+            <option value="huevo" data-base="g">Huevo (base: g)</option>
+          </select>
+          <input type="number" class="det-input" placeholder="0" min="0" id="qty-1" oninput="calcSubtotal(1)">
+          <select class="det-select" id="ucompra-1" onchange="updateConversion(1)">
+            <option value="kg" data-factor="1000">kg → g</option>
+            <option value="g"  data-factor="1">g</option>
+            <option value="l"  data-factor="1000">litros → ml</option>
+            <option value="ml" data-factor="1">ml</option>
+            <option value="pza" data-factor="1">pza</option>
+          </select>
+          <input type="number" class="det-input" placeholder="$0.00" min="0" step="0.01" id="costo-1" oninput="calcSubtotal(1)">
+          <input type="text"   class="det-input" readonly id="sub-1" value="$0.00" style="background:var(--warm-bg);font-weight:700;color:var(--brown-dk);">
+          <button class="btn-remove" onclick="removeRenglon(1)" title="Eliminar">✕</button>
+        </div>
+
+        <!-- Renglón 2 -->
+        <div class="detalle-row" id="renglon-2">
+          <select class="det-select" onchange="updateConversion(2)">
+            <option value="">— Materia prima —</option>
+            <option value="harina" data-base="g">Harina de Trigo (base: g)</option>
+            <option value="azucar" data-base="g">Azúcar Refinada (base: g)</option>
+            <option value="mantequilla" data-base="g">Mantequilla (base: g)</option>
+            <option value="leche" data-base="ml">Leche Entera (base: ml)</option>
+            <option value="levadura" data-base="g">Levadura Seca (base: g)</option>
+            <option value="huevo" data-base="g">Huevo (base: g)</option>
+          </select>
+          <input type="number" class="det-input" placeholder="0" min="0" id="qty-2" oninput="calcSubtotal(2)">
+          <select class="det-select" id="ucompra-2" onchange="updateConversion(2)">
+            <option value="kg" data-factor="1000">kg → g</option>
+            <option value="g"  data-factor="1">g</option>
+            <option value="l"  data-factor="1000">litros → ml</option>
+            <option value="ml" data-factor="1">ml</option>
+            <option value="pza" data-factor="1">pza</option>
+          </select>
+          <input type="number" class="det-input" placeholder="$0.00" min="0" step="0.01" id="costo-2" oninput="calcSubtotal(2)">
+          <input type="text"   class="det-input" readonly id="sub-2" value="$0.00" style="background:var(--warm-bg);font-weight:700;color:var(--brown-dk);">
+          <button class="btn-remove" onclick="removeRenglon(2)" title="Eliminar">✕</button>
+        </div>
+      </div>
+
+      <!-- Conversión info -->
+      <div style="padding:8px 10px; background:var(--cream); border:1px solid var(--tan); border-top:none; border-radius:0 0 8px 8px; font-size:11.5px; color:var(--brown); display:flex; gap:6px; align-items:center;">
+        <span>🔄</span>
+        <span id="conversion-info">Selecciona una materia prima para ver la conversión aplicada.</span>
+      </div>
+
+      <div style="margin-top:10px;">
+        <button class="btn btn-outline btn-sm" onclick="addRenglon()">＋ Agregar insumo</button>
+      </div>
+
+      <!-- Total -->
+      <div class="total-bar">
+        <span>Total de la Compra</span>
+        <strong id="total-compra">$0.00</strong>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar Compra y Actualizar Stock</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: VER DETALLE DE COMPRA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>📋 Detalle de Compra — <span style="opacity:.7;font-size:14px;">Folio C-0047</span></h2>
+      <button class="modal-close" onclick="closeModal('modal-detalle')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="detail-section">
+        <h4>📦 Cabecera</h4>
+        <div class="detail-grid-2">
+          <div class="detail-item"><label>Proveedor</label><span>Harinera del Molino S.A.</span></div>
+          <div class="detail-item"><label>Fecha</label><span>28/02/2026</span></div>
+          <div class="detail-item"><label>No. Factura</label><span>FAC-2026-047</span></div>
+          <div class="detail-item"><label>Registró</label><span>Salvador Esquivel Torres</span></div>
+          <div class="detail-item"><label>Total</label><span style="font-family:'Playfair Display',serif;font-size:18px;color:var(--brown-dk);">$2,340.00</span></div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h4>🌾 Insumos Comprados</h4>
+        <table class="det-view-table">
+          <thead>
+            <tr>
+              <th>Materia Prima</th>
+              <th>Cant. Comprada</th>
+              <th>Conversión</th>
+              <th>Stock Sumado</th>
+              <th>Costo Unit.</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Harina de Trigo</strong></td>
+              <td>25 kg</td>
+              <td><span class="conv-arrow">25 kg × 1,000 → </span><strong>25,000 g</strong></td>
+              <td>+25,000 g</td>
+              <td>$18.00/kg</td>
+              <td><strong>$450.00</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Azúcar Refinada</strong></td>
+              <td>10 kg</td>
+              <td><span class="conv-arrow">10 kg × 1,000 → </span><strong>10,000 g</strong></td>
+              <td>+10,000 g</td>
+              <td>$22.00/kg</td>
+              <td><strong>$220.00</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Levadura Seca</strong></td>
+              <td>500 g</td>
+              <td><span class="conv-arrow">500 g × 1 → </span><strong>500 g</strong></td>
+              <td>+500 g</td>
+              <td>$120.00/kg</td>
+              <td><strong>$60.00</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Mantequilla</strong></td>
+              <td>5 kg</td>
+              <td><span class="conv-arrow">5 kg × 1,000 → </span><strong>5,000 g</strong></td>
+              <td>+5,000 g</td>
+              <td>$322.00/kg</td>
+              <td><strong>$1,610.00</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="background:var(--brown-dk);color:var(--cream);padding:12px 18px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;opacity:.8;">Total de la Compra</span>
+        <strong style="font-family:'Playfair Display',serif;font-size:22px;">$2,340.00</strong>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-detalle')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  function openDetalle() { openModal('modal-detalle'); }
+
+  // Set today's date
+  document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date().toISOString().split('T')[0];
+    const fc = document.getElementById('fecha-compra');
+    if (fc) fc.value = today;
+  });
+
+  let renglonCount = 2;
+
+  function calcSubtotal(n) {
+    const qty   = parseFloat(document.getElementById('qty-' + n)?.value)   || 0;
+    const costo = parseFloat(document.getElementById('costo-' + n)?.value) || 0;
+    const sub   = qty * costo;
+    const subEl = document.getElementById('sub-' + n);
+    if (subEl) subEl.value = '$' + sub.toFixed(2);
+    updateTotal();
+  }
+
+  function updateTotal() {
+    let total = 0;
+    document.querySelectorAll('[id^="sub-"]').forEach(el => {
+      total += parseFloat(el.value.replace('$','')) || 0;
+    });
+    document.getElementById('total-compra').textContent = '$' + total.toFixed(2);
+  }
+
+  function updateConversion(n) {
+    const sel    = document.querySelector('#renglon-' + n + ' .det-select');
+    const uSel   = document.getElementById('ucompra-' + n);
+    if (!sel || !uSel) return;
+    const opt    = sel.options[sel.selectedIndex];
+    const base   = opt?.dataset?.base || '?';
+    const uOpt   = uSel.options[uSel.selectedIndex];
+    const factor = uOpt?.dataset?.factor || 1;
+    const uVal   = uSel.value;
+    if (opt?.value) {
+      document.getElementById('conversion-info').textContent =
+        'Conversión activa: 1 ' + uVal + ' × ' + factor + ' = ' + factor + ' ' + base + ' sumados al inventario.';
+    }
+  }
+
+  function addRenglon() {
+    renglonCount++;
+    const n = renglonCount;
+    const container = document.getElementById('renglones-container');
+    const div = document.createElement('div');
+    div.className = 'detalle-row';
+    div.id = 'renglon-' + n;
+    div.innerHTML = `
+      <select class="det-select" onchange="updateConversion(${n})">
+        <option value="">— Materia prima —</option>
+        <option value="harina" data-base="g">Harina de Trigo (base: g)</option>
+        <option value="azucar" data-base="g">Azúcar Refinada (base: g)</option>
+        <option value="mantequilla" data-base="g">Mantequilla (base: g)</option>
+        <option value="leche" data-base="ml">Leche Entera (base: ml)</option>
+        <option value="levadura" data-base="g">Levadura Seca (base: g)</option>
+        <option value="huevo" data-base="g">Huevo (base: g)</option>
+      </select>
+      <input type="number" class="det-input" placeholder="0" min="0" id="qty-${n}" oninput="calcSubtotal(${n})">
+      <select class="det-select" id="ucompra-${n}" onchange="updateConversion(${n})">
+        <option value="kg" data-factor="1000">kg → g</option>
+        <option value="g"  data-factor="1">g</option>
+        <option value="l"  data-factor="1000">litros → ml</option>
+        <option value="ml" data-factor="1">ml</option>
+        <option value="pza" data-factor="1">pza</option>
+      </select>
+      <input type="number" class="det-input" placeholder="$0.00" min="0" step="0.01" id="costo-${n}" oninput="calcSubtotal(${n})">
+      <input type="text"   class="det-input" readonly id="sub-${n}" value="$0.00" style="background:var(--warm-bg);font-weight:700;color:var(--brown-dk);">
+      <button class="btn-remove" onclick="removeRenglon(${n})" title="Eliminar">✕</button>
+    `;
+    container.appendChild(div);
+  }
+
+  function removeRenglon(n) {
+    const el = document.getElementById('renglon-' + n);
+    if (el) { el.remove(); updateTotal(); }
+  }
+
+  function filterTable() {
+    const q    = document.getElementById('searchInput').value.toLowerCase();
+    const prov = document.getElementById('filterProv').value.toLowerCase();
+    const rows = document.querySelectorAll('#comprasTable tbody tr');
+    let visible = 0;
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const show = (!q || text.includes(q)) && (!prov || text.includes(prov));
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+  }
+</script>
+
+<div style="height:40px"></div>
+{% endblock %}

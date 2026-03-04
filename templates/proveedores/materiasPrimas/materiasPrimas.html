@@ -1,0 +1,813 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim   { animation: fadeUp .35s ease both; }
+  .anim-1 { animation-delay: .05s; }
+  .anim-2 { animation-delay: .10s; }
+  .anim-3 { animation-delay: .15s; }
+
+  /* ── TOPBAR ── */
+  .db-topbar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 24px; gap: 12px; flex-wrap: wrap;
+  }
+  .db-page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 700; color: var(--brown-dk);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .db-breadcrumb {
+    font-size: 12px; color: var(--brown-lt); margin-top: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .db-breadcrumb span { color: var(--tan); }
+
+  /* ── STATS ── */
+  .mp-stats {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
+    margin-bottom: 22px;
+  }
+  .mp-stat {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 12px; padding: 16px 18px;
+    box-shadow: 0 2px 8px var(--shadow);
+    display: flex; align-items: center; gap: 12px;
+    transition: transform .2s;
+  }
+  .mp-stat:hover { transform: translateY(-2px); }
+  .mp-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .mp-stat-icon.brown { background: #f3e8d8; }
+  .mp-stat-icon.green { background: #e2eede; }
+  .mp-stat-icon.rust  { background: #fce8df; }
+  .mp-stat-icon.gold  { background: #fef3d0; }
+  .mp-stat-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
+  .mp-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; letter-spacing: .3px; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input {
+    width: 100%; padding: 9px 14px 9px 38px;
+    border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13.5px;
+    background: var(--white); color: var(--text);
+    outline: none; transition: border .2s; box-sizing: border-box;
+  }
+  .search-wrap input:focus { border-color: var(--brown); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
+  .filter-select {
+    padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13px;
+    background: var(--white); color: var(--text); outline: none; cursor: pointer;
+  }
+  .filter-select:focus { border-color: var(--brown); }
+
+  /* ── TABLE ── */
+  .table-card {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--warm-bg); }
+  thead th {
+    padding: 12px 16px; font-size: 10.5px; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--brown); text-align: left; white-space: nowrap;
+  }
+  thead th:first-child { padding-left: 22px; }
+  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
+  tbody tr:hover { background: #fdf3e6; }
+  tbody td { padding: 12px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
+  tbody td:first-child { padding-left: 22px; }
+
+  /* ── MP NAME CELL ── */
+  .mp-cell { display: flex; align-items: center; gap: 10px; }
+  .mp-icon-box {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--warm-bg); display: flex; align-items: center;
+    justify-content: center; font-size: 18px; flex-shrink: 0;
+  }
+  .mp-name   { font-weight: 700; color: var(--brown-dk); font-size: 13px; }
+  .mp-cat    { font-size: 11px; color: var(--brown-lt); margin-top: 1px; }
+
+  /* ── STOCK BAR ── */
+  .stock-wrap { display: flex; align-items: center; gap: 8px; min-width: 130px; }
+  .bar-track  { flex: 1; height: 7px; border-radius: 4px; background: var(--tan); overflow: hidden; }
+  .bar-fill   { height: 100%; border-radius: 4px; transition: width .4s; }
+  .bar-ok     { background: #5a7a52; }
+  .bar-low    { background: #c9950a; }
+  .bar-out    { background: var(--rust); }
+  .bar-val    { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .bar-val.ok  { color: #3a6034; }
+  .bar-val.low { color: #8a6200; }
+  .bar-val.out { color: var(--rust); }
+
+  /* ── MERMA CHIP ── */
+  .merma-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #fef3d0; color: #8a6200;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+
+  /* ── UNIDAD CHIP ── */
+  .unidad-chip {
+    display: inline-block; background: var(--warm-bg);
+    color: var(--brown); padding: 3px 10px;
+    border-radius: 20px; font-size: 11px; font-weight: 700;
+    border: 1px solid var(--tan);
+  }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-active   { background: #e2eede; color: #3a6034; }
+  .badge-inactive { background: #fce8df; color: #9c3a1a; }
+  .badge-critical { background: #fce8df; color: #9c3a1a; }
+  .badge-low      { background: #fef3d0; color: #8a6200; }
+
+  .actions-cell { display: flex; gap: 6px; }
+
+  /* ── TABLE FOOTER ── */
+  .table-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg);
+  }
+  .table-footer p { font-size: 12px; color: var(--brown-lt); }
+  .pagination { display: flex; gap: 4px; }
+  .page-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    border: 1.5px solid var(--tan); background: var(--white); color: var(--brown);
+    transition: all .15s;
+  }
+  .page-btn:hover { background: var(--warm-bg); }
+  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(59,42,26,.45); backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 16px;
+    width: 100%; max-width: 560px;
+    box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden;
+    animation: fadeUp .25s ease;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 26px; background: var(--brown-dk);
+  }
+  .modal-header h2 {
+    font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: rgba(255,255,255,.15); border: none; cursor: pointer;
+    color: var(--cream); font-size: 16px;
+    display: flex; align-items: center; justify-content: center; transition: background .2s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 26px; max-height: 72vh; overflow-y: auto; }
+
+  .form-row { display: grid; gap: 14px; }
+  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
+  .form-input, .form-select, .form-textarea {
+    padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13.5px; color: var(--text);
+    background: var(--cream); outline: none; transition: border .2s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--brown); background: var(--white); }
+  .form-hint { font-size: 11px; color: var(--brown-lt); }
+  .section-divider {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--brown-lt); padding: 6px 0 2px;
+    border-bottom: 1px solid var(--tan); margin-bottom: 2px; grid-column: 1/-1;
+  }
+  .modal-footer {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg);
+  }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    background: #f3e8d8; border: 1px solid var(--tan); border-radius: 10px;
+    padding: 12px 14px; font-size: 12.5px; color: var(--brown-dk);
+    display: flex; gap: 8px; align-items: flex-start; grid-column: 1/-1;
+  }
+  .info-box .ii { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+
+  /* ── DELETE MODAL ── */
+  .modal-header.danger { background: var(--rust); }
+  .delete-body { padding: 32px 26px; text-align: center; }
+  .delete-icon { font-size: 46px; margin-bottom: 12px; }
+  .delete-body h3 { font-family: 'Playfair Display', serif; font-size: 19px; color: var(--brown-dk); margin-bottom: 8px; }
+  .delete-body p { font-size: 13px; color: var(--brown-lt); line-height: 1.6; }
+  .delete-body strong { color: var(--rust); }
+</style>
+
+<!-- TOPBAR -->
+<div class="db-topbar anim">
+  <div>
+    <div class="db-page-title">🌾 Materias Primas</div>
+    <div class="db-breadcrumb">Inicio <span>›</span> Inventarios <span>›</span> Materias Primas</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modal-add')">
+    ＋ Nueva Materia Prima
+  </button>
+</div>
+
+<!-- STATS -->
+<div class="mp-stats anim anim-1">
+  <div class="mp-stat">
+    <div class="mp-stat-icon brown">🌾</div>
+    <div><div class="mp-stat-val">24</div><div class="mp-stat-lbl">Total Registradas</div></div>
+  </div>
+  <div class="mp-stat">
+    <div class="mp-stat-icon green">✅</div>
+    <div><div class="mp-stat-val">19</div><div class="mp-stat-lbl">En Stock Normal</div></div>
+  </div>
+  <div class="mp-stat">
+    <div class="mp-stat-icon gold">⚠️</div>
+    <div><div class="mp-stat-val">2</div><div class="mp-stat-lbl">Stock Bajo</div></div>
+  </div>
+  <div class="mp-stat">
+    <div class="mp-stat-icon rust">🚨</div>
+    <div><div class="mp-stat-val">3</div><div class="mp-stat-lbl">Stock Crítico</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar anim anim-2">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Buscar por nombre o categoría…" id="searchInput" oninput="filterTable()">
+  </div>
+  <select class="filter-select" id="filterStock" onchange="filterTable()">
+    <option value="">Todos los niveles</option>
+    <option value="ok">Stock normal</option>
+    <option value="low">Stock bajo</option>
+    <option value="out">Stock crítico</option>
+  </select>
+  <select class="filter-select" id="filterEstatus" onchange="filterTable()">
+    <option value="">Todos los estatus</option>
+    <option value="Activo">Activo</option>
+    <option value="Inactivo">Inactivo</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<div class="table-card anim anim-3">
+  <table id="mpTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Materia Prima</th>
+        <th>Unidad Base</th>
+        <th>Stock Actual</th>
+        <th>Stock Mínimo</th>
+        <th>Merma</th>
+        <th>Estatus</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- 1 - Harina -->
+      <tr data-stock="ok" data-estatus="Activo">
+        <td>1</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box">🌾</div>
+            <div>
+              <div class="mp-name">Harina de Trigo</div>
+              <div class="mp-cat">Cereales y derivados</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="unidad-chip">gramos (g)</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-ok" style="width:80%"></div></div>
+            <span class="bar-val ok">40,000 g</span>
+          </div>
+        </td>
+        <td>5,000 g</td>
+        <td><span class="merma-chip">🗑 3%</span></td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Harina de Trigo')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <!-- 2 - Azúcar BAJO -->
+      <tr data-stock="low" data-estatus="Activo">
+        <td>2</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box">🍚</div>
+            <div>
+              <div class="mp-name">Azúcar Refinada</div>
+              <div class="mp-cat">Endulzantes</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="unidad-chip">gramos (g)</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:22%"></div></div>
+            <span class="bar-val low">5,600 g</span>
+          </div>
+        </td>
+        <td>10,000 g</td>
+        <td><span class="merma-chip">🗑 1%</span></td>
+        <td><span class="badge badge-low">Stock Bajo</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Azúcar Refinada')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <!-- 3 - Mantequilla OK -->
+      <tr data-stock="ok" data-estatus="Activo">
+        <td>3</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box">🧈</div>
+            <div>
+              <div class="mp-name">Mantequilla</div>
+              <div class="mp-cat">Lácteos y grasas</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="unidad-chip">gramos (g)</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-ok" style="width:65%"></div></div>
+            <span class="bar-val ok">6,500 g</span>
+          </div>
+        </td>
+        <td>2,000 g</td>
+        <td><span class="merma-chip">🗑 2%</span></td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Mantequilla')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <!-- 4 - Leche CRÍTICO -->
+      <tr data-stock="out" data-estatus="Activo">
+        <td>4</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box">🥛</div>
+            <div>
+              <div class="mp-name">Leche Entera</div>
+              <div class="mp-cat">Lácteos y grasas</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="unidad-chip">mililitros (ml)</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-out" style="width:4%"></div></div>
+            <span class="bar-val out">200 ml</span>
+          </div>
+        </td>
+        <td>5,000 ml</td>
+        <td><span class="merma-chip">🗑 0%</span></td>
+        <td><span class="badge badge-critical">Crítico</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Leche Entera')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <!-- 5 - Levadura OK -->
+      <tr data-stock="ok" data-estatus="Activo">
+        <td>5</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box">🧫</div>
+            <div>
+              <div class="mp-name">Levadura Seca</div>
+              <div class="mp-cat">Fermentantes</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="unidad-chip">gramos (g)</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-ok" style="width:55%"></div></div>
+            <span class="bar-val ok">550 g</span>
+          </div>
+        </td>
+        <td>100 g</td>
+        <td><span class="merma-chip">🗑 5%</span></td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Levadura Seca')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <!-- 6 - Huevo OK -->
+      <tr data-stock="ok" data-estatus="Activo">
+        <td>6</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box">🥚</div>
+            <div>
+              <div class="mp-name">Huevo</div>
+              <div class="mp-cat">Proteínas</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="unidad-chip">gramos (g)</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-ok" style="width:70%"></div></div>
+            <span class="bar-val ok">3,500 g</span>
+          </div>
+        </td>
+        <td>600 g</td>
+        <td><span class="merma-chip">🗑 4%</span></td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Huevo')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <!-- 7 - Vainilla CRÍTICO -->
+      <tr data-stock="out" data-estatus="Activo">
+        <td>7</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box">🫙</div>
+            <div>
+              <div class="mp-name">Esencia de Vainilla</div>
+              <div class="mp-cat">Saborizantes</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="unidad-chip">mililitros (ml)</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-out" style="width:6%"></div></div>
+            <span class="bar-val out">30 ml</span>
+          </div>
+        </td>
+        <td>500 ml</td>
+        <td><span class="merma-chip">🗑 0%</span></td>
+        <td><span class="badge badge-critical">Crítico</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Esencia de Vainilla')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <!-- 8 - Sal Inactiva -->
+      <tr data-stock="ok" data-estatus="Inactivo">
+        <td>8</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box" style="opacity:.5">🧂</div>
+            <div>
+              <div class="mp-name" style="opacity:.6">Sal de Mesa</div>
+              <div class="mp-cat">Condimentos</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="unidad-chip">gramos (g)</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-ok" style="width:90%"></div></div>
+            <span class="bar-val ok">4,500 g</span>
+          </div>
+        </td>
+        <td>200 g</td>
+        <td><span class="merma-chip">🗑 0%</span></td>
+        <td><span class="badge badge-inactive">Inactivo</span></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+            <button class="btn btn-success btn-sm btn-icon" data-tooltip="Reactivar"
+              style="background:#e2eede;color:#3a6034;border:1.5px solid #b2d4aa;"
+              onclick="openDelete('Sal de Mesa', true)">✅</button>
+          </div>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <div class="table-footer">
+    <p>Mostrando <span id="visibleCount">8</span> de 24 materias primas</p>
+    <div class="pagination">
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">3</div>
+      <div class="page-btn">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: AGREGAR MATERIA PRIMA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>➕ Nueva Materia Prima</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+
+        <div class="section-divider">Identificación</div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-input" placeholder="Ej. Harina de Trigo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select class="form-select">
+            <option value="">— Seleccionar —</option>
+            <option>Cereales y derivados</option>
+            <option>Lácteos y grasas</option>
+            <option>Endulzantes</option>
+            <option>Proteínas</option>
+            <option>Fermentantes</option>
+            <option>Saborizantes</option>
+            <option>Condimentos</option>
+            <option>Otros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estatus</label>
+          <select class="form-select">
+            <option>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+
+        <div class="section-divider">Unidad y Stock</div>
+
+        <div class="form-group">
+          <label class="form-label">Unidad Base</label>
+          <select class="form-select">
+            <option value="">— Seleccionar —</option>
+            <option>gramos (g)</option>
+            <option>mililitros (ml)</option>
+            <option>piezas (pza)</option>
+            <option>litros (l)</option>
+            <option>kilogramos (kg)</option>
+          </select>
+          <span class="form-hint">Unidad en la que se almacena internamente</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock Mínimo</label>
+          <input type="number" class="form-input" placeholder="Ej. 5000" min="0">
+          <span class="form-hint">Cantidad que dispara la alerta</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock Inicial</label>
+          <input type="number" class="form-input" placeholder="Ej. 40000" min="0">
+        </div>
+
+        <div class="section-divider">Merma</div>
+
+        <div class="info-box">
+          <span class="ii">ℹ️</span>
+          <span>La merma es el porcentaje de insumo que se pierde durante producción, manejo o desperdicio. Se aplica automáticamente al calcular consumos en recetas.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">% Merma de Producción</label>
+          <input type="number" class="form-input" placeholder="Ej. 3" min="0" max="100">
+          <span class="form-hint">Pérdida en el proceso productivo</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">% Merma de Manejo</label>
+          <input type="number" class="form-input" placeholder="Ej. 1" min="0" max="100">
+          <span class="form-hint">Pérdida en almacén / traslado</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">% Merma por Desperdicio</label>
+          <input type="number" class="form-input" placeholder="Ej. 1" min="0" max="100">
+          <span class="form-hint">Pérdida por caducidad u otros</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">% Merma Total (calculado)</label>
+          <input type="number" class="form-input" value="0" readonly
+            style="background:var(--warm-bg); color:var(--brown); font-weight:700;">
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: EDITAR MATERIA PRIMA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>✏️ Editar Materia Prima</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+
+        <div class="section-divider">Identificación</div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-input" value="Harina de Trigo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select class="form-select">
+            <option selected>Cereales y derivados</option>
+            <option>Lácteos y grasas</option>
+            <option>Endulzantes</option>
+            <option>Proteínas</option>
+            <option>Fermentantes</option>
+            <option>Saborizantes</option>
+            <option>Condimentos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estatus</label>
+          <select class="form-select">
+            <option selected>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+
+        <div class="section-divider">Unidad y Stock Mínimo</div>
+        <div class="form-group">
+          <label class="form-label">Unidad Base</label>
+          <select class="form-select">
+            <option selected>gramos (g)</option>
+            <option>mililitros (ml)</option>
+            <option>piezas (pza)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock Mínimo</label>
+          <input type="number" class="form-input" value="5000">
+        </div>
+
+        <div class="section-divider">Merma</div>
+        <div class="form-group">
+          <label class="form-label">% Merma de Producción</label>
+          <input type="number" class="form-input" value="3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">% Merma de Manejo</label>
+          <input type="number" class="form-input" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">% Merma por Desperdicio</label>
+          <input type="number" class="form-input" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">% Merma Total</label>
+          <input type="number" class="form-input" value="3" readonly
+            style="background:var(--warm-bg); color:var(--brown); font-weight:700;">
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: BAJA LÓGICA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header danger" id="delete-header">
+      <h2>🚫 Desactivar Materia Prima</h2>
+      <button class="modal-close" onclick="closeModal('modal-delete')">✕</button>
+    </div>
+    <div class="delete-body">
+      <div class="delete-icon" id="delete-icon">🚫</div>
+      <h3 id="delete-title">¿Desactivar este insumo?</h3>
+      <p>El insumo <strong id="delete-name">—</strong> no estará disponible para nuevas recetas ni compras.<br>Los movimientos históricos se conservan.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button>
+      <button class="btn btn-danger" id="delete-confirm-btn">🚫 Desactivar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  function openDelete(nombre, reactivar = false) {
+    document.getElementById('delete-name').textContent = nombre;
+    const hdr = document.getElementById('delete-header');
+    const ico = document.getElementById('delete-icon');
+    const ttl = document.getElementById('delete-title');
+    const btn = document.getElementById('delete-confirm-btn');
+    const txt = document.querySelector('#modal-delete .delete-body p');
+    if (reactivar) {
+      hdr.style.background = '#5a7a52';
+      ico.textContent = '✅'; ttl.textContent = '¿Reactivar este insumo?';
+      btn.textContent = '✅ Reactivar'; btn.className = 'btn btn-success';
+      txt.innerHTML = 'El insumo <strong>' + nombre + '</strong> volverá a estar disponible para recetas y compras.';
+    } else {
+      hdr.style.background = 'var(--rust)';
+      ico.textContent = '🚫'; ttl.textContent = '¿Desactivar este insumo?';
+      btn.textContent = '🚫 Desactivar'; btn.className = 'btn btn-danger';
+      txt.innerHTML = 'El insumo <strong>' + nombre + '</strong> no estará disponible para nuevas recetas ni compras.<br>Los movimientos históricos se conservan.';
+    }
+    openModal('modal-delete');
+  }
+
+  // Merma total = suma de los tres campos
+  document.querySelectorAll('.modal-body').forEach(body => {
+    const inputs = body.querySelectorAll('input[type=number]:not([readonly])');
+    inputs.forEach(inp => {
+      inp.addEventListener('input', () => {
+        const nums = [...body.querySelectorAll('input[type=number]:not([readonly])')];
+        if (nums.length >= 3) {
+          const total = nums.slice(-3).reduce((s, n) => s + (parseFloat(n.value) || 0), 0);
+          const totalInput = body.querySelector('input[readonly]');
+          if (totalInput) totalInput.value = total.toFixed(1);
+        }
+      });
+    });
+  });
+
+  function filterTable() {
+    const q   = document.getElementById('searchInput').value.toLowerCase();
+    const st  = document.getElementById('filterStock').value;
+    const est = document.getElementById('filterEstatus').value;
+    const rows = document.querySelectorAll('#mpTable tbody tr');
+    let visible = 0;
+    rows.forEach(row => {
+      const text    = row.textContent.toLowerCase();
+      const rowSt   = row.dataset.stock;
+      const rowEst  = row.dataset.estatus;
+      const show = (!q || text.includes(q)) && (!st || rowSt === st) && (!est || rowEst === est);
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+  }
+</script>
+
+<div style="height:40px"></div>
+{% endblock %}

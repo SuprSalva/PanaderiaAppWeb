@@ -1,0 +1,556 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700;900&display=swap');
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: scale(.8); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50%      { opacity: .35; }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+  }
+
+  .anim   { animation: fadeUp .4s ease both; }
+  .anim-1 { animation-delay: .06s; }
+  .anim-2 { animation-delay: .12s; }
+  .anim-3 { animation-delay: .18s; }
+  .anim-4 { animation-delay: .24s; }
+
+  /* ── TOPBAR ── */
+  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; gap: 12px; flex-wrap: wrap; }
+  .db-page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
+  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+  .db-breadcrumb span { color: var(--tan); }
+
+  /* ── PERIOD SELECTOR ── */
+  .period-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .period-btns { display: flex; gap: 4px; background: var(--warm-bg); border: 1px solid var(--tan); border-radius: 10px; padding: 4px; }
+  .period-btn { padding: 7px 16px; border-radius: 7px; border: none; font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700; color: var(--brown-lt); cursor: pointer; background: none; transition: all .2s; }
+  .period-btn:hover  { color: var(--brown-dk); }
+  .period-btn.active { background: var(--brown-dk); color: var(--cream); box-shadow: 0 2px 8px rgba(107,68,35,.3); }
+  .period-date { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .period-date input { padding: 7px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato',sans-serif; font-size: 12px; background: var(--white); color: var(--brown-dk); outline: none; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #5fca6a; animation: pulse 1.8s infinite; margin-right: 2px; }
+  .live-label { font-size: 11px; font-weight: 700; color: #3a6034; display: flex; align-items: center; gap: 5px; }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media(max-width:1200px){ .kpi-grid { grid-template-columns: repeat(3,1fr); } }
+
+  .kpi-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; padding: 18px; box-shadow: 0 2px 10px var(--shadow); transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden; }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px var(--shadow); }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+  .kpi-card.green::before  { background: #5a7a52; }
+  .kpi-card.rust::before   { background: var(--rust); }
+  .kpi-card.gold::before   { background: #c9950a; }
+  .kpi-card.brown::before  { background: var(--brown); }
+  .kpi-card.blue::before   { background: #4a80c4; }
+
+  .kpi-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 10px; }
+  .kpi-card.green .kpi-icon  { background: #e2eede; }
+  .kpi-card.rust  .kpi-icon  { background: #fce8df; }
+  .kpi-card.gold  .kpi-icon  { background: #fef3d0; }
+  .kpi-card.brown .kpi-icon  { background: #f3e8d8; }
+  .kpi-card.blue  .kpi-icon  { background: #e8f0fe; }
+
+  .kpi-val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--brown-dk); line-height: 1; animation: countUp .5s ease both; }
+  .kpi-label { font-size: 11px; color: var(--brown-lt); font-weight: 600; margin-top: 4px; }
+  .kpi-trend { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; margin-top: 8px; padding: 2px 8px; border-radius: 10px; }
+  .kpi-trend.up   { background: #e2eede; color: #3a6034; }
+  .kpi-trend.down { background: #fce8df; color: #9c3a1a; }
+  .kpi-trend.flat { background: #f3e8d8; color: var(--brown); }
+
+  /* ── CHARTS GRID ── */
+  .charts-grid-main { display: grid; grid-template-columns: 1.6fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .charts-grid-bot  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  @media(max-width:1100px){ .charts-grid-main,.charts-grid-bot { grid-template-columns:1fr; } }
+
+  /* ── CHART CARD ── */
+  .chart-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 3px 14px var(--shadow); overflow: hidden; }
+  .chart-header { padding: 16px 20px 12px; background: var(--warm-bg); border-bottom: 1px solid var(--tan); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .chart-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 7px; }
+  .chart-sub   { font-size: 11px; color: var(--brown-lt); margin-top: 2px; }
+  .chart-body  { padding: 16px 18px; }
+
+  /* ── LEGEND ── */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--brown-lt); font-weight: 600; }
+  .leg-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── PRODUCTO TABLE ── */
+  .prod-table { width: 100%; border-collapse: collapse; }
+  .prod-table thead { background: var(--warm-bg); }
+  .prod-table thead th { padding: 9px 14px; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: var(--brown); text-align: left; }
+  .prod-table tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
+  .prod-table tbody tr:hover { background: #fdf3e6; }
+  .prod-table tbody td { padding: 10px 14px; font-size: 12.5px; color: var(--text); vertical-align: middle; }
+  .rank-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--cream); }
+  .rank-1 { background: #c9950a; }
+  .rank-2 { background: var(--brown-lt); }
+  .rank-3 { background: #9c8070; }
+  .rank-n { background: var(--tan); color: var(--brown-lt); }
+  .sparkbar { display: flex; align-items: flex-end; gap: 2px; height: 22px; }
+  .sparkbar span { width: 5px; border-radius: 2px 2px 0 0; background: var(--brown-lt); transition: height .3s; }
+  .sparkbar span.peak { background: var(--brown-dk); }
+  .money { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--brown-dk); }
+  .pct-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .pct-up   { background: #e2eede; color: #3a6034; }
+  .pct-down { background: #fce8df; color: #9c3a1a; }
+
+  /* ── COMPARATIVO VENDEDOR ── */
+  .vend-comp { display: flex; flex-direction: column; gap: 12px; }
+  .vc-row { display: flex; align-items: center; gap: 10px; }
+  .vc-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--cream); flex-shrink: 0; }
+  .vc-name   { font-size: 12.5px; font-weight: 700; color: var(--brown-dk); flex: 1; }
+  .vc-bar-track { flex: 2; height: 8px; border-radius: 4px; background: var(--tan); overflow: hidden; }
+  .vc-bar-fill  { height: 100%; border-radius: 4px; }
+  .vc-monto  { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: var(--brown-dk); min-width: 60px; text-align: right; }
+
+  /* ── META PROGRESO ── */
+  .meta-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 3px 14px var(--shadow); padding: 20px; }
+  .meta-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .meta-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); }
+  .meta-pct { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--brown-dk); }
+  .meta-sub { font-size: 11px; color: var(--brown-lt); }
+
+  .donut-wrapper { position: relative; width: 130px; height: 130px; margin: 0 auto 12px; }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .donut-center-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--brown-dk); }
+  .donut-center-lbl { font-size: 10px; color: var(--brown-lt); font-weight: 700; }
+
+  /* ── HORA A HORA MINI ── */
+  .hora-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .hora-col  { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .hora-fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--brown-lt); transition: height .4s; min-height: 4px; }
+  .hora-fill.peak { background: var(--brown-dk); }
+  .hora-lbl  { font-size: 9px; color: var(--brown-lt); font-weight: 700; }
+  .hora-val  { font-size: 9px; font-weight: 700; color: var(--brown); }
+
+  /* ── ALERTA BANNER ── */
+  .alert-banner { background: linear-gradient(90deg,#fce8df,#f5d5c8); border: 1px solid #e8b09a; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: #9c3a1a; margin-bottom: 18px; }
+  .alert-banner .ii { font-size: 18px; flex-shrink: 0; }
+  .alert-banner strong { color: var(--rust); }
+</style>
+
+<!-- TOPBAR -->
+<div class="db-topbar anim">
+  <div>
+    <div class="db-page-title">📊 Dashboard de Ventas</div>
+    <div class="db-breadcrumb">Inicio <span>›</span> Reportes <span>›</span> Dashboard de Ventas</div>
+  </div>
+  <div class="live-label"><span class="live-dot"></span>En vivo · actualiza cada 60s</div>
+</div>
+
+<!-- PERIODO -->
+<div class="period-bar anim">
+  <div class="period-btns">
+    <button class="period-btn" onclick="setPeriod(this,'hoy')">Hoy</button>
+    <button class="period-btn" onclick="setPeriod(this,'semana')">Esta semana</button>
+    <button class="period-btn active" onclick="setPeriod(this,'mes')">Este mes</button>
+    <button class="period-btn" onclick="setPeriod(this,'año')">Este año</button>
+  </div>
+  <div class="period-date">
+    <input type="date" value="2026-03-01">
+    <span style="font-size:12px;color:var(--brown-lt);">—</span>
+    <input type="date" value="2026-03-04">
+  </div>
+</div>
+
+<!-- ALERTA -->
+<div class="alert-banner anim">
+  <span class="ii">⚠️</span>
+  <span>Stock bajo en <strong>Dona Glaseada (6 pzas)</strong> y <strong>Pan de Chocolate (9 pzas)</strong>. Se recomienda solicitar producción antes de que se agoten.</span>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid anim anim-1">
+  <div class="kpi-card green">
+    <div class="kpi-icon">💵</div>
+    <div class="kpi-val">$52,840</div>
+    <div class="kpi-label">Ventas del Mes</div>
+    <div class="kpi-trend up">↑ 12% vs mes anterior</div>
+  </div>
+  <div class="kpi-card brown">
+    <div class="kpi-icon">🧾</div>
+    <div class="kpi-val">481</div>
+    <div class="kpi-label">Tickets Emitidos</div>
+    <div class="kpi-trend up">↑ 8% vs mes anterior</div>
+  </div>
+  <div class="kpi-card gold">
+    <div class="kpi-icon">🍞</div>
+    <div class="kpi-val">3,624</div>
+    <div class="kpi-label">Piezas Vendidas</div>
+    <div class="kpi-trend up">↑ 15% vs mes anterior</div>
+  </div>
+  <div class="kpi-card blue">
+    <div class="kpi-icon">💳</div>
+    <div class="kpi-val">$109.85</div>
+    <div class="kpi-label">Ticket Promedio</div>
+    <div class="kpi-trend flat">→ igual vs mes anterior</div>
+  </div>
+  <div class="kpi-card rust">
+    <div class="kpi-icon">↩️</div>
+    <div class="kpi-val">18</div>
+    <div class="kpi-label">Cancelaciones</div>
+    <div class="kpi-trend down">↑ 3 más que mes anterior</div>
+  </div>
+</div>
+
+<!-- CHARTS MAIN -->
+<div class="charts-grid-main anim anim-2">
+
+  <!-- VENTAS POR DÍA -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">📅 Ventas Diarias — Marzo 2026</div>
+        <div class="chart-sub">Ingresos por día vs semana anterior</div>
+      </div>
+      <div class="legend">
+        <div class="leg-item"><span class="leg-dot" style="background:var(--brown-dk)"></span>Este mes</div>
+        <div class="leg-item"><span class="leg-dot" style="background:var(--tan)"></span>Semana ant.</div>
+      </div>
+    </div>
+    <div class="chart-body">
+      <div id="chart-ventas-dia" style="min-height:240px"></div>
+    </div>
+  </div>
+
+  <!-- DISTRIBUCIÓN PAGO -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">💳 Forma de Pago</div>
+        <div class="chart-sub">Distribución del mes</div>
+      </div>
+    </div>
+    <div class="chart-body">
+      <div id="chart-pago" style="min-height:240px"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CHARTS BOTTOM -->
+<div class="charts-grid-bot anim anim-3">
+
+  <!-- TOP PRODUCTOS -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">🏆 Top Productos</div>
+    </div>
+    <div class="chart-body" style="padding:0">
+      <table class="prod-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Producto</th>
+            <th>Piezas</th>
+            <th>Ingresos</th>
+            <th>vs ant.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="rank-badge rank-1">1</div></td>
+            <td><strong>🍞 Concha de Vainilla</strong></td>
+            <td>1,248<div class="sparkbar"><span style="height:6px" class="peak"></span><span style="height:10px"></span><span style="height:14px"></span><span style="height:10px"></span><span style="height:18px" class="peak"></span><span style="height:14px"></span><span style="height:22px" class="peak"></span></div></td>
+            <td><span class="money">$27,456</span></td>
+            <td><span class="pct-pill pct-up">↑ 18%</span></td>
+          </tr>
+          <tr>
+            <td><div class="rank-badge rank-2">2</div></td>
+            <td><strong>🥖 Bolillo Relleno</strong></td>
+            <td>936<div class="sparkbar"><span style="height:8px"></span><span style="height:12px" class="peak"></span><span style="height:9px"></span><span style="height:15px" class="peak"></span><span style="height:11px"></span><span style="height:16px" class="peak"></span><span style="height:13px"></span></div></td>
+            <td><span class="money">$16,848</span></td>
+            <td><span class="pct-pill pct-up">↑ 9%</span></td>
+          </tr>
+          <tr>
+            <td><div class="rank-badge rank-3">3</div></td>
+            <td><strong>🥐 Cuernito Mant.</strong></td>
+            <td>624<div class="sparkbar"><span style="height:10px" class="peak"></span><span style="height:8px"></span><span style="height:12px"></span><span style="height:7px"></span><span style="height:14px" class="peak"></span><span style="height:9px"></span><span style="height:11px"></span></div></td>
+            <td><span class="money">$17,472</span></td>
+            <td><span class="pct-pill pct-up">↑ 6%</span></td>
+          </tr>
+          <tr>
+            <td><div class="rank-badge rank-n">4</div></td>
+            <td><strong>🍫 Pan de Chocolate</strong></td>
+            <td>480<div class="sparkbar"><span style="height:12px"></span><span style="height:9px"></span><span style="height:15px" class="peak"></span><span style="height:11px"></span><span style="height:8px"></span><span style="height:13px" class="peak"></span><span style="height:6px"></span></div></td>
+            <td><span class="money">$12,000</span></td>
+            <td><span class="pct-pill pct-down">↓ 4%</span></td>
+          </tr>
+          <tr>
+            <td><div class="rank-badge rank-n">5</div></td>
+            <td><strong>🍩 Dona Glaseada</strong></td>
+            <td>336<div class="sparkbar"><span style="height:8px"></span><span style="height:14px" class="peak"></span><span style="height:10px"></span><span style="height:6px"></span><span style="height:12px"></span><span style="height:9px"></span><span style="height:11px"></span></div></td>
+            <td><span class="money">$6,720</span></td>
+            <td><span class="pct-pill pct-down">↓ 12%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VENDEDORAS -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">👤 Por Vendedor</div>
+    </div>
+    <div class="chart-body">
+      <div class="vend-comp">
+        <div class="vc-row">
+          <div class="vc-avatar" style="background:var(--brown-dk)">LR</div>
+          <div style="flex:1">
+            <div class="vc-name">Laura Reyes</div>
+            <div style="font-size:11px;color:var(--brown-lt)">274 tickets</div>
+            <div class="vc-bar-track" style="margin-top:5px"><div class="vc-bar-fill" style="width:62%;background:var(--brown-dk)"></div></div>
+          </div>
+          <span class="vc-monto">$32,760</span>
+        </div>
+        <div class="vc-row">
+          <div class="vc-avatar" style="background:var(--brown)">MC</div>
+          <div style="flex:1">
+            <div class="vc-name">Mariana Cortés</div>
+            <div style="font-size:11px;color:var(--brown-lt)">207 tickets</div>
+            <div class="vc-bar-track" style="margin-top:5px"><div class="vc-bar-fill" style="width:38%;background:var(--brown)"></div></div>
+          </div>
+          <span class="vc-monto">$20,080</span>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;border-top:1px solid var(--tan);padding-top:14px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:10px;">Ticket promedio por vendedor</div>
+        <div id="chart-vendedor" style="min-height:130px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HORA A HORA -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">⏰ Ventas por Hora</div>
+      <span style="font-size:11px;color:var(--brown-lt)">Promedio del mes</span>
+    </div>
+    <div class="chart-body">
+      <div id="chart-hora" style="min-height:220px"></div>
+      <div style="margin-top:14px;background:var(--warm-bg);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;">
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--brown-lt)">HORA PICO</div>
+          <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--brown-dk)">10:00 am</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--brown-lt)">HORA BAJA</div>
+          <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--brown-dk)">14:00 pm</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--brown-lt)">PROMEDIO/HORA</div>
+          <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--brown-dk)">$6,605</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- META + CANCELACIONES -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px" class="anim anim-4">
+
+  <!-- META MES -->
+  <div class="meta-card">
+    <div class="meta-header">
+      <div>
+        <div class="meta-title">🎯 Meta Mensual</div>
+        <div style="font-size:11px;color:var(--brown-lt);margin-top:2px;">Avance al 04/03/2026</div>
+      </div>
+      <div style="text-align:right">
+        <div class="meta-pct">70%</div>
+        <div class="meta-sub">$52,840 de $75,000</div>
+      </div>
+    </div>
+    <div id="chart-meta" style="min-height:80px"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;">
+      <div style="background:var(--warm-bg);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:3px;">Días restantes</div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--brown-dk)">27</div>
+      </div>
+      <div style="background:#e2eede;border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#3a6034;margin-bottom:3px;">Falta para meta</div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#3a6034">$22,160</div>
+      </div>
+      <div style="background:var(--warm-bg);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:3px;">Diario requerido</div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--brown-dk)">$821</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCELACIONES + DEVOLUCIONES -->
+  <div class="meta-card">
+    <div class="meta-header">
+      <div>
+        <div class="meta-title">↩️ Cancelaciones del Mes</div>
+        <div style="font-size:11px;color:var(--brown-lt);margin-top:2px;">18 cancelaciones · $1,976 perdidos</div>
+      </div>
+    </div>
+    <div id="chart-cancelaciones" style="min-height:80px"></div>
+    <div style="margin-top:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:8px;">Por motivo</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+          <span style="width:10px;height:10px;border-radius:2px;background:var(--rust);flex-shrink:0"></span>
+          <span style="flex:1;color:var(--brown-dk);font-weight:600">Error del vendedor</span>
+          <span style="font-weight:700;color:var(--rust)">8 (44%)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+          <span style="width:10px;height:10px;border-radius:2px;background:#c9950a;flex-shrink:0"></span>
+          <span style="flex:1;color:var(--brown-dk);font-weight:600">Solicitud del cliente</span>
+          <span style="font-weight:700;color:#c9950a">6 (33%)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+          <span style="width:10px;height:10px;border-radius:2px;background:var(--brown-lt);flex-shrink:0"></span>
+          <span style="flex:1;color:var(--brown-dk);font-weight:600">Producto agotado</span>
+          <span style="font-weight:700;color:var(--brown-lt)">4 (22%)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- APEXCHARTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js"></script>
+<script>
+  const brown    = '#6b4423';
+  const brownLt  = '#c8a97e';
+  const tan      = '#e8d5b7';
+  const rust     = '#c0522a';
+  const cream    = '#fdf6ec';
+  const green    = '#5a7a52';
+  const gold     = '#c9950a';
+  const blue     = '#4a80c4';
+
+  const fontFamily = "'Lato', sans-serif";
+  const baseChart = {
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    fontFamily,
+    foreColor: brownLt,
+  };
+
+  // ── VENTAS DIARIAS (bar + line) ──
+  const dias = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'];
+  const ventasMes    = [3800,4100,3600,4250,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  const ventasAnt    = [3200,3900,3400,4000,3700,4200,3100,3800,4100,3600,3900,3200,4000,4300,3700,3500,4100,3800,3600,4200,3900,3300,4000,4100,3700,4400,3800,3500,4200,3900,4100];
+
+  new ApexCharts(document.getElementById('chart-ventas-dia'), {
+    ...baseChart,
+    chart: { ...baseChart, type: 'bar', height: 240, stacked: false },
+    series: [
+      { name: 'Este mes', type: 'bar',  data: ventasMes.slice(0,4)  },
+      { name: 'Mes ant.', type: 'line', data: ventasAnt.slice(0,4)  },
+    ],
+    xaxis: { categories: dias.slice(0,4), labels: { style: { fontSize:'11px' } } },
+    yaxis: { labels: { formatter: v => '$' + (v/1000).toFixed(1) + 'k', style: { fontSize:'11px' } } },
+    colors: [brown, tan],
+    plotOptions: { bar: { borderRadius: 5, columnWidth: '55%' } },
+    stroke:  { width: [0, 2.5], curve: 'smooth' },
+    markers: { size: [0, 4] },
+    fill:    { opacity: [1, 1] },
+    tooltip: { y: { formatter: v => '$' + v.toLocaleString() } },
+    grid:  { borderColor: tan },
+    legend: { show: false },
+  }).render();
+
+  // ── FORMAS DE PAGO (donut) ──
+  new ApexCharts(document.getElementById('chart-pago'), {
+    ...baseChart,
+    chart: { ...baseChart, type: 'donut', height: 240 },
+    series: [58, 30, 12],
+    labels: ['Efectivo 💵', 'Tarjeta 💳', 'Transferencia 🔁'],
+    colors: [brown, blue, gold],
+    plotOptions: { pie: { donut: { size: '65%', labels: {
+      show: true,
+      total: { show: true, label: 'Total', color: brown,
+        formatter: () => '$52,840' }
+    }}}},
+    dataLabels: { enabled: true, style: { fontSize: '11px' }, formatter: (val) => val.toFixed(0) + '%' },
+    legend: { position: 'bottom', fontSize: '11px' },
+    tooltip: { y: { formatter: v => v + '%' } },
+  }).render();
+
+  // ── TICKET PROMEDIO VENDEDOR (bar horizontal) ──
+  new ApexCharts(document.getElementById('chart-vendedor'), {
+    ...baseChart,
+    chart: { ...baseChart, type: 'bar', height: 130 },
+    series: [{ name: 'Ticket promedio', data: [119.56, 97.00] }],
+    xaxis: { categories: ['Laura R.', 'Mariana C.'], labels: { style: { fontSize:'11px' } } },
+    yaxis: { labels: { formatter: v => '$' + v, style: { fontSize:'11px' } } },
+    colors: [brown],
+    plotOptions: { bar: { borderRadius: 5, columnWidth: '45%' } },
+    dataLabels: { enabled: true, formatter: v => '$' + v.toFixed(0), style: { fontSize:'11px', colors:[cream] } },
+    grid: { borderColor: tan },
+    legend: { show: false },
+    tooltip: { y: { formatter: v => '$' + v } },
+  }).render();
+
+  // ── HORA A HORA ──
+  new ApexCharts(document.getElementById('chart-hora'), {
+    ...baseChart,
+    chart: { ...baseChart, type: 'area', height: 220 },
+    series: [{ name: 'Ventas', data: [1200, 2800, 5600, 7200, 8400, 6800, 4200, 3100, 2600, 1800] }],
+    xaxis: { categories: ['07h','08h','09h','10h','11h','12h','13h','14h','15h','16h'], labels: { style: { fontSize:'10px' } } },
+    yaxis: { labels: { formatter: v => '$' + (v/1000).toFixed(1) + 'k', style: { fontSize:'10px' } } },
+    colors: [brown],
+    fill:   { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: .55, opacityTo: .05 } },
+    stroke: { curve: 'smooth', width: 2.5 },
+    markers: { size: 3 },
+    grid:  { borderColor: tan },
+    tooltip: { y: { formatter: v => '$' + v.toLocaleString() } },
+    legend: { show: false },
+  }).render();
+
+  // ── META MES (progress radial) ──
+  new ApexCharts(document.getElementById('chart-meta'), {
+    ...baseChart,
+    chart: { ...baseChart, type: 'radialBar', height: 90, sparkline: { enabled: true } },
+    series: [70],
+    plotOptions: { radialBar: {
+      startAngle: -135, endAngle: 135,
+      hollow: { size: '55%' },
+      track: { background: tan },
+      dataLabels: { value: { show: true, fontSize: '16px', fontFamily: "'Playfair Display',serif", fontWeight: 700, color: brown, offsetY: -4, formatter: v => v + '%' }, name: { show: false } }
+    }},
+    colors: [green],
+  }).render();
+
+  // ── CANCELACIONES (trend sparkline) ──
+  new ApexCharts(document.getElementById('chart-cancelaciones'), {
+    ...baseChart,
+    chart: { ...baseChart, type: 'area', height: 80, sparkline: { enabled: true } },
+    series: [{ name: 'Cancelaciones', data: [2,1,3,0,2,1,4,2,0,1,2,3,1,0,2,1,0,3] }],
+    stroke: { curve: 'smooth', width: 2 },
+    fill:   { type: 'gradient', gradient: { opacityFrom: .4, opacityTo: .05 } },
+    colors: [rust],
+    tooltip: { fixed: { enabled: false }, y: { formatter: v => v + ' cancelaciones' } },
+  }).render();
+
+  // ── PERIOD SWITCH ──
+  function setPeriod(el, period) {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+
+<div style="height:40px"></div>
+{% endblock %}

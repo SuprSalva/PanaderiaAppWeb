@@ -29,7 +29,61 @@ def login():
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard.html")
+    return render_template("dashboardVentas.html")
+
+@app.route("/usuarios")
+def usuarios():
+    return render_template("usuarios/usuarios.html")
+
+@app.route("/proveedores")
+def proveedores():
+    return render_template("proveedores/proveedores.html")
+
+@app.route("/materias-primas")
+def materias_primas():
+    return render_template("proveedores/materiasPrimas/materiasPrimas.html")
+
+@app.route("/compras")
+def compras():
+    return render_template("compras/compras.html")
+
+@app.route("/recetas")
+def recetas():
+    return render_template("recetas/recetas.html")
+
+@app.route("/produccion")
+def produccion():
+    return render_template("produccion/produccion.html")
+
+@app.route("/producto-terminado")
+def producto_terminado():
+    return render_template("productoTerminado/productoTerminado.html")
+
+@app.route("/produccion-solicitud")
+def produccion_solicitud():
+    return render_template("produccion/solicitudes.html")
+
+@app.route("/ventas")
+def ventas():
+    return render_template("ventas/ventas.html")
+
+@app.route("/corte-ventas")
+def corte_ventas():
+    return render_template("ventas/corteVentas.html")
+
+@app.route("/salida-efectivo")
+def salida_efectivo():
+    return render_template("efectivo/salidaEfectivo.html")
+
+
+@app.route("/costoUtilidad")
+def costo_utilidad():
+    return render_template("costoUtilidad/costoUtilidad.html")
+
+@app.route("/utilidad")
+def utilidad():
+    return render_template("costoUtilidad/utilidad.html")
+
 
 @app.route("/usuarios/registrar", methods=['GET', 'POST'])
 def registrar_usuario():

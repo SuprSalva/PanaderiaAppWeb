@@ -1,0 +1,572 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim   { animation: fadeUp .35s ease both; }
+  .anim-1 { animation-delay: .05s; }
+  .anim-2 { animation-delay: .10s; }
+  .anim-3 { animation-delay: .15s; }
+
+  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
+  .db-page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
+  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+  .db-breadcrumb span { color: var(--tan); }
+
+  /* ── STATS ── */
+  .v-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+  .v-stat { background: var(--white); border: 1px solid var(--tan); border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px var(--shadow); display: flex; align-items: center; gap: 12px; transition: transform .2s; }
+  .v-stat:hover { transform: translateY(-2px); }
+  .v-stat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+  .v-stat-icon.brown { background: #f3e8d8; }
+  .v-stat-icon.green { background: #e2eede; }
+  .v-stat-icon.gold  { background: #fef3d0; }
+  .v-stat-icon.rust  { background: #fce8df; }
+  .v-stat-val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
+  .v-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
+
+  /* ── TOOLBAR ── */
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input { width: 100%; padding: 9px 14px 9px 38px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; background: var(--white); color: var(--text); outline: none; transition: border .2s; box-sizing: border-box; }
+  .search-wrap input:focus { border-color: var(--brown); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
+  .filter-select { padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13px; background: var(--white); color: var(--text); outline: none; cursor: pointer; }
+
+  /* ── TABLE ── */
+  .table-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--warm-bg); }
+  thead th { padding: 12px 16px; font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown); text-align: left; white-space: nowrap; }
+  thead th:first-child { padding-left: 22px; }
+  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
+  tbody tr:hover { background: #fdf3e6; }
+  tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
+  tbody td:first-child { padding-left: 22px; }
+
+  .folio-chip { font-family: monospace; font-size: 12px; font-weight: 700; background: var(--warm-bg); color: var(--brown-dk); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tan); }
+  .money { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--brown-dk); }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-efectivo  { background: #e2eede; color: #3a6034; }
+  .badge-tarjeta   { background: #e8f0fe; color: #1a56a0; }
+  .badge-transferencia { background: #fef3d0; color: #8a6200; }
+  .badge-cancelada { background: #ebebeb; color: #666; }
+
+  .items-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--warm-bg); color: var(--brown); border: 1px solid var(--tan); padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 700; }
+
+  .actions-cell { display: flex; gap: 6px; }
+  .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+  .table-footer p { font-size: 12px; color: var(--brown-lt); }
+  .pagination { display: flex; gap: 4px; }
+  .page-btn { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); transition: all .15s; }
+  .page-btn:hover { background: var(--warm-bg); }
+  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 700px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
+  .modal-xl { max-width: 860px; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); display: flex; align-items: center; gap: 10px; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 0; max-height: 80vh; overflow-y: auto; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+
+  /* ── PUNTO DE VENTA ── */
+  .pos-layout { display: grid; grid-template-columns: 1fr 340px; height: 100%; }
+
+  /* catálogo */
+  .pos-catalog { padding: 20px; border-right: 1px solid var(--tan); }
+  .pos-cat-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); margin-bottom: 12px; }
+  .pos-search { width: 100%; padding: 8px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13px; background: var(--cream); outline: none; transition: border .2s; box-sizing: border-box; margin-bottom: 12px; }
+  .pos-search:focus { border-color: var(--brown); }
+  .prod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .prod-btn { background: var(--white); border: 1.5px solid var(--tan); border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all .2s; }
+  .prod-btn:hover { border-color: var(--brown); background: var(--warm-bg); transform: translateY(-1px); }
+  .prod-btn:active { transform: translateY(0); }
+  .prod-btn.agotado { opacity: .4; cursor: not-allowed; pointer-events: none; }
+  .pb-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+  .pb-name  { font-size: 11.5px; font-weight: 700; color: var(--brown-dk); line-height: 1.2; }
+  .pb-price { font-size: 12px; font-weight: 700; color: var(--brown); margin-top: 3px; }
+  .pb-stock { font-size: 10px; color: var(--brown-lt); }
+
+  /* carrito */
+  .pos-cart { display: flex; flex-direction: column; background: var(--cream); }
+  .cart-header { padding: 16px 18px 10px; border-bottom: 1px solid var(--tan); }
+  .cart-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); }
+  .cart-items { flex: 1; overflow-y: auto; padding: 10px 14px; min-height: 200px; max-height: 280px; }
+  .cart-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; color: var(--brown-lt); font-size: 12.5px; gap: 8px; }
+  .cart-item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--tan); }
+  .cart-item:last-child { border-bottom: none; }
+  .ci-name  { font-size: 12.5px; font-weight: 700; color: var(--brown-dk); }
+  .ci-price { font-size: 11px; color: var(--brown-lt); }
+  .qty-ctrl { display: flex; align-items: center; gap: 4px; }
+  .qty-btn  { width: 22px; height: 22px; border-radius: 5px; border: 1.5px solid var(--tan); background: var(--white); font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--brown); transition: all .15s; line-height: 1; }
+  .qty-btn:hover { background: var(--warm-bg); border-color: var(--brown); }
+  .qty-val  { font-size: 13px; font-weight: 700; color: var(--brown-dk); min-width: 18px; text-align: center; }
+  .ci-sub   { font-size: 13px; font-weight: 700; color: var(--brown-dk); min-width: 55px; text-align: right; font-family: 'Playfair Display', serif; }
+  .ci-del   { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--brown-lt); padding: 2px 4px; border-radius: 4px; transition: color .15s; }
+  .ci-del:hover { color: var(--rust); }
+
+  .cart-totals { padding: 12px 14px; border-top: 1px solid var(--tan); background: var(--white); }
+  .ct-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; }
+  .ct-row.total { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--brown-dk); padding-top: 8px; border-top: 1px solid var(--tan); margin-top: 5px; }
+  .ct-label { color: var(--brown-lt); }
+  .ct-row.total .ct-label { color: var(--brown-dk); }
+
+  .cart-pago { padding: 12px 14px; border-top: 1px solid var(--tan); }
+  .pago-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); margin-bottom: 8px; }
+  .pago-btns  { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 10px; }
+  .pago-btn   { padding: 8px 4px; border-radius: 8px; border: 1.5px solid var(--tan); background: var(--white); font-family: 'Lato',sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; transition: all .2s; color: var(--brown); }
+  .pago-btn:hover   { background: var(--warm-bg); }
+  .pago-btn.selected { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  .efectivo-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .efe-label { font-size: 12px; color: var(--brown); min-width: 70px; }
+  .efe-input { flex: 1; padding: 7px 10px; border: 1.5px solid var(--tan); border-radius: 7px; font-family: 'Lato',sans-serif; font-size: 13px; font-weight: 700; color: var(--brown-dk); background: var(--cream); outline: none; }
+  .efe-input:focus { border-color: var(--brown); }
+  .cambio-box { background: #e2eede; border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: #3a6034; margin-bottom: 10px; }
+
+  .btn-cobrar { width: 100%; padding: 13px; border-radius: 10px; background: var(--brown-dk); color: var(--cream); font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: background .2s; letter-spacing: .5px; }
+  .btn-cobrar:hover { background: var(--brown); }
+  .btn-cobrar:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── TICKET ── */
+  .ticket { background: var(--white); border: 2px dashed var(--tan); border-radius: 12px; padding: 22px; max-width: 340px; margin: 0 auto; font-family: 'Courier New', monospace; }
+  .ticket-logo   { text-align: center; font-size: 28px; margin-bottom: 4px; }
+  .ticket-shop   { text-align: center; font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--brown-dk); }
+  .ticket-sub    { text-align: center; font-size: 11px; color: var(--brown-lt); margin-bottom: 14px; }
+  .ticket-div    { border-top: 1px dashed var(--tan); margin: 10px 0; }
+  .ticket-meta   { font-size: 11px; color: var(--brown-lt); margin-bottom: 10px; }
+  .ticket-meta span { color: var(--brown-dk); font-weight: 700; }
+  .ticket-row    { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; }
+  .ticket-row .nm  { color: var(--brown-dk); font-weight: 600; }
+  .ticket-row .pr  { font-weight: 700; color: var(--brown-dk); }
+  .ticket-total  { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; color: var(--brown-dk); padding: 8px 0 4px; }
+  .ticket-cambio { display: flex; justify-content: space-between; font-size: 13px; color: #3a6034; font-weight: 700; }
+  .ticket-thanks { text-align: center; font-size: 12px; color: var(--brown-lt); margin-top: 14px; font-family: 'Lato', sans-serif; }
+
+  /* ── DETALLE HISTORIAL ── */
+  .det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; padding: 0 26px; }
+  .det-item label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); display: block; margin-bottom: 3px; }
+  .det-item span  { font-size: 13.5px; color: var(--brown-dk); font-weight: 600; }
+
+  .det-items-table { width: 100%; border-collapse: collapse; }
+  .det-items-table thead { background: var(--warm-bg); }
+  .det-items-table thead th { padding: 9px 16px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown); text-align: left; }
+  .det-items-table tbody tr { border-top: 1px solid var(--tan); }
+  .det-items-table tbody td { padding: 10px 16px; font-size: 13px; }
+</style>
+
+<!-- TOPBAR -->
+<div class="db-topbar anim">
+  <div>
+    <div class="db-page-title">🏷️ Ventas</div>
+    <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Ventas</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modal-venta')">🛒 Nueva Venta</button>
+</div>
+
+<!-- STATS -->
+<div class="v-stats anim anim-1">
+  <div class="v-stat">
+    <div class="v-stat-icon green">💵</div>
+    <div><div class="v-stat-val">$4,250</div><div class="v-stat-lbl">Ventas Hoy</div></div>
+  </div>
+  <div class="v-stat">
+    <div class="v-stat-icon brown">🧾</div>
+    <div><div class="v-stat-val">38</div><div class="v-stat-lbl">Tickets Hoy</div></div>
+  </div>
+  <div class="v-stat">
+    <div class="v-stat-icon gold">📦</div>
+    <div><div class="v-stat-val">287</div><div class="v-stat-lbl">Piezas Vendidas</div></div>
+  </div>
+  <div class="v-stat">
+    <div class="v-stat-icon rust">↩️</div>
+    <div><div class="v-stat-val">2</div><div class="v-stat-lbl">Cancelaciones</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar anim anim-2">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Buscar por folio o vendedor…" id="searchInput" oninput="filterTable()">
+  </div>
+  <input type="date" class="filter-select" title="Filtrar fecha">
+  <select class="filter-select" id="filterPago" onchange="filterTable()">
+    <option value="">Todas las formas de pago</option>
+    <option value="efectivo">Efectivo</option>
+    <option value="tarjeta">Tarjeta</option>
+    <option value="transferencia">Transferencia</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<div class="table-card anim anim-3">
+  <table id="ventasTable">
+    <thead>
+      <tr>
+        <th>Folio</th>
+        <th>Fecha / Hora</th>
+        <th>Productos</th>
+        <th>Total</th>
+        <th>Pago</th>
+        <th>Cambio</th>
+        <th>Vendedor</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-pago="efectivo">
+        <td><span class="folio-chip">V-0201</span></td>
+        <td>Hoy 11:42</td>
+        <td><span class="items-pill">🍞×3 🥐×2</span></td>
+        <td><span class="money">$122.00</span></td>
+        <td><span class="badge badge-efectivo">💵 Efectivo</span></td>
+        <td>$28.00</td>
+        <td>Laura R.</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
+        </div></td>
+      </tr>
+      <tr data-pago="tarjeta">
+        <td><span class="folio-chip">V-0200</span></td>
+        <td>Hoy 11:15</td>
+        <td><span class="items-pill">🍩×5 🍫×2</span></td>
+        <td><span class="money">$155.50</span></td>
+        <td><span class="badge badge-tarjeta">💳 Tarjeta</span></td>
+        <td>—</td>
+        <td>Mariana C.</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
+        </div></td>
+      </tr>
+      <tr data-pago="efectivo">
+        <td><span class="folio-chip">V-0199</span></td>
+        <td>Hoy 10:50</td>
+        <td><span class="items-pill">🥖×6</span></td>
+        <td><span class="money">$108.00</span></td>
+        <td><span class="badge badge-efectivo">💵 Efectivo</span></td>
+        <td>$2.00</td>
+        <td>Laura R.</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
+        </div></td>
+      </tr>
+      <tr data-pago="transferencia">
+        <td><span class="folio-chip">V-0198</span></td>
+        <td>Hoy 10:20</td>
+        <td><span class="items-pill">🥐×4 🍞×4 🍩×2</span></td>
+        <td><span class="money">$288.00</span></td>
+        <td><span class="badge badge-transferencia">🔁 Transferencia</span></td>
+        <td>—</td>
+        <td>Mariana C.</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
+        </div></td>
+      </tr>
+      <tr data-pago="efectivo">
+        <td><span class="folio-chip">V-0197</span></td>
+        <td>Hoy 09:55</td>
+        <td><span class="items-pill">🍞×8</span></td>
+        <td><span class="money">$176.00</span></td>
+        <td><span class="badge badge-efectivo">💵 Efectivo</span></td>
+        <td>$24.00</td>
+        <td>Laura R.</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
+        </div></td>
+      </tr>
+      <tr data-pago="tarjeta">
+        <td><span class="folio-chip">V-0196</span></td>
+        <td>Hoy 09:30</td>
+        <td><span class="items-pill">🥐×2 🍫×3</span></td>
+        <td><span class="money">$131.00</span></td>
+        <td><span class="badge badge-tarjeta">💳 Tarjeta</span></td>
+        <td>—</td>
+        <td>Mariana C.</td>
+        <td><div class="actions-cell">
+          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
+        </div></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="table-footer">
+    <p>Mostrando <span id="visibleCount">6</span> de 38 ventas hoy</p>
+    <div class="pagination">
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">3</div>
+      <div class="page-btn">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: NUEVA VENTA (POS)
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-venta">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h2>🛒 Nueva Venta</h2>
+      <button class="modal-close" onclick="closeModal('modal-venta')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="pos-layout">
+
+        <!-- CATÁLOGO -->
+        <div class="pos-catalog">
+          <div class="pos-cat-title">Selecciona productos</div>
+          <input type="text" class="pos-search" placeholder="Buscar producto…" oninput="filtrarProductos(this.value)">
+          <div class="prod-grid" id="prodGrid">
+            <div class="prod-btn" onclick="addToCart('Concha de Vainilla','🍞',22.00,96)">
+              <span class="pb-emoji">🍞</span>
+              <div class="pb-name">Concha de Vainilla</div>
+              <div class="pb-price">$22.00</div>
+              <div class="pb-stock">96 pzas</div>
+            </div>
+            <div class="prod-btn" onclick="addToCart('Cuernito Mantequilla','🥐',28.00,75)">
+              <span class="pb-emoji">🥐</span>
+              <div class="pb-name">Cuernito Mantequilla</div>
+              <div class="pb-price">$28.00</div>
+              <div class="pb-stock">75 pzas</div>
+            </div>
+            <div class="prod-btn" onclick="addToCart('Bolillo Relleno','🥖',18.00,60)">
+              <span class="pb-emoji">🥖</span>
+              <div class="pb-name">Bolillo Relleno</div>
+              <div class="pb-price">$18.00</div>
+              <div class="pb-stock">60 pzas</div>
+            </div>
+            <div class="prod-btn" onclick="addToCart('Dona Glaseada','🍩',20.00,6)">
+              <span class="pb-emoji">🍩</span>
+              <div class="pb-name">Dona Glaseada</div>
+              <div class="pb-price">$20.00</div>
+              <div class="pb-stock" style="color:#c9950a">⚠️ 6 pzas</div>
+            </div>
+            <div class="prod-btn" onclick="addToCart('Pan de Chocolate','🍫',25.00,9)">
+              <span class="pb-emoji">🍫</span>
+              <div class="pb-name">Pan de Chocolate</div>
+              <div class="pb-price">$25.00</div>
+              <div class="pb-stock" style="color:#c9950a">⚠️ 9 pzas</div>
+            </div>
+            <div class="prod-btn agotado">
+              <span class="pb-emoji">🥐</span>
+              <div class="pb-name">Cuernito de Canela</div>
+              <div class="pb-price">$26.00</div>
+              <div class="pb-stock" style="color:var(--rust)">🚫 Agotado</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARRITO -->
+        <div class="pos-cart">
+          <div class="cart-header">
+            <div class="cart-title">🧾 Ticket</div>
+          </div>
+          <div class="cart-items" id="cartItems">
+            <div class="cart-empty" id="cartEmpty">
+              <span style="font-size:28px">🛒</span>
+              <span>Agrega productos al ticket</span>
+            </div>
+          </div>
+          <div class="cart-totals">
+            <div class="ct-row"><span class="ct-label">Subtotal</span><span id="ct-sub">$0.00</span></div>
+            <div class="ct-row total"><span class="ct-label">Total</span><span id="ct-total">$0.00</span></div>
+          </div>
+          <div class="cart-pago">
+            <div class="pago-label">Forma de Pago</div>
+            <div class="pago-btns">
+              <button class="pago-btn selected" id="pb-efe" onclick="selectPago('efectivo')">💵 Efectivo</button>
+              <button class="pago-btn" id="pb-tar" onclick="selectPago('tarjeta')">💳 Tarjeta</button>
+              <button class="pago-btn" id="pb-tra" onclick="selectPago('transferencia')">🔁 Transfer.</button>
+            </div>
+            <div id="efectivo-section">
+              <div class="efectivo-row">
+                <span class="efe-label">Recibido $</span>
+                <input type="number" class="efe-input" id="efe-recibido" placeholder="0.00" min="0" step="0.50" oninput="calcCambio()">
+              </div>
+              <div class="cambio-box" id="cambio-box">
+                <span>Cambio</span><span id="cambio-val">$0.00</span>
+              </div>
+            </div>
+            <button class="btn-cobrar" id="btn-cobrar" onclick="cobrar()" disabled>
+              Cobrar $<span id="btn-total">0.00</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: TICKET / COMPROBANTE
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-ticket">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2>🧾 Comprobante de Venta</h2>
+      <button class="modal-close" onclick="closeModal('modal-ticket')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:24px">
+      <div class="ticket">
+        <div class="ticket-logo">🥐</div>
+        <div class="ticket-shop">Dulce Migaja</div>
+        <div class="ticket-sub">Panadería Artesanal · León, Gto.</div>
+        <div class="ticket-div"></div>
+        <div class="ticket-meta">Folio: <span>V-0201</span></div>
+        <div class="ticket-meta">Fecha: <span>04/03/2026 11:42</span></div>
+        <div class="ticket-meta">Vendedor: <span>Laura Reyes</span></div>
+        <div class="ticket-div"></div>
+        <div class="ticket-row"><span class="nm">Concha de Vainilla ×3</span><span class="pr">$66.00</span></div>
+        <div class="ticket-row"><span class="nm">Cuernito Mantequilla ×2</span><span class="pr">$56.00</span></div>
+        <div class="ticket-div"></div>
+        <div class="ticket-total"><span>TOTAL</span><span>$122.00</span></div>
+        <div class="ticket-row"><span class="nm" style="color:var(--brown-lt)">Efectivo recibido</span><span class="pr" style="color:var(--brown-lt)">$150.00</span></div>
+        <div class="ticket-cambio"><span>Cambio</span><span>$28.00</span></div>
+        <div class="ticket-div"></div>
+        <div class="ticket-thanks">¡Gracias por su preferencia!<br>Vuelva pronto 🍞</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-ticket')">Cerrar</button>
+      <button class="btn btn-primary">🖨️ Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  function openTicket() { openModal('modal-ticket'); }
+
+  // ── CARRITO ──
+  let cart = {};
+  let pagoTipo = 'efectivo';
+
+  function addToCart(nombre, emoji, precio, stock) {
+    if (!cart[nombre]) cart[nombre] = { emoji, precio, qty: 0, stock };
+    if (cart[nombre].qty < stock) {
+      cart[nombre].qty++;
+      renderCart();
+    }
+  }
+
+  function changeQty(nombre, delta) {
+    if (!cart[nombre]) return;
+    cart[nombre].qty += delta;
+    if (cart[nombre].qty <= 0) delete cart[nombre];
+    renderCart();
+  }
+
+  function removeItem(nombre) { delete cart[nombre]; renderCart(); }
+
+  function renderCart() {
+    const container = document.getElementById('cartItems');
+    const empty     = document.getElementById('cartEmpty');
+    const items = Object.entries(cart);
+
+    if (items.length === 0) {
+      empty.style.display = 'flex';
+      container.innerHTML = '';
+      container.appendChild(empty);
+      updateTotals(0);
+      return;
+    }
+
+    empty.style.display = 'none';
+    let total = 0;
+    container.innerHTML = '';
+    items.forEach(([nombre, item]) => {
+      const sub = item.precio * item.qty;
+      total += sub;
+      const div = document.createElement('div');
+      div.className = 'cart-item';
+      div.innerHTML = `
+        <div>
+          <div class="ci-name">${item.emoji} ${nombre}</div>
+          <div class="ci-price">$${item.precio.toFixed(2)} c/u</div>
+        </div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty('${nombre}',-1)">−</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${nombre}',1)">＋</button>
+        </div>
+        <span class="ci-sub">$${sub.toFixed(2)}</span>
+        <button class="ci-del" onclick="removeItem('${nombre}')">✕</button>
+      `;
+      container.appendChild(div);
+    });
+    updateTotals(total);
+  }
+
+  function updateTotals(total) {
+    document.getElementById('ct-sub').textContent   = '$' + total.toFixed(2);
+    document.getElementById('ct-total').textContent = '$' + total.toFixed(2);
+    document.getElementById('btn-total').textContent = total.toFixed(2);
+    const btn = document.getElementById('btn-cobrar');
+    btn.disabled = total === 0;
+    calcCambio();
+  }
+
+  function selectPago(tipo) {
+    pagoTipo = tipo;
+    ['efe','tar','tra'].forEach(k => document.getElementById('pb-' + k).classList.remove('selected'));
+    const map = { efectivo:'pb-efe', tarjeta:'pb-tar', transferencia:'pb-tra' };
+    document.getElementById(map[tipo]).classList.add('selected');
+    document.getElementById('efectivo-section').style.display = tipo === 'efectivo' ? 'block' : 'none';
+  }
+
+  function calcCambio() {
+    const totalEl  = document.getElementById('ct-total');
+    const total    = parseFloat(totalEl.textContent.replace('$','')) || 0;
+    const recibido = parseFloat(document.getElementById('efe-recibido').value) || 0;
+    const cambio   = recibido - total;
+    const box      = document.getElementById('cambio-box');
+    document.getElementById('cambio-val').textContent = '$' + Math.max(cambio, 0).toFixed(2);
+    box.style.background = cambio < 0 ? '#fce8df' : '#e2eede';
+    box.style.color       = cambio < 0 ? '#9c3a1a' : '#3a6034';
+  }
+
+  function cobrar() {
+    closeModal('modal-venta');
+    cart = {};
+    openModal('modal-ticket');
+  }
+
+  function filtrarProductos(q) {
+    document.querySelectorAll('.prod-btn').forEach(btn => {
+      const name = btn.querySelector('.pb-name').textContent.toLowerCase();
+      btn.style.display = name.includes(q.toLowerCase()) ? '' : 'none';
+    });
+  }
+
+  function filterTable() {
+    const q    = document.getElementById('searchInput').value.toLowerCase();
+    const pago = document.getElementById('filterPago').value;
+    const rows = document.querySelectorAll('#ventasTable tbody tr');
+    let visible = 0;
+    rows.forEach(row => {
+      const text    = row.textContent.toLowerCase();
+      const rowPago = row.dataset.pago;
+      const show = (!q || text.includes(q)) && (!pago || rowPago === pago);
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+  }
+</script>
+
+<div style="height:40px"></div>
+{% endblock %}

@@ -1,0 +1,550 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim   { animation: fadeUp .35s ease both; }
+  .anim-1 { animation-delay: .05s; }
+  .anim-2 { animation-delay: .10s; }
+  .anim-3 { animation-delay: .15s; }
+
+  /* ── TOPBAR ── */
+  .db-topbar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 24px; gap: 12px; flex-wrap: wrap;
+  }
+  .db-page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 700; color: var(--brown-dk);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .db-breadcrumb {
+    font-size: 12px; color: var(--brown-lt); margin-top: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .db-breadcrumb span { color: var(--tan); }
+
+  /* ── STATS ── */
+  .usr-stats {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
+    margin-bottom: 22px;
+  }
+  .usr-stat {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 12px; padding: 16px 18px;
+    box-shadow: 0 2px 8px var(--shadow);
+    display: flex; align-items: center; gap: 12px;
+    transition: transform .2s;
+  }
+  .usr-stat:hover { transform: translateY(-2px); }
+  .usr-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .usr-stat-icon.brown { background: #f3e8d8; }
+  .usr-stat-icon.green { background: #e2eede; }
+  .usr-stat-icon.rust  { background: #fce8df; }
+  .usr-stat-icon.tan   { background: #f7f0e5; }
+  .usr-stat-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
+  .usr-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; letter-spacing: .3px; }
+
+  /* ── TOOLBAR ── */
+  .usr-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input {
+    width: 100%; padding: 9px 14px 9px 38px;
+    border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13.5px;
+    background: var(--white); color: var(--text);
+    outline: none; transition: border .2s; box-sizing: border-box;
+  }
+  .search-wrap input:focus { border-color: var(--brown); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
+  .filter-select {
+    padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13px;
+    background: var(--white); color: var(--text); outline: none; cursor: pointer;
+  }
+  .filter-select:focus { border-color: var(--brown); }
+
+  /* ── TABLE ── */
+  .table-card {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--warm-bg); }
+  thead th {
+    padding: 12px 16px; font-size: 10.5px; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--brown); text-align: left; white-space: nowrap;
+  }
+  thead th:first-child { padding-left: 22px; }
+  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
+  tbody tr:hover { background: #fdf3e6; }
+  tbody td { padding: 12px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
+  tbody td:first-child { padding-left: 22px; }
+
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .user-avatar-sm {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--brown); display: flex; align-items: center;
+    justify-content: center; font-size: 13px; font-weight: 700;
+    color: var(--cream); flex-shrink: 0;
+  }
+  .user-fullname { font-weight: 700; color: var(--brown-dk); font-size: 13px; }
+  .user-username { font-size: 11px; color: var(--brown-lt); margin-top: 1px; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-active   { background: #e2eede; color: #3a6034; }
+  .badge-inactive { background: #fce8df; color: #9c3a1a; }
+  .badge-adm      { background: #f3e8d8; color: var(--brown-dk); }
+  .badge-ven      { background: #e8f0fe; color: #2a4a8a; }
+  .badge-prod     { background: #e8f5e9; color: #2a6a3a; }
+  .badge-comp     { background: #fef3d0; color: #8a6200; }
+
+  .actions-cell { display: flex; gap: 6px; }
+
+  .table-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg);
+  }
+  .table-footer p { font-size: 12px; color: var(--brown-lt); }
+  .pagination { display: flex; gap: 4px; }
+  .page-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    border: 1.5px solid var(--tan); background: var(--white); color: var(--brown);
+    transition: all .15s;
+  }
+  .page-btn:hover { background: var(--warm-bg); }
+  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(59,42,26,.45); backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal {
+    background: var(--white); border-radius: 16px;
+    width: 100%; max-width: 540px;
+    box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden;
+    animation: fadeUp .25s ease;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 26px; background: var(--brown-dk);
+  }
+  .modal-header h2 {
+    font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: rgba(255,255,255,.15); border: none; cursor: pointer;
+    color: var(--cream); font-size: 16px;
+    display: flex; align-items: center; justify-content: center; transition: background .2s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 26px; }
+  .form-row { display: grid; gap: 14px; }
+  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
+  .form-input, .form-select {
+    padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13.5px; color: var(--text);
+    background: var(--cream); outline: none; transition: border .2s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--brown); background: var(--white); }
+  .form-hint { font-size: 11px; color: var(--brown-lt); }
+  .modal-footer {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg);
+  }
+
+  /* ── DELETE MODAL ── */
+  .modal-header.danger { background: var(--rust); }
+  .delete-body { padding: 32px 26px; text-align: center; }
+  .delete-icon { font-size: 46px; margin-bottom: 12px; }
+  .delete-body h3 { font-family: 'Playfair Display', serif; font-size: 19px; color: var(--brown-dk); margin-bottom: 8px; }
+  .delete-body p { font-size: 13px; color: var(--brown-lt); line-height: 1.6; }
+  .delete-body strong { color: var(--rust); }
+
+  /* hide modals by default */
+  .modal-overlay { display: none; }
+  .modal-overlay.open { display: flex; }
+</style>
+
+<!-- TOPBAR -->
+<div class="db-topbar anim">
+  <div>
+    <div class="db-page-title">👥 Gestión de Usuarios</div>
+    <div class="db-breadcrumb">Inicio <span>›</span> Administración <span>›</span> Usuarios</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modal-add')">
+    ＋ Nuevo Usuario
+  </button>
+</div>
+
+<!-- STATS -->
+<div class="usr-stats anim anim-1">
+  <div class="usr-stat">
+    <div class="usr-stat-icon brown">👥</div>
+    <div><div class="usr-stat-val">8</div><div class="usr-stat-lbl">Total Usuarios</div></div>
+  </div>
+  <div class="usr-stat">
+    <div class="usr-stat-icon green">✅</div>
+    <div><div class="usr-stat-val">6</div><div class="usr-stat-lbl">Activos</div></div>
+  </div>
+  <div class="usr-stat">
+    <div class="usr-stat-icon rust">🚫</div>
+    <div><div class="usr-stat-val">2</div><div class="usr-stat-lbl">Inactivos</div></div>
+  </div>
+  <div class="usr-stat">
+    <div class="usr-stat-icon tan">🔑</div>
+    <div><div class="usr-stat-val">4</div><div class="usr-stat-lbl">Roles Distintos</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="usr-toolbar anim anim-2">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Buscar por nombre, usuario o rol…" id="searchInput" oninput="filterTable()">
+  </div>
+  <select class="filter-select" id="filterRol" onchange="filterTable()">
+    <option value="">Todos los roles</option>
+    <option value="ADM">Administrador</option>
+    <option value="VEN">Ventas</option>
+    <option value="PROD">Producción</option>
+    <option value="COMP">Compras</option>
+  </select>
+  <select class="filter-select" id="filterEstatus" onchange="filterTable()">
+    <option value="">Todos los estatus</option>
+    <option value="Activo">Activo</option>
+    <option value="Inactivo">Inactivo</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<div class="table-card anim anim-3">
+  <table id="usuariosTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Usuario</th>
+        <th>Rol</th>
+        <th>Estatus</th>
+        <th>Último Acceso</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-rol="ADM" data-estatus="Activo">
+        <td>1</td>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar-sm">SA</div>
+            <div>
+              <div class="user-fullname">Salvador Esquivel Torres</div>
+              <div class="user-username">@salvadore</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge badge-adm">ADM</span></td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>Hoy, 09:14 am</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit('Salvador Esquivel Torres','salvadore','ADM','Activo')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Salvador Esquivel Torres')">🚫</button>
+          </div>
+        </td>
+      </tr>
+      <tr data-rol="VEN" data-estatus="Activo">
+        <td>2</td>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar-sm" style="background:var(--rust)">MG</div>
+            <div>
+              <div class="user-fullname">Mariana Guadalupe Cortes</div>
+              <div class="user-username">@marianac</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge badge-ven">VEN</span></td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>Hoy, 08:50 am</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit('Mariana Guadalupe Cortes','marianac','VEN','Activo')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Mariana Guadalupe Cortes')">🚫</button>
+          </div>
+        </td>
+      </tr>
+      <tr data-rol="PROD" data-estatus="Activo">
+        <td>3</td>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar-sm" style="background:#5a7a52">JJ</div>
+            <div>
+              <div class="user-fullname">José Juan García Hernández</div>
+              <div class="user-username">@josejuan</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge badge-prod">PROD</span></td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>Ayer, 06:30 pm</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit('José Juan García Hernández','josejuan','PROD','Activo')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('José Juan García Hernández')">🚫</button>
+          </div>
+        </td>
+      </tr>
+      <tr data-rol="COMP" data-estatus="Activo">
+        <td>4</td>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar-sm" style="background:#c9950a">JP</div>
+            <div>
+              <div class="user-fullname">Juan Pablo Ramírez Navarro</div>
+              <div class="user-username">@juanpablo</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge badge-comp">COMP</span></td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>Hoy, 07:45 am</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit('Juan Pablo Ramírez Navarro','juanpablo','COMP','Activo')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Juan Pablo Ramírez Navarro')">🚫</button>
+          </div>
+        </td>
+      </tr>
+      <tr data-rol="VEN" data-estatus="Activo">
+      </tr>
+      <tr data-rol="PROD" data-estatus="Inactivo">
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="table-footer">
+    <p>Mostrando <span id="visibleCount">6</span> de 8 usuarios</p>
+    <div class="pagination">
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: AGREGAR USUARIO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>➕ Nuevo Usuario</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="form-group" style="grid-column: 1/-1;">
+          <label class="form-label">Nombre Completo</label>
+          <input type="text" class="form-input" placeholder="Ej. Ana Martínez Ruiz">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Usuario</label>
+          <input type="text" class="form-input" placeholder="Ej. anamartinez">
+          <span class="form-hint">Sin espacios ni caracteres especiales</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rol</label>
+          <select class="form-select">
+            <option value="">— Seleccionar —</option>
+            <option>ADM – Administrador</option>
+            <option>VEN – Ventas</option>
+            <option>PROD – Producción</option>
+            <option>COMP – Compras</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input type="password" class="form-input" placeholder="Mín. 8 caracteres">
+          <span class="form-hint">Debe incluir mayúscula, número y símbolo</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar Contraseña</label>
+          <input type="password" class="form-input" placeholder="Repetir contraseña">
+        </div>
+        <div class="form-group" style="grid-column: 1/-1;">
+          <label class="form-label">Estatus Inicial</label>
+          <select class="form-select">
+            <option>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar Usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: EDITAR USUARIO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>✏️ Editar Usuario</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="form-group" style="grid-column: 1/-1;">
+          <label class="form-label">Nombre Completo</label>
+          <input type="text" class="form-input" id="edit-nombre">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Usuario</label>
+          <input type="text" class="form-input" id="edit-usuario">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rol</label>
+          <select class="form-select" id="edit-rol">
+            <option>ADM – Administrador</option>
+            <option>VEN – Ventas</option>
+            <option>PROD – Producción</option>
+            <option>COMP – Compras</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nueva Contraseña</label>
+          <input type="password" class="form-input" placeholder="Dejar vacío para no cambiar">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar Contraseña</label>
+          <input type="password" class="form-input" placeholder="Repetir nueva contraseña">
+        </div>
+        <div class="form-group" style="grid-column: 1/-1;">
+          <label class="form-label">Estatus</label>
+          <select class="form-select" id="edit-estatus">
+            <option>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: BAJA LÓGICA / REACTIVAR
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header danger" id="delete-header">
+      <h2>🚫 Desactivar Usuario</h2>
+      <button class="modal-close" onclick="closeModal('modal-delete')">✕</button>
+    </div>
+    <div class="delete-body">
+      <div class="delete-icon" id="delete-icon">🚫</div>
+      <h3 id="delete-title">¿Desactivar este usuario?</h3>
+      <p>El usuario <strong id="delete-name">—</strong> no podrá iniciar sesión.<br>Esta acción es reversible desde la misma pantalla.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button>
+      <button class="btn btn-danger" id="delete-confirm-btn">🚫 Desactivar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  // Close on backdrop click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+
+  function openEdit(nombre, usuario, rol, estatus) {
+    document.getElementById('edit-nombre').value  = nombre;
+    document.getElementById('edit-usuario').value = '@' + usuario;
+    const rolSelect = document.getElementById('edit-rol');
+    [...rolSelect.options].forEach(o => { if (o.value.startsWith(rol)) o.selected = true; });
+    document.getElementById('edit-estatus').value = estatus;
+    openModal('modal-edit');
+  }
+
+  function openDelete(nombre, reactivar = false) {
+    document.getElementById('delete-name').textContent = nombre;
+    if (reactivar) {
+      document.getElementById('delete-header').style.background = '#5a7a52';
+      document.getElementById('delete-icon').textContent  = '✅';
+      document.getElementById('delete-title').textContent = '¿Reactivar este usuario?';
+      document.getElementById('delete-confirm-btn').textContent = '✅ Reactivar';
+      document.getElementById('delete-confirm-btn').className = 'btn btn-success';
+      document.querySelector('#modal-delete .delete-body p').innerHTML =
+        'El usuario <strong>' + nombre + '</strong> podrá iniciar sesión nuevamente.';
+    } else {
+      document.getElementById('delete-header').style.background = 'var(--rust)';
+      document.getElementById('delete-icon').textContent  = '🚫';
+      document.getElementById('delete-title').textContent = '¿Desactivar este usuario?';
+      document.getElementById('delete-confirm-btn').textContent = '🚫 Desactivar';
+      document.getElementById('delete-confirm-btn').className = 'btn btn-danger';
+      document.querySelector('#modal-delete .delete-body p').innerHTML =
+        'El usuario <strong>' + nombre + '</strong> no podrá iniciar sesión.<br>Esta acción es reversible desde la misma pantalla.';
+    }
+    openModal('modal-delete');
+  }
+
+  // Filter table
+  function filterTable() {
+    const q       = document.getElementById('searchInput').value.toLowerCase();
+    const rol     = document.getElementById('filterRol').value;
+    const estatus = document.getElementById('filterEstatus').value;
+    const rows    = document.querySelectorAll('#usuariosTable tbody tr');
+    let visible   = 0;
+    rows.forEach(row => {
+      const text      = row.textContent.toLowerCase();
+      const rowRol    = row.dataset.rol;
+      const rowEst    = row.dataset.estatus;
+      const matchText = !q       || text.includes(q);
+      const matchRol  = !rol     || rowRol === rol;
+      const matchEst  = !estatus || rowEst === estatus;
+      const show = matchText && matchRol && matchEst;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+  }
+</script>
+
+<div style="height:40px"></div>
+{% endblock %}

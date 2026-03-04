@@ -1,0 +1,720 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim   { animation: fadeUp .35s ease both; }
+  .anim-1 { animation-delay: .05s; }
+  .anim-2 { animation-delay: .10s; }
+  .anim-3 { animation-delay: .15s; }
+
+  /* ── TOPBAR ── */
+  .db-topbar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 24px; gap: 12px; flex-wrap: wrap;
+  }
+  .db-page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 700; color: var(--brown-dk);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .db-breadcrumb {
+    font-size: 12px; color: var(--brown-lt); margin-top: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .db-breadcrumb span { color: var(--tan); }
+
+  /* ── STATS ── */
+  .prov-stats {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
+    margin-bottom: 22px;
+  }
+  .prov-stat {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 12px; padding: 16px 18px;
+    box-shadow: 0 2px 8px var(--shadow);
+    display: flex; align-items: center; gap: 12px;
+    transition: transform .2s;
+  }
+  .prov-stat:hover { transform: translateY(-2px); }
+  .prov-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .prov-stat-icon.brown { background: #f3e8d8; }
+  .prov-stat-icon.green { background: #e2eede; }
+  .prov-stat-icon.rust  { background: #fce8df; }
+  .prov-stat-icon.gold  { background: #fef3d0; }
+  .prov-stat-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
+  .prov-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; letter-spacing: .3px; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input {
+    width: 100%; padding: 9px 14px 9px 38px;
+    border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13.5px;
+    background: var(--white); color: var(--text);
+    outline: none; transition: border .2s; box-sizing: border-box;
+  }
+  .search-wrap input:focus { border-color: var(--brown); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
+  .filter-select {
+    padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13px;
+    background: var(--white); color: var(--text); outline: none; cursor: pointer;
+  }
+  .filter-select:focus { border-color: var(--brown); }
+
+  /* ── TABLE ── */
+  .table-card {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--warm-bg); }
+  thead th {
+    padding: 12px 16px; font-size: 10.5px; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--brown); text-align: left; white-space: nowrap;
+  }
+  thead th:first-child { padding-left: 22px; }
+  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
+  tbody tr:hover { background: #fdf3e6; }
+  tbody td { padding: 12px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
+  tbody td:first-child { padding-left: 22px; }
+
+  .prov-cell { display: flex; align-items: center; gap: 10px; }
+  .prov-avatar {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--brown); display: flex; align-items: center;
+    justify-content: center; font-size: 13px; font-weight: 700;
+    color: var(--cream); flex-shrink: 0;
+  }
+  .prov-name  { font-weight: 700; color: var(--brown-dk); font-size: 13px; }
+  .prov-rfc   { font-size: 11px; color: var(--brown-lt); margin-top: 1px; font-family: monospace; }
+
+  .contact-cell { display: flex; flex-direction: column; gap: 2px; }
+  .contact-line { font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 5px; }
+  .contact-line .ci { font-size: 11px; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-active   { background: #e2eede; color: #3a6034; }
+  .badge-inactive { background: #fce8df; color: #9c3a1a; }
+
+  .actions-cell { display: flex; gap: 6px; }
+
+  .table-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg);
+  }
+  .table-footer p { font-size: 12px; color: var(--brown-lt); }
+  .pagination { display: flex; gap: 4px; }
+  .page-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    border: 1.5px solid var(--tan); background: var(--white); color: var(--brown);
+    transition: all .15s;
+  }
+  .page-btn:hover { background: var(--warm-bg); }
+  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(59,42,26,.45); backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 16px;
+    width: 100%; max-width: 580px;
+    box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden;
+    animation: fadeUp .25s ease;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 26px; background: var(--brown-dk);
+  }
+  .modal-header h2 {
+    font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: rgba(255,255,255,.15); border: none; cursor: pointer;
+    color: var(--cream); font-size: 16px;
+    display: flex; align-items: center; justify-content: center; transition: background .2s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 26px; max-height: 70vh; overflow-y: auto; }
+  .form-row { display: grid; gap: 14px; }
+  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
+  .form-input, .form-select, .form-textarea {
+    padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 13.5px; color: var(--text);
+    background: var(--cream); outline: none; transition: border .2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--brown); background: var(--white); }
+  .form-hint  { font-size: 11px; color: var(--brown-lt); }
+  .form-textarea { resize: vertical; min-height: 65px; }
+  .section-divider {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--brown-lt); padding: 6px 0 2px;
+    border-bottom: 1px solid var(--tan); margin-bottom: 4px; grid-column: 1/-1;
+  }
+  .modal-footer {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg);
+  }
+
+  /* ── DELETE MODAL ── */
+  .modal-header.danger { background: var(--rust); }
+  .delete-body { padding: 32px 26px; text-align: center; }
+  .delete-icon { font-size: 46px; margin-bottom: 12px; }
+  .delete-body h3 { font-family: 'Playfair Display', serif; font-size: 19px; color: var(--brown-dk); margin-bottom: 8px; }
+  .delete-body p { font-size: 13px; color: var(--brown-lt); line-height: 1.6; }
+  .delete-body strong { color: var(--rust); }
+
+  /* ── DETAIL PANEL ── */
+  .detail-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(59,42,26,.45); backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .detail-overlay.open { display: flex; }
+  .detail-panel {
+    background: var(--white); border-radius: 16px;
+    width: 100%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(59,42,26,.3);
+    overflow: hidden; animation: fadeUp .25s ease;
+  }
+  .detail-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 22px 26px; background: var(--brown-dk);
+  }
+  .detail-avatar {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--brown-lt); display: flex; align-items: center;
+    justify-content: center; font-size: 20px; font-weight: 700; color: var(--cream);
+  }
+  .detail-title { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--cream); }
+  .detail-sub   { font-size: 12px; color: var(--brown-lt); margin-top: 3px; }
+  .detail-body  { padding: 22px 26px; }
+  .detail-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .detail-item label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); display: block; margin-bottom: 3px; }
+  .detail-item span  { font-size: 13.5px; color: var(--brown-dk); font-weight: 600; }
+  .detail-footer {
+    padding: 14px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg);
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+</style>
+
+<!-- TOPBAR -->
+<div class="db-topbar anim">
+  <div>
+    <div class="db-page-title">🏭 Gestión de Proveedores</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modal-add')">
+    ＋ Nuevo Proveedor
+  </button>
+</div>
+
+<!-- STATS -->
+<div class="prov-stats anim anim-1">
+  <div class="prov-stat">
+    <div class="prov-stat-icon brown">🏭</div>
+    <div><div class="prov-stat-val">9</div><div class="prov-stat-lbl">Total Proveedores</div></div>
+  </div>
+  <div class="prov-stat">
+    <div class="prov-stat-icon green">✅</div>
+    <div><div class="prov-stat-val">7</div><div class="prov-stat-lbl">Activos</div></div>
+  </div>
+  <div class="prov-stat">
+    <div class="prov-stat-icon rust">🚫</div>
+    <div><div class="prov-stat-val">2</div><div class="prov-stat-lbl">Inactivos</div></div>
+  </div>
+  <div class="prov-stat">
+    <div class="prov-stat-icon gold">📦</div>
+    <div><div class="prov-stat-val">3</div><div class="prov-stat-lbl">Con compras este mes</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar anim anim-2">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Buscar por nombre, RFC o contacto…" id="searchInput" oninput="filterTable()">
+  </div>
+  <select class="filter-select" id="filterEstatus" onchange="filterTable()">
+    <option value="">Todos los estatus</option>
+    <option value="Activo">Activo</option>
+    <option value="Inactivo">Inactivo</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<div class="table-card anim anim-3">
+  <table id="provTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Proveedor</th>
+        <th>Contacto</th>
+        <th>Teléfono / Email</th>
+        <th>Estatus</th>
+        <th>Última Compra</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr data-estatus="Activo">
+        <td>1</td>
+        <td>
+          <div class="prov-cell">
+            <div class="prov-avatar" style="background:#6b4423">HM</div>
+            <div>
+              <div class="prov-name">Harinera del Molino S.A.</div>
+              <div class="prov-rfc">HMO-820315-AA1</div>
+            </div>
+          </div>
+        </td>
+        <td>Roberto Sánchez</td>
+        <td>
+          <div class="contact-cell">
+            <div class="contact-line"><span class="ci">📞</span> 477-123-4567</div>
+            <div class="contact-line"><span class="ci">✉️</span> ventas@harinera.mx</div>
+          </div>
+        </td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>28/02/2026</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetail('Harinera del Molino S.A.','HMO-820315-AA1','Roberto Sánchez','477-123-4567','ventas@harinera.mx','Blvd. Torres Landa 450, León Gto.','Harina, Levadura','Activo','28/02/2026')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit(1)">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Harinera del Molino S.A.')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estatus="Activo">
+        <td>2</td>
+        <td>
+          <div class="prov-cell">
+            <div class="prov-avatar" style="background:#9c6f3e">DL</div>
+            <div>
+              <div class="prov-name">Distribuidora La Esperanza</div>
+              <div class="prov-rfc">DLE-910702-BB2</div>
+            </div>
+          </div>
+        </td>
+        <td>Patricia Leal</td>
+        <td>
+          <div class="contact-cell">
+            <div class="contact-line"><span class="ci">📞</span> 477-234-5678</div>
+            <div class="contact-line"><span class="ci">✉️</span> patricialeal@esperanza.com</div>
+          </div>
+        </td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>25/02/2026</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetail('Distribuidora La Esperanza','DLE-910702-BB2','Patricia Leal','477-234-5678','patricialeal@esperanza.com','Av. Insurgentes 890, León Gto.','Azúcar, Mantequilla, Huevo','Activo','25/02/2026')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit(2)">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Distribuidora La Esperanza')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estatus="Activo">
+        <td>3</td>
+        <td>
+          <div class="prov-cell">
+            <div class="prov-avatar" style="background:#c9950a">LA</div>
+            <div>
+              <div class="prov-name">Lácteos Altos del Valle</div>
+              <div class="prov-rfc">LAV-001120-CC3</div>
+            </div>
+          </div>
+        </td>
+        <td>Miguel Torres</td>
+        <td>
+          <div class="contact-cell">
+            <div class="contact-line"><span class="ci">📞</span> 477-345-6789</div>
+            <div class="contact-line"><span class="ci">✉️</span> mtorres@lacteosaltos.mx</div>
+          </div>
+        </td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>20/02/2026</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetail('Lácteos Altos del Valle','LAV-001120-CC3','Miguel Torres','477-345-6789','mtorres@lacteosaltos.mx','Carr. Silao km 12, León Gto.','Leche, Crema, Mantequilla','Activo','20/02/2026')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit(3)">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Lácteos Altos del Valle')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estatus="Activo">
+        <td>4</td>
+        <td>
+          <div class="prov-cell">
+            <div class="prov-avatar" style="background:#5a7a52">EG</div>
+            <div>
+              <div class="prov-name">El Gran Mayoreo</div>
+              <div class="prov-rfc">EGM-750614-DD4</div>
+            </div>
+          </div>
+        </td>
+        <td>Sofía Guerrero</td>
+        <td>
+          <div class="contact-cell">
+            <div class="contact-line"><span class="ci">📞</span> 477-456-7890</div>
+            <div class="contact-line"><span class="ci">✉️</span> sofia@granmayoreo.com</div>
+          </div>
+        </td>
+        <td><span class="badge badge-active">Activo</span></td>
+        <td>18/02/2026</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetail('El Gran Mayoreo','EGM-750614-DD4','Sofía Guerrero','477-456-7890','sofia@granmayoreo.com','Mercado Mayoreo Local 34, León Gto.','Sal, Vainilla, Colorantes','Activo','18/02/2026')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit(4)">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('El Gran Mayoreo')">🚫</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estatus="Inactivo">
+        <td>5</td>
+        <td>
+          <div class="prov-cell">
+            <div class="prov-avatar" style="background:#aaa">PM</div>
+            <div>
+              <div class="prov-name">Proveedora del Centro</div>
+              <div class="prov-rfc">PDC-880930-EE5</div>
+            </div>
+          </div>
+        </td>
+        <td>Héctor Morales</td>
+        <td>
+          <div class="contact-cell">
+            <div class="contact-line"><span class="ci">📞</span> 477-567-8901</div>
+            <div class="contact-line"><span class="ci">✉️</span> hmorales@centro.mx</div>
+          </div>
+        </td>
+        <td><span class="badge badge-inactive">Inactivo</span></td>
+        <td>10/11/2025</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetail('Proveedora del Centro','PDC-880930-EE5','Héctor Morales','477-567-8901','hmorales@centro.mx','Centro Histórico 12, León Gto.','Mermeladas, Rellenos','Inactivo','10/11/2025')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit(5)">✏️</button>
+            <button class="btn btn-success btn-sm btn-icon" data-tooltip="Reactivar"
+              style="background:#e2eede;color:#3a6034;border:1.5px solid #b2d4aa;"
+              onclick="openDelete('Proveedora del Centro', true)">✅</button>
+          </div>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <div class="table-footer">
+    <p>Mostrando <span id="visibleCount">5</span> de 9 proveedores</p>
+    <div class="pagination">
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: AGREGAR PROVEEDOR
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>➕ Nuevo Proveedor</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="section-divider">Datos Generales</div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nombre / Razón Social</label>
+          <input type="text" class="form-input" placeholder="Ej. Harinera del Molino S.A.">
+        </div>
+        <div class="form-group">
+          <label class="form-label">RFC</label>
+          <input type="text" class="form-input" placeholder="Ej. HMO-820315-AA1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estatus</label>
+          <select class="form-select">
+            <option>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+
+        <div class="section-divider">Datos de Contacto</div>
+
+        <div class="form-group">
+          <label class="form-label">Nombre del Contacto</label>
+          <input type="text" class="form-input" placeholder="Ej. Roberto Sánchez">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" class="form-input" placeholder="Ej. 477-123-4567">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Correo Electrónico</label>
+          <input type="email" class="form-input" placeholder="Ej. ventas@proveedor.mx">
+        </div>
+
+        <div class="section-divider">Dirección</div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Dirección</label>
+          <input type="text" class="form-input" placeholder="Calle, número, colonia">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ciudad</label>
+          <input type="text" class="form-input" placeholder="Ej. León">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <input type="text" class="form-input" placeholder="Ej. Guanajuato">
+        </div>
+
+        <div class="section-divider">Notas</div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Productos que Suministra</label>
+          <textarea class="form-textarea" placeholder="Ej. Harina, Levadura, Azúcar…"></textarea>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Notas Adicionales</label>
+          <textarea class="form-textarea" placeholder="Condiciones de pago, días de entrega…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar Proveedor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: EDITAR PROVEEDOR
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>✏️ Editar Proveedor</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="section-divider">Datos Generales</div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nombre / Razón Social</label>
+          <input type="text" class="form-input" id="edit-nombre" value="Harinera del Molino S.A.">
+        </div>
+        <div class="form-group">
+          <label class="form-label">RFC</label>
+          <input type="text" class="form-input" id="edit-rfc" value="HMO-820315-AA1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estatus</label>
+          <select class="form-select" id="edit-estatus">
+            <option>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+        <div class="section-divider">Datos de Contacto</div>
+        <div class="form-group">
+          <label class="form-label">Nombre del Contacto</label>
+          <input type="text" class="form-input" id="edit-contacto" value="Roberto Sánchez">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" class="form-input" id="edit-tel" value="477-123-4567">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Correo Electrónico</label>
+          <input type="email" class="form-input" id="edit-email" value="ventas@harinera.mx">
+        </div>
+        <div class="section-divider">Notas</div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Productos que Suministra</label>
+          <textarea class="form-textarea" id="edit-productos">Harina, Levadura</textarea>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Notas Adicionales</label>
+          <textarea class="form-textarea" id="edit-notas">Entrega los martes y jueves.</textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: BAJA LÓGICA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header danger" id="delete-header">
+      <h2>🚫 Desactivar Proveedor</h2>
+      <button class="modal-close" onclick="closeModal('modal-delete')">✕</button>
+    </div>
+    <div class="delete-body">
+      <div class="delete-icon" id="delete-icon">🚫</div>
+      <h3 id="delete-title">¿Desactivar este proveedor?</h3>
+      <p>El proveedor <strong id="delete-name">—</strong> no aparecerá en nuevas compras.<br>El historial de compras se conserva.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button>
+      <button class="btn btn-danger" id="delete-confirm-btn">🚫 Desactivar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANEL: VER DETALLE
+══════════════════════════════════════ -->
+<div class="detail-overlay" id="panel-detail">
+  <div class="detail-panel">
+    <div class="detail-header">
+      <div class="detail-avatar" id="det-avatar">HM</div>
+      <div>
+        <div class="detail-title" id="det-nombre">Harinera del Molino</div>
+        <div class="detail-sub"  id="det-rfc">RFC: —</div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Contacto</label>
+          <span id="det-contacto">—</span>
+        </div>
+        <div class="detail-item">
+          <label>Teléfono</label>
+          <span id="det-tel">—</span>
+        </div>
+        <div class="detail-item" style="grid-column:1/-1">
+          <label>Email</label>
+          <span id="det-email">—</span>
+        </div>
+        <div class="detail-item" style="grid-column:1/-1">
+          <label>Dirección</label>
+          <span id="det-dir">—</span>
+        </div>
+        <div class="detail-item" style="grid-column:1/-1">
+          <label>Productos que suministra</label>
+          <span id="det-productos">—</span>
+        </div>
+        <div class="detail-item">
+          <label>Estatus</label>
+          <span id="det-estatus">—</span>
+        </div>
+        <div class="detail-item">
+          <label>Última Compra</label>
+          <span id="det-ultima">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-footer">
+      <button class="btn btn-outline" onclick="closeModal('panel-detail')">Cerrar</button>
+      <button class="btn btn-primary" onclick="closeModal('panel-detail'); openEdit(0)">✏️ Editar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  document.querySelectorAll('.modal-overlay, .detail-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  function openEdit(id) { openModal('modal-edit'); }
+
+  function openDelete(nombre, reactivar = false) {
+    document.getElementById('delete-name').textContent = nombre;
+    const hdr = document.getElementById('delete-header');
+    const ico = document.getElementById('delete-icon');
+    const ttl = document.getElementById('delete-title');
+    const btn = document.getElementById('delete-confirm-btn');
+    const txt = document.querySelector('#modal-delete .delete-body p');
+    if (reactivar) {
+      hdr.style.background = '#5a7a52';
+      ico.textContent = '✅';
+      ttl.textContent = '¿Reactivar este proveedor?';
+      btn.textContent = '✅ Reactivar';
+      btn.className   = 'btn btn-success';
+      txt.innerHTML   = 'El proveedor <strong>' + nombre + '</strong> volverá a estar disponible para nuevas compras.';
+    } else {
+      hdr.style.background = 'var(--rust)';
+      ico.textContent = '🚫';
+      ttl.textContent = '¿Desactivar este proveedor?';
+      btn.textContent = '🚫 Desactivar';
+      btn.className   = 'btn btn-danger';
+      txt.innerHTML   = 'El proveedor <strong>' + nombre + '</strong> no aparecerá en nuevas compras.<br>El historial de compras se conserva.';
+    }
+    openModal('modal-delete');
+  }
+
+  function openDetail(nombre, rfc, contacto, tel, email, dir, productos, estatus, ultima) {
+    const initials = nombre.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+    document.getElementById('det-avatar').textContent   = initials;
+    document.getElementById('det-nombre').textContent   = nombre;
+    document.getElementById('det-rfc').textContent      = 'RFC: ' + rfc;
+    document.getElementById('det-contacto').textContent = contacto;
+    document.getElementById('det-tel').textContent      = tel;
+    document.getElementById('det-email').textContent    = email;
+    document.getElementById('det-dir').textContent      = dir;
+    document.getElementById('det-productos').textContent= productos;
+    document.getElementById('det-estatus').textContent  = estatus;
+    document.getElementById('det-ultima').textContent   = ultima;
+    openModal('panel-detail');
+  }
+
+  function filterTable() {
+    const q   = document.getElementById('searchInput').value.toLowerCase();
+    const est = document.getElementById('filterEstatus').value;
+    const rows = document.querySelectorAll('#provTable tbody tr');
+    let visible = 0;
+    rows.forEach(row => {
+      const text     = row.textContent.toLowerCase();
+      const rowEst   = row.dataset.estatus;
+      const matchTxt = !q   || text.includes(q);
+      const matchEst = !est || rowEst === est;
+      const show = matchTxt && matchEst;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+  }
+</script>
+
+<div style="height:40px"></div>
+{% endblock %}

@@ -1,0 +1,657 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim   { animation: fadeUp .35s ease both; }
+  .anim-1 { animation-delay: .05s; }
+  .anim-2 { animation-delay: .10s; }
+  .anim-3 { animation-delay: .15s; }
+
+  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
+  .db-page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
+  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+  .db-breadcrumb span { color: var(--tan); }
+
+  /* ── STATS ── */
+  .inv-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+  .inv-stat { background: var(--white); border: 1px solid var(--tan); border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px var(--shadow); display: flex; align-items: center; gap: 12px; transition: transform .2s; }
+  .inv-stat:hover { transform: translateY(-2px); }
+  .inv-stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .inv-stat-icon.brown { background: #f3e8d8; }
+  .inv-stat-icon.green { background: #e2eede; }
+  .inv-stat-icon.gold  { background: #fef3d0; }
+  .inv-stat-icon.rust  { background: #fce8df; }
+  .inv-stat-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
+  .inv-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
+
+  /* ── TOOLBAR ── */
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input { width: 100%; padding: 9px 14px 9px 38px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; background: var(--white); color: var(--text); outline: none; transition: border .2s; box-sizing: border-box; }
+  .search-wrap input:focus { border-color: var(--brown); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
+  .filter-select { padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13px; background: var(--white); color: var(--text); outline: none; cursor: pointer; }
+
+  /* ── TABLE ── */
+  .table-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--warm-bg); }
+  thead th { padding: 12px 16px; font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown); text-align: left; white-space: nowrap; }
+  thead th:first-child { padding-left: 22px; }
+  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
+  tbody tr:hover { background: #fdf3e6; }
+  tbody td { padding: 12px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
+  tbody td:first-child { padding-left: 22px; }
+
+  .prod-cell { display: flex; align-items: center; gap: 10px; }
+  .prod-emoji-box { width: 38px; height: 38px; border-radius: 10px; background: var(--warm-bg); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .prod-name { font-weight: 700; color: var(--brown-dk); font-size: 13px; }
+  .prod-sub  { font-size: 11px; color: var(--brown-lt); margin-top: 1px; }
+
+  .stock-wrap { display: flex; align-items: center; gap: 8px; min-width: 130px; }
+  .bar-track  { flex: 1; height: 7px; border-radius: 4px; background: var(--tan); overflow: hidden; }
+  .bar-fill   { height: 100%; border-radius: 4px; }
+  .bar-ok     { background: #5a7a52; }
+  .bar-low    { background: #c9950a; }
+  .bar-out    { background: var(--rust); }
+  .bar-val    { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .bar-val.ok  { color: #3a6034; }
+  .bar-val.low { color: #8a6200; }
+  .bar-val.out { color: var(--rust); }
+
+  .precio-val { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: var(--brown-dk); }
+  .costo-val  { font-size: 11px; color: var(--brown-lt); }
+  .utilidad-chip { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; background: #e2eede; color: #3a6034; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-active   { background: #e2eede; color: #3a6034; }
+  .badge-low      { background: #fef3d0; color: #8a6200; }
+  .badge-out      { background: #fce8df; color: #9c3a1a; }
+
+  .actions-cell { display: flex; gap: 6px; }
+  .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+  .table-footer p { font-size: 12px; color: var(--brown-lt); }
+  .pagination { display: flex; gap: 4px; }
+  .page-btn { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); transition: all .15s; }
+  .page-btn:hover { background: var(--warm-bg); }
+  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 560px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
+  .modal-xl { max-width: 720px; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); display: flex; align-items: center; gap: 10px; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 26px; max-height: 78vh; overflow-y: auto; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+
+  .form-row { display: grid; gap: 14px; }
+  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
+  .form-input, .form-select, .form-textarea { padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; color: var(--text); background: var(--cream); outline: none; transition: border .2s; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--brown); background: var(--white); }
+  .form-hint { font-size: 11px; color: var(--brown-lt); }
+  .form-textarea { resize: vertical; min-height: 65px; }
+  .section-divider { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brown-lt); padding: 6px 0 2px; border-bottom: 1px solid var(--tan); margin-bottom: 2px; grid-column: 1/-1; }
+
+  /* ── AJUSTE TIPO ── */
+  .tipo-btns { display: flex; gap: 8px; }
+  .tipo-btn { flex: 1; padding: 10px; border-radius: 9px; border: 1.5px solid var(--tan); background: var(--white); font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .2s; text-align: center; }
+  .tipo-btn.selected-add  { background: #e2eede; border-color: #5a7a52; color: #3a6034; }
+  .tipo-btn.selected-sub  { background: #fce8df; border-color: var(--rust); color: var(--rust); }
+  .tipo-btn:hover { background: var(--warm-bg); }
+
+  /* ── DETALLE CARD ── */
+  .det-hero { display: flex; align-items: center; gap: 16px; padding: 18px; background: linear-gradient(135deg, var(--warm-bg), var(--cream)); border-radius: 12px; margin-bottom: 18px; border: 1px solid var(--tan); }
+  .det-hero-emoji { font-size: 44px; }
+  .det-hero-name  { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--brown-dk); }
+  .det-hero-sub   { font-size: 12px; color: var(--brown-lt); margin-top: 3px; }
+
+  .det-metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 18px; }
+  .det-metric { background: var(--white); border: 1px solid var(--tan); border-radius: 10px; padding: 13px 15px; text-align: center; }
+  .det-metric label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); display: block; margin-bottom: 5px; }
+  .det-metric span  { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--brown-dk); }
+
+  /* ── MOVIMIENTOS RECIENTES ── */
+  .mov-table { width: 100%; border-collapse: collapse; }
+  .mov-table thead { background: var(--warm-bg); }
+  .mov-table thead th { padding: 8px 12px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown); text-align: left; }
+  .mov-table tbody tr { border-top: 1px solid var(--tan); }
+  .mov-table tbody td { padding: 9px 12px; font-size: 12px; }
+  .mov-entrada { color: #3a6034; font-weight: 700; }
+  .mov-salida  { color: var(--rust); font-weight: 700; }
+  .mov-ajuste  { color: #8a6200; font-weight: 700; }
+
+  .info-box { background: #f3e8d8; border: 1px solid var(--tan); border-radius: 10px; padding: 11px 14px; font-size: 12px; color: var(--brown-dk); display: flex; gap: 8px; align-items: flex-start; margin-bottom: 14px; }
+  .info-box .ii { flex-shrink: 0; font-size: 15px; }
+  .warn-box { background: #fce8df; border: 1px solid #e07a52; border-radius: 10px; padding: 11px 14px; font-size: 12px; color: #9c3a1a; display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; }
+</style>
+
+<!-- TOPBAR -->
+<div class="db-topbar anim">
+  <div>
+    <div class="db-page-title">🍞 Inventario de Producto Terminado</div>
+    <div class="db-breadcrumb">Inicio <span>›</span> Inventarios <span>›</span> Producto Terminado</div>
+  </div>
+  <button class="btn btn-outline btn-sm" onclick="openModal('modal-ajuste')" style="border-color:var(--brown);color:var(--brown);">
+    ⚖️ Registrar Ajuste
+  </button>
+</div>
+
+<!-- STATS -->
+<div class="inv-stats anim anim-1">
+  <div class="inv-stat">
+    <div class="inv-stat-icon brown">🍞</div>
+    <div><div class="inv-stat-val">8</div><div class="inv-stat-lbl">Productos Registrados</div></div>
+  </div>
+  <div class="inv-stat">
+    <div class="inv-stat-icon green">📦</div>
+    <div><div class="inv-stat-val">345</div><div class="inv-stat-lbl">Piezas Disponibles</div></div>
+  </div>
+  <div class="inv-stat">
+    <div class="inv-stat-icon gold">⚠️</div>
+    <div><div class="inv-stat-val">2</div><div class="inv-stat-lbl">Stock Bajo</div></div>
+  </div>
+  <div class="inv-stat">
+    <div class="inv-stat-icon rust">🚨</div>
+    <div><div class="inv-stat-val">1</div><div class="inv-stat-lbl">Sin Stock</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar anim anim-2">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Buscar producto…" id="searchInput" oninput="filterTable()">
+  </div>
+  <select class="filter-select" id="filterStock" onchange="filterTable()">
+    <option value="">Todos los niveles</option>
+    <option value="ok">Disponible</option>
+    <option value="low">Stock bajo</option>
+    <option value="out">Sin stock</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<div class="table-card anim anim-3">
+  <table id="invTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Producto</th>
+        <th>Existencia</th>
+        <th>Stock Mínimo</th>
+        <th>Precio Venta</th>
+        <th>Costo Unit.</th>
+        <th>Utilidad</th>
+        <th>Último Movimiento</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr data-stock="ok">
+        <td>1</td>
+        <td>
+          <div class="prod-cell">
+            <div class="prod-emoji-box">🥐</div>
+            <div>
+              <div class="prod-name">Cuernito de Mantequilla</div>
+              <div class="prod-sub">Receta: Cuernito de Mantequilla</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-ok" style="width:75%"></div></div>
+            <span class="bar-val ok">75 pzas</span>
+          </div>
+        </td>
+        <td>20 pzas</td>
+        <td><span class="precio-val">$28.00</span></td>
+        <td><span class="costo-val">$22.10</span></td>
+        <td><span class="utilidad-chip">↑ 21%</span></td>
+        <td>Hoy 10:30<br><small style="color:var(--brown-lt)">Entrada producción</small></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver historial" onclick="openDetalle('Cuernito de Mantequilla','🥐',75,20,'$28.00','$22.10','21%')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ajustar" onclick="openAjuste('Cuernito de Mantequilla', 75)">⚖️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-stock="ok">
+        <td>2</td>
+        <td>
+          <div class="prod-cell">
+            <div class="prod-emoji-box">🍞</div>
+            <div>
+              <div class="prod-name">Concha de Vainilla</div>
+              <div class="prod-sub">Receta: Concha de Vainilla</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-ok" style="width:80%"></div></div>
+            <span class="bar-val ok">96 pzas</span>
+          </div>
+        </td>
+        <td>24 pzas</td>
+        <td><span class="precio-val">$22.00</span></td>
+        <td><span class="costo-val">$14.20</span></td>
+        <td><span class="utilidad-chip">↑ 35%</span></td>
+        <td>Hoy 09:00<br><small style="color:var(--brown-lt)">Entrada producción</small></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver historial" onclick="openDetalle('Concha de Vainilla','🍞',96,24,'$22.00','$14.20','35%')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ajustar" onclick="openAjuste('Concha de Vainilla', 96)">⚖️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-stock="ok">
+        <td>3</td>
+        <td>
+          <div class="prod-cell">
+            <div class="prod-emoji-box">🥖</div>
+            <div>
+              <div class="prod-name">Bolillo Relleno</div>
+              <div class="prod-sub">Receta: Bolillo Relleno</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-ok" style="width:60%"></div></div>
+            <span class="bar-val ok">60 pzas</span>
+          </div>
+        </td>
+        <td>40 pzas</td>
+        <td><span class="precio-val">$18.00</span></td>
+        <td><span class="costo-val">$8.50</span></td>
+        <td><span class="utilidad-chip">↑ 53%</span></td>
+        <td>Ayer 09:30<br><small style="color:var(--brown-lt)">Entrada producción</small></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver historial" onclick="openDetalle('Bolillo Relleno','🥖',60,40,'$18.00','$8.50','53%')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ajustar" onclick="openAjuste('Bolillo Relleno', 60)">⚖️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-stock="low">
+        <td>4</td>
+        <td>
+          <div class="prod-cell">
+            <div class="prod-emoji-box">🍫</div>
+            <div>
+              <div class="prod-name">Pan de Chocolate</div>
+              <div class="prod-sub">Receta: Pan de Chocolate</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:18%"></div></div>
+            <span class="bar-val low">9 pzas</span>
+          </div>
+        </td>
+        <td>20 pzas</td>
+        <td><span class="precio-val">$25.00</span></td>
+        <td><span class="costo-val">$17.80</span></td>
+        <td><span class="utilidad-chip">↑ 29%</span></td>
+        <td>Ayer 08:00<br><small style="color:var(--brown-lt)">Salida por venta</small></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver historial" onclick="openDetalle('Pan de Chocolate','🍫',9,20,'$25.00','$17.80','29%')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ajustar" onclick="openAjuste('Pan de Chocolate', 9)">⚖️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-stock="low">
+        <td>5</td>
+        <td>
+          <div class="prod-cell">
+            <div class="prod-emoji-box">🍩</div>
+            <div>
+              <div class="prod-name">Dona Glaseada</div>
+              <div class="prod-sub">Receta: Dona Glaseada</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:13%"></div></div>
+            <span class="bar-val low">6 pzas</span>
+          </div>
+        </td>
+        <td>30 pzas</td>
+        <td><span class="precio-val">$20.00</span></td>
+        <td><span class="costo-val">$12.60</span></td>
+        <td><span class="utilidad-chip">↑ 37%</span></td>
+        <td>Hoy 07:00<br><small style="color:var(--brown-lt)">Salida por venta</small></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver historial" onclick="openDetalle('Dona Glaseada','🍩',6,30,'$20.00','$12.60','37%')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ajustar" onclick="openAjuste('Dona Glaseada', 6)">⚖️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-stock="out">
+        <td>6</td>
+        <td>
+          <div class="prod-cell">
+            <div class="prod-emoji-box">🥐</div>
+            <div>
+              <div class="prod-name">Cuernito de Canela</div>
+              <div class="prod-sub">Receta: Cuernito de Canela</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill bar-out" style="width:0%"></div></div>
+            <span class="bar-val out">0 pzas</span>
+          </div>
+        </td>
+        <td>15 pzas</td>
+        <td><span class="precio-val">$26.00</span></td>
+        <td><span class="costo-val">$19.40</span></td>
+        <td><span class="utilidad-chip">↑ 25%</span></td>
+        <td>Ayer 12:00<br><small style="color:var(--brown-lt)">Agotado por ventas</small></td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver historial" onclick="openDetalle('Cuernito de Canela','🥐',0,15,'$26.00','$19.40','25%')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ajustar" onclick="openAjuste('Cuernito de Canela', 0)">⚖️</button>
+          </div>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+  <div class="table-footer">
+    <p>Mostrando <span id="visibleCount">6</span> de 8 productos</p>
+    <div class="pagination">
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: AJUSTE DE INVENTARIO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-ajuste">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>⚖️ Ajuste de Inventario</h2>
+      <button class="modal-close" onclick="closeModal('modal-ajuste')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="info-box">
+        <span class="ii">🔐</span>
+        <span>Los ajustes de inventario son <strong>controlados</strong> y quedan registrados en bitácora con usuario, fecha, motivo y cantidad. Solo roles autorizados pueden realizarlos (ADM, COMP).</span>
+      </div>
+
+      <div class="form-row cols-2">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Producto</label>
+          <select class="form-select" id="ajuste-producto">
+            <option>Cuernito de Mantequilla</option>
+            <option>Concha de Vainilla</option>
+            <option>Bolillo Relleno</option>
+            <option>Pan de Chocolate</option>
+            <option>Dona Glaseada</option>
+            <option>Cuernito de Canela</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Tipo de Ajuste</label>
+          <div class="tipo-btns">
+            <button class="tipo-btn selected-add" id="btn-tipo-add" onclick="setTipo('add')">
+              ➕ Entrada / Aumento
+            </button>
+            <button class="tipo-btn" id="btn-tipo-sub" onclick="setTipo('sub')">
+              ➖ Salida / Disminución
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Existencia Actual</label>
+          <input type="number" class="form-input" id="ajuste-actual" value="75" readonly style="background:var(--warm-bg);font-weight:700;color:var(--brown-dk);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cantidad a Ajustar</label>
+          <input type="number" class="form-input" id="ajuste-cant" placeholder="0" min="0" oninput="calcNuevoStock()">
+        </div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nuevo Stock (resultado)</label>
+          <input type="number" class="form-input" id="ajuste-nuevo" readonly value="75" style="background:var(--warm-bg);font-weight:700;font-size:16px;color:var(--brown-dk);">
+        </div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Motivo del Ajuste</label>
+          <select class="form-select" id="ajuste-motivo">
+            <option value="">— Seleccionar motivo —</option>
+            <option>Merma / caducidad</option>
+            <option>Error de conteo anterior</option>
+            <option>Donación / regalo</option>
+            <option>Devolución de venta</option>
+            <option>Entrada manual adicional</option>
+            <option>Otro (ver notas)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Notas / Descripción</label>
+          <textarea class="form-textarea" placeholder="Describe brevemente el motivo del ajuste…"></textarea>
+        </div>
+      </div>
+
+      <div class="warn-box" id="warn-negativo" style="display:none">
+        <span>⚠️</span>
+        <span>El resultado del ajuste resultaría en <strong>stock negativo</strong>, lo cual no está permitido (RNF04). Reduce la cantidad.</span>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-ajuste')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar-ajuste">💾 Registrar Ajuste</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: DETALLE / HISTORIAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h2>📦 Historial de Movimientos</h2>
+      <button class="modal-close" onclick="closeModal('modal-detalle')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="det-hero">
+        <div class="det-hero-emoji" id="det-emoji">🥐</div>
+        <div>
+          <div class="det-hero-name" id="det-nombre">Cuernito de Mantequilla</div>
+          <div class="det-hero-sub">Inventario de producto terminado</div>
+        </div>
+      </div>
+
+      <div class="det-metrics">
+        <div class="det-metric">
+          <label>Existencia Actual</label>
+          <span id="det-stock">75 pzas</span>
+        </div>
+        <div class="det-metric">
+          <label>Precio de Venta</label>
+          <span id="det-precio">$28.00</span>
+        </div>
+        <div class="det-metric">
+          <label>Utilidad Estimada</label>
+          <span id="det-utilidad" style="color:#3a6034">↑ 21%</span>
+        </div>
+      </div>
+
+      <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--brown-dk);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--tan);">
+        📋 Últimos Movimientos
+      </div>
+
+      <table class="mov-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Stock Antes</th>
+            <th>Stock Después</th>
+            <th>Referencia</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hoy 10:30</td>
+            <td><span class="mov-entrada">↑ Entrada</span></td>
+            <td class="mov-entrada">+32 pzas</td>
+            <td>43 pzas</td>
+            <td><strong>75 pzas</strong></td>
+            <td>Producción L-0021</td>
+            <td>José Juan G.</td>
+          </tr>
+          <tr>
+            <td>Ayer 15:00</td>
+            <td><span class="mov-salida">↓ Salida</span></td>
+            <td class="mov-salida">−10 pzas</td>
+            <td>53 pzas</td>
+            <td><strong>43 pzas</strong></td>
+            <td>Venta V-0188</td>
+            <td>Laura R.</td>
+          </tr>
+          <tr>
+            <td>Ayer 12:00</td>
+            <td><span class="mov-salida">↓ Salida</span></td>
+            <td class="mov-salida">−15 pzas</td>
+            <td>68 pzas</td>
+            <td><strong>53 pzas</strong></td>
+            <td>Venta V-0185</td>
+            <td>Mariana C.</td>
+          </tr>
+          <tr>
+            <td>27/02 08:00</td>
+            <td><span class="mov-entrada">↑ Entrada</span></td>
+            <td class="mov-entrada">+32 pzas</td>
+            <td>36 pzas</td>
+            <td><strong>68 pzas</strong></td>
+            <td>Producción L-0018</td>
+            <td>José Juan G.</td>
+          </tr>
+          <tr>
+            <td>26/02 16:30</td>
+            <td><span class="mov-ajuste">⚖ Ajuste</span></td>
+            <td class="mov-ajuste">−2 pzas</td>
+            <td>38 pzas</td>
+            <td><strong>36 pzas</strong></td>
+            <td>Merma / caducidad</td>
+            <td>Salvador E.</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-detalle')">Cerrar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-detalle'); openModal('modal-ajuste')">⚖️ Registrar Ajuste</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  let tipoAjuste = 'add';
+
+  function setTipo(t) {
+    tipoAjuste = t;
+    document.getElementById('btn-tipo-add').className = 'tipo-btn' + (t==='add' ? ' selected-add' : '');
+    document.getElementById('btn-tipo-sub').className = 'tipo-btn' + (t==='sub' ? ' selected-sub' : '');
+    calcNuevoStock();
+  }
+
+  function calcNuevoStock() {
+    const actual = parseInt(document.getElementById('ajuste-actual').value) || 0;
+    const cant   = parseInt(document.getElementById('ajuste-cant').value)   || 0;
+    const nuevo  = tipoAjuste === 'add' ? actual + cant : actual - cant;
+    document.getElementById('ajuste-nuevo').value = nuevo;
+    const warnEl = document.getElementById('warn-negativo');
+    const btnEl  = document.getElementById('btn-guardar-ajuste');
+    if (nuevo < 0) {
+      warnEl.style.display = 'flex';
+      btnEl.disabled = true;
+      document.getElementById('ajuste-nuevo').style.color = 'var(--rust)';
+    } else {
+      warnEl.style.display = 'none';
+      btnEl.disabled = false;
+      document.getElementById('ajuste-nuevo').style.color = 'var(--brown-dk)';
+    }
+  }
+
+  function openAjuste(nombre, stock) {
+    document.getElementById('ajuste-producto').value = nombre;
+    document.getElementById('ajuste-actual').value   = stock;
+    document.getElementById('ajuste-nuevo').value    = stock;
+    document.getElementById('ajuste-cant').value     = '';
+    document.getElementById('warn-negativo').style.display = 'none';
+    setTipo('add');
+    openModal('modal-ajuste');
+  }
+
+  function openDetalle(nombre, emoji, stock, minimo, precio, costo, util) {
+    document.getElementById('det-nombre').textContent   = nombre;
+    document.getElementById('det-emoji').textContent    = emoji;
+    document.getElementById('det-stock').textContent    = stock + ' pzas';
+    document.getElementById('det-precio').textContent   = precio;
+    document.getElementById('det-utilidad').textContent = '↑ ' + util;
+    openModal('modal-detalle');
+  }
+
+  function filterTable() {
+    const q   = document.getElementById('searchInput').value.toLowerCase();
+    const st  = document.getElementById('filterStock').value;
+    const rows = document.querySelectorAll('#invTable tbody tr');
+    let visible = 0;
+    rows.forEach(row => {
+      const text   = row.textContent.toLowerCase();
+      const rowSt  = row.dataset.stock;
+      const show = (!q || text.includes(q)) && (!st || rowSt === st);
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+  }
+</script>
+
+<div style="height:40px"></div>
+{% endblock %}

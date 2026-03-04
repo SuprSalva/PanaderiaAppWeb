@@ -1,0 +1,815 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim   { animation: fadeUp .35s ease both; }
+  .anim-1 { animation-delay: .05s; }
+  .anim-2 { animation-delay: .10s; }
+  .anim-3 { animation-delay: .15s; }
+
+  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
+  .db-page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
+  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+  .db-breadcrumb span { color: var(--tan); }
+
+  /* ── STATS ── */
+  .r-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+  .r-stat { background: var(--white); border: 1px solid var(--tan); border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px var(--shadow); display: flex; align-items: center; gap: 12px; transition: transform .2s; }
+  .r-stat:hover { transform: translateY(-2px); }
+  .r-stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .r-stat-icon.brown { background: #f3e8d8; }
+  .r-stat-icon.green { background: #e2eede; }
+  .r-stat-icon.gold  { background: #fef3d0; }
+  .r-stat-icon.rust  { background: #fce8df; }
+  .r-stat-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
+  .r-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
+
+  /* ── TOOLBAR ── */
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input { width: 100%; padding: 9px 14px 9px 38px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; background: var(--white); color: var(--text); outline: none; transition: border .2s; box-sizing: border-box; }
+  .search-wrap input:focus { border-color: var(--brown); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
+  .filter-select { padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13px; background: var(--white); color: var(--text); outline: none; cursor: pointer; }
+
+  /* ── CARDS GRID ── */
+  .recetas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 1100px) { .recetas-grid { grid-template-columns: repeat(2,1fr); } }
+
+  .receta-card {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 14px; box-shadow: 0 2px 10px var(--shadow);
+    overflow: hidden; transition: transform .2s, box-shadow .2s;
+    cursor: pointer;
+  }
+  .receta-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px var(--shadow); }
+
+  .rc-header {
+    padding: 18px 20px 14px;
+    background: linear-gradient(135deg, var(--warm-bg) 0%, var(--cream) 100%);
+    border-bottom: 1px solid var(--tan);
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .rc-emoji { font-size: 32px; flex-shrink: 0; }
+  .rc-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); line-height: 1.2; }
+  .rc-rendimiento { font-size: 11px; color: var(--brown-lt); margin-top: 4px; font-weight: 600; }
+
+  .rc-body { padding: 14px 18px; }
+  .rc-insumos-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown-lt); margin-bottom: 8px; }
+
+  .insumo-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--tan); }
+  .insumo-row:last-child { border-bottom: none; }
+  .insumo-nombre { font-size: 12.5px; color: var(--brown-dk); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .insumo-nombre .ico { font-size: 13px; }
+  .insumo-cant { font-size: 12px; color: var(--brown); font-weight: 700; }
+  .insumo-merma { font-size: 10px; color: #c9950a; background: #fef3d0; padding: 1px 6px; border-radius: 10px; }
+
+  .rc-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px; background: var(--warm-bg);
+    border-top: 1px solid var(--tan);
+  }
+  .rc-costo { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); }
+  .rc-costo span { font-size: 10px; color: var(--brown-lt); font-family: 'Lato', sans-serif; font-weight: 400; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-active   { background: #e2eede; color: #3a6034; }
+  .badge-inactive { background: #fce8df; color: #9c3a1a; }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 680px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
+  .modal-xl { max-width: 820px; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); display: flex; align-items: center; gap: 10px; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 26px; max-height: 76vh; overflow-y: auto; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+
+  .form-row { display: grid; gap: 14px; }
+  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
+  .form-input, .form-select, .form-textarea { padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; color: var(--text); background: var(--cream); outline: none; transition: border .2s; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--brown); background: var(--white); }
+  .form-hint { font-size: 11px; color: var(--brown-lt); }
+  .form-textarea { resize: vertical; min-height: 60px; }
+  .section-divider { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brown-lt); padding: 6px 0 2px; border-bottom: 1px solid var(--tan); margin-bottom: 2px; grid-column: 1/-1; }
+
+  /* ── INSUMOS TABLA EDITABLE ── */
+  .ins-header { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 36px; gap: 8px; padding: 8px 10px; background: var(--warm-bg); border-radius: 8px 8px 0 0; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown); }
+  .ins-row    { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 36px; gap: 8px; padding: 8px 10px; border: 1px solid var(--tan); border-top: none; align-items: center; background: var(--white); }
+  .ins-row:first-of-type { border-top: 1px solid var(--tan); }
+  .ins-row:last-child { border-radius: 0 0 8px 8px; }
+  .det-input  { width: 100%; padding: 7px 10px; border: 1.5px solid var(--tan); border-radius: 7px; font-family: 'Lato', sans-serif; font-size: 12.5px; color: var(--text); background: var(--white); outline: none; transition: border .2s; box-sizing: border-box; }
+  .det-input:focus { border-color: var(--brown); }
+  .det-select { width: 100%; padding: 7px 8px; border: 1.5px solid var(--tan); border-radius: 7px; font-family: 'Lato', sans-serif; font-size: 12px; color: var(--text); background: var(--white); outline: none; cursor: pointer; }
+  .merma-badge-sm { font-size: 10px; color: #8a6200; background: #fef3d0; padding: 2px 7px; border-radius: 10px; text-align: center; font-weight: 700; }
+  .btn-remove { width: 28px; height: 28px; border-radius: 6px; background: #fce8df; border: none; color: var(--rust); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; flex-shrink: 0; }
+  .btn-remove:hover { background: var(--rust); color: #fff; }
+
+  /* ── COSTO PREVIEW ── */
+  .costo-preview { display: flex; align-items: center; justify-content: space-between; background: var(--brown-dk); color: var(--cream); padding: 12px 18px; border-radius: 10px; margin-top: 14px; }
+  .costo-preview span { font-size: 12px; opacity: .8; }
+  .costo-preview strong { font-family: 'Playfair Display', serif; font-size: 20px; }
+
+  /* ── DETALLE / EXPLOSIÓN ── */
+  .explosion-table { width: 100%; border-collapse: collapse; }
+  .explosion-table thead { background: var(--warm-bg); }
+  .explosion-table thead th { padding: 10px 14px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown); text-align: left; }
+  .explosion-table tbody tr { border-top: 1px solid var(--tan); }
+  .explosion-table tbody tr:hover { background: #fdf3e6; }
+  .explosion-table tbody td { padding: 11px 14px; font-size: 13px; }
+  .merma-col { color: #8a6200; font-weight: 700; font-size: 12px; }
+  .total-con-merma { color: var(--rust); font-weight: 700; }
+
+  .info-box { background: #f3e8d8; border: 1px solid var(--tan); border-radius: 10px; padding: 11px 14px; font-size: 12px; color: var(--brown-dk); display: flex; gap: 8px; align-items: flex-start; margin-bottom: 14px; }
+  .info-box .ii { flex-shrink: 0; font-size: 15px; }
+
+  /* ── DELETE ── */
+  .modal-header.danger { background: var(--rust); }
+  .delete-body { padding: 32px 26px; text-align: center; }
+  .delete-icon { font-size: 46px; margin-bottom: 12px; }
+  .delete-body h3 { font-family: 'Playfair Display', serif; font-size: 19px; color: var(--brown-dk); margin-bottom: 8px; }
+  .delete-body p { font-size: 13px; color: var(--brown-lt); line-height: 1.6; }
+  .delete-body strong { color: var(--rust); }
+</style>
+
+<!-- TOPBAR -->
+<div class="db-topbar anim">
+  <div>
+    <div class="db-page-title">📋 Recetas</div>
+    <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Recetas</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modal-add')">＋ Nueva Receta</button>
+</div>
+
+<!-- STATS -->
+<div class="r-stats anim anim-1">
+  <div class="r-stat">
+    <div class="r-stat-icon brown">📋</div>
+    <div><div class="r-stat-val">10</div><div class="r-stat-lbl">Recetas Registradas</div></div>
+  </div>
+  <div class="r-stat">
+    <div class="r-stat-icon green">✅</div>
+    <div><div class="r-stat-val">8</div><div class="r-stat-lbl">Activas</div></div>
+  </div>
+  <div class="r-stat">
+    <div class="r-stat-icon gold">🌾</div>
+    <div><div class="r-stat-val">6</div><div class="r-stat-lbl">Insumos distintos</div></div>
+  </div>
+  <div class="r-stat">
+    <div class="r-stat-icon rust">💰</div>
+    <div><div class="r-stat-val">$18.40</div><div class="r-stat-lbl">Costo prom. por pieza</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar anim anim-2">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Buscar receta…" id="searchInput" oninput="filterCards()">
+  </div>
+  <select class="filter-select" id="filterEstatus" onchange="filterCards()">
+    <option value="">Todos los estatus</option>
+    <option value="activo">Activas</option>
+    <option value="inactivo">Inactivas</option>
+  </select>
+</div>
+
+<!-- CARDS GRID -->
+<div class="recetas-grid anim anim-3" id="recetasGrid">
+
+  <!-- 1: Concha de Vainilla -->
+  <div class="receta-card" data-estatus="activo" data-nombre="concha vainilla" onclick="openExplosion('Concha de Vainilla')">
+    <div class="rc-header">
+      <div class="rc-emoji">🍞</div>
+      <div>
+        <div class="rc-title">Concha de Vainilla</div>
+        <div class="rc-rendimiento">🔢 Rendimiento: 12 piezas por lote</div>
+        <span class="badge badge-active" style="margin-top:6px;display:inline-block;">Activa</span>
+      </div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-insumos-label">Insumos (explosión de materiales)</div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🌾</span> Harina de Trigo</span>
+        <span><span class="insumo-cant">500 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🍚</span> Azúcar Refinada</span>
+        <span><span class="insumo-cant">120 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🧈</span> Mantequilla</span>
+        <span><span class="insumo-cant">80 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🥚</span> Huevo</span>
+        <span><span class="insumo-cant">120 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🫙</span> Esencia Vainilla</span>
+        <span><span class="insumo-cant">5 ml</span></span>
+      </div>
+    </div>
+    <div class="rc-footer">
+      <div class="rc-costo">$14.20 <span>/ pieza</span></div>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Concha de Vainilla')">🚫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2: Pan de Chocolate -->
+  <div class="receta-card" data-estatus="activo" data-nombre="pan chocolate" onclick="openExplosion('Pan de Chocolate')">
+    <div class="rc-header">
+      <div class="rc-emoji">🍫</div>
+      <div>
+        <div class="rc-title">Pan de Chocolate</div>
+        <div class="rc-rendimiento">🔢 Rendimiento: 10 piezas por lote</div>
+        <span class="badge badge-active" style="margin-top:6px;display:inline-block;">Activa</span>
+      </div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-insumos-label">Insumos (explosión de materiales)</div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🌾</span> Harina de Trigo</span>
+        <span><span class="insumo-cant">450 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🍚</span> Azúcar Refinada</span>
+        <span><span class="insumo-cant">100 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🧈</span> Mantequilla</span>
+        <span><span class="insumo-cant">90 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🥛</span> Leche Entera</span>
+        <span><span class="insumo-cant">100 ml</span></span>
+      </div>
+    </div>
+    <div class="rc-footer">
+      <div class="rc-costo">$17.80 <span>/ pieza</span></div>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Pan de Chocolate')">🚫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3: Bolillo Relleno -->
+  <div class="receta-card" data-estatus="activo" data-nombre="bolillo relleno" onclick="openExplosion('Bolillo Relleno')">
+    <div class="rc-header">
+      <div class="rc-emoji">🥖</div>
+      <div>
+        <div class="rc-title">Bolillo Relleno</div>
+        <div class="rc-rendimiento">🔢 Rendimiento: 20 piezas por lote</div>
+        <span class="badge badge-active" style="margin-top:6px;display:inline-block;">Activa</span>
+      </div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-insumos-label">Insumos (explosión de materiales)</div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🌾</span> Harina de Trigo</span>
+        <span><span class="insumo-cant">600 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🧫</span> Levadura Seca</span>
+        <span><span class="insumo-cant">10 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🧂</span> Sal</span>
+        <span><span class="insumo-cant">8 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🥛</span> Leche Entera</span>
+        <span><span class="insumo-cant">200 ml</span></span>
+      </div>
+    </div>
+    <div class="rc-footer">
+      <div class="rc-costo">$8.50 <span>/ pieza</span></div>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Bolillo Relleno')">🚫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4: Dona Glaseada -->
+  <div class="receta-card" data-estatus="activo" data-nombre="dona glaseada" onclick="openExplosion('Dona Glaseada')">
+    <div class="rc-header">
+      <div class="rc-emoji">🍩</div>
+      <div>
+        <div class="rc-title">Dona Glaseada</div>
+        <div class="rc-rendimiento">🔢 Rendimiento: 15 piezas por lote</div>
+        <span class="badge badge-active" style="margin-top:6px;display:inline-block;">Activa</span>
+      </div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-insumos-label">Insumos (explosión de materiales)</div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🌾</span> Harina de Trigo</span>
+        <span><span class="insumo-cant">400 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🍚</span> Azúcar Refinada</span>
+        <span><span class="insumo-cant">150 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🥚</span> Huevo</span>
+        <span><span class="insumo-cant">100 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🥛</span> Leche Entera</span>
+        <span><span class="insumo-cant">150 ml</span></span>
+      </div>
+    </div>
+    <div class="rc-footer">
+      <div class="rc-costo">$12.60 <span>/ pieza</span></div>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Dona Glaseada')">🚫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5: Cuernito de Mantequilla -->
+  <div class="receta-card" data-estatus="activo" data-nombre="cuernito mantequilla" onclick="openExplosion('Cuernito de Mantequilla')">
+    <div class="rc-header">
+      <div class="rc-emoji">🥐</div>
+      <div>
+        <div class="rc-title">Cuernito de Mantequilla</div>
+        <div class="rc-rendimiento">🔢 Rendimiento: 16 piezas por lote</div>
+        <span class="badge badge-active" style="margin-top:6px;display:inline-block;">Activa</span>
+      </div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-insumos-label">Insumos (explosión de materiales)</div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🌾</span> Harina de Trigo</span>
+        <span><span class="insumo-cant">480 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🧈</span> Mantequilla</span>
+        <span><span class="insumo-cant">200 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🥚</span> Huevo</span>
+        <span><span class="insumo-cant">80 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🍚</span> Azúcar Refinada</span>
+        <span><span class="insumo-cant">60 g</span></span>
+      </div>
+    </div>
+    <div class="rc-footer">
+      <div class="rc-costo">$22.10 <span>/ pieza</span></div>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Cuernito de Mantequilla')">🚫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6: Inactiva -->
+  <div class="receta-card" data-estatus="inactivo" data-nombre="pan integral" onclick="openExplosion('Pan Integral')" style="opacity:.65">
+    <div class="rc-header">
+      <div class="rc-emoji">🍞</div>
+      <div>
+        <div class="rc-title">Pan Integral</div>
+        <div class="rc-rendimiento">🔢 Rendimiento: 8 piezas por lote</div>
+        <span class="badge badge-inactive" style="margin-top:6px;display:inline-block;">Inactiva</span>
+      </div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-insumos-label">Insumos</div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🌾</span> Harina Integral</span>
+        <span><span class="insumo-cant">500 g</span></span>
+      </div>
+      <div class="insumo-row">
+        <span class="insumo-nombre"><span class="ico">🧫</span> Levadura Seca</span>
+        <span><span class="insumo-cant">8 g</span></span>
+      </div>
+    </div>
+    <div class="rc-footer">
+      <div class="rc-costo">$9.80 <span>/ pieza</span></div>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openModal('modal-edit')">✏️</button>
+        <button class="btn btn-success btn-sm btn-icon" data-tooltip="Reactivar"
+          style="background:#e2eede;color:#3a6034;border:1.5px solid #b2d4aa;"
+          onclick="openDelete('Pan Integral', true)">✅</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: NUEVA RECETA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h2>➕ Nueva Receta</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-3" style="margin-bottom:20px">
+        <div class="section-divider">Datos Generales</div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nombre del Producto</label>
+          <input type="text" class="form-input" placeholder="Ej. Concha de Vainilla">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rendimiento (piezas/lote)</label>
+          <input type="number" class="form-input" placeholder="Ej. 12" min="1">
+          <span class="form-hint">Cuántas piezas produce un lote</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Precio de Venta (por pieza)</label>
+          <input type="number" class="form-input" placeholder="$0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estatus</label>
+          <select class="form-select">
+            <option>Activa</option>
+            <option>Inactiva</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Notas / Instrucciones</label>
+          <textarea class="form-textarea" placeholder="Instrucciones de preparación, temperaturas, tiempos…"></textarea>
+        </div>
+      </div>
+
+      <!-- Insumos -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brown-lt);">Insumos de la Receta</span>
+      </div>
+
+      <div class="info-box">
+        <span class="ii">💡</span>
+        <span>Indica la cantidad <strong>en unidad base</strong> (gramos, ml, piezas). La merma de cada insumo se aplica automáticamente al producir.</span>
+      </div>
+
+      <div class="ins-header">
+        <span>Materia Prima</span>
+        <span>Cantidad</span>
+        <span>Unidad Base</span>
+        <span>Merma %</span>
+        <span></span>
+      </div>
+
+      <div id="insumos-container">
+        <div class="ins-row" id="ins-1">
+          <select class="det-select" onchange="autoFillUnidad(this, 'unidad-1', 'merma-1')">
+            <option value="">— Seleccionar insumo —</option>
+            <option value="harina"      data-unidad="g"  data-merma="3">Harina de Trigo</option>
+            <option value="azucar"      data-unidad="g"  data-merma="1">Azúcar Refinada</option>
+            <option value="mantequilla" data-unidad="g"  data-merma="2">Mantequilla</option>
+            <option value="leche"       data-unidad="ml" data-merma="0">Leche Entera</option>
+            <option value="levadura"    data-unidad="g"  data-merma="5">Levadura Seca</option>
+            <option value="huevo"       data-unidad="g"  data-merma="4">Huevo</option>
+            <option value="vainilla"    data-unidad="ml" data-merma="0">Esencia de Vainilla</option>
+          </select>
+          <input type="number" class="det-input" placeholder="0" min="0" id="cant-1">
+          <input type="text"   class="det-input" readonly id="unidad-1" placeholder="g/ml/pza" style="background:var(--warm-bg);color:var(--brown);font-weight:700;">
+          <div class="merma-badge-sm" id="merma-1">—</div>
+          <button class="btn-remove" onclick="removeIns(1)">✕</button>
+        </div>
+        <div class="ins-row" id="ins-2">
+          <select class="det-select" onchange="autoFillUnidad(this, 'unidad-2', 'merma-2')">
+            <option value="">— Seleccionar insumo —</option>
+            <option value="harina"      data-unidad="g"  data-merma="3">Harina de Trigo</option>
+            <option value="azucar"      data-unidad="g"  data-merma="1">Azúcar Refinada</option>
+            <option value="mantequilla" data-unidad="g"  data-merma="2">Mantequilla</option>
+            <option value="leche"       data-unidad="ml" data-merma="0">Leche Entera</option>
+            <option value="levadura"    data-unidad="g"  data-merma="5">Levadura Seca</option>
+            <option value="huevo"       data-unidad="g"  data-merma="4">Huevo</option>
+            <option value="vainilla"    data-unidad="ml" data-merma="0">Esencia de Vainilla</option>
+          </select>
+          <input type="number" class="det-input" placeholder="0" min="0" id="cant-2">
+          <input type="text"   class="det-input" readonly id="unidad-2" placeholder="g/ml/pza" style="background:var(--warm-bg);color:var(--brown);font-weight:700;">
+          <div class="merma-badge-sm" id="merma-2">—</div>
+          <button class="btn-remove" onclick="removeIns(2)">✕</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <button class="btn btn-outline btn-sm" onclick="addInsumo()">＋ Agregar insumo</button>
+      </div>
+
+      <div class="costo-preview">
+        <span>Costo estimado por lote</span>
+        <strong>—</strong>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar Receta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: EDITAR RECETA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h2>✏️ Editar Receta</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-3" style="margin-bottom:20px">
+        <div class="section-divider">Datos Generales</div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nombre del Producto</label>
+          <input type="text" class="form-input" value="Concha de Vainilla">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rendimiento (piezas/lote)</label>
+          <input type="number" class="form-input" value="12">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Precio de Venta (por pieza)</label>
+          <input type="number" class="form-input" value="28.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estatus</label>
+          <select class="form-select"><option>Activa</option><option>Inactiva</option></select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Notas / Instrucciones</label>
+          <textarea class="form-textarea">Hornear a 180°C por 20 minutos.</textarea>
+        </div>
+      </div>
+
+      <div class="ins-header">
+        <span>Materia Prima</span><span>Cantidad</span><span>Unidad Base</span><span>Merma %</span><span></span>
+      </div>
+      <div id="insumos-edit-container">
+        <div class="ins-row">
+          <select class="det-select"><option selected>Harina de Trigo</option></select>
+          <input type="number" class="det-input" value="500">
+          <input type="text"   class="det-input" readonly value="g" style="background:var(--warm-bg);color:var(--brown);font-weight:700;">
+          <div class="merma-badge-sm">3%</div>
+          <button class="btn-remove">✕</button>
+        </div>
+        <div class="ins-row">
+          <select class="det-select"><option selected>Azúcar Refinada</option></select>
+          <input type="number" class="det-input" value="120">
+          <input type="text"   class="det-input" readonly value="g" style="background:var(--warm-bg);color:var(--brown);font-weight:700;">
+          <div class="merma-badge-sm">1%</div>
+          <button class="btn-remove">✕</button>
+        </div>
+        <div class="ins-row">
+          <select class="det-select"><option selected>Mantequilla</option></select>
+          <input type="number" class="det-input" value="80">
+          <input type="text"   class="det-input" readonly value="g" style="background:var(--warm-bg);color:var(--brown);font-weight:700;">
+          <div class="merma-badge-sm">2%</div>
+          <button class="btn-remove">✕</button>
+        </div>
+        <div class="ins-row">
+          <select class="det-select"><option selected>Huevo</option></select>
+          <input type="number" class="det-input" value="120">
+          <input type="text"   class="det-input" readonly value="g" style="background:var(--warm-bg);color:var(--brown);font-weight:700;">
+          <div class="merma-badge-sm">4%</div>
+          <button class="btn-remove">✕</button>
+        </div>
+        <div class="ins-row">
+          <select class="det-select"><option selected>Esencia de Vainilla</option></select>
+          <input type="number" class="det-input" value="5">
+          <input type="text"   class="det-input" readonly value="ml" style="background:var(--warm-bg);color:var(--brown);font-weight:700;">
+          <div class="merma-badge-sm">0%</div>
+          <button class="btn-remove">✕</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;"><button class="btn btn-outline btn-sm">＋ Agregar insumo</button></div>
+      <div class="costo-preview" style="margin-top:14px;">
+        <span>Costo estimado por lote</span>
+        <strong>$170.40</strong>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-primary">💾 Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: EXPLOSIÓN DE MATERIALES
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-explosion">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h2>🔍 Explosión de Materiales — <span id="explosion-titulo" style="opacity:.75;font-size:14px;">Concha de Vainilla</span></h2>
+      <button class="modal-close" onclick="closeModal('modal-explosion')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="info-box">
+        <span class="ii">📐</span>
+        <span>La columna <strong>"Total con merma"</strong> muestra el consumo real del insumo aplicando el % de merma definido en el catálogo. Este es el valor que se descuenta del inventario al producir.</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
+        <div style="background:var(--warm-bg);border:1px solid var(--tan);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Rendimiento</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--brown-dk);">12 piezas / lote</div>
+        </div>
+        <div style="background:var(--warm-bg);border:1px solid var(--tan);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Costo por lote</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--brown-dk);">$170.40</div>
+        </div>
+        <div style="background:var(--warm-bg);border:1px solid var(--tan);border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Costo por pieza</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--brown-dk);">$14.20</div>
+        </div>
+      </div>
+
+      <table class="explosion-table">
+        <thead>
+          <tr>
+            <th>Insumo</th>
+            <th>Cant. Receta</th>
+            <th>Unidad</th>
+            <th>Merma %</th>
+            <th>Total con Merma</th>
+            <th>Costo Unit.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>🌾 Harina de Trigo</strong></td>
+            <td>500 g</td><td>g</td>
+            <td><span class="merma-col">3%</span></td>
+            <td><span class="total-con-merma">515 g</span></td>
+            <td>$0.018/g</td><td><strong>$9.27</strong></td>
+          </tr>
+          <tr>
+            <td><strong>🍚 Azúcar Refinada</strong></td>
+            <td>120 g</td><td>g</td>
+            <td><span class="merma-col">1%</span></td>
+            <td><span class="total-con-merma">121.2 g</span></td>
+            <td>$0.022/g</td><td><strong>$2.67</strong></td>
+          </tr>
+          <tr>
+            <td><strong>🧈 Mantequilla</strong></td>
+            <td>80 g</td><td>g</td>
+            <td><span class="merma-col">2%</span></td>
+            <td><span class="total-con-merma">81.6 g</span></td>
+            <td>$0.322/g</td><td><strong>$26.28</strong></td>
+          </tr>
+          <tr>
+            <td><strong>🥚 Huevo</strong></td>
+            <td>120 g</td><td>g</td>
+            <td><span class="merma-col">4%</span></td>
+            <td><span class="total-con-merma">124.8 g</span></td>
+            <td>$0.040/g</td><td><strong>$4.99</strong></td>
+          </tr>
+          <tr>
+            <td><strong>🫙 Esencia de Vainilla</strong></td>
+            <td>5 ml</td><td>ml</td>
+            <td><span class="merma-col">0%</span></td>
+            <td><span class="total-con-merma">5.0 ml</span></td>
+            <td>$0.240/ml</td><td><strong>$1.20</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="background:var(--brown-dk);color:var(--cream);padding:12px 18px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+        <span style="font-size:12px;opacity:.8;">Costo total del lote (con mermas aplicadas)</span>
+        <strong style="font-family:'Playfair Display',serif;font-size:20px;">$170.40</strong>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-explosion')">Cerrar</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-explosion'); openModal('modal-edit')">✏️ Editar Receta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: BAJA LÓGICA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header danger" id="delete-header">
+      <h2>🚫 Desactivar Receta</h2>
+      <button class="modal-close" onclick="closeModal('modal-delete')">✕</button>
+    </div>
+    <div class="delete-body">
+      <div class="delete-icon" id="delete-icon">🚫</div>
+      <h3 id="delete-title">¿Desactivar esta receta?</h3>
+      <p>La receta <strong id="delete-name">—</strong> no podrá usarse en nuevas órdenes de producción.<br>El historial de producción se conserva.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button>
+      <button class="btn btn-danger" id="delete-confirm-btn">🚫 Desactivar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  function openExplosion(nombre) {
+    document.getElementById('explosion-titulo').textContent = nombre;
+    openModal('modal-explosion');
+  }
+
+  function openDelete(nombre, reactivar = false) {
+    document.getElementById('delete-name').textContent = nombre;
+    const hdr = document.getElementById('delete-header');
+    const ico = document.getElementById('delete-icon');
+    const ttl = document.getElementById('delete-title');
+    const btn = document.getElementById('delete-confirm-btn');
+    const txt = document.querySelector('#modal-delete .delete-body p');
+    if (reactivar) {
+      hdr.style.background = '#5a7a52'; ico.textContent = '✅';
+      ttl.textContent = '¿Reactivar esta receta?';
+      btn.textContent = '✅ Reactivar'; btn.className = 'btn btn-success';
+      txt.innerHTML = 'La receta <strong>' + nombre + '</strong> volverá a estar disponible para producción.';
+    } else {
+      hdr.style.background = 'var(--rust)'; ico.textContent = '🚫';
+      ttl.textContent = '¿Desactivar esta receta?';
+      btn.textContent = '🚫 Desactivar'; btn.className = 'btn btn-danger';
+      txt.innerHTML = 'La receta <strong>' + nombre + '</strong> no podrá usarse en nuevas órdenes de producción.<br>El historial de producción se conserva.';
+    }
+    openModal('modal-delete');
+  }
+
+  let insCount = 2;
+  function addInsumo() {
+    insCount++;
+    const n = insCount;
+    const container = document.getElementById('insumos-container');
+    const div = document.createElement('div');
+    div.className = 'ins-row'; div.id = 'ins-' + n;
+    div.innerHTML = `
+      <select class="det-select" onchange="autoFillUnidad(this,'unidad-${n}','merma-${n}')">
+        <option value="">— Seleccionar insumo —</option>
+        <option value="harina"      data-unidad="g"  data-merma="3">Harina de Trigo</option>
+        <option value="azucar"      data-unidad="g"  data-merma="1">Azúcar Refinada</option>
+        <option value="mantequilla" data-unidad="g"  data-merma="2">Mantequilla</option>
+        <option value="leche"       data-unidad="ml" data-merma="0">Leche Entera</option>
+        <option value="levadura"    data-unidad="g"  data-merma="5">Levadura Seca</option>
+        <option value="huevo"       data-unidad="g"  data-merma="4">Huevo</option>
+        <option value="vainilla"    data-unidad="ml" data-merma="0">Esencia de Vainilla</option>
+      </select>
+      <input type="number" class="det-input" placeholder="0" min="0" id="cant-${n}">
+      <input type="text" class="det-input" readonly id="unidad-${n}" placeholder="auto" style="background:var(--warm-bg);color:var(--brown);font-weight:700;">
+      <div class="merma-badge-sm" id="merma-${n}">—</div>
+      <button class="btn-remove" onclick="removeIns(${n})">✕</button>
+    `;
+    container.appendChild(div);
+  }
+
+  function removeIns(n) {
+    const el = document.getElementById('ins-' + n);
+    if (el) el.remove();
+  }
+
+  function autoFillUnidad(sel, unidadId, mermaId) {
+    const opt = sel.options[sel.selectedIndex];
+    const unidadEl = document.getElementById(unidadId);
+    const mermaEl  = document.getElementById(mermaId);
+    if (unidadEl) unidadEl.value = opt.dataset.unidad || '';
+    if (mermaEl)  mermaEl.textContent = opt.dataset.merma !== undefined ? opt.dataset.merma + '%' : '—';
+  }
+
+  function filterCards() {
+    const q   = document.getElementById('searchInput').value.toLowerCase();
+    const est = document.getElementById('filterEstatus').value;
+    document.querySelectorAll('.receta-card').forEach(card => {
+      const nombre   = card.dataset.nombre || '';
+      const estatus  = card.dataset.estatus || '';
+      const matchQ   = !q   || nombre.includes(q);
+      const matchEst = !est || estatus === est;
+      card.style.display = (matchQ && matchEst) ? '' : 'none';
+    });
+  }
+</script>
+
+<div style="height:40px"></div>
+{% endblock %}
