@@ -29,6 +29,10 @@ def login():
 
 @app.route("/dashboard")
 def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/dashboardVentas")
+def dashboard_ventas():
     return render_template("dashboardVentas.html")
 
 @app.route("/usuarios")
