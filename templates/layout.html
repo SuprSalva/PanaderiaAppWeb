@@ -344,29 +344,29 @@
       <div class="nav-section">
         <div class="nav-section-label">Administración</div>
 
-        <a href="{{ url_for('usuarios') }}"
-           class="nav-item {% if request.endpoint == 'usuarios' or request.endpoint == 'registrar_usuario' %}active{% endif %}">
+        <a href="{{ url_for('registrar_usuario.usuarios') }}"
+           class="nav-item {% if request.endpoint in ['registrar_usuario.usuarios', 'registrar_usuario'] %}active{% endif %}">
           <span class="nav-icon">👥</span>
           <span class="nav-label">Usuarios</span>
           <span class="nav-tooltip">Usuarios</span>
         </a>
 
-        <a href="{{ url_for('proveedores') }}"
-           class="nav-item {% if request.endpoint == 'proveedores' %}active{% endif %}">
+        <a href="{{ url_for('proveedores.index_proveedores') }}"
+           class="nav-item {% if request.endpoint == 'proveedores.index_proveedores' %}active{% endif %}">
           <span class="nav-icon">🏪</span>
           <span class="nav-label">Proveedores</span>
           <span class="nav-tooltip">Proveedores</span>
         </a>
 
-        <a href="{{ url_for('materias_primas') }}"
-           class="nav-item {% if request.endpoint == 'materias_primas' %}active{% endif %}">
+        <a href="{{ url_for('proveedores.materias_primas') }}"
+           class="nav-item {% if request.endpoint == 'proveedores.materias_primas' %}active{% endif %}">
           <span class="nav-icon">🌾</span>
           <span class="nav-label">Materias Primas</span>
           <span class="nav-tooltip">Materias Primas</span>
         </a>
 
-        <a href="{{ url_for('compras') }}"
-           class="nav-item {% if request.endpoint == 'compras' %}active{% endif %}">
+        <a href="{{ url_for('compras.index_compras') }}"
+           class="nav-item {% if request.endpoint == 'compras.index_compras' %}active{% endif %}">
           <span class="nav-icon">🛒</span>
           <span class="nav-label">Compras</span>
           <span class="nav-tooltip">Compras</span>
@@ -377,33 +377,32 @@
       <div class="nav-section">
         <div class="nav-section-label">Producción</div>
 
-        <a href="{{ url_for('recetas') }}"
-           class="nav-item {% if request.endpoint == 'recetas' %}active{% endif %}">
+        <a href="{{ url_for('recetas.index_recetas') }}"
+           class="nav-item {% if request.endpoint == 'recetas.index_recetas' %}active{% endif %}">
           <span class="nav-icon">📖</span>
           <span class="nav-label">Recetas</span>
           <span class="nav-tooltip">Recetas</span>
         </a>
 
-        <a href="{{ url_for('produccion') }}"
-           class="nav-item {% if request.endpoint == 'produccion' %}active{% endif %}">
+        <a href="{{ url_for('produccion.index_produccion') }}"
+           class="nav-item {% if request.endpoint == 'produccion.index_produccion' %}active{% endif %}">
           <span class="nav-icon">⚙️</span>
           <span class="nav-label">Producción</span>
           <span class="nav-tooltip">Producción</span>
         </a>
 
-        <a href="{{ url_for('produccion_solicitud') }}"
-           class="nav-item {% if request.endpoint == 'produccion_solicitud' %}active{% endif %}">
+        <a href="{{ url_for('produccion.index_produccion_solicitud') }}"
+           class="nav-item {% if request.endpoint == 'produccion.index_produccion_solicitud' %}active{% endif %}">
           <span class="nav-icon">📬</span>
           <span class="nav-label">Solicitudes</span>
           <span class="nav-tooltip">Solicitudes Prod.</span>
-          {# Muestra badge si hay pendientes — conéctalo desde context_processor #}
           {% if pendientes_solicitudes is defined and pendientes_solicitudes > 0 %}
           <span class="nav-badge">{{ pendientes_solicitudes }}</span>
           {% endif %}
         </a>
 
-        <a href="{{ url_for('producto_terminado') }}"
-           class="nav-item {% if request.endpoint == 'producto_terminado' %}active{% endif %}">
+        <a href="{{ url_for('productoTerminado.index_producto_terminado') }}"
+           class="nav-item {% if request.endpoint == 'productoTerminado.index_producto_terminado' %}active{% endif %}">
           <span class="nav-icon">📦</span>
           <span class="nav-label">Inv. Terminado</span>
           <span class="nav-tooltip">Inv. Terminado</span>
@@ -414,22 +413,22 @@
       <div class="nav-section">
         <div class="nav-section-label">Ventas</div>
 
-        <a href="{{ url_for('ventas') }}"
-           class="nav-item {% if request.endpoint == 'ventas' %}active{% endif %}">
+        <a href="{{ url_for('ventas.index_ventas') }}"
+           class="nav-item {% if request.endpoint == 'ventas.index_ventas' %}active{% endif %}">
           <span class="nav-icon">🏷️</span>
           <span class="nav-label">Ventas</span>
           <span class="nav-tooltip">Ventas</span>
         </a>
 
-        <a href="{{ url_for('corte_ventas') }}"
-           class="nav-item {% if request.endpoint == 'corte_ventas' %}active{% endif %}">
+        <a href="{{ url_for('ventas.corte_ventas') }}"
+           class="nav-item {% if request.endpoint == 'ventas.corte_ventas' %}active{% endif %}">
           <span class="nav-icon">📊</span>
           <span class="nav-label">Corte Diario</span>
           <span class="nav-tooltip">Corte Diario</span>
         </a>
 
-        <a href="{{ url_for('salida_efectivo') }}"
-           class="nav-item {% if request.endpoint == 'salida_efectivo' %}active{% endif %}">
+        <a href="{{ url_for('efectivo.index_salida_efectivo') }}"
+           class="nav-item {% if request.endpoint == 'efectivo.index_salida_efectivo' %}active{% endif %}">
           <span class="nav-icon">💸</span>
           <span class="nav-label">Salida de Efectivo</span>
           <span class="nav-tooltip">Salida de Efectivo</span>
@@ -440,15 +439,15 @@
       <div class="nav-section">
         <div class="nav-section-label">Reportes</div>
 
-        <a href="{{ url_for('costo_utilidad') }}"
-           class="nav-item {% if request.endpoint == 'costo_utilidad' %}active{% endif %}">
+        <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}"
+           class="nav-item {% if request.endpoint == 'costoUtilidad.index_costo_utilidad' %}active{% endif %}">
           <span class="nav-icon">💰</span>
           <span class="nav-label">Costo y Utilidad</span>
           <span class="nav-tooltip">Costo y Utilidad</span>
         </a>
 
-        <a href="{{ url_for('utilidad') }}"
-           class="nav-item {% if request.endpoint == 'utilidad' %}active{% endif %}">
+        <a href="{{ url_for('costoUtilidad.index_utilidad') }}"
+           class="nav-item {% if request.endpoint == 'costoUtilidad.index_utilidad' %}active{% endif %}">
           <span class="nav-icon">📈</span>
           <span class="nav-label">Utilidad Diaria</span>
           <span class="nav-tooltip">Utilidad Diaria</span>
