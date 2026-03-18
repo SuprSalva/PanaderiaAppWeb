@@ -1,9 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+import uuid
+import datetime
+
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_wtf.csrf import CSRFProtect
 from config import DevelopmentConfig
-from models import db, Usuario
-from werkzeug.security import generate_password_hash
-from flask_migrate import Migrate 
+from models import db, Usuario, Rol
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_migrate import Migrate
+from functools import wraps
 import forms
 
 from compras.routes import compras
@@ -16,10 +20,10 @@ from efectivo.routes import efectivo
 from costoUtilidad.routes import costoUtilidad
 from usuarios.routes import registrar_usuario_bp
 
-
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
 csrf = CSRFProtect()
+
 app.register_blueprint(compras)
 app.register_blueprint(proveedores)
 app.register_blueprint(recetas)
@@ -30,63 +34,138 @@ app.register_blueprint(efectivo)
 app.register_blueprint(costoUtilidad)
 app.register_blueprint(registrar_usuario_bp)
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template("404.html"), 404
+db.init_app(app)
+migrate = Migrate(app, db)
 
+
+# ══════════════════════════════════════════════════════════
+#  DECORADOR: protege rutas que requieren sesión activa
+# ══════════════════════════════════════════════════════════
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'usuario_id' not in session:
+            flash('Debes iniciar sesión para acceder.')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
+
+# ══════════════════════════════════════════════════════════
+#  AUTH — LOGIN
+# ══════════════════════════════════════════════════════════
 @app.route("/", methods=['GET', 'POST'])
-def entrar():
-    form = forms.LoginForm(request.form)
-    if request.method == 'POST' and form.validate():
-        return redirect(url_for('dashboard'))
-    return render_template("login.html", form=form)
-
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    form = forms.LoginForm(request.form)
-    if request.method == 'POST' and form.validate():
+    if 'usuario_id' in session:
         return redirect(url_for('dashboard'))
+
+    form = forms.LoginForm(request.form)
+
+    if request.method == 'POST' and form.validate():
+        usuario = Usuario.query.filter_by(username=form.usuario.data).first()
+
+        if usuario and check_password_hash(usuario.password_hash, form.password.data):
+            if usuario.estatus != 'activo':
+                flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.')
+                return render_template("login.html", form=form)
+
+            # Guardar en sesión — campos reales del modelo
+            session['usuario_id']     = usuario.id_usuario          # PK real
+            session['usuario_nombre'] = usuario.nombre_completo      # columna real
+            session['usuario_user']   = usuario.username
+            session['usuario_rol']    = usuario.rol.nombre_rol if usuario.rol else ''
+
+            # Actualizar último login
+            usuario.ultimo_login = datetime.datetime.now()
+            db.session.commit()
+
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Usuario o contraseña incorrectos.')
+
     return render_template("login.html", form=form)
 
+
+# ══════════════════════════════════════════════════════════
+#  AUTH — LOGOUT
+# ══════════════════════════════════════════════════════════
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash('Sesión cerrada correctamente.')
+    return redirect(url_for('login'))
+
+
+# ══════════════════════════════════════════════════════════
+#  AUTH — REGISTRO
+# ══════════════════════════════════════════════════════════
+@app.route("/usuarios/registrar", methods=['GET', 'POST'])
+def registrar_usuario():
+    form = forms.RegistroUsuarioForm(request.form)
+
+    if request.method == 'POST' and form.validate():
+        # Verificar username duplicado
+        if Usuario.query.filter_by(username=form.usuario.data).first():
+            flash('El nombre de usuario ya está en uso. Elige otro.')
+            return render_template("usuarios/registrar.html", form=form)
+
+        # Buscar el rol por clave_rol (admin / empleado / panadero)
+        rol = Rol.query.filter_by(clave_rol=form.rol.data).first()
+        if not rol:
+            flash('El rol seleccionado no es válido.')
+            return render_template("usuarios/registrar.html", form=form)
+
+        nuevo_usuario = Usuario(
+            uuid_usuario    = str(uuid.uuid4()),   # requerido: unique
+            nombre_completo = form.nombre.data,    # columna real
+            username        = form.usuario.data,
+            password_hash   = generate_password_hash(form.password.data),
+            id_rol          = rol.id_rol,          # FK SmallInteger, no string
+            estatus         = 'activo',
+        )
+
+        try:
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            flash('Usuario registrado exitosamente. Ya puedes iniciar sesión.')
+            return redirect(url_for('login'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Ocurrió un error al registrar. Intenta de nuevo.')
+
+    return render_template("usuarios/registrar.html", form=form)
+
+
+# ══════════════════════════════════════════════════════════
+#  RUTAS PROTEGIDAS
+# ══════════════════════════════════════════════════════════
 @app.route("/dashboard")
+@login_required
 def dashboard():
     return render_template("dashboard.html")
 
 @app.route("/dashboardVentas")
+@login_required
 def dashboard_ventas():
     return render_template("dashboardVentas.html")
 
-@app.route("/usuarios/registrar", methods=['GET', 'POST'])
-def registrar_usuario():
-    form = forms.RegistroUsuarioForm(request.form)
-    
-    if request.method == 'POST' and form.validate():
-        hashed_password = generate_password_hash(form.password.data)
-        
-        nuevo_usuario = Usuario(
-            nombre=form.nombre.data,
-            username=form.usuario.data,
-            password_hash=hashed_password,
-            id_rol=form.rol.data,
-            estatus='activo'
-        )
-        
-        try:
-            db.session.add(nuevo_usuario)
-            db.session.commit()
-            flash("Usuario registrado exitosamente")
-            return redirect(url_for('dashboard'))
-        except Exception as e:
-            db.session.rollback()
-            flash("Error: El nombre de usuario ya existe")
-            
-    return render_template("usuarios/registrar.html", form=form)
+@app.route("/usuarios")
+@login_required
+def usuarios():
+    return render_template("usuarios/usuarios.html")
 
-db.init_app(app)
-migrate = Migrate(app, db) 
+
+# ══════════════════════════════════════════════════════════
+#  ERROR HANDLERS
+# ══════════════════════════════════════════════════════════
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
+
 
 if __name__ == '__main__':
     csrf.init_app(app)
     with app.app_context():
-        db.create_all() 
-    app.run()
+        db.create_all()
+    app.run(debug=True)
