@@ -1,0 +1,498 @@
+{% extends "layout.html" %}
+{% block title %}Mis Pedidos{% endblock %}
+{% block breadcrumb %}Venta en Línea › Mis Pedidos{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ══ BTN BASE ══ */
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:9px; font-family:'Lato',sans-serif; font-size:13px; font-weight:700; cursor:pointer; border:none; transition:all .2s; text-decoration:none; }
+  .btn-primary { background:var(--brown-dk); color:var(--cream); }
+  .btn-primary:hover { background:var(--rust); }
+  .btn-outline { background:var(--white); color:var(--brown-dk); border:1.5px solid var(--tan); }
+  .btn-outline:hover { border-color:var(--brown); background:var(--warm-bg); }
+  .btn-sm { padding:7px 12px; font-size:12px; }
+
+  /* ══ PAGE HEADER ══ */
+  .mp-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+  }
+  .mp-header-left { display: flex; align-items: center; gap: 14px; }
+  .mp-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700; color: var(--brown-dk);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--brown-lt); text-decoration: none; font-weight: 700;
+    padding: 5px 10px; border-radius: 8px; border: 1.5px solid var(--tan);
+    background: var(--white); transition: all .2s;
+  }
+  .back-link:hover { border-color: var(--brown); color: var(--brown); }
+
+  /* ══ STATS ROW ══ */
+  .mp-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media(max-width:768px) { .mp-stats { grid-template-columns: repeat(2,1fr); } }
+
+  .mp-stat {
+    background: var(--white); border: 1px solid var(--tan); border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .mp-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+  }
+  .mp-stat-icon.blue   { background: #e8f0fe; }
+  .mp-stat-icon.green  { background: #e2eede; }
+  .mp-stat-icon.gold   { background: #fef3d0; }
+  .mp-stat-icon.brown  { background: var(--warm-bg); }
+  .mp-stat-val { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
+  .mp-stat-lbl { font-size: 11px; color: var(--brown-lt); font-weight: 600; margin-top: 2px; }
+
+  /* ══ TOOLBAR ══ */
+  .mp-toolbar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .mp-search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .mp-search-wrap input {
+    width: 100%; padding: 10px 14px 10px 36px;
+    border: 1.5px solid var(--tan); border-radius: 10px;
+    font-family: 'Lato', sans-serif; font-size: 13px;
+    background: var(--white); outline: none; transition: border .2s; box-sizing: border-box; color: var(--text);
+  }
+  .mp-search-wrap input:focus { border-color: var(--brown); }
+  .mp-search-wrap .s-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+  .filter-select {
+    padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 10px;
+    font-family: 'Lato', sans-serif; font-size: 13px; background: var(--white);
+    color: var(--text); outline: none; cursor: pointer;
+  }
+
+  /* ══ ORDERS TABLE ══ */
+  .table-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--warm-bg); }
+  thead th { padding: 12px 16px; font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown); text-align: left; white-space: nowrap; }
+  thead th:first-child { padding-left: 22px; }
+  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; cursor: pointer; }
+  tbody tr:hover { background: #fdf3e6; }
+  tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
+  tbody td:first-child { padding-left: 22px; }
+
+  .folio-chip {
+    display: inline-block; background: var(--warm-bg); color: var(--brown);
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px;
+    border: 1px solid var(--tan); font-family: 'Lato', monospace;
+  }
+  .items-pill {
+    background: #f5ead8; color: var(--brown-dk); padding: 3px 10px;
+    border-radius: 10px; font-size: 11.5px; font-weight: 600;
+  }
+  .money { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--brown-dk); }
+
+  /* Status badges */
+  .badge { display: inline-block; padding: 4px 11px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .badge-pendiente   { background: #fef3d0; color: #8a6200; }
+  .badge-preparando  { background: #e8f0fe; color: #1a56db; }
+  .badge-enviado     { background: #f3e8d8; color: var(--brown); }
+  .badge-entregado   { background: #e2eede; color: #3a6034; }
+  .badge-cancelado   { background: #fce8df; color: var(--rust); }
+
+  /* Delivery type */
+  .delivery-tag { font-size: 11px; color: var(--brown-lt); font-weight: 600; }
+
+  .actions-cell { display: flex; gap: 6px; }
+  .btn-icon { width: 30px; height: 30px; padding: 0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+  .table-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg);
+  }
+  .table-footer p { font-size: 12px; color: var(--brown-lt); }
+  .pagination { display: flex; gap: 4px; }
+  .page-btn { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); transition: all .15s; }
+  .page-btn:hover { background: var(--warm-bg); }
+  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  /* ══ MODAL ══ */
+  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); display: flex; align-items: center; gap: 10px; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 22px 26px; max-height: 78vh; overflow-y: auto; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+
+  /* Modal detail */
+  .det-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--tan); }
+  .det-folio { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--brown-dk); }
+  .det-date  { font-size: 12px; color: var(--brown-lt); }
+  .det-section { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brown-lt); padding: 8px 0 4px; border-bottom: 1px solid var(--tan); margin-bottom: 10px; }
+  .det-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--tan); }
+  .det-row:last-child { border-bottom: none; }
+  .det-row .lbl { color: var(--brown-lt); font-weight: 600; }
+  .det-row .val { font-weight: 700; color: var(--brown-dk); }
+
+  /* Timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; margin-top: 6px; }
+  .tl-step { display: flex; gap: 12px; }
+  .tl-line-col { display: flex; flex-direction: column; align-items: center; width: 24px; flex-shrink: 0; }
+  .tl-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--tan); background: var(--white); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; }
+  .tl-dot.done { background: var(--brown-dk); border-color: var(--brown-dk); }
+  .tl-dot.active { background: #3a6034; border-color: #3a6034; }
+  .tl-connector { width: 2px; flex: 1; background: var(--tan); min-height: 20px; }
+  .tl-connector.done { background: var(--brown-dk); }
+  .tl-content { padding-bottom: 18px; }
+  .tl-label { font-size: 12.5px; font-weight: 700; color: var(--brown-dk); }
+  .tl-time  { font-size: 11px; color: var(--brown-lt); }
+
+  /* ══ RESPONSIVE ══ */
+  @media(max-width:768px) {
+    .responsive-hide { display: none; }
+    tbody td { padding: 10px 12px; }
+    .mp-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+{% endblock %}
+
+{% block container %}
+
+<!-- PAGE HEADER -->
+<div class="mp-header">
+  <div class="mp-header-left">
+    <a href="{{ url_for('ventas.ventas_online') }}" class="back-link">← Tienda</a>
+    <h1 class="mp-title">📋 Mis Pedidos</h1>
+  </div>
+  <a href="{{ url_for('ventas.ventas_online') }}" class="btn btn-primary">🛒 Nuevo Pedido</a>
+</div>
+
+<!-- STATS -->
+<div class="mp-stats">
+  <div class="mp-stat">
+    <div class="mp-stat-icon blue">📦</div>
+    <div>
+      <div class="mp-stat-val">12</div>
+      <div class="mp-stat-lbl">Total de pedidos</div>
+    </div>
+  </div>
+  <div class="mp-stat">
+    <div class="mp-stat-icon green">✅</div>
+    <div>
+      <div class="mp-stat-val">9</div>
+      <div class="mp-stat-lbl">Entregados</div>
+    </div>
+  </div>
+  <div class="mp-stat">
+    <div class="mp-stat-icon gold">⏳</div>
+    <div>
+      <div class="mp-stat-val">2</div>
+      <div class="mp-stat-lbl">En proceso</div>
+    </div>
+  </div>
+  <div class="mp-stat">
+    <div class="mp-stat-icon brown">💰</div>
+    <div>
+      <div class="mp-stat-val">$1,840</div>
+      <div class="mp-stat-lbl">Total gastado</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="mp-toolbar">
+  <div class="mp-search-wrap">
+    <span class="s-icon">🔍</span>
+    <input type="text" placeholder="Buscar por folio o producto…" oninput="filtrarPedidos(this.value)">
+  </div>
+  <select class="filter-select" onchange="filtrarEstado(this.value)">
+    <option value="todos">Todos los estados</option>
+    <option value="pendiente">⏳ Pendiente</option>
+    <option value="preparando">🔵 Preparando</option>
+    <option value="enviado">🚚 Enviado</option>
+    <option value="entregado">✅ Entregado</option>
+    <option value="cancelado">❌ Cancelado</option>
+  </select>
+  <select class="filter-select" onchange="filtrarPeriodo(this.value)">
+    <option>Últimos 30 días</option>
+    <option>Últimos 7 días</option>
+    <option>Este mes</option>
+    <option>Todo</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<div class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Folio</th>
+        <th>Fecha</th>
+        <th>Productos</th>
+        <th class="responsive-hide">Entrega</th>
+        <th>Total</th>
+        <th>Estado</th>
+        <th class="responsive-hide">Pago</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="ordersTableBody">
+      <tr data-estado="preparando" onclick="openPedido('PO-0048','preparando')">
+        <td><span class="folio-chip">PO-0048</span></td>
+        <td>Hoy 11:20</td>
+        <td><span class="items-pill">🍞×2 🥐×1 🍩×3</span></td>
+        <td class="responsive-hide"><span class="delivery-tag">🛵 Envío</span></td>
+        <td><span class="money">$152.00</span></td>
+        <td><span class="badge badge-preparando">🔵 Preparando</span></td>
+        <td class="responsive-hide">💳 Tarjeta</td>
+        <td onclick="event.stopPropagation()">
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" title="Ver detalle" onclick="openPedido('PO-0048','preparando')">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estado="pendiente" onclick="openPedido('PO-0047','pendiente')">
+        <td><span class="folio-chip">PO-0047</span></td>
+        <td>Hoy 09:05</td>
+        <td><span class="items-pill">🎂×1 🍪×4</span></td>
+        <td class="responsive-hide"><span class="delivery-tag">🏪 Recoger</span></td>
+        <td><span class="money">$103.00</span></td>
+        <td><span class="badge badge-pendiente">⏳ Pendiente</span></td>
+        <td class="responsive-hide">💵 Efectivo</td>
+        <td onclick="event.stopPropagation()">
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" title="Ver detalle" onclick="openPedido('PO-0047','pendiente')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" title="Cancelar" style="color:var(--rust)">✕</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estado="entregado" onclick="openPedido('PO-0044','entregado')">
+        <td><span class="folio-chip">PO-0044</span></td>
+        <td>Ayer 16:30</td>
+        <td><span class="items-pill">🥐×2 🥖×2</span></td>
+        <td class="responsive-hide"><span class="delivery-tag">🛵 Envío</span></td>
+        <td><span class="money">$92.00</span></td>
+        <td><span class="badge badge-entregado">✅ Entregado</span></td>
+        <td class="responsive-hide">💳 Tarjeta</td>
+        <td onclick="event.stopPropagation()">
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" title="Ver detalle" onclick="openPedido('PO-0044','entregado')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" title="Repetir pedido" onclick="">🔁</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estado="entregado" onclick="openPedido('PO-0041','entregado')">
+        <td><span class="folio-chip">PO-0041</span></td>
+        <td>Ayer 11:00</td>
+        <td><span class="items-pill">🍞×5 🍫×2</span></td>
+        <td class="responsive-hide"><span class="delivery-tag">🏪 Recoger</span></td>
+        <td><span class="money">$160.00</span></td>
+        <td><span class="badge badge-entregado">✅ Entregado</span></td>
+        <td class="responsive-hide">🏦 SPEI</td>
+        <td onclick="event.stopPropagation()">
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" title="Ver detalle" onclick="openPedido('PO-0041','entregado')">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" title="Repetir pedido">🔁</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estado="enviado" onclick="openPedido('PO-0039','enviado')">
+        <td><span class="folio-chip">PO-0039</span></td>
+        <td>Mar 18, 14:00</td>
+        <td><span class="items-pill">🍰×2 🍪×6</span></td>
+        <td class="responsive-hide"><span class="delivery-tag">🛵 Envío</span></td>
+        <td><span class="money">$202.00</span></td>
+        <td><span class="badge badge-enviado">🚚 Enviado</span></td>
+        <td class="responsive-hide">💳 Tarjeta</td>
+        <td onclick="event.stopPropagation()">
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" title="Ver detalle" onclick="openPedido('PO-0039','enviado')">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+      <tr data-estado="cancelado">
+        <td><span class="folio-chip">PO-0035</span></td>
+        <td>Mar 16, 10:15</td>
+        <td><span class="items-pill">🥐×3</span></td>
+        <td class="responsive-hide"><span class="delivery-tag">🛵 Envío</span></td>
+        <td><span class="money" style="color:var(--brown-lt);text-decoration:line-through">$84.00</span></td>
+        <td><span class="badge badge-cancelado">❌ Cancelado</span></td>
+        <td class="responsive-hide">💵 Efectivo</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-outline btn-sm btn-icon" title="Ver detalle">👁️</button>
+          </div>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <div class="table-footer">
+    <p>Mostrando <span id="visibleCount">6</span> de 12 pedidos</p>
+    <div class="pagination">
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DETALLE ══ -->
+<div class="modal-overlay" id="modal-pedido">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📦 Detalle del Pedido</h2>
+      <button class="modal-close" onclick="closeModal('modal-pedido')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="det-hero">
+        <div>
+          <div class="det-folio" id="det-folio">PO-0048</div>
+          <div class="det-date" id="det-date">Hoy 11:20 · 🛵 Envío a domicilio</div>
+        </div>
+        <div style="margin-left:auto" id="det-badge">
+          <span class="badge badge-preparando">🔵 Preparando</span>
+        </div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="det-section">Seguimiento</div>
+      <div class="timeline" id="det-timeline">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- ITEMS -->
+      <div class="det-section" style="margin-top:10px">Productos</div>
+      <div id="det-items">
+        <div class="det-row"><span class="lbl">🍞 Concha de Vainilla ×2</span><span class="val">$44.00</span></div>
+        <div class="det-row"><span class="lbl">🥐 Cuernito Mantequilla ×1</span><span class="val">$28.00</span></div>
+        <div class="det-row"><span class="lbl">🍩 Dona Glaseada ×3</span><span class="val">$60.00</span></div>
+      </div>
+
+      <!-- TOTALS -->
+      <div class="det-section" style="margin-top:10px">Resumen de Pago</div>
+      <div class="det-row"><span class="lbl">Subtotal</span><span class="val">$132.00</span></div>
+      <div class="det-row"><span class="lbl">Envío</span><span class="val">$20.00</span></div>
+      <div class="det-row" style="padding:10px 0;border-top:1px dashed var(--tan);margin-top:4px">
+        <span class="lbl" style="font-size:14px;font-weight:700;color:var(--brown-dk)">Total</span>
+        <span class="val" style="font-family:'Playfair Display',serif;font-size:18px">$152.00</span>
+      </div>
+
+      <!-- INFO -->
+      <div class="det-section" style="margin-top:10px">Información de entrega</div>
+      <div class="det-row"><span class="lbl">Dirección</span><span class="val" style="text-align:right;max-width:60%">Av. Reforma #124, Col. Centro, León GTO</span></div>
+      <div class="det-row"><span class="lbl">Forma de pago</span><span class="val">💳 Tarjeta</span></div>
+      <div class="det-row"><span class="lbl">Tiempo estimado</span><span class="val">30–45 min</span></div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-pedido')">Cerrar</button>
+      <button class="btn btn-primary">🖨️ Descargar Recibo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  const timelines = {
+    pendiente: [
+      { label: 'Pedido recibido',    time: 'Hoy 09:05', done: true },
+      { label: 'Pago confirmado',    time: 'Pendiente',  done: false },
+      { label: 'En preparación',     time: '—',          done: false },
+      { label: 'Listo / En camino',  time: '—',          done: false },
+      { label: 'Entregado',          time: '—',          done: false },
+    ],
+    preparando: [
+      { label: 'Pedido recibido',    time: 'Hoy 11:20', done: true },
+      { label: 'Pago confirmado',    time: 'Hoy 11:21', done: true },
+      { label: 'En preparación',     time: 'Hoy 11:25', done: true, active: true },
+      { label: 'Listo / En camino',  time: '~11:55',    done: false },
+      { label: 'Entregado',          time: '~12:05',    done: false },
+    ],
+    enviado: [
+      { label: 'Pedido recibido',    time: 'Mar 18, 14:00', done: true },
+      { label: 'Pago confirmado',    time: 'Mar 18, 14:01', done: true },
+      { label: 'En preparación',     time: 'Mar 18, 14:10', done: true },
+      { label: 'En camino',          time: 'Mar 18, 14:40', done: true, active: true },
+      { label: 'Entregado',          time: '~14:55',        done: false },
+    ],
+    entregado: [
+      { label: 'Pedido recibido',    time: 'Ayer 16:30', done: true },
+      { label: 'Pago confirmado',    time: 'Ayer 16:30', done: true },
+      { label: 'En preparación',     time: 'Ayer 16:35', done: true },
+      { label: 'En camino',          time: 'Ayer 17:05', done: true },
+      { label: 'Entregado',          time: 'Ayer 17:22', done: true, active: true },
+    ],
+  };
+
+  function openPedido(folio, estado) {
+    document.getElementById('det-folio').textContent = folio;
+
+    // timeline
+    const tl = timelines[estado] || timelines.preparando;
+    let tlHtml = '';
+    tl.forEach((step, i) => {
+      const isLast = i === tl.length - 1;
+      const dotClass = step.active ? 'done active' : step.done ? 'done' : '';
+      const connClass = step.done && !isLast ? 'done' : '';
+      tlHtml += `
+        <div class="tl-step">
+          <div class="tl-line-col">
+            <div class="tl-dot ${dotClass}"></div>
+            ${!isLast ? `<div class="tl-connector ${connClass}"></div>` : ''}
+          </div>
+          <div class="tl-content">
+            <div class="tl-label" style="color:${step.done ? 'var(--brown-dk)' : 'var(--brown-lt)'}">${step.label}</div>
+            <div class="tl-time">${step.time}</div>
+          </div>
+        </div>`;
+    });
+    document.getElementById('det-timeline').innerHTML = tlHtml;
+    openModal('modal-pedido');
+  }
+
+  /* Filtros */
+  function filtrarPedidos(q) {
+    q = q.toLowerCase();
+    let visible = 0;
+    document.querySelectorAll('#ordersTableBody tr').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(q) ? '' : 'none';
+      if (text.includes(q)) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+  }
+
+  function filtrarEstado(val) {
+    let visible = 0;
+    document.querySelectorAll('#ordersTableBody tr').forEach(row => {
+      const est = row.dataset.estado || '';
+      const show = val === 'todos' || est === val;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+  }
+
+  function filtrarPeriodo(val) { /* implementar según BD */ }
+</script>
+{% endblock %}

@@ -1,0 +1,554 @@
+{% extends "layout.html" %}
+{% block title %}Checkout — Pago{% endblock %}
+{% block breadcrumb %}Venta en Línea › Pago{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ══ BTN BASE ══ */
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:9px; font-family:'Lato',sans-serif; font-size:13px; font-weight:700; cursor:pointer; border:none; transition:all .2s; text-decoration:none; }
+  .btn-primary { background:var(--brown-dk); color:var(--cream); }
+  .btn-primary:hover { background:var(--rust); }
+  .btn-outline { background:var(--white); color:var(--brown-dk); border:1.5px solid var(--tan); }
+  .btn-outline:hover { border-color:var(--brown); background:var(--warm-bg); }
+
+  /* ══ LAYOUT ══ */
+  .checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 22px;
+    align-items: start;
+  }
+  @media(max-width:900px) { .checkout-layout { grid-template-columns: 1fr; } }
+
+  /* ══ PAGE TITLE ══ */
+  .page-title-bar {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 6px;
+  }
+  .page-title-bar h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700; color: var(--brown-dk);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--brown-lt); text-decoration: none; font-weight: 700;
+    padding: 5px 10px; border-radius: 8px; border: 1.5px solid var(--tan);
+    background: var(--white); transition: all .2s;
+  }
+  .back-link:hover { border-color: var(--brown); color: var(--brown); }
+
+  /* ══ STEPS ══ */
+  .steps-bar {
+    display: flex; align-items: center; gap: 0;
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 12px; padding: 14px 20px; margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .step { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+    background: var(--tan); color: var(--brown-dk);
+  }
+  .step.active .step-num { background: var(--brown-dk); color: var(--cream); }
+  .step.done   .step-num { background: #3a6034; color: #fff; }
+  .step-label { font-size: 12px; font-weight: 700; color: var(--brown-lt); }
+  .step.active .step-label { color: var(--brown-dk); }
+  .step.done   .step-label { color: #3a6034; }
+  .step-sep { width: 40px; height: 2px; background: var(--tan); flex-shrink: 0; margin: 0 6px; }
+  .step-sep.done { background: #3a6034; }
+
+  /* ══ CARD ══ */
+  .ck-card {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 14px; box-shadow: 0 4px 16px var(--shadow);
+    overflow: hidden; margin-bottom: 18px;
+  }
+  .ck-card-header {
+    padding: 15px 20px; background: var(--warm-bg);
+    border-bottom: 1px solid var(--tan);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ck-card-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 700; color: var(--brown-dk);
+    display: flex; align-items: center; gap: 8px; flex: 1;
+  }
+  .ck-card-body { padding: 20px; }
+
+  /* ══ FORM ══ */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1/-1; }
+  .form-label { font-size: 11.5px; font-weight: 700; color: var(--brown); letter-spacing: .5px; }
+  .form-label .req { color: var(--rust); margin-left: 2px; }
+  .form-input, .form-select, .form-textarea {
+    padding: 10px 13px; border: 1.5px solid var(--tan); border-radius: 9px;
+    font-family: 'Lato', sans-serif; font-size: 13px; color: var(--text);
+    background: var(--cream); outline: none; transition: border .2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--brown); background: var(--white); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-hint { font-size: 11px; color: var(--brown-lt); }
+
+  /* ══ DELIVERY OPTIONS ══ */
+  .delivery-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .delivery-opt {
+    border: 2px solid var(--tan); border-radius: 12px; padding: 14px;
+    cursor: pointer; transition: all .2s; position: relative;
+  }
+  .delivery-opt:hover { border-color: var(--brown-lt); }
+  .delivery-opt.selected { border-color: var(--brown-dk); background: #fdf3e6; }
+  .delivery-opt input[type=radio] { position: absolute; opacity: 0; }
+  .delivery-opt-icon { font-size: 26px; margin-bottom: 6px; }
+  .delivery-opt-name { font-weight: 700; font-size: 13px; color: var(--brown-dk); }
+  .delivery-opt-desc { font-size: 11px; color: var(--brown-lt); margin-top: 2px; }
+  .delivery-opt-price { font-weight: 700; font-size: 12px; color: var(--brown); margin-top: 6px; }
+  .delivery-opt.selected::after {
+    content: '✓'; position: absolute; top: 10px; right: 12px;
+    width: 18px; height: 18px; background: var(--brown-dk); color: var(--cream);
+    border-radius: 50%; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ══ PAYMENT OPTIONS ══ */
+  .payment-options { display: flex; flex-direction: column; gap: 8px; }
+  .payment-opt {
+    border: 2px solid var(--tan); border-radius: 12px; padding: 14px 16px;
+    cursor: pointer; transition: all .2s; position: relative;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .payment-opt:hover { border-color: var(--brown-lt); }
+  .payment-opt.selected { border-color: var(--brown-dk); background: #fdf3e6; }
+  .payment-opt input[type=radio] { display: none; }
+  .payment-opt-icon { font-size: 22px; }
+  .payment-opt-info { flex: 1; }
+  .payment-opt-name { font-weight: 700; font-size: 13px; color: var(--brown-dk); }
+  .payment-opt-desc { font-size: 11px; color: var(--brown-lt); }
+  .payment-opt-check {
+    width: 18px; height: 18px; border: 2px solid var(--tan); border-radius: 50%;
+    flex-shrink: 0; transition: all .2s;
+  }
+  .payment-opt.selected .payment-opt-check {
+    background: var(--brown-dk); border-color: var(--brown-dk);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .payment-opt.selected .payment-opt-check::after {
+    content: '✓'; color: var(--cream); font-size: 10px; font-weight: 700;
+  }
+
+  /* Card fields */
+  .card-fields { display: none; margin-top: 14px; }
+  .card-fields.show { display: block; }
+  .card-num-wrap { position: relative; }
+  .card-num-wrap input { padding-right: 80px; }
+  .card-brand { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 18px; }
+
+  /* ══ ORDER SUMMARY (right column) ══ */
+  .order-summary-card {
+    background: var(--white); border: 1px solid var(--tan);
+    border-radius: 14px; box-shadow: 0 4px 16px var(--shadow);
+    overflow: hidden; position: sticky; top: 80px;
+  }
+  .os-header {
+    padding: 15px 20px; background: var(--brown-dk);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .os-header h3 { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--cream); }
+  .os-items { padding: 16px 20px; max-height: 280px; overflow-y: auto; }
+  .os-items::-webkit-scrollbar { width: 4px; }
+  .os-items::-webkit-scrollbar-thumb { background: var(--tan); border-radius: 2px; }
+  .os-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--tan); font-size: 13px;
+  }
+  .os-item:last-child { border-bottom: none; }
+  .os-item-emoji { font-size: 20px; }
+  .os-item-name { flex: 1; font-weight: 600; color: var(--brown-dk); }
+  .os-item-qty { font-size: 11px; color: var(--brown-lt); }
+  .os-item-price { font-weight: 700; color: var(--brown-dk); font-family: 'Playfair Display', serif; }
+  .os-totals { padding: 14px 20px; background: var(--warm-bg); border-top: 1px solid var(--tan); }
+  .os-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+  .os-row .lbl { color: var(--brown-lt); font-weight: 600; }
+  .os-row .val { font-weight: 700; color: var(--brown-dk); }
+  .os-row.total .lbl { font-size: 15px; font-weight: 700; color: var(--brown-dk); }
+  .os-row.total .val { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--brown-dk); }
+  .os-row.total { border-top: 1px dashed var(--tan); padding-top: 10px; margin-top: 4px; }
+
+  .btn-place-order {
+    width: 100%; padding: 14px;
+    background: var(--brown-dk); color: var(--cream);
+    border: none; border-radius: 0 0 14px 14px;
+    font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .2s;
+  }
+  .btn-place-order:hover { background: var(--rust); }
+
+  /* ══ SECURITY BADGE ══ */
+  .security-note {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 20px; background: #e2eede; border-top: 1px solid #b2d4aa;
+    font-size: 11px; color: #3a6034; font-weight: 600;
+  }
+
+  @media(max-width:600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .delivery-options { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block container %}
+
+<!-- PAGE TITLE -->
+<div class="page-title-bar" style="margin-bottom:16px">
+  <a href="{{ url_for('ventas.ventas_online') }}" class="back-link">← Volver a la tienda</a>
+  <h1>💳 Checkout</h1>
+</div>
+
+<!-- STEPS -->
+<div class="steps-bar">
+  <div class="step done">
+    <div class="step-num">✓</div>
+    <span class="step-label">Carrito</span>
+  </div>
+  <div class="step-sep done"></div>
+  <div class="step active">
+    <div class="step-num">2</div>
+    <span class="step-label">Pago</span>
+  </div>
+  <div class="step-sep"></div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <span class="step-label">Confirmación</span>
+  </div>
+</div>
+
+<div class="checkout-layout">
+  <!-- LEFT COLUMN -->
+  <div>
+
+
+    <!-- 1. DATOS DE CONTACTO -->
+    <div class="ck-card">
+      <div class="ck-card-header">
+        <h3>👤 Datos de Contacto</h3>
+      </div>
+      <div class="ck-card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre<span class="req">*</span></label>
+            <input type="text" class="form-input" placeholder="Tu nombre" value="Salvador E.">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono<span class="req">*</span></label>
+            <input type="text" class="form-input" placeholder="477-000-0000" value="477-123-4567">
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Correo electrónico<span class="req">*</span></label>
+            <input type="email" class="form-input" placeholder="correo@ejemplo.com" value="salvador@dulcemigaja.mx">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. FORMA DE ENTREGA -->
+    <div class="ck-card">
+      <div class="ck-card-header">
+        <h3>🚚 Forma de Entrega</h3>
+      </div>
+      <div class="ck-card-body">
+        <div class="delivery-options">
+          <div class="delivery-opt selected" onclick="selectDelivery(this,'envio')">
+            <input type="radio" name="delivery" value="envio" checked>
+            <div class="delivery-opt-icon">🛵</div>
+            <div class="delivery-opt-name">Envío a domicilio</div>
+            <div class="delivery-opt-desc">30–45 min estimados</div>
+            <div class="delivery-opt-price">$20.00</div>
+          </div>
+          <div class="delivery-opt" onclick="selectDelivery(this,'recoger')">
+            <input type="radio" name="delivery" value="recoger">
+            <div class="delivery-opt-icon">🏪</div>
+            <div class="delivery-opt-name">Recoger en tienda</div>
+            <div class="delivery-opt-desc">Lista en 15–20 min</div>
+            <div class="delivery-opt-price">Gratis</div>
+          </div>
+        </div>
+
+        <!-- Dirección -->
+        <div id="addressFields" style="margin-top:16px">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label class="form-label">Dirección<span class="req">*</span></label>
+              <input type="text" class="form-input" placeholder="Calle y número">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Colonia</label>
+              <input type="text" class="form-input" placeholder="Colonia">
+            </div>
+            <div class="form-group">
+              <label class="form-label">C.P.</label>
+              <input type="text" class="form-input" placeholder="37000" maxlength="5">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Referencias</label>
+              <textarea class="form-textarea" placeholder="Entre calles, color de fachada, etc."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. FORMA DE PAGO -->
+    <div class="ck-card">
+      <div class="ck-card-header">
+        <h3>💳 Forma de Pago</h3>
+      </div>
+      <div class="ck-card-body">
+        <div class="payment-options" id="paymentOptions">
+
+          <div class="payment-opt selected" onclick="selectPayment(this,'tarjeta')">
+            <input type="radio" name="pago" value="tarjeta" checked>
+            <span class="payment-opt-icon">💳</span>
+            <div class="payment-opt-info">
+              <div class="payment-opt-name">Tarjeta de crédito / débito</div>
+              <div class="payment-opt-desc">Visa, Mastercard, American Express</div>
+            </div>
+            <div class="payment-opt-check"></div>
+          </div>
+
+          <div class="payment-opt" onclick="selectPayment(this,'transferencia')">
+            <input type="radio" name="pago" value="transferencia">
+            <span class="payment-opt-icon">🏦</span>
+            <div class="payment-opt-info">
+              <div class="payment-opt-name">Transferencia / SPEI</div>
+              <div class="payment-opt-desc">Pago inmediato por CLABE</div>
+            </div>
+            <div class="payment-opt-check"></div>
+          </div>
+
+          <div class="payment-opt" onclick="selectPayment(this,'efectivo')">
+            <input type="radio" name="pago" value="efectivo">
+            <span class="payment-opt-icon">💵</span>
+            <div class="payment-opt-info">
+              <div class="payment-opt-name">Efectivo al recibir</div>
+              <div class="payment-opt-desc">Paga cuando llegue tu pedido</div>
+            </div>
+            <div class="payment-opt-check"></div>
+          </div>
+
+          <div class="payment-opt" onclick="selectPayment(this,'oxxo')">
+            <input type="radio" name="pago" value="oxxo">
+            <span class="payment-opt-icon">🏪</span>
+            <div class="payment-opt-info">
+              <div class="payment-opt-name">OXXO Pay</div>
+              <div class="payment-opt-desc">Ficha de pago en OXXO</div>
+            </div>
+            <div class="payment-opt-check"></div>
+          </div>
+
+        </div>
+
+        <!-- Card fields -->
+        <div class="card-fields show" id="cardFields">
+          <div class="form-grid" style="margin-top:16px">
+            <div class="form-group full">
+              <label class="form-label">Número de tarjeta<span class="req">*</span></label>
+              <div class="card-num-wrap">
+                <input type="text" class="form-input" id="cardNum" placeholder="0000 0000 0000 0000" maxlength="19"
+                  oninput="formatCardNum(this)" style="width:100%;box-sizing:border-box">
+                <span class="card-brand" id="cardBrand">💳</span>
+              </div>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Nombre en la tarjeta<span class="req">*</span></label>
+              <input type="text" class="form-input" placeholder="Como aparece en la tarjeta">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vencimiento<span class="req">*</span></label>
+              <input type="text" class="form-input" placeholder="MM/AA" maxlength="5" oninput="formatExp(this)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">CVV<span class="req">*</span></label>
+              <input type="password" class="form-input" placeholder="•••" maxlength="4">
+            </div>
+          </div>
+        </div>
+
+        <!-- SPEI fields -->
+        <div id="speiFields" style="display:none;margin-top:14px;padding:14px;background:var(--warm-bg);border-radius:10px;border:1px solid var(--tan)">
+          <div style="font-size:12px;font-weight:700;color:var(--brown-dk);margin-bottom:8px;">Datos para transferencia</div>
+          <div style="font-size:12px;color:var(--brown-lt);">Banco: <strong style="color:var(--brown-dk)">BANAMEX</strong></div>
+          <div style="font-size:12px;color:var(--brown-lt);">CLABE: <strong style="color:var(--brown-dk)">0021 8000 1234 5678 90</strong></div>
+          <div style="font-size:12px;color:var(--brown-lt);">Beneficiario: <strong style="color:var(--brown-dk)">Dulce Migaja S.A. de C.V.</strong></div>
+          <div style="font-size:11px;color:var(--brown-lt);margin-top:8px;">⚠️ Tu pedido se procesará al confirmar el pago.</div>
+        </div>
+
+        <!-- OXXO fields -->
+        <div id="oxxoFields" style="display:none;margin-top:14px;padding:14px;background:var(--warm-bg);border-radius:10px;border:1px solid var(--tan)">
+          <div style="font-size:12px;font-weight:700;color:var(--brown-dk);margin-bottom:6px;">Ficha OXXO Pay</div>
+          <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:var(--brown-dk);font-family:'Playfair Display',serif">8663 0000 0012 3456</div>
+          <div style="font-size:11px;color:var(--brown-lt);margin-top:6px;">Presenta este número en cualquier tienda OXXO. Vigencia: 48 hrs.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 4. NOTAS -->
+    <div class="ck-card">
+      <div class="ck-card-header">
+        <h3>📝 Notas del Pedido</h3>
+        <span style="font-size:11px;color:var(--brown-lt)">Opcional</span>
+      </div>
+      <div class="ck-card-body">
+        <textarea class="form-textarea" placeholder="¿Alguna indicación especial? Ej: sin azúcar, sin gluten, es para regalo…"></textarea>
+      </div>
+    </div>
+
+  </div><!-- /left column -->
+
+  <!-- RIGHT COLUMN: ORDER SUMMARY -->
+  <div>
+    <div class="order-summary-card">
+      <div class="os-header">
+        <h3>🧾 Resumen del Pedido</h3>
+      </div>
+
+      <div class="os-items" id="osSummary">
+        <!-- Items populated from sessionStorage -->
+        <div class="os-item">
+          <span class="os-item-emoji">🍞</span>
+          <span class="os-item-name">Concha de Vainilla</span>
+          <span class="os-item-qty">×2</span>
+          <span class="os-item-price">$44.00</span>
+        </div>
+        <div class="os-item">
+          <span class="os-item-emoji">🥐</span>
+          <span class="os-item-name">Cuernito Mantequilla</span>
+          <span class="os-item-qty">×1</span>
+          <span class="os-item-price">$28.00</span>
+        </div>
+        <div class="os-item">
+          <span class="os-item-emoji">🍩</span>
+          <span class="os-item-name">Dona Glaseada</span>
+          <span class="os-item-qty">×3</span>
+          <span class="os-item-price">$60.00</span>
+        </div>
+      </div>
+
+      <div class="os-totals">
+        <div class="os-row">
+          <span class="lbl">Subtotal</span>
+          <span class="val" id="osSub">$132.00</span>
+        </div>
+        <div class="os-row">
+          <span class="lbl">Envío</span>
+          <span class="val" id="osEnvio">$20.00</span>
+        </div>
+        <div class="os-row total">
+          <span class="lbl">Total</span>
+          <span class="val" id="osTotal">$152.00</span>
+        </div>
+      </div>
+
+      <div class="security-note">
+        🔒 Pago 100% seguro y encriptado
+      </div>
+
+      <button class="btn-place-order" onclick="confirmarPedido()">
+        ✅ Confirmar Pedido
+      </button>
+    </div>
+  </div>
+
+</div><!-- /checkout-layout -->
+
+<script>
+  /* ══ DELIVERY TOGGLE ══ */
+  function selectDelivery(el, tipo) {
+    document.querySelectorAll('.delivery-opt').forEach(d => d.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    const addr = document.getElementById('addressFields');
+    const envioEl = document.getElementById('osEnvio');
+    const totalEl = document.getElementById('osTotal');
+    const sub = parseFloat((sessionStorage.getItem('dmSubtotal') || '132').replace(',',''));
+
+    if (tipo === 'recoger') {
+      addr.style.display = 'none';
+      envioEl.textContent = 'Gratis';
+      totalEl.textContent = '$' + sub.toFixed(2);
+    } else {
+      addr.style.display = 'block';
+      envioEl.textContent = '$20.00';
+      totalEl.textContent = '$' + (sub + 20).toFixed(2);
+    }
+  }
+
+  /* ══ PAYMENT TOGGLE ══ */
+  function selectPayment(el, tipo) {
+    document.querySelectorAll('.payment-opt').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    document.getElementById('cardFields').classList.remove('show');
+    document.getElementById('speiFields').style.display = 'none';
+    document.getElementById('oxxoFields').style.display = 'none';
+    if (tipo === 'tarjeta')       document.getElementById('cardFields').classList.add('show');
+    else if (tipo === 'transferencia') document.getElementById('speiFields').style.display = 'block';
+    else if (tipo === 'oxxo')     document.getElementById('oxxoFields').style.display = 'block';
+  }
+
+  /* ══ CARD FORMATTING ══ */
+  function formatCardNum(el) {
+    let v = el.value.replace(/\D/g, '').substring(0,16);
+    el.value = v.replace(/(.{4})/g,'$1 ').trim();
+    const brand = document.getElementById('cardBrand');
+    if (v.startsWith('4')) brand.textContent = '💳'; // Visa
+    else if (v.startsWith('5')) brand.textContent = '💳'; // MC
+    else if (v.startsWith('3')) brand.textContent = '💳'; // Amex
+    else brand.textContent = '💳';
+  }
+
+  function formatExp(el) {
+    let v = el.value.replace(/\D/g,'');
+    if (v.length > 2) v = v.substring(0,2) + '/' + v.substring(2,4);
+    el.value = v;
+  }
+
+  /* ══ LOAD CART FROM SESSION ══ */
+  window.addEventListener('DOMContentLoaded', () => {
+    const cartRaw = sessionStorage.getItem('dmCart');
+    const sub = sessionStorage.getItem('dmSubtotal');
+    const total = sessionStorage.getItem('dmTotal');
+    if (sub)   document.getElementById('osSub').textContent   = '$' + sub;
+    if (total) document.getElementById('osTotal').textContent = '$' + total;
+
+    if (cartRaw) {
+      const cart = JSON.parse(cartRaw);
+      const ids = Object.keys(cart);
+      if (ids.length > 0) {
+        const container = document.getElementById('osSummary');
+        container.innerHTML = '';
+        ids.forEach(id => {
+          const item = cart[id];
+          const itemSub = (item.price * item.qty).toFixed(2);
+          container.innerHTML += `
+            <div class="os-item">
+              <span class="os-item-emoji">${item.emoji}</span>
+              <span class="os-item-name">${item.name}</span>
+              <span class="os-item-qty">×${item.qty}</span>
+              <span class="os-item-price">$${itemSub}</span>
+            </div>`;
+        });
+      }
+    }
+  });
+
+  /* ══ CONFIRM ══ */
+  function confirmarPedido() {
+    window.location.href = '{{ url_for("registrar_usuario.mis_pedidos") }}';
+  }
+</script>
+{% endblock %}

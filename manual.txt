@@ -4,6 +4,9 @@ ejecuta lo siguiente en Mysql con tu usuario root
     GRANT ALL PRIVILEGES ON dulce_migaja.* TO 'web_user'@'localhost';
     FLUSH PRIVILEGES;
 
+instalar flowbite:
+    npm install tailwindcss @tailwindcss/cli flowbite
+
 Crea el entorno virtual
     Windows:
     python -m venv env o py -3.11 -m venv env

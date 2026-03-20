@@ -9,3 +9,10 @@ def index_ventas():
 def corte_ventas():
     return render_template("ventas/corteVentas.html")
 
+@ventas.route("/ventas-online")
+def ventas_online():
+    return render_template("ventas/ventas-online.html")
+
+@ventas.route("/checkout")
+def checkout():
+    return render_template("ventas/checkout.html")

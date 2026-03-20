@@ -7,6 +7,7 @@
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
 
   <!-- CSRF Meta (WTForms) -->
@@ -303,7 +304,7 @@
 
   {% block extra_head %}{% endblock %}
 </head>
-
+<script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
 <body>
 <div class="app-shell">
   {% if request.endpoint not in ['login', 'entrar', 'registrar_usuario'] %}
@@ -433,6 +434,22 @@
           <span class="nav-label">Salida de Efectivo</span>
           <span class="nav-tooltip">Salida de Efectivo</span>
         </a>
+
+        <!-- ══ VENTA EN LÍNEA ══ -->
+        <a href="{{ url_for('ventas.ventas_online') }}"
+           class="nav-item {% if request.endpoint in ['ventas.ventas_online', 'ventas.checkout'] %}active{% endif %}">
+          <span class="nav-icon">🌐</span>
+          <span class="nav-label">Venta en Línea</span>
+          <span class="nav-tooltip">Venta en Línea</span>
+        </a>
+
+        <a href="{{ url_for('registrar_usuario.mis_pedidos') }}"
+           class="nav-item {% if request.endpoint == 'registrar_usuario.mis_pedidos' %}active{% endif %}">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Mis Pedidos</span>
+          <span class="nav-tooltip">Mis Pedidos</span>
+        </a>
+
       </div>
 
       <!-- REPORTES -->
@@ -531,6 +548,8 @@
           <a href="#" class="dd-item">👤 Mi perfil</a>
           <a href="#" class="dd-item">⚙️ Configuración</a>
           <div class="dd-divider"></div>
+          <a href="{{ url_for('registrar_usuario.mis_pedidos') }}" class="dd-item">📋 Mis Pedidos</a>
+          <div class="dd-divider"></div>
           <a href="{{ url_for('logout') }}" class="dd-item danger">🚪 Cerrar sesión</a>
         </div>
 
@@ -539,7 +558,6 @@
     {% endif %}
     <!-- PAGE CONTENT -->
     <main class="page-content">
-
 
       {% block container %}{% endblock %}
     </main>
