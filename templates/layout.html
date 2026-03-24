@@ -378,8 +378,8 @@
       <div class="nav-section">
         <div class="nav-section-label">Producción</div>
 
-        <a href="{{ url_for('recetas.index_recetas') }}"
-           class="nav-item {% if request.endpoint == 'recetas.index_recetas' %}active{% endif %}">
+        <a href="{{ url_for('recetas_bp.index_recetas') }}"
+           class="nav-item {% if request.endpoint == 'recetas_bp.index_recetas' %}active{% endif %}">
           <span class="nav-icon">📖</span>
           <span class="nav-label">Recetas</span>
           <span class="nav-tooltip">Recetas</span>
@@ -550,20 +550,19 @@
           <div class="dd-divider"></div>
           <a href="{{ url_for('registrar_usuario.mis_pedidos') }}" class="dd-item">📋 Mis Pedidos</a>
           <div class="dd-divider"></div>
-          <a href="{{ url_for('logout') }}" class="dd-item danger">🚪 Cerrar sesión</a>
+          <a href="{{ url_for('logout') }}" class="dd-item danger">➜] Cerrar sesión</a>
         </div>
 
       </div>
     </header>
     {% endif %}
-    <!-- PAGE CONTENT -->
     <main class="page-content">
 
       {% block container %}{% endblock %}
     </main>
 
-  </div><!-- /main-area -->
-</div><!-- /app-shell -->
+  </div>
+</div>
 
 <script>
   /* ── SIDEBAR COLLAPSE ── */
