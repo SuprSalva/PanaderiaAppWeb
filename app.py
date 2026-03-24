@@ -19,6 +19,7 @@ from ventas.routes import ventas
 from efectivo.routes import efectivo
 from costoUtilidad.routes import costoUtilidad
 from usuarios.routes import registrar_usuario_bp
+from productos.routes import productos_bp
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -33,14 +34,11 @@ app.register_blueprint(ventas)
 app.register_blueprint(efectivo)
 app.register_blueprint(costoUtilidad)
 app.register_blueprint(registrar_usuario_bp)
+app.register_blueprint(productos_bp)
 
 db.init_app(app)
 migrate = Migrate(app, db)
 
-
-# ══════════════════════════════════════════════════════════
-#  DECORADOR: protege rutas que requieren sesión activa
-# ══════════════════════════════════════════════════════════
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -50,10 +48,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
-
-# ══════════════════════════════════════════════════════════
-#  AUTH — LOGIN
-# ══════════════════════════════════════════════════════════
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -70,13 +64,11 @@ def login():
                 flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.')
                 return render_template("login.html", form=form)
 
-            # Guardar en sesión — campos reales del modelo
-            session['usuario_id']     = usuario.id_usuario          # PK real
-            session['usuario_nombre'] = usuario.nombre_completo      # columna real
+            session['usuario_id']     = usuario.id_usuario         
+            session['usuario_nombre'] = usuario.nombre_completo    
             session['usuario_user']   = usuario.username
             session['usuario_rol']    = usuario.rol.nombre_rol if usuario.rol else ''
 
-            # Actualizar último login
             usuario.ultimo_login = datetime.datetime.now()
             db.session.commit()
 
@@ -86,42 +78,32 @@ def login():
 
     return render_template("login.html", form=form)
 
-
-# ══════════════════════════════════════════════════════════
-#  AUTH — LOGOUT
-# ══════════════════════════════════════════════════════════
 @app.route("/logout")
 def logout():
     session.clear()
     flash('Sesión cerrada correctamente.')
     return redirect(url_for('login'))
 
-
-# ══════════════════════════════════════════════════════════
-#  AUTH — REGISTRO
-# ══════════════════════════════════════════════════════════
 @app.route("/usuarios/registrar", methods=['GET', 'POST'])
 def registrar_usuario():
     form = forms.RegistroUsuarioForm(request.form)
 
     if request.method == 'POST' and form.validate():
-        # Verificar username duplicado
         if Usuario.query.filter_by(username=form.usuario.data).first():
             flash('El nombre de usuario ya está en uso. Elige otro.')
             return render_template("usuarios/registrar.html", form=form)
 
-        # Buscar el rol por clave_rol (admin / empleado / panadero)
         rol = Rol.query.filter_by(clave_rol=form.rol.data).first()
         if not rol:
             flash('El rol seleccionado no es válido.')
             return render_template("usuarios/registrar.html", form=form)
 
         nuevo_usuario = Usuario(
-            uuid_usuario    = str(uuid.uuid4()),   # requerido: unique
-            nombre_completo = form.nombre.data,    # columna real
+            uuid_usuario    = str(uuid.uuid4()),  
+            nombre_completo = form.nombre.data,    
             username        = form.usuario.data,
             password_hash   = generate_password_hash(form.password.data),
-            id_rol          = rol.id_rol,          # FK SmallInteger, no string
+            id_rol          = rol.id_rol,        
             estatus         = 'activo',
         )
 
@@ -136,10 +118,6 @@ def registrar_usuario():
 
     return render_template("usuarios/registrar.html", form=form)
 
-
-# ══════════════════════════════════════════════════════════
-#  RUTAS PROTEGIDAS
-# ══════════════════════════════════════════════════════════
 @app.route("/dashboard")
 @login_required
 def dashboard():
@@ -155,10 +133,6 @@ def dashboard_ventas():
 def usuarios():
     return render_template("usuarios/usuarios.html")
 
-
-# ══════════════════════════════════════════════════════════
-#  ERROR HANDLERS
-# ══════════════════════════════════════════════════════════
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("404.html"), 404

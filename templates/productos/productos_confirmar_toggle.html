@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  .confirm-wrap {
+    max-width: 460px;
+    margin: 60px auto;
+    background: var(--white);
+    border: 1px solid var(--tan);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow);
+    overflow: hidden;
+  }
+  .confirm-header { padding:20px 26px; text-align:center; }
+  .confirm-header.hdr-danger  { background:var(--rust); }
+  .confirm-header.hdr-success { background:#5a7a52; }
+  .confirm-header .icon { font-size:40px; display:block; margin-bottom:6px; }
+  .confirm-header h2 { font-family:'Playfair Display',serif; font-size:18px; color:#fff; margin:0; }
+  .confirm-body { padding:28px 32px; text-align:center; }
+  .confirm-body p { font-size:14px; color:var(--brown-dk); line-height:1.7; margin-bottom:24px; }
+  .confirm-actions { display:flex; gap:12px; justify-content:center; }
+</style>
+
+<div class="confirm-wrap">
+  {% if producto.estatus == 'activo' %}
+  <div class="confirm-header hdr-danger">
+    <span class="icon">🚫</span>
+    <h2>Desactivar Producto</h2>
+  </div>
+  {% else %}
+  <div class="confirm-header hdr-success">
+    <span class="icon">✅</span>
+    <h2>Activar Producto</h2>
+  </div>
+  {% endif %}
+
+  <div class="confirm-body">
+    <p>
+      {% if producto.estatus == 'activo' %}
+        El producto <strong>{{ producto.nombre }}</strong> quedará inactivo y no
+        podrá usarse en nuevas ventas ni producción.<br>
+        El historial y las recetas asociadas se conservan.
+      {% else %}
+        El producto <strong>{{ producto.nombre }}</strong> volverá a estar
+        disponible para ventas y producción.
+      {% endif %}
+    </p>
+    <div class="confirm-actions">
+      <a href="{{ url_for('productos_bp.index_productos') }}"
+         class="btn btn-outline">Cancelar</a>
+      <form method="POST"
+            action="{{ url_for('productos_bp.productos_toggle', id_producto=producto.id_producto) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% if producto.estatus == 'activo' %}
+          <button type="submit" class="btn btn-danger">🚫 Sí, desactivar</button>
+        {% else %}
+          <button type="submit" class="btn btn-primary">✅ Sí, activar</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

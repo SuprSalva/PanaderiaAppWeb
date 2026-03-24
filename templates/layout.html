@@ -372,6 +372,12 @@
           <span class="nav-label">Compras</span>
           <span class="nav-tooltip">Compras</span>
         </a>
+        <a href="{{ url_for('productos_bp.index_productos') }}"
+          class="nav-item {% if request.endpoint == 'productos_bp.index_productos' %}active{% endif %}">
+          <span class="nav-icon">🏷️</span>
+          <span class="nav-label">Productos</span>
+          <span class="nav-tooltip">Productos</span>
+        </a>
       </div>
 
       <!-- PRODUCCIÓN -->
