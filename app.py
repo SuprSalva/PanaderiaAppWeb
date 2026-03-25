@@ -1,13 +1,13 @@
 import uuid
 import datetime
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_wtf.csrf import CSRFProtect
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from config import DevelopmentConfig
 from models import db, Usuario, Rol
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from functools import wraps
 import forms
 
 from compras.routes import compras
@@ -25,6 +25,14 @@ app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
 csrf = CSRFProtect()
 
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.login_message = 'Debes iniciar sesión para acceder.'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(Usuario, int(user_id))
+
 app.register_blueprint(compras)
 app.register_blueprint(proveedores)
 app.register_blueprint(recetas_bp)
@@ -37,21 +45,13 @@ app.register_blueprint(registrar_usuario_bp)
 app.register_blueprint(productos_bp)
 
 db.init_app(app)
+login_manager.init_app(app)
 migrate = Migrate(app, db)
-
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if 'usuario_id' not in session:
-            flash('Debes iniciar sesión para acceder.')
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    if 'usuario_id' in session:
+    if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
 
     form = forms.LoginForm(request.form)
@@ -64,11 +64,7 @@ def login():
                 flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.')
                 return render_template("login.html", form=form)
 
-            session['usuario_id']     = usuario.id_usuario         
-            session['usuario_nombre'] = usuario.nombre_completo    
-            session['usuario_user']   = usuario.username
-            session['usuario_rol']    = usuario.rol.nombre_rol if usuario.rol else ''
-
+            login_user(usuario)
             usuario.ultimo_login = datetime.datetime.now()
             db.session.commit()
 
@@ -79,9 +75,10 @@ def login():
     return render_template("login.html", form=form)
 
 @app.route("/logout")
+@login_required
 def logout():
-    session.clear()
-    flash('Sesión cerrada correctamente.')
+    logout_user()
+    flash('Sesión cerrada correctamente.', 'success')
     return redirect(url_for('login'))
 
 @app.route("/usuarios/registrar", methods=['GET', 'POST'])
@@ -99,12 +96,13 @@ def registrar_usuario():
             return render_template("usuarios/registrar.html", form=form)
 
         nuevo_usuario = Usuario(
-            uuid_usuario    = str(uuid.uuid4()),  
-            nombre_completo = form.nombre.data,    
+            uuid_usuario    = str(uuid.uuid4()),
+            nombre_completo = form.nombre.data,
             username        = form.usuario.data,
             password_hash   = generate_password_hash(form.password.data),
-            id_rol          = rol.id_rol,        
+            id_rol          = rol.id_rol,
             estatus         = 'activo',
+            creado_por      = current_user.id_usuario if current_user.is_authenticated else None,
         )
 
         try:
@@ -128,18 +126,14 @@ def dashboard():
 def dashboard_ventas():
     return render_template("dashboardVentas.html")
 
-@app.route("/usuarios")
-@login_required
-def usuarios():
-    return render_template("usuarios/usuarios.html")
-
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("404.html"), 404
 
 
+csrf.init_app(app)
+
 if __name__ == '__main__':
-    csrf.init_app(app)
     with app.app_context():
         db.create_all()
     app.run(debug=True)

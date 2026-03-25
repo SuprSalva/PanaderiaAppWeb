@@ -182,6 +182,9 @@
   /* hide modals by default */
   .modal-overlay { display: none; }
   .modal-overlay.open { display: flex; }
+
+  /* evita que el overlay oculto bloquee clics aunque haya un repaint pendiente */
+  .modal-overlay:not(.open) { pointer-events: none; }
 </style>
 
 <!-- TOPBAR -->
@@ -199,19 +202,19 @@
 <div class="usr-stats anim anim-1">
   <div class="usr-stat">
     <div class="usr-stat-icon brown">👥</div>
-    <div><div class="usr-stat-val">8</div><div class="usr-stat-lbl">Total Usuarios</div></div>
+    <div><div class="usr-stat-val">{{ total }}</div><div class="usr-stat-lbl">Total Usuarios</div></div>
   </div>
   <div class="usr-stat">
     <div class="usr-stat-icon green">✅</div>
-    <div><div class="usr-stat-val">6</div><div class="usr-stat-lbl">Activos</div></div>
+    <div><div class="usr-stat-val">{{ activos }}</div><div class="usr-stat-lbl">Activos</div></div>
   </div>
   <div class="usr-stat">
     <div class="usr-stat-icon rust">🚫</div>
-    <div><div class="usr-stat-val">2</div><div class="usr-stat-lbl">Inactivos</div></div>
+    <div><div class="usr-stat-val">{{ inactivos }}</div><div class="usr-stat-lbl">Inactivos</div></div>
   </div>
   <div class="usr-stat">
     <div class="usr-stat-icon tan">🔑</div>
-    <div><div class="usr-stat-val">4</div><div class="usr-stat-lbl">Roles Distintos</div></div>
+    <div><div class="usr-stat-val">{{ num_roles }}</div><div class="usr-stat-lbl">Roles Distintos</div></div>
   </div>
 </div>
 
@@ -223,15 +226,15 @@
   </div>
   <select class="filter-select" id="filterRol" onchange="filterTable()">
     <option value="">Todos los roles</option>
-    <option value="ADM">Administrador</option>
-    <option value="VEN">Ventas</option>
-    <option value="PROD">Producción</option>
-    <option value="COMP">Compras</option>
+    {% for r in roles %}
+      <option value="{{ r.clave_rol }}">{{ r.nombre_rol }}</option>
+    {% endfor %}
   </select>
   <select class="filter-select" id="filterEstatus" onchange="filterTable()">
     <option value="">Todos los estatus</option>
-    <option value="Activo">Activo</option>
-    <option value="Inactivo">Inactivo</option>
+    <option value="activo">Activo</option>
+    <option value="inactivo">Inactivo</option>
+    <option value="bloqueado">Bloqueado</option>
   </select>
 </div>
 
@@ -249,106 +252,75 @@
       </tr>
     </thead>
     <tbody>
-      <tr data-rol="ADM" data-estatus="Activo">
-        <td>1</td>
+      {% for u in usuarios %}
+      {% set partes = u.nombre_completo.split() %}
+      {% set iniciales = partes[0][0] ~ (partes[-1][0] if partes|length > 1 else '') %}
+      {% set clave = u.rol.clave_rol if u.rol else '' %}
+      {% if clave == 'admin' %}
+        {% set avatar_color = 'var(--brown)' %}
+        {% set badge_class  = 'badge-adm' %}
+      {% elif clave == 'panadero' %}
+        {% set avatar_color = '#5a7a52' %}
+        {% set badge_class  = 'badge-prod' %}
+      {% else %}
+        {% set avatar_color = 'var(--rust)' %}
+        {% set badge_class  = 'badge-ven' %}
+      {% endif %}
+      <tr data-rol="{{ clave }}" data-estatus="{{ u.estatus }}">
+        <td>{{ loop.index }}</td>
         <td>
           <div class="user-cell">
-            <div class="user-avatar-sm">SA</div>
+            <div class="user-avatar-sm" style="background:{{ avatar_color }}">{{ iniciales | upper }}</div>
             <div>
-              <div class="user-fullname">Salvador Esquivel Torres</div>
-              <div class="user-username">@salvadore</div>
+              <div class="user-fullname">{{ u.nombre_completo }}</div>
+              <div class="user-username">@{{ u.username }}</div>
             </div>
           </div>
         </td>
-        <td><span class="badge badge-adm">ADM</span></td>
-        <td><span class="badge badge-active">Activo</span></td>
-        <td>Hoy, 09:14 am</td>
+        <td><span class="badge {{ badge_class }}">{{ u.rol.nombre_rol if u.rol else '—' }}</span></td>
+        <td>
+          {% if u.estatus == 'activo' %}
+            <span class="badge badge-active">Activo</span>
+          {% elif u.estatus == 'bloqueado' %}
+            <span class="badge" style="background:#fce8df;color:#7a2a1a">Bloqueado</span>
+          {% else %}
+            <span class="badge badge-inactive">Inactivo</span>
+          {% endif %}
+        </td>
+        <td>{{ u.ultimo_login.strftime('%d/%m/%Y %H:%M') if u.ultimo_login else 'Nunca' }}</td>
         <td>
           <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit('Salvador Esquivel Torres','salvadore','ADM','Activo')">✏️</button>
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Salvador Esquivel Torres')">🚫</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar"
+              onclick="openEdit({{ u.id_usuario }},'{{ u.nombre_completo }}','{{ u.username }}',{{ u.id_rol }},'{{ u.estatus }}')">✏️</button>
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="{{ 'Reactivar' if u.estatus != 'activo' else 'Desactivar' }}"
+              onclick="openDelete({{ u.id_usuario }},'{{ u.nombre_completo }}','{{ u.estatus }}')">{{ '✅' if u.estatus != 'activo' else '🚫' }}</button>
           </div>
         </td>
       </tr>
-      <tr data-rol="VEN" data-estatus="Activo">
-        <td>2</td>
-        <td>
-          <div class="user-cell">
-            <div class="user-avatar-sm" style="background:var(--rust)">MG</div>
-            <div>
-              <div class="user-fullname">Mariana Guadalupe Cortes</div>
-              <div class="user-username">@marianac</div>
-            </div>
-          </div>
-        </td>
-        <td><span class="badge badge-ven">VEN</span></td>
-        <td><span class="badge badge-active">Activo</span></td>
-        <td>Hoy, 08:50 am</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit('Mariana Guadalupe Cortes','marianac','VEN','Activo')">✏️</button>
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Mariana Guadalupe Cortes')">🚫</button>
-          </div>
-        </td>
-      </tr>
-      <tr data-rol="PROD" data-estatus="Activo">
-        <td>3</td>
-        <td>
-          <div class="user-cell">
-            <div class="user-avatar-sm" style="background:#5a7a52">JJ</div>
-            <div>
-              <div class="user-fullname">José Juan García Hernández</div>
-              <div class="user-username">@josejuan</div>
-            </div>
-          </div>
-        </td>
-        <td><span class="badge badge-prod">PROD</span></td>
-        <td><span class="badge badge-active">Activo</span></td>
-        <td>Ayer, 06:30 pm</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit('José Juan García Hernández','josejuan','PROD','Activo')">✏️</button>
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('José Juan García Hernández')">🚫</button>
-          </div>
-        </td>
-      </tr>
-      <tr data-rol="COMP" data-estatus="Activo">
-        <td>4</td>
-        <td>
-          <div class="user-cell">
-            <div class="user-avatar-sm" style="background:#c9950a">JP</div>
-            <div>
-              <div class="user-fullname">Juan Pablo Ramírez Navarro</div>
-              <div class="user-username">@juanpablo</div>
-            </div>
-          </div>
-        </td>
-        <td><span class="badge badge-comp">COMP</span></td>
-        <td><span class="badge badge-active">Activo</span></td>
-        <td>Hoy, 07:45 am</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" onclick="openEdit('Juan Pablo Ramírez Navarro','juanpablo','COMP','Activo')">✏️</button>
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Desactivar" onclick="openDelete('Juan Pablo Ramírez Navarro')">🚫</button>
-          </div>
-        </td>
-      </tr>
-      <tr data-rol="VEN" data-estatus="Activo">
-      </tr>
-      <tr data-rol="PROD" data-estatus="Inactivo">
-      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--brown-lt)">No hay usuarios registrados.</td></tr>
+      {% endfor %}
     </tbody>
   </table>
 
   <div class="table-footer">
-    <p>Mostrando <span id="visibleCount">6</span> de 8 usuarios</p>
-    <div class="pagination">
-      <div class="page-btn active">1</div>
-      <div class="page-btn">2</div>
-      <div class="page-btn">›</div>
-    </div>
+    <p>Mostrando <span id="visibleCount">{{ total }}</span> de {{ total }} usuarios</p>
   </div>
 </div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div style="margin-top:16px">
+      {% for category, message in messages %}
+        <div style="padding:11px 16px; border-radius:10px; font-size:13px; margin-bottom:8px;
+          {% if category == 'success' %}background:#e2eede;border:1px solid #5a7a52;color:#2a4a1a;
+          {% else %}background:#fce8df;border:1px solid #e07a52;color:#9c3a1a;{% endif %}">
+          {{ '✅' if category == 'success' else '⚠️' }} {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
 <!-- ══════════════════════════════════════
      MODAL: AGREGAR USUARIO
@@ -357,51 +329,53 @@
   <div class="modal">
     <div class="modal-header">
       <h2>➕ Nuevo Usuario</h2>
-      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+      <button type="button" class="modal-close" onclick="closeModal('modal-add')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="form-row cols-2">
-        <div class="form-group" style="grid-column: 1/-1;">
-          <label class="form-label">Nombre Completo</label>
-          <input type="text" class="form-input" placeholder="Ej. Ana Martínez Ruiz">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Usuario</label>
-          <input type="text" class="form-input" placeholder="Ej. anamartinez">
-          <span class="form-hint">Sin espacios ni caracteres especiales</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Rol</label>
-          <select class="form-select">
-            <option value="">— Seleccionar —</option>
-            <option>ADM – Administrador</option>
-            <option>VEN – Ventas</option>
-            <option>PROD – Producción</option>
-            <option>COMP – Compras</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Contraseña</label>
-          <input type="password" class="form-input" placeholder="Mín. 8 caracteres">
-          <span class="form-hint">Debe incluir mayúscula, número y símbolo</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Confirmar Contraseña</label>
-          <input type="password" class="form-input" placeholder="Repetir contraseña">
-        </div>
-        <div class="form-group" style="grid-column: 1/-1;">
-          <label class="form-label">Estatus Inicial</label>
-          <select class="form-select">
-            <option>Activo</option>
-            <option>Inactivo</option>
-          </select>
+    <form method="POST" action="{{ url_for('registrar_usuario.crear_usuario') }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-body">
+        <div class="form-row cols-2">
+          <div class="form-group" style="grid-column: 1/-1;">
+            <label class="form-label">Nombre Completo</label>
+            <input type="text" name="nombre" class="form-input" placeholder="Ej. Ana Martínez Ruiz" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Usuario</label>
+            <input type="text" name="username" class="form-input" placeholder="Ej. anamartinez" required>
+            <span class="form-hint">Sin espacios ni caracteres especiales</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol</label>
+            <select name="id_rol" class="form-select" required>
+              <option value="">— Seleccionar —</option>
+              {% for r in roles %}
+                <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contraseña</label>
+            <input type="password" name="password" class="form-input" placeholder="Mín. 8 caracteres" required>
+            <span class="form-hint">Debe incluir mayúscula, número y símbolo</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar Contraseña</label>
+            <input type="password" name="confirmar" class="form-input" placeholder="Repetir contraseña" required>
+          </div>
+          <div class="form-group" style="grid-column: 1/-1;">
+            <label class="form-label">Estatus Inicial</label>
+            <select name="estatus" class="form-select">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
-      <button class="btn btn-primary">💾 Guardar Usuario</button>
-    </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">💾 Guardar Usuario</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -412,48 +386,52 @@
   <div class="modal">
     <div class="modal-header">
       <h2>✏️ Editar Usuario</h2>
-      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+      <button type="button" class="modal-close" onclick="closeModal('modal-edit')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="form-row cols-2">
-        <div class="form-group" style="grid-column: 1/-1;">
-          <label class="form-label">Nombre Completo</label>
-          <input type="text" class="form-input" id="edit-nombre">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Usuario</label>
-          <input type="text" class="form-input" id="edit-usuario">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Rol</label>
-          <select class="form-select" id="edit-rol">
-            <option>ADM – Administrador</option>
-            <option>VEN – Ventas</option>
-            <option>PROD – Producción</option>
-            <option>COMP – Compras</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Nueva Contraseña</label>
-          <input type="password" class="form-input" placeholder="Dejar vacío para no cambiar">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Confirmar Contraseña</label>
-          <input type="password" class="form-input" placeholder="Repetir nueva contraseña">
-        </div>
-        <div class="form-group" style="grid-column: 1/-1;">
-          <label class="form-label">Estatus</label>
-          <select class="form-select" id="edit-estatus">
-            <option>Activo</option>
-            <option>Inactivo</option>
-          </select>
+    <form id="form-edit" method="POST" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-body">
+        <div class="form-row cols-2">
+          <div class="form-group" style="grid-column: 1/-1;">
+            <label class="form-label">Nombre Completo</label>
+            <input type="text" name="nombre" class="form-input" id="edit-nombre" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Usuario</label>
+            <input type="text" name="username" class="form-input" id="edit-usuario" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol</label>
+            <select name="id_rol" class="form-select" id="edit-rol" required>
+              {% for r in roles %}
+                <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nueva Contraseña</label>
+            <input type="password" name="password" class="form-input" id="edit-password" placeholder="Dejar vacío para no cambiar">
+            <span class="form-hint">Solo completar si deseas cambiarla</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar Contraseña</label>
+            <input type="password" name="confirmar" class="form-input" placeholder="Repetir nueva contraseña">
+          </div>
+          <div class="form-group" style="grid-column: 1/-1;">
+            <label class="form-label">Estatus</label>
+            <select name="estatus" class="form-select" id="edit-estatus">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+              <option value="bloqueado">Bloqueado</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-edit')">Cancelar</button>
-      <button class="btn btn-primary">💾 Guardar Cambios</button>
-    </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -463,63 +441,85 @@
 <div class="modal-overlay" id="modal-delete">
   <div class="modal" style="max-width:420px">
     <div class="modal-header danger" id="delete-header">
-      <h2>🚫 Desactivar Usuario</h2>
-      <button class="modal-close" onclick="closeModal('modal-delete')">✕</button>
+      <h2 id="delete-header-title">🚫 Desactivar Usuario</h2>
+      <button type="button" class="modal-close" onclick="closeModal('modal-delete')">✕</button>
     </div>
-    <div class="delete-body">
-      <div class="delete-icon" id="delete-icon">🚫</div>
-      <h3 id="delete-title">¿Desactivar este usuario?</h3>
-      <p>El usuario <strong id="delete-name">—</strong> no podrá iniciar sesión.<br>Esta acción es reversible desde la misma pantalla.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button>
-      <button class="btn btn-danger" id="delete-confirm-btn">🚫 Desactivar</button>
-    </div>
+    <form id="form-delete" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="estatus" id="delete-estatus-input">
+      <div class="delete-body">
+        <div class="delete-icon" id="delete-icon">🚫</div>
+        <h3 id="delete-title">¿Desactivar este usuario?</h3>
+        <p id="delete-msg">El usuario <strong id="delete-name">—</strong> no podrá iniciar sesión.<br>Esta acción es reversible desde la misma pantalla.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button>
+        <button type="submit" class="btn btn-danger" id="delete-confirm-btn">🚫 Desactivar</button>
+      </div>
+    </form>
   </div>
 </div>
 
 <script>
   function openModal(id) {
-    document.getElementById(id).classList.add('open');
+    const el = document.getElementById(id);
+    el.classList.add('open');
+    el.style.display = 'flex';
   }
   function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
+    const el = document.getElementById(id);
+    el.classList.remove('open');
+    el.style.display = 'none';
   }
 
-  // Close on backdrop click
+  // Cierra el modal al hacer clic en el backdrop (fondo oscuro)
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    // Clic en el backdrop (no en el contenido del modal)
     overlay.addEventListener('click', e => {
-      if (e.target === overlay) overlay.classList.remove('open');
+      if (e.target === overlay) closeModal(overlay.id);
     });
+    // Evita que los clics dentro del modal burbujeen al backdrop
+    const modal = overlay.querySelector('.modal');
+    if (modal) modal.addEventListener('click', e => e.stopPropagation());
   });
 
-  function openEdit(nombre, usuario, rol, estatus) {
-    document.getElementById('edit-nombre').value  = nombre;
-    document.getElementById('edit-usuario').value = '@' + usuario;
-    const rolSelect = document.getElementById('edit-rol');
-    [...rolSelect.options].forEach(o => { if (o.value.startsWith(rol)) o.selected = true; });
-    document.getElementById('edit-estatus').value = estatus;
+  function openEdit(idUsuario, nombre, usuario, idRol, estatus) {
+    document.getElementById('edit-nombre').value   = nombre;
+    document.getElementById('edit-usuario').value  = usuario;
+    document.getElementById('edit-rol').value      = idRol;
+    document.getElementById('edit-estatus').value  = estatus;
+    document.getElementById('edit-password').value = '';
+    // Actualiza el action del form con el id real
+    document.getElementById('form-edit').action =
+      '/usuarios/editar/' + idUsuario;
     openModal('modal-edit');
   }
 
-  function openDelete(nombre, reactivar = false) {
+  function openDelete(idUsuario, nombre, estatus) {
+    const reactivar = (estatus !== 'activo');
     document.getElementById('delete-name').textContent = nombre;
+    // Actualiza el action del form
+    document.getElementById('form-delete').action = '/usuarios/estatus/' + idUsuario;
     if (reactivar) {
+      document.getElementById('delete-estatus-input').value   = 'activo';
       document.getElementById('delete-header').style.background = '#5a7a52';
-      document.getElementById('delete-icon').textContent  = '✅';
-      document.getElementById('delete-title').textContent = '¿Reactivar este usuario?';
+      document.getElementById('delete-header-title').textContent = '✅ Reactivar Usuario';
+      document.getElementById('delete-icon').textContent       = '✅';
+      document.getElementById('delete-title').textContent      = '¿Reactivar este usuario?';
       document.getElementById('delete-confirm-btn').textContent = '✅ Reactivar';
-      document.getElementById('delete-confirm-btn').className = 'btn btn-success';
-      document.querySelector('#modal-delete .delete-body p').innerHTML =
-        'El usuario <strong>' + nombre + '</strong> podrá iniciar sesión nuevamente.';
+      document.getElementById('delete-confirm-btn').className  = 'btn btn-primary';
+      document.getElementById('delete-msg').innerHTML =
+        'El usuario <strong id="delete-name">' + nombre + '</strong> podrá iniciar sesión nuevamente.';
     } else {
+      document.getElementById('delete-estatus-input').value   = 'inactivo';
       document.getElementById('delete-header').style.background = 'var(--rust)';
-      document.getElementById('delete-icon').textContent  = '🚫';
-      document.getElementById('delete-title').textContent = '¿Desactivar este usuario?';
+      document.getElementById('delete-header-title').textContent = '🚫 Desactivar Usuario';
+      document.getElementById('delete-icon').textContent       = '🚫';
+      document.getElementById('delete-title').textContent      = '¿Desactivar este usuario?';
       document.getElementById('delete-confirm-btn').textContent = '🚫 Desactivar';
-      document.getElementById('delete-confirm-btn').className = 'btn btn-danger';
-      document.querySelector('#modal-delete .delete-body p').innerHTML =
-        'El usuario <strong>' + nombre + '</strong> no podrá iniciar sesión.<br>Esta acción es reversible desde la misma pantalla.';
+      document.getElementById('delete-confirm-btn').className  = 'btn btn-danger';
+      document.getElementById('delete-msg').innerHTML =
+        'El usuario <strong id="delete-name">' + nombre + '</strong> no podrá iniciar sesión.<br>Esta acción es reversible desde la misma pantalla.';
     }
     openModal('modal-delete');
   }

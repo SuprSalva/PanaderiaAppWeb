@@ -21,6 +21,11 @@ Activar el Entorno
     macOS:
     source env/bin/activate
 
-Una vez activo el entorno virtual, ejecuta pip install -r requirements.txt
+Una vez activo el entorno virtual, ejecuta 
+pip install -r requirements.txt
+
+actalizar requirements.txt
+pip freeze > requirements.txt
 
 Inicia la aplicación con python app.py para que se generen las tablas automáticamente
+
