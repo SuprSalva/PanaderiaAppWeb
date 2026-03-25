@@ -13,22 +13,23 @@
 # ─────────────────────────────────────────────────────────────────────────────
 from sqlalchemy import create_engine, event, text
 from flask_login import current_user
-from config import DB_ROLE_URIS
+from config import DB_ROLE_URIS, DB_ROLE_NAMES
 
 # Cache de engines por rol (un engine por rol, reutilizado en toda la app)
 _engines: dict = {}
 
 
-def _make_engine(uri: str, rol_nombre: str):
+def _make_engine(uri: str, rol_nombre: str | None):
     """Crea el engine y registra el evento que activa el rol al conectar."""
     engine = create_engine(uri, pool_size=3, max_overflow=5, pool_pre_ping=True)
 
-    # MySQL 8: activa el rol de BD en cada nueva conexión del pool
-    @event.listens_for(engine, "connect")
-    def activar_rol(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute(f"SET ROLE `{rol_nombre}`")
-        cursor.close()
+    if rol_nombre:
+        # MySQL 8: activa el rol de BD en cada nueva conexión del pool
+        @event.listens_for(engine, "connect")
+        def activar_rol(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute(f"SET ROLE `{rol_nombre}`")
+            cursor.close()
 
     return engine
 
@@ -46,10 +47,12 @@ def get_role_engine(clave_rol: str | None = None):
             else 'readonly'
         )
 
+    if clave_rol not in DB_ROLE_URIS:
+        clave_rol = 'readonly'
+
     if clave_rol not in _engines:
-        uri = DB_ROLE_URIS.get(clave_rol, DB_ROLE_URIS['readonly'])
-        # El nombre del rol de BD coincide con el patrón "rol_<clave>"
-        rol_bd = f"rol_{clave_rol}"
+        uri = DB_ROLE_URIS[clave_rol]
+        rol_bd = DB_ROLE_NAMES.get(clave_rol)
         _engines[clave_rol] = _make_engine(uri, rol_bd)
 
     return _engines[clave_rol]

@@ -20,30 +20,18 @@ DROP USER IF EXISTS 'dm_admin'@'localhost';
 DROP USER IF EXISTS 'dm_vendedor'@'localhost';
 DROP USER IF EXISTS 'dm_panadero'@'localhost';
 DROP USER IF EXISTS 'dm_cliente'@'localhost';
-DROP USER IF EXISTS 'dm_readonly'@'localhost';
+
+DROP USER IF EXISTS 'web_user'@'localhost';
 
 DROP ROLE IF EXISTS rol_admin;
 DROP ROLE IF EXISTS rol_vendedor;
 DROP ROLE IF EXISTS rol_panadero;
 DROP ROLE IF EXISTS rol_cliente;
-DROP ROLE IF EXISTS rol_readonly;
 
 
 -- ═══════════════════════════════════════════════════════════
 --  2. CREAR ROLES Y DARLES PERMISOS
 -- ═══════════════════════════════════════════════════════════
-
--- ─────────────────────────────────────────────
---  ROL: rol_readonly
---  Solo puede ver la tabla usuarios y roles (verificación)
--- ─────────────────────────────────────────────
-CREATE ROLE rol_readonly;
-
-GRANT SELECT ON dulce_migaja.usuarios TO rol_readonly;
-GRANT SELECT ON dulce_migaja.roles    TO rol_readonly;
-
-SHOW GRANTS FOR rol_readonly;
-
 
 -- ─────────────────────────────────────────────
 --  ROL: rol_admin
@@ -161,7 +149,6 @@ SHOW GRANTS FOR rol_cliente;
 --  3. CREAR USUARIOS DE BD
 -- ═══════════════════════════════════════════════════════════
 
-CREATE USER 'dm_readonly'@'localhost' IDENTIFIED BY 'Dm@Read2025!';
 CREATE USER 'dm_admin'@'localhost'    IDENTIFIED BY 'Dm@Admin2025!';
 CREATE USER 'dm_vendedor'@'localhost' IDENTIFIED BY 'Dm@Vend2025!';
 CREATE USER 'dm_panadero'@'localhost' IDENTIFIED BY 'Dm@Pan2025!';
@@ -172,7 +159,6 @@ CREATE USER 'dm_cliente'@'localhost'  IDENTIFIED BY 'Dm@Cli2025!';
 --  4. ASIGNAR ROL A CADA USUARIO
 -- ═══════════════════════════════════════════════════════════
 
-GRANT rol_readonly TO 'dm_readonly'@'localhost';
 GRANT rol_admin    TO 'dm_admin'@'localhost';
 GRANT rol_vendedor TO 'dm_vendedor'@'localhost';
 GRANT rol_panadero TO 'dm_panadero'@'localhost';
@@ -183,7 +169,6 @@ GRANT rol_cliente  TO 'dm_cliente'@'localhost';
 --  5. ACTIVAR EL ROL POR DEFECTO EN CADA USUARIO
 -- ═══════════════════════════════════════════════════════════
 
-SET DEFAULT ROLE rol_readonly TO 'dm_readonly'@'localhost';
 SET DEFAULT ROLE rol_admin    TO 'dm_admin'@'localhost';
 SET DEFAULT ROLE rol_vendedor TO 'dm_vendedor'@'localhost';
 SET DEFAULT ROLE rol_panadero TO 'dm_panadero'@'localhost';
@@ -196,9 +181,10 @@ SET DEFAULT ROLE rol_cliente  TO 'dm_cliente'@'localhost';
 --  llamando SPs a través de web_user con db.session.execute().
 --  Sin EXECUTE, esos módulos no pueden llamar ningún SP.
 -- ═══════════════════════════════════════════════════════════
-GRANT SELECT          ON dulce_migaja.* TO 'web_user'@'localhost';
-GRANT EXECUTE         ON dulce_migaja.* TO 'web_user'@'localhost';
-
+-- GRANT SELECT          ON dulce_migaja.* TO 'web_user'@'localhost';
+-- GRANT EXECUTE         ON dulce_migaja.* TO 'web_user'@'localhost';
+-- REVOKE SELECT ON dulce_migaja.* FROM 'web_user'@'localhost';
+-- REVOKE EXECUTE ON dulce_migaja.* FROM 'web_user'@'localhost';
 -- ─────────────────────────────────────────────
 --  Refrescar privilegios
 -- ─────────────────────────────────────────────
@@ -210,7 +196,6 @@ FLUSH PRIVILEGES;
 -- ═══════════════════════════════════════════════════════════
 
 -- Ver los permisos de cada usuario
-SHOW GRANTS FOR 'dm_readonly'@'localhost';
 SHOW GRANTS FOR 'dm_admin'@'localhost';
 SHOW GRANTS FOR 'dm_vendedor'@'localhost';
 SHOW GRANTS FOR 'dm_panadero'@'localhost';

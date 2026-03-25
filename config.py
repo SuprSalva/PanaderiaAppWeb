@@ -1,20 +1,32 @@
 import os
+from urllib.parse import quote_plus
 
 # ─── Cadena base ───────────────────────────────────────────────────────────
 _BASE = 'mysql+pymysql://{user}:{pwd}@127.0.0.1/dulce_migaja'
 
+def _uri(user, pwd):
+    return _BASE.format(user=user, pwd=quote_plus(pwd))
+
 # ─── URI del ORM (solo lectura — consultas del modelo SQLAlchemy) ──────────
-_WEB_URI = _BASE.format(user='web_user', pwd='123')
+_WEB_URI = _uri('web_user', '123')
 
 # ─── URIs por rol de BD (para ejecutar SPs con los permisos correctos) ─────
 #  Cada clave_rol del sistema mapea a un usuario de MySQL con sus permisos.
 DB_ROLE_URIS = {
-    'admin':    _BASE.format(user='dm_admin',    pwd='Dm@Admin2025!'),
-    'vendedor': _BASE.format(user='dm_vendedor', pwd='Dm@Vend2025!'),
-    'panadero': _BASE.format(user='dm_panadero', pwd='Dm@Pan2025!'),
-    'cliente':  _BASE.format(user='dm_cliente',  pwd='Dm@Cli2025!'),
-    # Usuario de solo-lectura para verificar la tabla de usuarios
-    'readonly': _BASE.format(user='dm_readonly', pwd='Dm@Read2025!'),
+    'admin':    _uri('dm_admin',    'Dm@Admin2025!'),
+    'empleado': _uri('dm_vendedor', 'Dm@Vend2025!'),
+    'panadero': _uri('dm_panadero', 'Dm@Pan2025!'),
+    'cliente':  _uri('dm_cliente',  'Dm@Cli2025!'),
+    'readonly': _uri('web_user',    '123'),
+}
+
+# Nombre del rol de BD que debe activarse con SET ROLE para cada clave_rol de app
+DB_ROLE_NAMES = {
+    'admin':    'rol_admin',
+    'empleado': 'rol_vendedor',
+    'panadero': 'rol_panadero',
+    'cliente':  'rol_cliente',
+    'readonly': None,
 }
 
 

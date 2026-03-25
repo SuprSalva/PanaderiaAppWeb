@@ -130,6 +130,16 @@ def dashboard_ventas():
 def page_not_found(e):
     return render_template("404.html"), 404
 
+@app.route("/debug/usuario-bd")
+@login_required
+def debug_usuario_bd():
+    from utils.db_roles import get_role_engine
+    from sqlalchemy import text
+    engine = get_role_engine()
+    with engine.connect() as conn:
+        usuario_bd = conn.execute(text("SELECT CURRENT_USER()")).scalar()
+        rol_usuario = current_user.rol.clave_rol if current_user.rol else 'sin rol'
+    return f"Rol app: {rol_usuario} | Usuario BD: {usuario_bd}"
 
 csrf.init_app(app)
 
