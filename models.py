@@ -1,5 +1,6 @@
 import datetime
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 
@@ -24,7 +25,7 @@ class Rol(db.Model):
     usuarios = db.relationship('Usuario', back_populates='rol')
 
 
-class Usuario(db.Model):
+class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuarios'
     id_usuario        = db.Column(db.Integer,     primary_key=True, autoincrement=True)
     uuid_usuario      = db.Column(db.String(36),  nullable=False, unique=True)
@@ -45,6 +46,13 @@ class Usuario(db.Model):
     creado_por        = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=True)
 
     rol = db.relationship('Rol', back_populates='usuarios')
+
+    def get_id(self):
+        return str(self.id_usuario)
+
+    @property
+    def is_active(self):
+        return self.estatus == 'activo'
 
 
 class Proveedor(db.Model):

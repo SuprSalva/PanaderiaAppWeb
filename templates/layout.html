@@ -528,19 +528,17 @@
       <!-- Usuario -->
       <div class="topbar-user" id="userMenu" onclick="toggleUserMenu()">
         <div class="user-avatar">
-          {{ session.get('usuario_nombre', '??')[:2] | upper }}
+          {{ current_user.nombre_completo[:2] | upper if current_user.is_authenticated else '??' }}
         </div>
 
         <div class="user-info">
           <div class="user-name">
-            {{ session.get('usuario_nombre', 'Invitado').split()[0] }}
+            {{ current_user.nombre_completo.split()[0] if current_user.is_authenticated else 'Invitado' }}
           </div>
           <div class="user-role">
-            {% set rol = session.get('usuario_rol', '') %}
-            {% if rol == 'admin' or rol == '1' %}Administrador
-            {% elif rol == 'empleado' or rol == '2' %}Empleado
-            {% elif rol == 'panadero' or rol == '3' %}Panadero
-            {% else %}{{ rol }}{% endif %}
+            {% if current_user.is_authenticated and current_user.rol %}
+              {{ current_user.rol.nombre_rol }}
+            {% endif %}
           </div>
         </div>
 
@@ -548,7 +546,7 @@
 
         <div class="user-dropdown">
           <div class="dd-item" style="cursor:default;opacity:.55;font-size:11px;pointer-events:none;">
-            @{{ session.get('usuario_user', '') }}
+            @{{ current_user.username if current_user.is_authenticated else '' }}
           </div>
           <div class="dd-divider"></div>
           <a href="#" class="dd-item">👤 Mi perfil</a>

@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  .confirm-wrap {
+    max-width: 460px;
+    margin: 60px auto;
+    background: var(--white);
+    border: 1px solid var(--tan);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow);
+    overflow: hidden;
+  }
+  .confirm-header {
+    padding: 20px 26px;
+    text-align: center;
+  }
+  .confirm-header.hdr-danger  { background: var(--rust); }
+  .confirm-header.hdr-success { background: #5a7a52; }
+  .confirm-header .icon { font-size: 40px; display: block; margin-bottom: 6px; }
+  .confirm-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #fff;
+    margin: 0;
+  }
+  .confirm-body {
+    padding: 28px 32px;
+    text-align: center;
+  }
+  .confirm-body p {
+    font-size: 14px;
+    color: var(--brown-dk);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .confirm-body strong { color: var(--brown-dk); }
+  .confirm-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+</style>
+
+<div class="confirm-wrap">
+
+  {% if prov.estatus == 'activo' %}
+  <div class="confirm-header hdr-danger">
+    <span class="icon">🚫</span>
+    <h2>Desactivar Proveedor</h2>
+  </div>
+  {% else %}
+  <div class="confirm-header hdr-success">
+    <span class="icon">✅</span>
+    <h2>Activar Proveedor</h2>
+  </div>
+  {% endif %}
+
+  <div class="confirm-body">
+    <p>
+      {% if prov.estatus == 'activo' %}
+        El proveedor <strong>{{ prov.nombre }}</strong> quedará inactivo y no
+        podrá seleccionarse en nuevas compras.<br>El historial de compras se conserva.
+      {% else %}
+        El proveedor <strong>{{ prov.nombre }}</strong> volverá a estar disponible
+        para registrar compras.
+      {% endif %}
+    </p>
+
+    <div class="confirm-actions">
+      <a href="{{ url_for('proveedores.index_proveedores') }}"
+         class="btn btn-outline">Cancelar</a>
+
+      <form method="POST"
+            action="{{ url_for('proveedores.proveedores_toggle', id_proveedor=prov.id_proveedor) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% if prov.estatus == 'activo' %}
+        <button type="submit" class="btn btn-danger">🚫 Sí, desactivar</button>
+        {% else %}
+        <button type="submit" class="btn btn-primary">✅ Sí, activar</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
