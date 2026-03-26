@@ -134,7 +134,7 @@ def proveedores_toggle(id_proveedor):
     return redirect(url_for('proveedores.index_proveedores'))
 
 
-# -------------- MATERIAS PRIMAS --------------------#
+# -------------- MATE   RIAS PRIMAS --------------------#
 @proveedores.route("/materias-primas")
 def materias_primas():          
     return render_template("proveedores/materiasPrimas/materiasPrimas.html")

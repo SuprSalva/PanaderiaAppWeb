@@ -1,0 +1,216 @@
+{% extends "layout.html" %}
+{% block title %}Pedidos de Cajas{% endblock %}
+
+{% block extra_head %}
+<style>
+  .stat-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--white); border: 1.5px solid var(--tan); border-radius: 14px;
+    padding: 16px; text-align: center; cursor: pointer; transition: all .2s;
+    text-decoration: none; display: flex; flex-direction: column; align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,.03);
+  }
+  .stat-card:hover { border-color: var(--brown-lt); transform: translateY(-3px); box-shadow: 0 6px 16px var(--shadow); }
+  .stat-card.active { border-color: var(--rust); background: #fffcfb; }
+  .stat-card .num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800; color: var(--brown-dk); line-height: 1; margin-bottom: 4px; }
+  .stat-card .lbl { font-size: 11px; color: var(--brown-lt); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+
+  .filtros { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+  .filter-input {
+    padding: 10px 14px; border: 1.5px solid var(--tan); border-radius: 10px;
+    font-family: inherit; font-size: 13px; background: var(--white); color: var(--brown-dk);
+    outline: none; transition: border .2s; flex: 1; min-width: 180px;
+  }
+  .filter-input:focus  { border-color: var(--rust); }
+  .filter-select {
+    padding: 10px 14px; border: 1.5px solid var(--tan); border-radius: 10px;
+    font-family: inherit; font-size: 13px; background: var(--white); color: var(--brown-dk);
+    outline: none; cursor: pointer; min-width: 160px;
+  }
+  .filter-select:focus { border-color: var(--rust); }
+
+  .table-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow-x: auto; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+  .tbl thead th {
+    background: var(--warm-bg); padding: 14px 16px; text-align: left;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--brown-lt); border-bottom: 1.5px solid var(--tan);
+  }
+  .tbl tbody tr { border-bottom: 1px solid var(--tan); transition: background .15s; }
+  .tbl tbody tr:hover { background: #fdfaf6; }
+  .tbl td { padding: 14px 16px; color: var(--brown-dk); vertical-align: middle; }
+
+  .folio-chip { display: inline-block; background: var(--warm-bg); color: var(--brown-dk); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--tan); font-family: monospace; }
+  .cliente-name { font-weight: 700; color: var(--brown-dk); }
+  .money { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--rust); font-size: 15px; }
+  .muted { color: var(--brown-lt); font-size: 12px; }
+
+  /* CHIPS DE CAJA */
+  .caja-info { display: flex; flex-direction: column; gap: 4px; }
+  .chip-tamanio {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--warm-bg); border: 1px solid var(--tan);
+    border-radius: 6px; padding: 3px 9px; font-size: 11px; font-weight: 700; color: var(--brown-dk);
+  }
+  .chip-tipo {
+    display: inline-flex; align-items: center; gap: 4px;
+    border-radius: 6px; padding: 3px 9px; font-size: 11px; font-weight: 700;
+  }
+  .chip-tipo.simple { background: #e2eede; color: #3a6034; }
+  .chip-tipo.mixta  { background: #dbeafe; color: #1e40af; }
+
+  /* BADGES */
+  .badge-estado { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .badge-pendiente     { background: #fef3d0; color: #8a6200; }
+  .badge-aprobado      { background: #e2eede; color: #3a6034; }
+  .badge-en_produccion { background: #e8f0fe; color: #1a56db; }
+  .badge-listo         { background: #dbeafe; color: #1e40af; }
+  .badge-entregado     { background: #f3e8d8; color: var(--brown-dk); }
+  .badge-rechazado     { background: #fce8df; color: var(--rust); }
+
+  .btn-ver { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown-dk); cursor: pointer; text-decoration: none; transition: all .2s; display: inline-flex; align-items: center; gap: 5px; }
+  .btn-ver:hover { border-color: var(--rust); color: var(--rust); background: #fffcfb; }
+
+  .empty-state { text-align: center; padding: 60px 24px; color: var(--brown-lt); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 15px; opacity: .5; }
+</style>
+{% endblock %}
+
+{% block container %}
+<div class="db-topbar anim" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+  <div>
+    <h1 style="font-family:'Playfair Display', serif; color:var(--brown-dk); font-size:24px;">📦 Pedidos de Cajas</h1>
+    <div class="db-breadcrumb" style="font-size:12px; color:var(--brown-lt);">
+      Producción <span>›</span> Gestión de Pedidos
+    </div>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="stat-cards anim">
+  <a href="{{ url_for('pedidos.lista') }}" class="stat-card {% if not filtro_estado %}active{% endif %}">
+    <div class="num">{{ conteos.values()|sum }}</div>
+    <div class="lbl">📋 Todos</div>
+  </a>
+  {% set estados = [
+    ('pendiente',     '⏳ Pendientes'),
+    ('aprobado',      '✅ Aprobados'),
+    ('en_produccion', '⚙️ En Prod.'),
+    ('listo',         '🎉 Listos'),
+    ('entregado',     '📦 Entregados'),
+    ('rechazado',     '❌ Rechazados'),
+  ] %}
+  {% for clave, label in estados %}
+  <a href="{{ url_for('pedidos.lista', estado=clave) }}"
+     class="stat-card {% if filtro_estado == clave %}active{% endif %}">
+    <div class="num">{{ conteos.get(clave, 0) }}</div>
+    <div class="lbl">{{ label }}</div>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- FILTROS -->
+<form method="get" class="filtros anim">
+  <div style="position:relative; flex:1; min-width:220px;">
+    <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:14px;">🔍</span>
+    <input type="text" name="q" class="filter-input"
+           placeholder="Buscar por folio o cliente…" value="{{ filtro_q }}"
+           style="padding-left:36px; width:100%; box-sizing:border-box;">
+  </div>
+  <input type="date" name="fecha" class="filter-input"
+         style="flex:0; min-width:140px;" value="{{ filtro_fecha }}" title="Fecha de recogida">
+  <select name="estado" class="filter-select">
+    <option value="">Todos los estados</option>
+    {% for clave, label in estados %}
+    <option value="{{ clave }}" {% if filtro_estado == clave %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-primary"
+          style="padding:10px 20px; border-radius:10px; background:var(--brown-dk); color:#fff; border:none; font-weight:700; cursor:pointer;">
+    Filtrar
+  </button>
+  {% if filtro_q or filtro_fecha or filtro_estado %}
+  <a href="{{ url_for('pedidos.lista') }}" class="btn btn-outline"
+     style="padding:10px 16px; border-radius:10px; border:1.5px solid var(--tan); text-decoration:none; color:var(--brown-lt); font-weight:700; font-size:13px;">
+    Limpiar
+  </a>
+  {% endif %}
+</form>
+
+<!-- TABLA -->
+<div class="table-card anim">
+  {% if pedidos %}
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th style="padding-left:22px;">Folio</th>
+        <th>Cliente</th>
+        <th>Caja</th>
+        <th>Total</th>
+        <th>Recolección</th>
+        <th>Estado</th>
+        <th>Registrado</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in pedidos %}
+      <tr onclick="window.location.href='{{ url_for('pedidos.detalle', folio=p.folio) }}'"
+          style="cursor:pointer;">
+        <td style="padding-left:22px;">
+          <span class="folio-chip">{{ p.folio }}</span>
+        </td>
+        <td class="cliente-name">{{ p.cliente_nombre }}</td>
+        <td>
+          <div class="caja-info">
+            <span class="chip-tamanio">
+              📏 {{ p.tamanio_nombre if p.tamanio_nombre else '—' }}
+              {% if p.capacidad %}({{ p.capacidad }} pzas){% endif %}
+            </span>
+            {% if p.tipo_caja %}
+            <span class="chip-tipo {{ p.tipo_caja }}">
+              {{ '🍞 Simple' if p.tipo_caja == 'simple' else '🎭 Mixta' }}
+            </span>
+            {% endif %}
+          </div>
+        </td>
+        <td><span class="money">${{ "%.2f"|format(p.total_estimado) }}</span></td>
+        <td>
+          <div style="font-weight:600; color:var(--brown-dk);">
+            {{ p.fecha_recogida.strftime('%d/%m/%Y') if p.fecha_recogida else '—' }}
+          </div>
+          <div class="muted">{{ p.fecha_recogida.strftime('%H:%M') if p.fecha_recogida else '' }}</div>
+        </td>
+        <td>
+          <span class="badge-estado badge-{{ p.estado }}">
+            {% if p.estado == 'pendiente'      %}⏳ Pendiente
+            {% elif p.estado == 'aprobado'     %}✅ Aprobado
+            {% elif p.estado == 'en_produccion'%}⚙️ En Producción
+            {% elif p.estado == 'listo'        %}🎉 Listo
+            {% elif p.estado == 'entregado'    %}📦 Entregado
+            {% elif p.estado == 'rechazado'    %}❌ Rechazado
+            {% endif %}
+          </span>
+        </td>
+        <td class="muted">{{ p.creado_en.strftime('%d/%m/%y %H:%M') }}</td>
+        <td onclick="event.stopPropagation()">
+          <a href="{{ url_for('pedidos.detalle', folio=p.folio) }}" class="btn-ver">
+            Ver Detalle <span>→</span>
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="icon">📭</div>
+    <h3 style="font-family:'Playfair Display', serif; color:var(--brown-dk); margin-bottom:5px;">Bandeja Vacía</h3>
+    <p>No se encontraron pedidos{% if filtro_estado %} con estado <strong>{{ filtro_estado.replace('_',' ').title() }}</strong>{% endif %}.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

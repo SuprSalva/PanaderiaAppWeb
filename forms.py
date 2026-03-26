@@ -55,8 +55,6 @@ class RecetaForm(Form):
 
     unidad_rendimiento = SelectField('Unidad de Rendimiento', choices=[
         ('pza', 'Piezas'),
-        ('kg',  'Kilogramos'),
-        ('lt',  'Litros'),
     ])
 
     precio_venta = DecimalField('Precio de Venta / pieza ($)', [
