@@ -1,0 +1,666 @@
+{% extends "layout.html" %}
+{% block title %}Pedir una Caja de Pan{% endblock %}
+
+{% block extra_head %}
+<style>
+  .ol-page { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ══ HERO ══ */
+  .ol-hero {
+    background: linear-gradient(135deg, var(--brown-dk) 0%, #9c4a1a 100%);
+    border-radius: 16px; padding: 28px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    overflow: hidden; position: relative;
+  }
+  .ol-hero::before { content: '📦'; position: absolute; right: 180px; top: -10px; font-size: 100px; opacity: .07; }
+  .ol-hero-text h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--cream); margin-bottom: 6px; }
+  .ol-hero-text p  { font-size: 13px; color: rgba(255,255,255,.65); max-width: 400px; }
+
+  /* ══ PASOS ══ */
+  .steps-bar {
+    display: flex; gap: 0; background: var(--white);
+    border: 1.5px solid var(--tan); border-radius: 14px; overflow: hidden;
+  }
+  .step {
+    flex: 1; padding: 14px 18px; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 700; color: var(--brown-lt);
+    border-right: 1px solid var(--tan); transition: all .2s;
+  }
+  .step:last-child { border-right: none; }
+  .step.active { background: #fffcfb; color: var(--rust); }
+  .step.done   { background: var(--warm-bg); color: var(--brown-dk); }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%; border: 2px solid currentColor;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;
+  }
+  .step.done .step-num { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+
+  /* ══ SECCIÓN ══ */
+  .section-card {
+    background: var(--white); border: 1.5px solid var(--tan);
+    border-radius: 14px; padding: 22px 24px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif; font-size: 17px; color: var(--brown-dk);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ══ TARJETAS DE TAMAÑO ══ */
+  .size-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .size-card {
+    border: 2px solid var(--tan); border-radius: 14px; padding: 20px 16px;
+    text-align: center; cursor: pointer; transition: all .2s; background: var(--white);
+  }
+  .size-card:hover { border-color: var(--brown-lt); transform: translateY(-2px); box-shadow: 0 6px 16px var(--shadow); }
+  .size-card.selected { border-color: var(--rust); background: #fffcfb; box-shadow: 0 0 0 3px rgba(188,78,33,.1); }
+  .size-card .ico   { font-size: 36px; margin-bottom: 8px; }
+  .size-card .nom   { font-weight: 800; font-size: 15px; color: var(--brown-dk); margin-bottom: 4px; }
+  .size-card .cap   { font-size: 12px; color: var(--brown-lt); }
+  .size-card .desc  { font-size: 11px; color: var(--brown-lt); margin-top: 6px; }
+
+  /* ══ TIPO DE CAJA ══ */
+  .tipo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tipo-grid.tres-opciones { grid-template-columns: 1fr 1fr 1fr; }
+  .tipo-card {
+    border: 2px solid var(--tan); border-radius: 12px; padding: 16px;
+    cursor: pointer; transition: all .2s; background: var(--white);
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .tipo-card:hover  { border-color: var(--brown-lt); }
+  .tipo-card.selected { border-color: var(--rust); background: #fffcfb; }
+  .tipo-card .tipo-ico { font-size: 28px; flex-shrink: 0; }
+  .tipo-card .tipo-nom { font-weight: 800; font-size: 14px; color: var(--brown-dk); margin-bottom: 3px; }
+  .tipo-card .tipo-desc { font-size: 11px; color: var(--brown-lt); line-height: 1.4; }
+
+  /* ══ SELECCIÓN DE PANES ══ */
+  .ol-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .ol-search-wrap { position: relative; flex: 1; min-width: 180px; }
+  .ol-search-wrap input {
+    width: 100%; padding: 10px 14px 10px 36px;
+    border: 1.5px solid var(--tan); border-radius: 10px;
+    font-size: 13px; background: var(--white); outline: none; box-sizing: border-box;
+  }
+  .ol-search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); }
+
+  .prod-grid-ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 14px; }
+  .prod-card {
+    background: var(--white); border: 1.5px solid var(--tan);
+    border-radius: 14px; overflow: hidden; transition: all .2s;
+  }
+  .prod-card:hover   { transform: translateY(-3px); border-color: var(--brown-lt); box-shadow: 0 8px 24px var(--shadow); }
+  .prod-card.selected { border-color: var(--rust); background: #fffcfb; }
+  .prod-card.disabled { opacity: .4; pointer-events: none; }
+
+  .prod-card-img  { background: var(--warm-bg); height: 100px; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+  .prod-card-body { padding: 10px 12px 12px; }
+  .prod-card-name { font-weight: 700; font-size: 13px; color: var(--brown-dk); margin-bottom: 2px; }
+  .prod-card-desc {
+    font-size: 11px; color: var(--brown-lt); margin-bottom: 8px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .prod-card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .prod-card-price  { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); }
+
+  .btn-sel-pan {
+    padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px;
+    font-weight: 700; transition: all .2s; background: var(--brown-dk); color: var(--cream);
+  }
+  .btn-sel-pan:hover { background: var(--rust); }
+  .btn-sel-pan.quitar { background: #fce8df; color: var(--rust); border: 1px solid var(--rust); }
+
+  /* ══ INDICADOR DE PIEZAS ══ */
+  .piezas-bar {
+    border-radius: 10px; padding: 12px 16px; font-size: 13px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    border: 1.5px solid var(--tan); background: var(--warm-bg);
+  }
+  .piezas-bar.ok      { border-color: #3a6034; background: #e2eede; color: #3a6034; }
+  .piezas-bar.exceso  { border-color: var(--rust); background: #fce8df; color: var(--rust); }
+  .piezas-progress { flex: 1; height: 8px; border-radius: 4px; background: rgba(0,0,0,.1); overflow: hidden; }
+  .piezas-fill     { height: 100%; border-radius: 4px; background: currentColor; transition: width .3s; }
+
+  /* ══ FAB / DRAWER ══ */
+  .cart-fab {
+    position: fixed; bottom: 28px; right: 28px; z-index: 300;
+    width: 58px; height: 58px; border-radius: 50%;
+    background: var(--brown-dk); color: var(--cream); border: none;
+    box-shadow: 0 8px 24px rgba(107,68,35,.45); cursor: pointer; font-size: 22px;
+    transition: transform .2s;
+  }
+  .cart-fab:hover { transform: scale(1.05); }
+  .cart-badge {
+    position: absolute; top: -4px; right: -4px; background: var(--rust);
+    color: #fff; font-size: 11px; width: 20px; height: 20px;
+    border-radius: 50%; border: 2px solid var(--white);
+    display: none; align-items: center; justify-content: center;
+  }
+
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(59,42,26,.45); backdrop-filter: blur(3px);
+    z-index: 400; opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .cart-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 100vw;
+    background: var(--white); z-index: 401; transform: translateX(100%);
+    transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; box-shadow: -4px 0 30px rgba(0,0,0,.15);
+  }
+  .cart-drawer.open { transform: translateX(0); }
+
+  .drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--tan); }
+  .drawer-header h2 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--brown-dk); margin: 0; }
+  .btn-close-drawer { background: var(--warm-bg); border: none; font-size: 16px; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: var(--brown-dk); }
+  .btn-close-drawer:hover { background: #e8d5be; }
+
+  .drawer-body   { flex: 1; overflow-y: auto; padding: 22px 24px; }
+  .drawer-footer { padding: 18px 24px; border-top: 1px solid var(--tan); background: #fdfaf6; }
+
+  .resumen-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--tan); font-size: 13px; color: var(--brown-dk); }
+  .resumen-row:last-child { border-bottom: none; }
+  .resumen-row strong { font-weight: 700; }
+
+  .drawer-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: var(--brown-dk); margin-bottom: 16px; }
+  .btn-submit-cart { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--rust); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; transition: background .2s; }
+  .btn-submit-cart:hover { background: #9c3a1a; }
+  .btn-submit-cart:disabled { background: var(--tan); cursor: not-allowed; }
+
+  .checkout-fields label { font-size: 11px; font-weight: 700; color: var(--brown-lt); display: block; margin-bottom: 6px; letter-spacing: .5px; }
+  .checkout-fields input, .checkout-fields select {
+    width: 100%; padding: 11px; border-radius: 8px; border: 1.5px solid var(--tan);
+    font-family: inherit; margin-bottom: 16px; box-sizing: border-box; outline: none; transition: border .2s; background: var(--white);
+  }
+  .checkout-fields input:focus, .checkout-fields select:focus { border-color: var(--rust); }
+
+  .hidden { display: none !important; }
+</style>
+{% endblock %}
+
+{% block container %}
+<div class="ol-page">
+
+  <!-- HERO -->
+  <div class="ol-hero">
+    <div class="ol-hero-text">
+      <h1>📦 Pedir una Caja de Pan</h1>
+      <p>Elige el tamaño de tu charola, el tipo de caja y los panes que quieres. ¡Armamos tu caja con todo el sabor!</p>
+    </div>
+    <a href="{{ url_for('pedidos.mis_pedidos') }}"
+       style="background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3);
+              border-radius:12px; padding:10px 18px; color:#fff; text-decoration:none;
+              font-weight:700; font-size:13px;">
+      📋 Mis Pedidos
+    </a>
+  </div>
+
+  <!-- BARRA DE PASOS -->
+  <div class="steps-bar" id="stepsBar">
+    <div class="step active" id="step1-ind"><div class="step-num">1</div> Tamaño de charola</div>
+    <div class="step"        id="step2-ind"><div class="step-num">2</div> Tipo de caja</div>
+    <div class="step"        id="step3-ind"><div class="step-num">3</div> Elige los panes</div>
+  </div>
+
+  <!-- PASO 1: TAMAÑO DE CHAROLA -->
+  <div class="section-card" id="paso1">
+    <div class="section-title">📏 Paso 1 — ¿Qué tamaño de charola quieres?</div>
+    <div class="size-grid">
+      {% set size_icons = ['🧺', '📦', '🎁'] %}
+      {% for t in tamanios %}
+      <div class="size-card" id="scard-{{ t.id_tamanio }}"
+           onclick="elegirTamanio({{ t.id_tamanio }}, {{ t.capacidad }}, '{{ t.nombre }}')">
+        <div class="ico">{{ size_icons[loop.index0 % 3] }}</div>
+        <div class="nom">{{ t.nombre }}</div>
+        <div class="cap">{{ t.capacidad }} panes</div>
+        {% if t.descripcion %}<div class="desc">{{ t.descripcion }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- PASO 2: TIPO DE CAJA (oculto hasta elegir tamaño; se salta en charola chica) -->
+  <div class="section-card hidden" id="paso2">
+    <div class="section-title">🎨 Paso 2 — ¿Cómo quieres tu caja?</div>
+    <div class="tipo-grid" id="tipoGrid">
+      <div class="tipo-card" id="tcard-simple" onclick="elegirTipo('simple')">
+        <div class="tipo-ico">🍞</div>
+        <div>
+          <div class="tipo-nom">Caja Simple</div>
+          <div class="tipo-desc">Un solo tipo de pan en toda la charola. Clásico y delicioso.</div>
+        </div>
+      </div>
+      <div class="tipo-card" id="tcard-mixta" onclick="elegirTipo('mixta')">
+        <div class="tipo-ico">🎭</div>
+        <div>
+          <div class="tipo-nom">Caja Mixta</div>
+          <div class="tipo-desc">Combina dos tipos de pan, la mitad de cada uno.</div>
+        </div>
+      </div>
+      <!-- Solo visible para Charola Grande (12 pzas) -->
+      <div class="tipo-card hidden" id="tcard-triple" onclick="elegirTipo('triple')">
+        <div class="tipo-ico">🌈</div>
+        <div>
+          <div class="tipo-nom">Caja Triple</div>
+          <div class="tipo-desc">Tres tipos de pan distintos, 4 piezas de cada uno.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASO 3: SELECCIÓN DE PANES (oculto hasta elegir tipo) -->
+  <div class="section-card hidden" id="paso3">
+    <div class="section-title" id="paso3-titulo">🥖 Paso 3 — Elige tu pan</div>
+
+    <!-- Indicador de piezas -->
+    <div class="piezas-bar" id="piezasBar" style="margin-bottom: 16px;">
+      <span id="piezasTexto">0 / 0 piezas seleccionadas</span>
+      <div class="piezas-progress"><div class="piezas-fill" id="piezasFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="ol-toolbar">
+      <div class="ol-search-wrap">
+        <span class="ol-search-icon">🔍</span>
+        <input type="text" placeholder="Buscar pan..." oninput="filtrar(this.value)">
+      </div>
+    </div>
+
+    <div class="prod-grid-ol" id="prodGrid">
+      {% set emojis = ['🍞','🥐','🍩','🥨','🧁','🫓','🥖','🍰','🎂','🍮','🥮','🍪'] %}
+      {% for p in productos %}
+      <div class="prod-card" id="card-{{ p.id_producto }}" data-name="{{ p.nombre | lower }}">
+        <div class="prod-card-img">{{ emojis[loop.index0 % emojis|length] }}</div>
+        <div class="prod-card-body">
+          <div class="prod-card-name">{{ p.nombre }}</div>
+          <div class="prod-card-desc">{{ p.descripcion or 'Pan recién horneado' }}</div>
+          <div class="prod-card-footer">
+            <span class="prod-card-price">${{ "%.2f"|format(p.precio_venta) }}</span>
+            <button type="button" class="btn-sel-pan" id="btn-{{ p.id_producto }}"
+                    onclick="togglePan('{{ p.id_producto }}', {{ p.precio_venta }})">
+              Elegir
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB -->
+<button class="cart-fab" id="cartFab" onclick="abrirDrawer()">
+  📦
+  <span class="cart-badge" id="cartBadge">0</span>
+</button>
+
+<!-- OVERLAY -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="cerrarDrawer()"></div>
+
+<!-- DRAWER -->
+<div class="cart-drawer" id="cartDrawer">
+  <div class="drawer-header">
+    <h2>📦 Tu Caja</h2>
+    <button class="btn-close-drawer" onclick="cerrarDrawer()">✕</button>
+  </div>
+
+  <form method="post" action="{{ url_for('pedidos.crear_pedido') }}"
+        id="formCaja" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="id_tamanio"      id="h_tamanio">
+    <input type="hidden" name="tipo"            id="h_tipo">
+    <input type="hidden" name="fecha_recogida"  id="h_fecha">
+    <div id="h_productos"></div>
+
+    <div class="drawer-body">
+      <!-- Resumen de la selección -->
+      <div id="resumenCaja" style="margin-bottom:20px; padding:14px; background:var(--warm-bg); border-radius:10px; font-size:13px; color:var(--brown-dk);">
+        <strong>Selecciona tamaño y tipo de caja primero.</strong>
+      </div>
+
+      <div id="resumenPanes" style="margin-bottom:20px;"></div>
+
+      <!-- Fecha y hora -->
+      <div class="checkout-fields">
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;">
+            <label>FECHA DE RECOLECCIÓN</label>
+            <input type="date" id="uiDate" required onchange="actualizarHorarios()">
+          </div>
+          <div style="flex:1;">
+            <label>HORA (9 AM – 9 PM)</label>
+            <select id="uiTime" required onchange="actualizarHidden()"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <div class="drawer-total">
+        <span>Total Estimado:</span>
+        <span id="drawerTotal">$0.00</span>
+      </div>
+      <button type="submit" class="btn-submit-cart" id="btnEnviar" disabled>
+        Enviar Pedido →
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- DATA -->
+<script type="application/json" id="data-tamanios">{{ tamanios_json | safe }}</script>
+<script type="application/json" id="data-productos">{{ productos_json | safe }}</script>
+
+<script>
+  const TAMANIOS  = JSON.parse(document.getElementById('data-tamanios').textContent);
+  const PRODUCTOS = JSON.parse(document.getElementById('data-productos').textContent);
+
+  // Estado global
+  let tamanio  = null;   // { id, capacidad, nombre }
+  let tipo     = null;   // 'simple' | 'mixta'
+  let panes    = {};     // { id_producto: { nombre, precio, cantidad } }
+
+  // ── REGLAS POR CAPACIDAD ─────────────────────────────────────
+  // capacidad 4  → solo simple (salta paso 2)
+  // capacidad 8  → simple o mixta (2 tipos)
+  // capacidad 12 → simple, mixta (2 tipos) o triple (3 tipos)
+  function maxTiposPan() {
+    if (!tamanio) return 1;
+    if (tamanio.capacidad === 4)  return 1;
+    if (tamanio.capacidad === 8)  return 2;
+    if (tamanio.capacidad === 12) return 3;
+    return 1;
+  }
+
+  // ── PASO 1: TAMAÑO ──────────────────────────────────────────
+  function elegirTamanio(id, capacidad, nombre) {
+    tamanio = { id, capacidad, nombre };
+    tipo    = null;
+    panes   = {};
+
+    document.querySelectorAll('.size-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('scard-' + id).classList.add('selected');
+    document.getElementById('paso3').classList.add('hidden');
+    document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
+
+    if (capacidad === 4) {
+      // Charola chica: siempre simple, saltar paso 2
+      document.getElementById('paso2').classList.add('hidden');
+      tipo = 'simple';
+      irPaso3();
+    } else {
+      // Mostrar u ocultar opción triple según capacidad
+      const tripleCard = document.getElementById('tcard-triple');
+      const tipoGrid   = document.getElementById('tipoGrid');
+      if (capacidad === 12) {
+        tripleCard.classList.remove('hidden');
+        tipoGrid.classList.add('tres-opciones');
+      } else {
+        tripleCard.classList.add('hidden');
+        tipoGrid.classList.remove('tres-opciones');
+      }
+      document.getElementById('paso2').classList.remove('hidden');
+    }
+
+    actualizarSteps(capacidad === 4 ? 2 : 1);
+    actualizarBadge();
+  }
+
+  // ── PASO 2: TIPO ─────────────────────────────────────────────
+  function elegirTipo(t) {
+    tipo  = t;
+    panes = {};
+
+    document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('tcard-' + t).classList.add('selected');
+
+    irPaso3();
+    actualizarSteps(2);
+    actualizarBadge();
+  }
+
+  function irPaso3() {
+    const max = maxTiposPan();
+    const tit = document.getElementById('paso3-titulo');
+    if (max === 1) {
+      tit.textContent = '🥖 Paso 3 — Elige el pan para tu charola';
+    } else if (max === 2) {
+      tit.textContent = '🎭 Paso 3 — Elige exactamente 2 tipos de pan';
+    } else {
+      tit.textContent = '🌈 Paso 3 — Elige hasta 3 tipos de pan (4 pzas cada uno)';
+    }
+    document.getElementById('paso3').classList.remove('hidden');
+    resetProdCards();
+    actualizarPiezasBar();
+  }
+
+  // ── PASO 3: SELECCIÓN DE PANES ───────────────────────────────
+  function togglePan(id, precio) {
+    if (panes[id]) {
+      delete panes[id];
+    } else {
+      const seleccionados = Object.keys(panes).length;
+      const max = maxTiposPan();
+      if (seleccionados >= max) {
+        const msgs = { 1: 'un tipo', 2: 'dos tipos', 3: 'tres tipos' };
+        alert(`Esta caja admite máximo ${msgs[max]} de pan. Quita uno primero.`);
+        return;
+      }
+      panes[id] = { nombre: PRODUCTOS[id].nombre, precio: parseFloat(precio) };
+    }
+
+    calcularCantidades();
+    actualizarProdCard(id);
+    actualizarPiezasBar();
+    actualizarBadge();
+  }
+
+  function calcularCantidades() {
+    const ids = Object.keys(panes);
+    if (ids.length === 0) return;
+    // Siempre división equitativa: capacidad / número de tipos elegidos
+    const porTipo = tamanio.capacidad / ids.length;
+    ids.forEach(id => { panes[id].cantidad = porTipo; });
+  }
+
+  function actualizarProdCard(id) {
+    const card = document.getElementById('card-' + id);
+    const btn  = document.getElementById('btn-' + id);
+    if (panes[id]) {
+      card.classList.add('selected');
+      btn.textContent = 'Quitar';
+      btn.classList.add('quitar');
+    } else {
+      card.classList.remove('selected');
+      btn.textContent = 'Elegir';
+      btn.classList.remove('quitar');
+    }
+  }
+
+  function resetProdCards() {
+    document.querySelectorAll('.prod-card').forEach(c => {
+      c.classList.remove('selected', 'disabled');
+    });
+    document.querySelectorAll('.btn-sel-pan').forEach(b => {
+      b.textContent = 'Elegir';
+      b.classList.remove('quitar');
+    });
+  }
+
+  function actualizarPiezasBar() {
+    const totalSel = Object.keys(panes).length;
+    const max      = maxTiposPan();
+    const bar      = document.getElementById('piezasBar');
+    const fill     = document.getElementById('piezasFill');
+    const texto    = document.getElementById('piezasTexto');
+
+    const piezasSel = totalSel > 0 ? Object.values(panes).reduce((a, p) => a + (p.cantidad || 0), 0) : 0;
+    const pct = (totalSel / max) * 100;
+    fill.style.width = pct + '%';
+
+    const etiqueta = max === 1 ? 'tipo' : 'tipos';
+    texto.textContent = `${totalSel} de ${max} ${etiqueta} de pan seleccionado${totalSel !== 1 ? 's' : ''} (${piezasSel} / ${tamanio ? tamanio.capacidad : 0} piezas)`;
+
+    bar.classList.remove('ok', 'exceso');
+    if (totalSel === max) bar.classList.add('ok');
+  }
+
+  // ── STEPS INDICATOR ──────────────────────────────────────────
+  function actualizarSteps(completado) {
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById('step' + i + '-ind');
+      el.classList.remove('active', 'done');
+      if (i <= completado)      el.classList.add('done');
+      else if (i === completado + 1) el.classList.add('active');
+    }
+  }
+
+  // ── BADGE FAB ─────────────────────────────────────────────────
+  function actualizarBadge() {
+    const badge = document.getElementById('cartBadge');
+    const count = Object.keys(panes).length;
+    badge.textContent  = count;
+    badge.style.display = count > 0 ? 'flex' : 'none';
+  }
+
+  // ── DRAWER ───────────────────────────────────────────────────
+  function abrirDrawer() {
+    renderizarDrawer();
+    document.getElementById('drawerOverlay').classList.add('open');
+    document.getElementById('cartDrawer').classList.add('open');
+  }
+  function cerrarDrawer() {
+    document.getElementById('drawerOverlay').classList.remove('open');
+    document.getElementById('cartDrawer').classList.remove('open');
+  }
+
+  function renderizarDrawer() {
+    // ── Declarar todo primero, sin referencias adelantadas ──
+    const tipoLabel = tipo === 'simple' ? '🍞 Simple'
+                    : tipo === 'mixta'  ? '🎭 Mixta'
+                    : tipo === 'triple' ? '🌈 Triple'
+                    : '';
+    const max      = maxTiposPan();
+    const ids      = Object.keys(panes);
+    const completo = tamanio && tipo && ids.length === max;
+
+    // ── Resumen de configuración ──
+    let resHTML = '';
+    if (tamanio && tipo) {
+      resHTML = `
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <span style="background:var(--warm-bg); padding:5px 12px; border-radius:8px; font-weight:700; font-size:12px; color:var(--brown-dk);">
+            📏 ${tamanio.nombre} (${tamanio.capacidad} pzas)
+          </span>
+          <span style="background:var(--warm-bg); padding:5px 12px; border-radius:8px; font-weight:700; font-size:12px; color:var(--brown-dk);">
+            ${tipoLabel}
+          </span>
+        </div>`;
+    } else {
+      resHTML = '<strong>Selecciona tamaño y tipo de caja primero.</strong>';
+    }
+    document.getElementById('resumenCaja').innerHTML = resHTML;
+
+    // ── Panes seleccionados ──
+    let panesHTML  = '';
+    let total      = 0;
+    let hiddenHTML = '';
+
+    if (ids.length > 0) {
+      panesHTML += '<div style="margin-bottom:10px; font-size:11px; font-weight:700; color:var(--brown-lt); text-transform:uppercase; letter-spacing:.5px;">Panes en tu caja</div>';
+      ids.forEach(id => {
+        const p   = panes[id];
+        const sub = p.precio * p.cantidad;
+        total    += sub;
+        panesHTML += `
+          <div class="resumen-row">
+            <span><strong>${p.nombre}</strong> × ${p.cantidad} pzas</span>
+            <span style="color:var(--rust); font-weight:700;">$${sub.toFixed(2)}</span>
+          </div>`;
+        hiddenHTML += `
+          <input type="hidden" name="producto_id[]" value="${id}">
+          <input type="hidden" name="cantidad[]"    value="${p.cantidad}">
+          <input type="hidden" name="precio[]"      value="${p.precio}">`;
+      });
+    }
+
+    document.getElementById('resumenPanes').innerHTML  = panesHTML;
+    document.getElementById('drawerTotal').textContent = '$' + total.toFixed(2);
+    document.getElementById('h_productos').innerHTML   = hiddenHTML;
+    document.getElementById('h_tamanio').value         = tamanio ? tamanio.id : '';
+    document.getElementById('h_tipo').value            = tipo || '';
+    document.getElementById('btnEnviar').disabled      = !completo;
+
+    configurarFechaHora();
+  }
+
+  // ── BUSCADOR ──────────────────────────────────────────────────
+  function filtrar(q) {
+    const query = q.toLowerCase();
+    document.querySelectorAll('.prod-card').forEach(card => {
+      card.style.display = card.dataset.name.includes(query) ? 'block' : 'none';
+    });
+  }
+
+  // ── FECHA Y HORA ─────────────────────────────────────────────
+  function configurarFechaHora() {
+    const dateInput = document.getElementById('uiDate');
+    const ahora     = new Date();
+    const tzOffset  = ahora.getTimezoneOffset() * 60000;
+    const hoyLocal  = new Date(ahora.getTime() - tzOffset).toISOString().split('T')[0];
+
+    dateInput.min = hoyLocal;
+    if (!dateInput.value) dateInput.value = hoyLocal;
+    actualizarHorarios();
+  }
+
+  function actualizarHorarios() {
+    const dateVal   = document.getElementById('uiDate').value;
+    const timeSelect = document.getElementById('uiTime');
+    timeSelect.innerHTML = '';
+    if (!dateVal) return;
+
+    const ahora = new Date();
+    const [y, m, d] = dateVal.split('-');
+    const fecha = new Date(y, m - 1, d);
+    const esHoy = ahora.getFullYear() === fecha.getFullYear() &&
+                  ahora.getMonth()    === fecha.getMonth()    &&
+                  ahora.getDate()     === fecha.getDate();
+
+    let hI = 9, mI = 0;
+    if (esHoy) {
+      const min = new Date(ahora.getTime() + 3600000);
+      if (min.getHours() > 21 || (min.getHours() === 21 && min.getMinutes() > 0)) {
+        timeSelect.innerHTML = '<option value="">Cerrado por hoy</option>';
+        actualizarHidden(); return;
+      }
+      hI = Math.max(9, min.getHours());
+      if (min.getHours() === hI) {
+        mI = Math.ceil(min.getMinutes() / 15) * 15;
+        if (mI === 60) { hI++; mI = 0; }
+      }
+    }
+
+    for (let h = 9; h <= 21; h++) {
+      for (let min = 0; min < 60; min += 15) {
+        if (h === 21 && min > 0) break;
+        if (esHoy && (h < hI || (h === hI && min < mI))) continue;
+        const h24   = h.toString().padStart(2, '0');
+        const mm    = min.toString().padStart(2, '0');
+        const ampm  = h >= 12 ? 'PM' : 'AM';
+        const h12   = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+        const opt   = document.createElement('option');
+        opt.value   = `${h24}:${mm}`;
+        opt.textContent = `${h12}:${mm} ${ampm}`;
+        timeSelect.appendChild(opt);
+      }
+    }
+    actualizarHidden();
+  }
+
+  function actualizarHidden() {
+    const d = document.getElementById('uiDate').value;
+    const t = document.getElementById('uiTime').value;
+    document.getElementById('h_fecha').value = (d && t) ? `${d}T${t}` : '';
+  }
+</script>
+{% endblock %}

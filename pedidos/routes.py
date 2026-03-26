@@ -1,0 +1,286 @@
+import json
+from collections import namedtuple
+from markupsafe import Markup
+
+from flask import (
+    render_template, request, redirect, url_for,
+    flash, jsonify, abort
+)
+from flask_login import current_user
+from sqlalchemy import text
+from models import db
+from pedidos import pedidos_bp
+
+
+# ─────────────────────────────────────────────
+#  CATÁLOGO
+# ─────────────────────────────────────────────
+
+@pedidos_bp.route('/nuevo', methods=['GET'])
+def catalogo():
+    # sp_catalogo_pedido → RS1: tamaños / RS2: productos
+    conn = db.session.connection()
+    cur  = conn.connection.cursor()
+    cur.execute("CALL sp_catalogo_pedido()")
+
+    rows_tam  = cur.fetchall()
+    cur.nextset()
+    rows_prod = cur.fetchall()
+    cur.close()
+
+    Tamanio  = namedtuple('Tamanio',  ['id_tamanio', 'nombre', 'capacidad', 'descripcion'])
+    Producto = namedtuple('Producto', ['id_producto', 'nombre', 'descripcion', 'precio_venta'])
+    tamanios  = [Tamanio(*r)  for r in rows_tam]
+    productos = [Producto(*r) for r in rows_prod]
+
+    tamanios_json = Markup(json.dumps({
+        str(t.id_tamanio): {'nombre': t.nombre, 'capacidad': t.capacidad}
+        for t in tamanios
+    }))
+    productos_json = Markup(json.dumps({
+        str(p.id_producto): {'nombre': p.nombre, 'precio': float(p.precio_venta)}
+        for p in productos
+    }))
+
+    return render_template('pedidos/catalogo.html',
+                           tamanios=tamanios,
+                           productos=productos,
+                           tamanios_json=tamanios_json,
+                           productos_json=productos_json)
+
+
+# ─────────────────────────────────────────────
+#  CREAR PEDIDO DE CAJA
+# ─────────────────────────────────────────────
+
+@pedidos_bp.route('/nuevo', methods=['POST'])
+def crear_pedido():
+    id_tamanio = request.form.get('id_tamanio', '').strip()
+    tipo       = request.form.get('tipo', 'simple').strip()
+    fecha_str  = request.form.get('fecha_recogida', '').strip()
+    ids        = request.form.getlist('producto_id[]')
+    cantidades = request.form.getlist('cantidad[]')
+    precios    = request.form.getlist('precio[]')
+
+    # Validaciones de formato (presencia y conteo)
+    if not id_tamanio:
+        flash('Selecciona un tamaño de charola.', 'danger')
+        return redirect(url_for('pedidos.catalogo'))
+    if not ids:
+        flash('Selecciona al menos un tipo de pan.', 'danger')
+        return redirect(url_for('pedidos.catalogo'))
+    if tipo == 'mixta' and len(ids) != 2:
+        flash('Una caja mixta requiere exactamente dos tipos de pan.', 'danger')
+        return redirect(url_for('pedidos.catalogo'))
+    if tipo == 'triple' and len(ids) != 3:
+        flash('Una caja triple requiere exactamente tres tipos de pan.', 'danger')
+        return redirect(url_for('pedidos.catalogo'))
+    if not fecha_str:
+        flash('Indica la fecha y hora de recolección.', 'danger')
+        return redirect(url_for('pedidos.catalogo'))
+
+    # El SP valida capacidad, existencia de cliente y tamaño
+    productos_json = json.dumps([
+        {'id_producto': int(ids[i]), 'cantidad': int(cantidades[i]), 'precio': float(precios[i])}
+        for i in range(len(ids))
+    ])
+
+    try:
+        db.session.execute(
+            text("SET @p_id_pedido = NULL, @p_folio = NULL, @p_error = NULL")
+        )
+        db.session.execute(
+            text("""
+                CALL sp_crear_pedido_caja(
+                    :cliente, :id_tamanio, :tipo, :fecha,
+                    :productos, @p_id_pedido, @p_folio, @p_error
+                )
+            """),
+            {
+                'cliente':    current_user.id_usuario,
+                'id_tamanio': id_tamanio,
+                'tipo':       tipo,
+                'fecha':      fecha_str.replace('T', ' '),
+                'productos':  productos_json,
+            }
+        )
+        row = db.session.execute(
+            text("SELECT @p_id_pedido, @p_folio, @p_error")
+        ).fetchone()
+
+        if row[2]:
+            db.session.rollback()
+            flash(f'Error: {row[2]}', 'danger')
+            return redirect(url_for('pedidos.catalogo'))
+
+        db.session.commit()
+        flash(f'¡Caja {row[1]} solicitada! Te avisaremos cuando esté lista.', 'success')
+        return redirect(url_for('pedidos.mis_pedidos'))
+
+    except Exception:
+        db.session.rollback()
+        flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'danger')
+        return redirect(url_for('pedidos.catalogo'))
+
+
+
+@pedidos_bp.route('/mis-pedidos')
+def mis_pedidos():
+    conn = db.session.connection()
+    cur  = conn.connection.cursor()
+    cur.execute("CALL sp_mis_pedidos_cliente(%s)", (current_user.id_usuario,))
+
+    rows_ped   = cur.fetchall()
+    cur.nextset()
+    rows_notif = cur.fetchall()
+    cur.close()
+
+    cols_p = ['id_pedido','folio','estado','fecha_recogida','total_estimado',
+              'motivo_rechazo','creado_en','tipo_caja','tamanio_nombre',
+              'capacidad','panes_resumen','nombre_caja']
+    cols_n = ['id_notif','id_pedido','folio','mensaje','leida','creado_en']
+    Pedido = namedtuple('Pedido', cols_p)
+    Notif  = namedtuple('Notif',  cols_n)
+    pedidos = [Pedido(*r) for r in rows_ped]
+    notifs  = [Notif(*r)  for r in rows_notif]
+
+    return render_template('pedidos/mis_pedidos.html',
+                           pedidos=pedidos,
+                           notifs=notifs)
+
+
+@pedidos_bp.route('/pedidos')
+def lista():
+    estado = request.args.get('estado') or None
+    fecha  = request.args.get('fecha')  or None
+    buscar = request.args.get('q')      or None
+
+    pedidos = db.session.execute(
+        text("CALL sp_lista_pedidos_interna(:estado, :fecha, :buscar)"),
+        {'estado': estado, 'fecha': fecha, 'buscar': buscar}
+    ).fetchall()
+
+    try:
+        db.session.execute(text("DO 0"))
+    except Exception:
+        pass
+
+    conteos_rows = db.session.execute(
+        text("SELECT estado, total FROM v_conteo_pedidos_por_estado")
+    ).fetchall()
+    conteos = {r[0]: r[1] for r in conteos_rows}
+
+    return render_template('pedidos/lista.html',
+                           pedidos=pedidos,
+                           conteos=conteos,
+                           filtro_estado=estado or '',
+                           filtro_fecha=fecha   or '',
+                           filtro_q=buscar      or '')
+
+
+
+@pedidos_bp.route('/<folio>')
+def detalle(folio):
+    conn = db.session.connection()
+    cur  = conn.connection.cursor()
+    cur.execute("CALL sp_detalle_pedido(%s)", (folio,))
+
+    row_pedido = cur.fetchone()
+    if not row_pedido:
+        cur.close()
+        abort(404)
+
+    cols_ped = ['id_pedido','folio','estado','fecha_recogida','total_estimado',
+                'motivo_rechazo','creado_en','id_cliente','cliente_nombre',
+                'atendido_por_nombre','tipo_caja','tamanio_nombre','capacidad']
+    Pedido   = namedtuple('Pedido', cols_ped)
+    pedido   = Pedido(*row_pedido)
+
+    cur.nextset()
+    row_caja = cur.fetchone()
+    Caja     = namedtuple('Caja', ['tipo','tamanio','nombre_caja','capacidad','precio_venta'])
+    caja     = Caja(*row_caja) if row_caja else None
+
+    cur.nextset()
+    Item  = namedtuple('Item', ['producto_nombre','producto_descripcion',
+                                'cantidad','precio_unitario','subtotal'])
+    items = [Item(*r) for r in cur.fetchall()]
+
+    cur.nextset()
+    Hist     = namedtuple('Hist', ['estado_antes','estado_despues','nota',
+                                   'creado_en','usuario_nombre'])
+    historial = [Hist(*r) for r in cur.fetchall()]
+    cur.close()
+
+    return render_template('pedidos/detalle.html',
+                           pedido=pedido,
+                           caja=caja,
+                           items=items,
+                           historial=historial)
+
+
+@pedidos_bp.route('/<folio>/estado', methods=['POST'])
+def cambiar_estado(folio):
+    nuevo_estado = request.form.get('estado', '').strip()
+    nota         = request.form.get('nota', '').strip() or None
+
+    try:
+        db.session.execute(text("SET @p_error = NULL"))
+        db.session.execute(
+            text("""
+                CALL sp_cambiar_estado_pedido(
+                    :folio, :estado, :user, :nota, @p_error
+                )
+            """),
+            {
+                'folio':  folio,
+                'estado': nuevo_estado,
+                'user':   current_user.id_usuario,
+                'nota':   nota,
+            }
+        )
+        row = db.session.execute(text("SELECT @p_error")).fetchone()
+
+        if row[0]:
+            db.session.rollback()
+            flash(f'No se pudo cambiar el estado: {row[0]}', 'danger')
+            return redirect(url_for('pedidos.detalle', folio=folio))
+
+        db.session.commit()
+        LABELS = {
+            'aprobado':      'aprobado ✅',
+            'rechazado':     'rechazado ❌',
+            'en_produccion': 'en producción ⚙️',
+            'listo':         'listo para recoger 🎉',
+            'entregado':     'entregado 📦',
+        }
+        flash(f'Pedido {folio} marcado como {LABELS.get(nuevo_estado, nuevo_estado)}.', 'success')
+
+    except Exception:
+        db.session.rollback()
+        flash('Error al cambiar el estado. Intenta de nuevo.', 'danger')
+
+    return redirect(url_for('pedidos.detalle', folio=folio))
+
+
+@pedidos_bp.route('/notificaciones/leer', methods=['POST'])
+def marcar_leidas():
+    try:
+        db.session.execute(
+            text("CALL sp_marcar_notifs_leidas(:u)"),
+            {'u': current_user.id_usuario}
+        )
+        db.session.commit()
+        return jsonify({'ok': True})
+    except Exception:
+        db.session.rollback()
+        return jsonify({'ok': False}), 500
+
+
+@pedidos_bp.route('/api/badge')
+def badge_notifs():
+    row = db.session.execute(
+        text("CALL sp_badge_notifs(:u)"),
+        {'u': current_user.id_usuario}
+    ).fetchone()
+    return jsonify({'count': row[0] if row else 0})
