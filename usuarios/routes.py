@@ -163,6 +163,6 @@ def cambiar_estatus_usuario(id_usuario):
     return redirect(url_for('registrar_usuario.usuarios'))
 
 
-@registrar_usuario_bp.route("/mis-pedidos")
+@registrar_usuario_bp.route("/mis-pedido")
 def mis_pedidos():
     return render_template("usuarios/mispedidos.html")

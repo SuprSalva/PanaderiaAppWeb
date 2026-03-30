@@ -345,6 +345,13 @@
       <div class="nav-section">
         <div class="nav-section-label">Administración</div>
 
+        <a href="{{ url_for('pedidos.lista') }}"
+           class="nav-item {% if request.endpoint == 'registrar_usuario.mis_pedidos' %}active{% endif %}">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Pedidos</span>
+          <span class="nav-tooltip">Pedidos</span>
+        </a>
+
         <a href="{{ url_for('registrar_usuario.usuarios') }}"
            class="nav-item {% if request.endpoint in ['registrar_usuario.usuarios', 'registrar_usuario'] %}active{% endif %}">
           <span class="nav-icon">👥</span>
@@ -359,8 +366,8 @@
           <span class="nav-tooltip">Proveedores</span>
         </a>
 
-        <a href="{{ url_for('proveedores.materias_primas') }}"
-           class="nav-item {% if request.endpoint == 'proveedores.materias_primas' %}active{% endif %}">
+        <a href="{{ url_for('materias_primas.index_materias_primas') }}"
+           class="nav-item {% if request.endpoint == 'materias_primas.index_materias_primas' %}active{% endif %}">
           <span class="nav-icon">🌾</span>
           <span class="nav-label">Materias Primas</span>
           <span class="nav-tooltip">Materias Primas</span>
@@ -442,14 +449,14 @@
         </a>
 
         <!-- ══ VENTA EN LÍNEA ══ -->
-        <a href="{{ url_for('ventas.ventas_online') }}"
+        <a href="{{ url_for('pedidos.catalogo') }}"
            class="nav-item {% if request.endpoint in ['ventas.ventas_online', 'ventas.checkout'] %}active{% endif %}">
           <span class="nav-icon">🌐</span>
           <span class="nav-label">Venta en Línea</span>
           <span class="nav-tooltip">Venta en Línea</span>
         </a>
 
-        <a href="{{ url_for('registrar_usuario.mis_pedidos') }}"
+        <a href="{{ url_for('pedidos.mis_pedidos') }}"
            class="nav-item {% if request.endpoint == 'registrar_usuario.mis_pedidos' %}active{% endif %}">
           <span class="nav-icon">📋</span>
           <span class="nav-label">Mis Pedidos</span>
