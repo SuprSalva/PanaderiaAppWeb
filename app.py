@@ -25,7 +25,7 @@ from materiasPrimas.routes import materias_primas_bp
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
-csrf = CSRFProtect()
+csrf = CSRFProtect(app)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -144,8 +144,6 @@ def debug_usuario_bd():
         usuario_bd = conn.execute(text("SELECT CURRENT_USER()")).scalar()
         rol_usuario = current_user.rol.clave_rol if current_user.rol else 'sin rol'
     return f"Rol app: {rol_usuario} | Usuario BD: {usuario_bd}"
-
-csrf.init_app(app)
 
 if __name__ == '__main__':
     with app.app_context():
