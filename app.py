@@ -21,6 +21,7 @@ from costoUtilidad.routes import costoUtilidad
 from usuarios.routes import registrar_usuario_bp
 from productos.routes import productos_bp
 from pedidos import pedidos_bp
+from materiasPrimas.routes import materias_primas_bp
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -44,7 +45,8 @@ app.register_blueprint(efectivo)
 app.register_blueprint(costoUtilidad)
 app.register_blueprint(registrar_usuario_bp)
 app.register_blueprint(productos_bp)
-app.register_blueprint(pedidos_bp)
+app.register_blueprint(pedidos_bp)  
+app.register_blueprint(materias_primas_bp)
 
 db.init_app(app)
 login_manager.init_app(app)
