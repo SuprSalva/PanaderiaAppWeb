@@ -10,6 +10,7 @@ from flask_login import current_user
 from sqlalchemy import text
 from models import db
 from pedidos import pedidos_bp
+from forms import PedidoCajaForm  # usado en crear_pedido para validación
 
 
 # ─────────────────────────────────────────────
@@ -18,7 +19,6 @@ from pedidos import pedidos_bp
 
 @pedidos_bp.route('/nuevo', methods=['GET'])
 def catalogo():
-    # sp_catalogo_pedido → RS1: tamaños / RS2: productos
     conn = db.session.connection()
     cur  = conn.connection.cursor()
     cur.execute("CALL sp_catalogo_pedido()")
@@ -50,41 +50,47 @@ def catalogo():
 
 
 # ─────────────────────────────────────────────
-#  CREAR PEDIDO DE CAJA
+#  CREAR PEDIDO DE CAJA  (múltiples cajas)
 # ─────────────────────────────────────────────
 
 @pedidos_bp.route('/nuevo', methods=['POST'])
 def crear_pedido():
-    id_tamanio = request.form.get('id_tamanio', '').strip()
-    tipo       = request.form.get('tipo', 'simple').strip()
-    fecha_str  = request.form.get('fecha_recogida', '').strip()
-    ids        = request.form.getlist('producto_id[]')
-    cantidades = request.form.getlist('cantidad[]')
-    precios    = request.form.getlist('precio[]')
+    form = PedidoCajaForm(request.form)
 
-    # Validaciones de formato (presencia y conteo)
-    if not id_tamanio:
-        flash('Selecciona un tamaño de charola.', 'danger')
+    # ── Reconstruir la lista de cajas desde el JSON del form ──
+    # El JS envía un campo oculto "cajas_json" con el array serializado
+    # para no tener que mapear FieldList dinámico con prefijos WTForms.
+    cajas_raw = request.form.get('cajas_json', '').strip()
+
+    if not cajas_raw:
+        flash('No se recibieron cajas en el pedido.', 'danger')
         return redirect(url_for('pedidos.catalogo'))
-    if not ids:
-        flash('Selecciona al menos un tipo de pan.', 'danger')
+
+    # Cargar y validar estructura básica
+    try:
+        cajas_data = json.loads(cajas_raw)
+    except (ValueError, TypeError):
+        flash('Error al leer los datos del pedido.', 'danger')
         return redirect(url_for('pedidos.catalogo'))
-    if tipo == 'mixta' and len(ids) != 2:
-        flash('Una caja mixta requiere exactamente dos tipos de pan.', 'danger')
+
+    if not isinstance(cajas_data, list) or len(cajas_data) == 0:
+        flash('Agrega al menos una caja al pedido.', 'danger')
         return redirect(url_for('pedidos.catalogo'))
-    if tipo == 'triple' and len(ids) != 3:
-        flash('Una caja triple requiere exactamente tres tipos de pan.', 'danger')
-        return redirect(url_for('pedidos.catalogo'))
+
+    # Validar fecha con el form
+    fecha_str = request.form.get('fecha_recogida', '').strip()
     if not fecha_str:
         flash('Indica la fecha y hora de recolección.', 'danger')
         return redirect(url_for('pedidos.catalogo'))
 
-    # El SP valida capacidad, existencia de cliente y tamaño
-    productos_json = json.dumps([
-        {'id_producto': int(ids[i]), 'cantidad': int(cantidades[i]), 'precio': float(precios[i])}
-        for i in range(len(ids))
-    ])
+    # ── Validaciones en Python usando las reglas de forms.py ──
+    errores = _validar_cajas(cajas_data)
+    if errores:
+        for e in errores:
+            flash(e, 'danger')
+        return redirect(url_for('pedidos.catalogo'))
 
+    # ── Llamar al SP con el JSON completo de cajas ────────────
     try:
         db.session.execute(
             text("SET @p_id_pedido = NULL, @p_folio = NULL, @p_error = NULL")
@@ -92,16 +98,14 @@ def crear_pedido():
         db.session.execute(
             text("""
                 CALL sp_crear_pedido_caja(
-                    :cliente, :id_tamanio, :tipo, :fecha,
-                    :productos, @p_id_pedido, @p_folio, @p_error
+                    :cliente, :fecha, :cajas,
+                    @p_id_pedido, @p_folio, @p_error
                 )
             """),
             {
-                'cliente':    current_user.id_usuario,
-                'id_tamanio': id_tamanio,
-                'tipo':       tipo,
-                'fecha':      fecha_str.replace('T', ' '),
-                'productos':  productos_json,
+                'cliente': current_user.id_usuario,
+                'fecha':   fecha_str.replace('T', ' '),
+                'cajas':   cajas_raw,
             }
         )
         row = db.session.execute(
@@ -114,7 +118,12 @@ def crear_pedido():
             return redirect(url_for('pedidos.catalogo'))
 
         db.session.commit()
-        flash(f'¡Caja {row[1]} solicitada! Te avisaremos cuando esté lista.', 'success')
+        n = len(cajas_data)
+        flash(
+            f'¡Pedido {row[1]} enviado con {n} caja{"s" if n > 1 else ""}! '
+            'Te avisaremos cuando esté listo.',
+            'success'
+        )
         return redirect(url_for('pedidos.mis_pedidos'))
 
     except Exception:
@@ -123,6 +132,76 @@ def crear_pedido():
         return redirect(url_for('pedidos.catalogo'))
 
 
+def _validar_cajas(cajas_data: list) -> list[str]:
+    """
+    Valida la lista de cajas usando las mismas reglas que CajaForm / PanCajaForm.
+    Retorna lista de mensajes de error (vacía si todo está bien).
+    """
+    errores = []
+    TIPOS_VALIDOS   = {'simple', 'mixta', 'triple'}
+    PANES_POR_TIPO  = {'simple': 1, 'mixta': 2, 'triple': 3}
+    NOMBRES_TIPO    = {'simple': 'un tipo', 'mixta': 'dos tipos', 'triple': 'tres tipos'}
+
+    for i, caja in enumerate(cajas_data, start=1):
+        label = f'Caja {i}'
+
+        # Tamaño
+        try:
+            id_tamanio = int(caja.get('id_tamanio', 0))
+            if id_tamanio <= 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            errores.append(f'{label}: selecciona un tamaño de charola válido.')
+            continue
+
+        # Tipo
+        tipo = caja.get('tipo', '')
+        if tipo not in TIPOS_VALIDOS:
+            errores.append(f'{label}: tipo de caja inválido ("{tipo}").')
+            continue
+
+        # Panes
+        panes = caja.get('panes', [])
+        if not isinstance(panes, list) or len(panes) == 0:
+            errores.append(f'{label}: agrega al menos un tipo de pan.')
+            continue
+
+        esperado = PANES_POR_TIPO[tipo]
+        if len(panes) != esperado:
+            errores.append(
+                f'{label}: una caja {tipo} requiere exactamente '
+                f'{NOMBRES_TIPO[tipo]} de pan.'
+            )
+            continue
+
+        for j, pan in enumerate(panes, start=1):
+            try:
+                id_prod = int(pan.get('id_producto', 0))
+                if id_prod <= 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                errores.append(f'{label}, pan {j}: producto inválido.')
+
+            try:
+                cant = int(pan.get('cantidad', 0))
+                if cant <= 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                errores.append(f'{label}, pan {j}: cantidad inválida.')
+
+            try:
+                precio = float(pan.get('precio', -1))
+                if precio < 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                errores.append(f'{label}, pan {j}: precio inválido.')
+
+    return errores
+
+
+# ─────────────────────────────────────────────
+#  MIS PEDIDOS (cliente)
+# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/mis-pedidos')
 def mis_pedidos():
@@ -135,10 +214,10 @@ def mis_pedidos():
     rows_notif = cur.fetchall()
     cur.close()
 
-    cols_p = ['id_pedido','folio','estado','fecha_recogida','total_estimado',
-              'motivo_rechazo','creado_en','tipo_caja','tamanio_nombre',
-              'capacidad','panes_resumen','nombre_caja']
-    cols_n = ['id_notif','id_pedido','folio','mensaje','leida','creado_en']
+    cols_p = ['id_pedido', 'folio', 'estado', 'fecha_recogida', 'total_estimado',
+              'motivo_rechazo', 'creado_en', 'tipo_caja', 'tamanio_nombre',
+              'capacidad', 'panes_resumen', 'nombre_caja']
+    cols_n = ['id_notif', 'id_pedido', 'folio', 'mensaje', 'leida', 'creado_en']
     Pedido = namedtuple('Pedido', cols_p)
     Notif  = namedtuple('Notif',  cols_n)
     pedidos = [Pedido(*r) for r in rows_ped]
@@ -148,6 +227,10 @@ def mis_pedidos():
                            pedidos=pedidos,
                            notifs=notifs)
 
+
+# ─────────────────────────────────────────────
+#  LISTA INTERNA (staff)
+# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/pedidos')
 def lista():
@@ -178,6 +261,9 @@ def lista():
                            filtro_q=buscar      or '')
 
 
+# ─────────────────────────────────────────────
+#  DETALLE DE PEDIDO
+# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/<folio>')
 def detalle(folio):
@@ -190,25 +276,25 @@ def detalle(folio):
         cur.close()
         abort(404)
 
-    cols_ped = ['id_pedido','folio','estado','fecha_recogida','total_estimado',
-                'motivo_rechazo','creado_en','id_cliente','cliente_nombre',
-                'atendido_por_nombre','tipo_caja','tamanio_nombre','capacidad']
+    cols_ped = ['id_pedido', 'folio', 'estado', 'fecha_recogida', 'total_estimado',
+                'motivo_rechazo', 'creado_en', 'id_cliente', 'cliente_nombre',
+                'atendido_por_nombre', 'tipo_caja', 'tamanio_nombre', 'capacidad']
     Pedido   = namedtuple('Pedido', cols_ped)
     pedido   = Pedido(*row_pedido)
 
     cur.nextset()
     row_caja = cur.fetchone()
-    Caja     = namedtuple('Caja', ['tipo','tamanio','nombre_caja','capacidad','precio_venta'])
+    Caja     = namedtuple('Caja', ['tipo', 'tamanio', 'nombre_caja', 'capacidad', 'precio_venta'])
     caja     = Caja(*row_caja) if row_caja else None
 
     cur.nextset()
-    Item  = namedtuple('Item', ['producto_nombre','producto_descripcion',
-                                'cantidad','precio_unitario','subtotal'])
+    Item  = namedtuple('Item', ['producto_nombre', 'producto_descripcion',
+                                'cantidad', 'precio_unitario', 'subtotal'])
     items = [Item(*r) for r in cur.fetchall()]
 
     cur.nextset()
-    Hist     = namedtuple('Hist', ['estado_antes','estado_despues','nota',
-                                   'creado_en','usuario_nombre'])
+    Hist      = namedtuple('Hist', ['estado_antes', 'estado_despues', 'nota',
+                                    'creado_en', 'usuario_nombre'])
     historial = [Hist(*r) for r in cur.fetchall()]
     cur.close()
 
@@ -218,6 +304,10 @@ def detalle(folio):
                            items=items,
                            historial=historial)
 
+
+# ─────────────────────────────────────────────
+#  CAMBIAR ESTADO (staff)
+# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/<folio>/estado', methods=['POST'])
 def cambiar_estado(folio):
@@ -262,6 +352,10 @@ def cambiar_estado(folio):
 
     return redirect(url_for('pedidos.detalle', folio=folio))
 
+
+# ─────────────────────────────────────────────
+#  NOTIFICACIONES
+# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/notificaciones/leer', methods=['POST'])
 def marcar_leidas():

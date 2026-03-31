@@ -24,7 +24,7 @@ from pedidos import pedidos_bp
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
-csrf = CSRFProtect()
+csrf = CSRFProtect(app)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -44,7 +44,7 @@ app.register_blueprint(efectivo)
 app.register_blueprint(costoUtilidad)
 app.register_blueprint(registrar_usuario_bp)
 app.register_blueprint(productos_bp)
-app.register_blueprint(pedidos_bp)  
+app.register_blueprint(pedidos_bp)
 
 db.init_app(app)
 login_manager.init_app(app)
@@ -142,8 +142,6 @@ def debug_usuario_bd():
         usuario_bd = conn.execute(text("SELECT CURRENT_USER()")).scalar()
         rol_usuario = current_user.rol.clave_rol if current_user.rol else 'sin rol'
     return f"Rol app: {rol_usuario} | Usuario BD: {usuario_bd}"
-
-csrf.init_app(app)
 
 if __name__ == '__main__':
     with app.app_context():
