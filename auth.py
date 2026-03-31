@@ -1,6 +1,6 @@
 # auth.py — Decoradores de autorización por rol
 from functools import wraps
-from flask import abort, flash, redirect, url_for
+from flask import abort
 from flask_login import current_user
 
 
@@ -13,7 +13,7 @@ def roles_required(*roles):
         @roles_required('admin', 'vendedor')
 
     Si el usuario no está autenticado → 401
-    Si el usuario no tiene el rol necesario → 403 con flash de error
+    Si el usuario no tiene el rol necesario → 403 (página de acceso denegado)
     """
     def decorator(f):
         @wraps(f)
@@ -22,8 +22,7 @@ def roles_required(*roles):
                 abort(401)
             clave = current_user.rol.clave_rol if current_user.rol else ''
             if clave not in roles:
-                flash('No tienes permiso para realizar esta acción.', 'error')
-                return redirect(url_for('dashboard'))
+                abort(403)
             return f(*args, **kwargs)
         return wrapper
     return decorator

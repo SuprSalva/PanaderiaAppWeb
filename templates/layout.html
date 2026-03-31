@@ -551,15 +551,20 @@
 
         <span style="font-size:10px;color:var(--brown-lt);margin-left:2px">▾</span>
 
+        {% set clave_rol = current_user.rol.clave_rol if current_user.is_authenticated and current_user.rol else '' %}
         <div class="user-dropdown">
           <div class="dd-item" style="cursor:default;opacity:.55;font-size:11px;pointer-events:none;">
             @{{ current_user.username if current_user.is_authenticated else '' }}
           </div>
           <div class="dd-divider"></div>
-          <a href="#" class="dd-item">👤 Mi perfil</a>
-          <a href="#" class="dd-item">⚙️ Configuración</a>
-          <div class="dd-divider"></div>
-          <a href="{{ url_for('registrar_usuario.mis_pedidos') }}" class="dd-item">📋 Mis Pedidos</a>
+          {% if clave_rol == 'cliente' %}
+            <a href="{{ url_for('registrar_usuario.mi_perfil') }}" class="dd-item">👤 Mi perfil</a>
+            <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="dd-item">🔑 Cambiar contraseña</a>
+            <div class="dd-divider"></div>
+            <a href="{{ url_for('pedidos.mis_pedidos') }}" class="dd-item">📋 Mis Pedidos</a>
+          {% else %}
+            <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="dd-item">🔑 Cambiar contraseña</a>
+          {% endif %}
           <div class="dd-divider"></div>
           <a href="{{ url_for('logout') }}" class="dd-item danger">➜] Cerrar sesión</a>
         </div>

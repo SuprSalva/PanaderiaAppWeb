@@ -160,6 +160,72 @@ DELIMITER ;
 
 
 -- ─────────────────────────────────────────────
+--  SP: sp_cambiar_password
+--  Cambia la contraseña de cualquier usuario
+--  autenticado, recibiendo el nuevo hash ya
+--  generado desde Python.
+-- ─────────────────────────────────────────────
+DROP PROCEDURE IF EXISTS sp_cambiar_password;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_cambiar_password(
+    IN p_id_usuario    INT,
+    IN p_password_hash VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci
+)
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM usuarios WHERE id_usuario = p_id_usuario) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El usuario no existe.';
+    END IF;
+
+    UPDATE usuarios
+    SET password_hash  = p_password_hash,
+        actualizado_en = NOW()
+    WHERE id_usuario = p_id_usuario;
+END$$
+
+DELIMITER ;
+
+
+-- ─────────────────────────────────────────────
+--  SP: sp_actualizar_perfil_cliente
+--  Permite al propio cliente actualizar su
+--  nombre, username y teléfono.
+-- ─────────────────────────────────────────────
+DROP PROCEDURE IF EXISTS sp_actualizar_perfil_cliente;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_actualizar_perfil_cliente(
+    IN p_id_usuario      INT,
+    IN p_nombre_completo VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN p_username        VARCHAR(60)  CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN p_telefono        VARCHAR(20)  CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci
+)
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM usuarios WHERE id_usuario = p_id_usuario) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El usuario no existe.';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM usuarios WHERE username = p_username AND id_usuario <> p_id_usuario) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El nombre de usuario ya esta en uso.';
+    END IF;
+
+    UPDATE usuarios
+    SET nombre_completo = p_nombre_completo,
+        username        = p_username,
+        telefono        = p_telefono,
+        actualizado_en  = NOW()
+    WHERE id_usuario = p_id_usuario;
+END$$
+
+DELIMITER ;
+
+
+-- ─────────────────────────────────────────────
 --  Usuario: admin / administrator!
 -- ─────────────────────────────────────────────
 INSERT IGNORE INTO usuarios (
@@ -179,3 +245,31 @@ INSERT IGNORE INTO usuarios (
     NOW(),
     NULL
 );
+
+
+-- ═══════════════════════════════════════════════════════════
+--  VIEW: vw_usuarios
+--  Lista de usuarios con datos del rol ya unidos.
+--  Ejecutar como root en MySQL Workbench.
+-- ═══════════════════════════════════════════════════════════
+
+
+-- Actualizar la view para incluir telefono
+CREATE OR REPLACE VIEW vw_usuarios AS
+SELECT
+    u.id_usuario,
+    u.nombre_completo,
+    u.telefono,
+    u.username,
+    u.id_rol,
+    r.nombre_rol,
+    r.clave_rol,
+    u.estatus,
+    u.ultimo_login,
+    u.creado_en
+FROM usuarios u
+LEFT JOIN roles r ON u.id_rol = r.id_rol;
+
+
+
+

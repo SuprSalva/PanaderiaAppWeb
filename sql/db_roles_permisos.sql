@@ -21,8 +21,6 @@ DROP USER IF EXISTS 'dm_vendedor'@'localhost';
 DROP USER IF EXISTS 'dm_panadero'@'localhost';
 DROP USER IF EXISTS 'dm_cliente'@'localhost';
 
-DROP USER IF EXISTS 'web_user'@'localhost';
-
 DROP ROLE IF EXISTS rol_admin;
 DROP ROLE IF EXISTS rol_vendedor;
 DROP ROLE IF EXISTS rol_panadero;
@@ -66,6 +64,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON dulce_migaja.sesiones              TO ro
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_usuario           TO rol_admin;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_editar_usuario          TO rol_admin;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_estatus_usuario TO rol_admin;
+GRANT SELECT ON dulce_migaja.vw_usuarios TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_password TO rol_admin;
 
 SHOW GRANTS FOR rol_admin;
 
@@ -93,6 +93,7 @@ GRANT SELECT, INSERT, UPDATE ON dulce_migaja.salidas_efectivo TO rol_vendedor;
 GRANT SELECT, INSERT         ON dulce_migaja.tickets          TO rol_vendedor;
 GRANT SELECT, INSERT         ON dulce_migaja.logs_sistema     TO rol_vendedor;
 
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_password TO rol_vendedor;
 -- SPs de ventas (descomentar cuando se creen)
 -- GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_venta  TO rol_vendedor;
 -- GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cerrar_corte TO rol_vendedor;
@@ -124,6 +125,7 @@ GRANT SELECT, INSERT                 ON dulce_migaja.mermas              TO rol_
 GRANT SELECT, UPDATE                 ON dulce_migaja.inventario_pt       TO rol_panadero;
 GRANT SELECT, INSERT                 ON dulce_migaja.logs_sistema        TO rol_panadero;
 
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_password TO rol_panadero;
 -- SPs de producción (descomentar cuando se creen)
 -- GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_iniciar_produccion   TO rol_panadero;
 -- GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_finalizar_produccion TO rol_panadero;
@@ -139,6 +141,9 @@ CREATE ROLE rol_cliente;
 
 GRANT SELECT ON dulce_migaja.productos    TO rol_cliente;
 GRANT SELECT ON dulce_migaja.inventario_pt TO rol_cliente;
+
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_password         TO rol_cliente;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_actualizar_perfil_cliente TO rol_cliente;
 -- Cuando exista la tabla de pedidos online:
 -- GRANT SELECT, INSERT ON dulce_migaja.pedidos_online TO rol_cliente;
 

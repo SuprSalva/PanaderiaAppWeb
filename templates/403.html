@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block container %}
+<style>
+  .err-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 60vh; text-align: center; gap: 16px;
+  }
+  .err-code {
+    font-family: 'Playfair Display', serif;
+    font-size: 96px; font-weight: 900; line-height: 1;
+    color: var(--rust); opacity: .15; user-select: none;
+  }
+  .err-icon { font-size: 56px; margin-top: -40px; }
+  .err-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; font-weight: 700; color: var(--brown-dk);
+  }
+  .err-msg { font-size: 14px; color: var(--brown-lt); max-width: 380px; line-height: 1.6; }
+</style>
+
+<div class="err-wrap">
+  <div class="err-code">403</div>
+  <div class="err-icon">🔒</div>
+  <div class="err-title">Acceso denegado</div>
+  <p class="err-msg">No tienes permiso para ver esta sección.<br>Si crees que esto es un error, contacta al administrador.</p>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="margin-top:8px">
+    ← Volver al inicio
+  </a>
+</div>
+{% endblock %}

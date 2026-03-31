@@ -1085,7 +1085,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'1313435b-27e3-4ecc-b4ca-6628dd75813a','Salvador Esquivel','esquivelsalvador260@gmail.com','scrypt:32768:8:1$662xtVgk2gBClqmN$881ce4f22cba6ee12a66e3660af7efb0a4027a24a32d188beceff3eb562a5f0033d9879b91c8194d403d2e878d7ffb1522af4aac068ad3b793f8999ed7f8724b',1,'activo',0,NULL,'2026-03-26 11:46:37',NULL,NULL,0,'2026-03-17 13:41:47','2026-03-26 11:46:37',NULL),(2,'a2cf04f0-823d-4d4f-abfa-c3ffd1821cc4','Administrador','admin','scrypt:32768:8:1$3YY1waWeDgejMlVO$ac4ed6e51536eaa0c6e8d67b2f85660e8c3a875589994585f439ae6dbc347d8097b82344dd59de032b45adf3b9561bf1e0a191b2f7bf1a55587e75f2b68dc5b8',3,'activo',0,NULL,'2026-03-26 12:20:04',NULL,NULL,0,'2026-03-25 17:46:04','2026-03-26 12:20:04',NULL),(3,'16d02607-469b-4e6f-a0d5-28b766436048','cliente','cliente','scrypt:32768:8:1$8lfdFieGESH9M3Ou$832adaa5be22d7f3c7765a13c7e4d247b759e410faae5bb12c6a4d8ed2a829824646c0ded052b6c23b326ce7b7685a164d529d1659fa5d76f427eee04c106afe',4,'activo',0,NULL,'2026-03-26 12:18:27',NULL,NULL,0,'2026-03-26 11:17:47','2026-03-26 12:18:27',1);
+INSERT INTO `usuarios` VALUES (1,'1313435b-27e3-4ecc-b4ca-6628dd75813a','Salvador Esquivel','esquivelsalvador260@gmail.com','scrypt:32768:8:1$662xtVgk2gBClqmN$881ce4f22cba6ee12a66e3660af7efb0a4027a24a32d188beceff3eb562a5f0033d9879b91c8194d403d2e878d7ffb1522af4aac068ad3b793f8999ed7f8724b',1,'activo',0,NULL,'2026-03-26 11:46:37',NULL,NULL,0,'2026-03-17 13:41:47','2026-03-26 11:46:37',NULL),(2,'a2cf04f0-823d-4d4f-abfa-c3ffd1821cc4','Administrador','admin','scrypt:32768:8:1$3YY1waWeDgejMlVO$ac4ed6e51536eaa0c6e8d67b2f85660e8c3a875589994585f439ae6dbc347d8097b82344dd59de032b45adf3b9561bf1e0a191b2f7bf1a55587e75f2b68dc5b8',3,'activo',0,NULL,'2026-03-27 18:51:07',NULL,NULL,0,'2026-03-25 17:46:04','2026-03-27 18:51:07',NULL),(3,'16d02607-469b-4e6f-a0d5-28b766436048','cliente','cliente','scrypt:32768:8:1$8lfdFieGESH9M3Ou$832adaa5be22d7f3c7765a13c7e4d247b759e410faae5bb12c6a4d8ed2a829824646c0ded052b6c23b326ce7b7685a164d529d1659fa5d76f427eee04c106afe',4,'activo',0,NULL,'2026-03-27 18:55:51',NULL,NULL,0,'2026-03-26 11:17:47','2026-03-27 18:55:51',1);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1315,6 +1315,1049 @@ LOCK TABLES `ventas` WRITE;
 UNLOCK TABLES;
 
 --
+-- Dumping events for database 'dulce_migaja'
+--
+
+--
+-- Dumping routines for database 'dulce_migaja'
+--
+/*!50003 DROP PROCEDURE IF EXISTS `sp_badge_notifs` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_badge_notifs`(IN p_usuario INT)
+BEGIN
+  SELECT COUNT(*) AS count
+  FROM   notificaciones_pedidos
+  WHERE  id_usuario = p_usuario AND leida = 0;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_cambiar_estado_pedido` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_cambiar_estado_pedido`(
+  IN  p_folio  VARCHAR(20) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN  p_estado VARCHAR(20) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN  p_user   INT,
+  IN  p_nota   TEXT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  OUT p_error  VARCHAR(255)
+)
+sp_main: BEGIN
+  DECLARE v_id_pedido   INT;
+  DECLARE v_estado_prev VARCHAR(20);
+  DECLARE v_id_cliente  INT;
+
+  SET p_error = NULL;
+
+  SELECT id_pedido, estado, id_cliente
+    INTO v_id_pedido, v_estado_prev, v_id_cliente
+  FROM pedidos
+  WHERE folio = p_folio
+  LIMIT 1;
+
+  IF v_id_pedido IS NULL THEN
+    SET p_error = 'Pedido no encontrado.';
+    LEAVE sp_main;
+  END IF;
+
+  UPDATE pedidos
+  SET    estado         = p_estado,
+         atendido_por   = p_user,
+         motivo_rechazo = IF(p_estado = 'rechazado', p_nota, motivo_rechazo),
+         actualizado_en = NOW()
+  WHERE  id_pedido = v_id_pedido;
+
+  INSERT INTO historial_pedidos
+    (id_pedido, estado_antes, estado_despues, nota, realizado_por, creado_en)
+  VALUES
+    (v_id_pedido, v_estado_prev, p_estado, p_nota, p_user, NOW());
+
+  -- Notificar al cliente solo en estados relevantes
+  IF p_estado IN ('aprobado', 'rechazado', 'listo', 'entregado') THEN
+    INSERT INTO notificaciones_pedidos
+      (id_pedido, id_usuario, folio, tipo, mensaje, leida, creado_en)
+    VALUES (
+      v_id_pedido, v_id_cliente, p_folio, p_estado,
+      CONCAT('Tu pedido ', p_folio, ' ahora está: ', REPLACE(p_estado, '_', ' ')),
+      0, NOW()
+    );
+  END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_cambiar_estatus_usuario` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_cambiar_estatus_usuario`(
+    IN  p_id_usuario     INT,
+    IN  p_nuevo_estatus  VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_ejecutado_por  INT
+)
+BEGIN
+    -- No permitir que el usuario se desactive a sí mismo
+    IF p_id_usuario = p_ejecutado_por AND p_nuevo_estatus <> 'activo' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'No puedes desactivar tu propia cuenta.';
+    END IF;
+
+    -- Verificar que el usuario exista
+    IF NOT EXISTS (SELECT 1 FROM usuarios WHERE id_usuario = p_id_usuario) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El usuario no existe.';
+    END IF;
+
+    UPDATE usuarios
+    SET estatus        = p_nuevo_estatus,
+        actualizado_en = NOW()
+    WHERE id_usuario = p_id_usuario;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_catalogo_pedido` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_catalogo_pedido`()
+BEGIN
+  -- RS 1: tamaños de charola
+  SELECT id_tamanio, nombre, capacidad, descripcion
+  FROM   tamanios_charola
+  WHERE  estatus = 'activo'
+  ORDER  BY capacidad;
+
+  -- RS 2: productos activos
+  SELECT id_producto, nombre, descripcion, precio_venta
+  FROM   productos
+  WHERE  estatus = 'activo'
+  ORDER  BY nombre;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_crear_pedido` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_crear_pedido`(
+    IN  p_id_cliente     INT,
+    IN  p_fecha_recogida DATETIME,
+    IN  p_notas          TEXT,
+    IN  p_productos_json JSON,
+    OUT p_id_pedido      INT,
+    OUT p_folio          VARCHAR(15),
+    OUT p_error          VARCHAR(255)
+)
+BEGIN
+    DECLARE v_total   DECIMAL(10,2) DEFAULT 0;
+    DECLARE v_i       INT DEFAULT 0;
+    DECLARE v_n       INT;
+    DECLARE v_id_prod INT;
+    DECLARE v_qty     DECIMAL(10,2);
+    DECLARE v_precio  DECIMAL(10,2);
+    DECLARE v_sub     DECIMAL(12,2);
+    DECLARE v_uuid    VARCHAR(36);
+    DECLARE v_rol     VARCHAR(20);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        GET DIAGNOSTICS CONDITION 1 p_error = MESSAGE_TEXT;
+        SET p_id_pedido = NULL;
+        SET p_folio     = NULL;
+    END;
+
+    SET p_error = NULL;
+
+    -- Validar cliente activo con rol cliente
+    SELECT CONVERT(r.clave_rol USING utf8mb4) COLLATE utf8mb4_0900_ai_ci
+      INTO v_rol
+      FROM usuarios u
+      JOIN roles r ON r.id_rol = u.id_rol
+     WHERE u.id_usuario = p_id_cliente
+       AND CONVERT(u.estatus USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = 'activo'
+     LIMIT 1;
+
+    IF v_rol IS NULL OR v_rol != 'cliente' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El cliente no existe o no está activo.';
+    END IF;
+
+    -- Validar productos
+    SET v_n = JSON_LENGTH(p_productos_json);
+    IF v_n IS NULL OR v_n = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El pedido debe tener al menos un producto.';
+    END IF;
+
+    -- Calcular total
+    WHILE v_i < v_n DO
+        SET v_qty   = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[',v_i,'].qty')));
+        SET v_precio= JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[',v_i,'].precio')));
+        SET v_total = v_total + (v_qty * v_precio);
+        SET v_i     = v_i + 1;
+    END WHILE;
+
+    START TRANSACTION;
+
+        CALL sp_siguiente_folio_pedido(p_folio);
+        SET v_uuid = UUID();
+
+        INSERT INTO pedidos (
+            uuid_pedido, folio, id_cliente, estado,
+            fecha_recogida, notas_cliente, total_estimado,
+            creado_en, actualizado_en
+        ) VALUES (
+            v_uuid, p_folio, p_id_cliente, 'pendiente',
+            p_fecha_recogida, p_notas, ROUND(v_total, 2),
+            NOW(), NOW()
+        );
+
+        SET p_id_pedido = LAST_INSERT_ID();
+
+        SET v_i = 0;
+        WHILE v_i < v_n DO
+            SET v_id_prod = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[',v_i,'].id')));
+            SET v_qty     = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[',v_i,'].qty')));
+            SET v_precio  = JSON_UNQUOTE(JSON_EXTRACT(p_productos_json, CONCAT('$[',v_i,'].precio')));
+            SET v_sub     = ROUND(v_qty * v_precio, 2);
+
+            IF NOT EXISTS (
+                SELECT 1 FROM productos
+                 WHERE id_producto = v_id_prod
+                   AND CONVERT(estatus USING utf8mb4) COLLATE utf8mb4_0900_ai_ci = 'activo'
+            ) THEN
+                SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'Uno o más productos no están disponibles.';
+            END IF;
+
+            INSERT INTO detalle_pedidos
+                (id_pedido, id_producto, cantidad, precio_unitario, subtotal)
+            VALUES
+                (p_id_pedido, v_id_prod, v_qty, v_precio, v_sub);
+
+            SET v_i = v_i + 1;
+        END WHILE;
+
+        INSERT INTO historial_pedidos
+            (id_pedido, estado_antes, estado_despues, nota, realizado_por, creado_en)
+        VALUES
+            (p_id_pedido, 'nuevo', 'pendiente', 'Pedido creado por el cliente', p_id_cliente, NOW());
+
+    COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_crear_pedido_caja` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_crear_pedido_caja`(
+  IN  p_cliente   INT,
+  IN  p_fecha     DATETIME,
+  IN  p_cajas     JSON,       -- array de cajas (ver formato arriba)
+  OUT p_id_pedido INT,
+  OUT p_folio     VARCHAR(20),
+  OUT p_error     VARCHAR(255)
+)
+sp_main: BEGIN
+  DECLARE v_n_cajas    INT;
+  DECLARE v_i_caja     INT DEFAULT 0;
+  DECLARE v_n_panes    INT;
+  DECLARE v_i_pan      INT;
+  DECLARE v_id_tamanio INT;
+  DECLARE v_tipo       VARCHAR(10);
+  DECLARE v_capacidad  TINYINT;
+  DECLARE v_total_pzas INT;
+  DECLARE v_id_prod    INT;
+  DECLARE v_cantidad   INT;
+  DECLARE v_precio     DECIMAL(10,2);
+  DECLARE v_subtotal   DECIMAL(12,2);
+  DECLARE v_total_ped  DECIMAL(12,2) DEFAULT 0;
+  DECLARE v_folio      VARCHAR(15);
+  DECLARE v_next_id    INT;
+  DECLARE v_caja_path  VARCHAR(20);
+  DECLARE v_pan_path   VARCHAR(40);
+
+  SET p_id_pedido = NULL;
+  SET p_folio     = NULL;
+  SET p_error     = NULL;
+
+  -- Validar cliente
+  IF NOT EXISTS (SELECT 1 FROM usuarios WHERE id_usuario = p_cliente) THEN
+    SET p_error = 'Cliente no encontrado.';
+    LEAVE sp_main;
+  END IF;
+
+  SET v_n_cajas = JSON_LENGTH(p_cajas);
+
+  IF v_n_cajas = 0 THEN
+    SET p_error = 'El pedido debe tener al menos una caja.';
+    LEAVE sp_main;
+  END IF;
+
+  -- ── Validar TODAS las cajas antes de insertar nada ──────────
+  WHILE v_i_caja < v_n_cajas DO
+    SET v_caja_path  = CONCAT('$[', v_i_caja, ']');
+    SET v_id_tamanio = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_caja_path, '.id_tamanio')));
+    SET v_tipo       = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_caja_path, '.tipo')));
+
+    -- Validar tamaño
+    SELECT capacidad INTO v_capacidad
+    FROM tamanios_charola
+    WHERE id_tamanio = v_id_tamanio AND estatus = 'activo';
+
+    IF v_capacidad IS NULL THEN
+      SET p_error = CONCAT('Caja ', v_i_caja + 1, ': tamaño de charola inválido.');
+      LEAVE sp_main;
+    END IF;
+
+    -- Validar tipo vs tamaño
+    IF v_capacidad = 4 AND v_tipo != 'simple' THEN
+      SET p_error = CONCAT('Caja ', v_i_caja + 1, ': la charola chica solo puede ser simple.');
+      LEAVE sp_main;
+    END IF;
+    IF v_tipo = 'triple' AND v_capacidad != 12 THEN
+      SET p_error = CONCAT('Caja ', v_i_caja + 1, ': el tipo triple solo aplica para charola grande.');
+      LEAVE sp_main;
+    END IF;
+
+    -- Validar que las piezas sumen a la capacidad
+    SET v_n_panes    = JSON_LENGTH(JSON_EXTRACT(p_cajas, CONCAT(v_caja_path, '.panes')));
+    SET v_i_pan      = 0;
+    SET v_total_pzas = 0;
+
+    WHILE v_i_pan < v_n_panes DO
+      SET v_pan_path   = CONCAT(v_caja_path, '.panes[', v_i_pan, ']');
+      SET v_cantidad   = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_pan_path, '.cantidad')));
+      SET v_total_pzas = v_total_pzas + v_cantidad;
+      SET v_i_pan      = v_i_pan + 1;
+    END WHILE;
+
+    IF v_total_pzas != v_capacidad THEN
+      SET p_error = CONCAT(
+        'Caja ', v_i_caja + 1, ': las piezas seleccionadas (', v_total_pzas,
+        ') no coinciden con la capacidad de la charola (', v_capacidad, ').'
+      );
+      LEAVE sp_main;
+    END IF;
+
+    -- Acumular total del pedido
+    SET v_i_pan = 0;
+    WHILE v_i_pan < v_n_panes DO
+      SET v_pan_path = CONCAT(v_caja_path, '.panes[', v_i_pan, ']');
+      SET v_precio   = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_pan_path, '.precio')));
+      SET v_cantidad = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_pan_path, '.cantidad')));
+      SET v_total_ped = v_total_ped + (v_precio * v_cantidad);
+      SET v_i_pan     = v_i_pan + 1;
+    END WHILE;
+
+    SET v_i_caja = v_i_caja + 1;
+  END WHILE;
+
+  -- ── Generar folio y cabecera del pedido ─────────────────────
+  SELECT IFNULL(MAX(id_pedido), 0) + 1 INTO v_next_id FROM pedidos;
+  SET v_folio = CONCAT('PED-', LPAD(v_next_id, 4, '0'));
+
+  INSERT INTO pedidos
+    (uuid_pedido, folio, id_cliente, id_tamanio, tipo,
+     fecha_recogida, total_estimado, estado, creado_en, actualizado_en)
+  VALUES
+    (UUID(), v_folio, p_cliente,
+     NULL,    -- id_tamanio a nivel pedido ya no aplica (hay múltiples cajas)
+     'mixta', -- tipo genérico a nivel pedido; el detalle está en detalle_pedidos
+     p_fecha, v_total_ped, 'pendiente', NOW(), NOW());
+
+  SET p_id_pedido = LAST_INSERT_ID();
+  SET p_folio     = v_folio;
+
+  -- ── Insertar detalle de cada caja y sus panes ───────────────
+  SET v_i_caja = 0;
+  WHILE v_i_caja < v_n_cajas DO
+    SET v_caja_path  = CONCAT('$[', v_i_caja, ']');
+    SET v_id_tamanio = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_caja_path, '.id_tamanio')));
+    SET v_tipo       = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_caja_path, '.tipo')));
+    SET v_n_panes    = JSON_LENGTH(JSON_EXTRACT(p_cajas, CONCAT(v_caja_path, '.panes')));
+    SET v_i_pan      = 0;
+
+    WHILE v_i_pan < v_n_panes DO
+      SET v_pan_path = CONCAT(v_caja_path, '.panes[', v_i_pan, ']');
+      SET v_id_prod  = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_pan_path, '.id_producto')));
+      SET v_cantidad = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_pan_path, '.cantidad')));
+      SET v_precio   = JSON_UNQUOTE(JSON_EXTRACT(p_cajas, CONCAT(v_pan_path, '.precio')));
+      SET v_subtotal = v_precio * v_cantidad;
+
+      -- Guardamos id_tamanio y tipo en notas del detalle via precio_unitario
+      -- El detalle lleva el numero de caja en la descripción implícita del orden
+      INSERT INTO detalle_pedidos
+        (id_pedido, id_producto, cantidad, precio_unitario, subtotal)
+      VALUES
+        (p_id_pedido, v_id_prod, v_cantidad, v_precio, v_subtotal);
+
+      SET v_i_pan = v_i_pan + 1;
+    END WHILE;
+
+    SET v_i_caja = v_i_caja + 1;
+  END WHILE;
+
+  -- ── Historial ────────────────────────────────────────────────
+  INSERT INTO historial_pedidos
+    (id_pedido, estado_antes, estado_despues, nota, realizado_por, creado_en)
+  VALUES
+    (p_id_pedido, 'nuevo', 'pendiente',
+     CONCAT('Pedido creado con ', v_n_cajas, ' caja(s).'),
+     p_cliente, NOW());
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_crear_usuario` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_crear_usuario`(
+    IN  p_uuid            VARCHAR(36)  CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_nombre_completo VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_username        VARCHAR(60)  CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_password_hash   VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_id_rol          SMALLINT,
+    IN  p_estatus         VARCHAR(10)  CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_creado_por      INT
+)
+BEGIN
+    -- Verificar que el username no esté duplicado
+    IF EXISTS (SELECT 1 FROM usuarios WHERE username = p_username) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El nombre de usuario ya esta en uso.';
+    END IF;
+
+    -- Verificar que el rol exista
+    IF NOT EXISTS (SELECT 1 FROM roles WHERE id_rol = p_id_rol) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El rol seleccionado no es valido.';
+    END IF;
+
+    INSERT INTO usuarios (
+        uuid_usuario,
+        nombre_completo,
+        username,
+        password_hash,
+        id_rol,
+        estatus,
+        intentos_fallidos,
+        cambio_pwd_req,
+        creado_en,
+        actualizado_en,
+        creado_por
+    ) VALUES (
+        p_uuid,
+        p_nombre_completo,
+        p_username,
+        p_password_hash,
+        p_id_rol,
+        p_estatus,
+        0,
+        0,
+        NOW(),
+        NOW(),
+        p_creado_por
+    );
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_detalle_pedido` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_detalle_pedido`(
+  IN p_folio VARCHAR(20) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci
+)
+BEGIN
+  -- RS1: cabecera del pedido
+  SELECT id_pedido, folio, estado, fecha_recogida,
+         total_estimado, motivo_rechazo, creado_en,
+         id_cliente, cliente_nombre, atendido_por_nombre,
+         tipo_caja, tamanio_nombre, capacidad
+  FROM   v_pedidos_resumen
+  WHERE  folio = p_folio
+  LIMIT  1;
+
+  -- RS2: info de la caja
+  SELECT vc.tipo, vc.tamanio, vc.nombre_caja, vc.capacidad, vc.precio_venta
+  FROM   v_caja_pedido vc
+  JOIN   pedidos       p  ON p.id_pedido = vc.id_pedido
+  WHERE  p.folio = p_folio
+  LIMIT  1;
+
+  -- RS3: líneas de productos
+  SELECT vd.producto_nombre, vd.producto_descripcion,
+         vd.cantidad, vd.precio_unitario, vd.subtotal
+  FROM   v_detalle_pedido vd
+  JOIN   pedidos          p ON p.id_pedido = vd.id_pedido
+  WHERE  p.folio = p_folio
+  ORDER  BY vd.producto_nombre;
+
+  -- RS4: historial
+  SELECT vh.estado_antes, vh.estado_despues, vh.nota,
+         vh.creado_en, vh.usuario_nombre
+  FROM   v_historial_pedido vh
+  JOIN   pedidos            p ON p.id_pedido = vh.id_pedido
+  WHERE  p.folio = p_folio
+  ORDER  BY vh.creado_en ASC;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_editar_usuario` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_editar_usuario`(
+    IN  p_id_usuario      INT,
+    IN  p_nombre_completo VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_username        VARCHAR(60)  CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_id_rol          SMALLINT,
+    IN  p_estatus         VARCHAR(10)  CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+    IN  p_password_hash   VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci
+)
+BEGIN
+    -- Verificar que el usuario exista
+    IF NOT EXISTS (SELECT 1 FROM usuarios WHERE id_usuario = p_id_usuario) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El usuario no existe.';
+    END IF;
+
+    -- Verificar que el username no lo use OTRO usuario
+    IF EXISTS (SELECT 1 FROM usuarios WHERE username = p_username AND id_usuario <> p_id_usuario) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El nombre de usuario ya esta en uso.';
+    END IF;
+
+    -- Verificar que el rol exista
+    IF NOT EXISTS (SELECT 1 FROM roles WHERE id_rol = p_id_rol) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El rol seleccionado no es valido.';
+    END IF;
+
+    IF p_password_hash IS NOT NULL THEN
+        UPDATE usuarios
+        SET nombre_completo = p_nombre_completo,
+            username        = p_username,
+            id_rol          = p_id_rol,
+            estatus         = p_estatus,
+            password_hash   = p_password_hash,
+            actualizado_en  = NOW()
+        WHERE id_usuario = p_id_usuario;
+    ELSE
+        UPDATE usuarios
+        SET nombre_completo = p_nombre_completo,
+            username        = p_username,
+            id_rol          = p_id_rol,
+            estatus         = p_estatus,
+            actualizado_en  = NOW()
+        WHERE id_usuario = p_id_usuario;
+    END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_lista_pedidos_interna` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_lista_pedidos_interna`(
+  IN p_estado VARCHAR(20) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  IN p_fecha  DATE,
+  IN p_buscar VARCHAR(100) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci
+)
+BEGIN
+  SELECT
+    p.id_pedido,
+    p.folio                                          COLLATE utf8mb4_unicode_ci AS folio,
+    p.estado                                         COLLATE utf8mb4_unicode_ci AS estado,
+    p.fecha_recogida,
+    p.total_estimado,
+    p.creado_en,
+    p.tipo                                           COLLATE utf8mb4_unicode_ci AS tipo_caja,
+    t.nombre                                         COLLATE utf8mb4_unicode_ci AS tamanio_nombre,
+    t.capacidad,
+    u.nombre_completo                                COLLATE utf8mb4_unicode_ci AS cliente_nombre
+  FROM  pedidos              p
+  JOIN  usuarios             u  ON u.id_usuario  = p.id_cliente
+  LEFT JOIN tamanios_charola t  ON t.id_tamanio  = p.id_tamanio
+  WHERE (p_estado IS NULL OR p.estado COLLATE utf8mb4_unicode_ci = p_estado)
+    AND (p_fecha  IS NULL OR DATE(p.fecha_recogida) = p_fecha)
+    AND (p_buscar IS NULL
+         OR p.folio           COLLATE utf8mb4_unicode_ci LIKE CONCAT('%', p_buscar, '%')
+         OR u.nombre_completo COLLATE utf8mb4_unicode_ci LIKE CONCAT('%', p_buscar, '%'))
+  ORDER BY p.creado_en DESC;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_marcar_notifs_leidas` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_marcar_notifs_leidas`(IN p_usuario INT)
+BEGIN
+  UPDATE notificaciones_pedidos
+  SET    leida = 1
+  WHERE  id_usuario = p_usuario AND leida = 0;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_mis_pedidos_cliente` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_mis_pedidos_cliente`(IN p_cliente INT)
+BEGIN
+  -- RS1: pedidos del cliente
+  SELECT
+    p.id_pedido,
+    p.folio,
+    p.estado,
+    p.fecha_recogida,
+    p.total_estimado,
+    p.motivo_rechazo,
+    p.creado_en,
+    p.tipo                                           COLLATE utf8mb4_unicode_ci AS tipo_caja,
+    t.nombre                                         COLLATE utf8mb4_unicode_ci AS tamanio_nombre,
+    t.capacidad,
+    GROUP_CONCAT(pr.nombre COLLATE utf8mb4_unicode_ci
+                 ORDER BY dp.id_detalle SEPARATOR ', ')                         AS panes_resumen,
+    NULL AS nombre_caja
+  FROM  pedidos             p
+  LEFT JOIN tamanios_charola t  ON t.id_tamanio  = p.id_tamanio
+  LEFT JOIN detalle_pedidos  dp ON dp.id_pedido  = p.id_pedido
+  LEFT JOIN productos        pr ON pr.id_producto = dp.id_producto
+  WHERE p.id_cliente = p_cliente
+  GROUP BY
+    p.id_pedido, p.folio, p.estado, p.fecha_recogida,
+    p.total_estimado, p.motivo_rechazo, p.creado_en,
+    p.tipo, t.nombre, t.capacidad
+  ORDER BY p.creado_en DESC;
+
+  -- RS2: notificaciones del cliente
+  SELECT id_notif, id_pedido, folio, mensaje, leida, creado_en
+  FROM   v_notificaciones_cliente
+  WHERE  id_usuario = p_cliente
+  LIMIT  50;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_notificaciones_cliente` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_notificaciones_cliente`(IN p_usuario INT)
+BEGIN
+  SELECT id_notif, id_pedido, folio, mensaje, leida, creado_en
+  FROM   v_notificaciones_cliente
+  WHERE  id_usuario = p_usuario
+  LIMIT  50;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_registrar_produccion` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_registrar_produccion`(
+    IN  p_folio_lote       VARCHAR(20),
+    IN  p_id_producto      INT,
+    IN  p_id_receta        INT,
+    IN  p_cantidad_lotes   DECIMAL(10,2),
+    IN  p_piezas_esperadas DECIMAL(10,2),
+    IN  p_fecha_inicio     DATETIME,
+    IN  p_fecha_fin_est    DATETIME,
+    IN  p_operario_id      INT,
+    IN  p_creado_por       INT,
+    IN  p_observaciones    TEXT,
+    OUT p_resultado        INT,
+    OUT p_mensaje          VARCHAR(500),
+    OUT p_id_produccion    INT
+)
+sp_main: BEGIN
+
+    -- ── Variables ──────────────────────────────────────────
+    DECLARE v_done             INT DEFAULT FALSE;
+    DECLARE v_id_materia       INT;
+    DECLARE v_nombre_materia   VARCHAR(120);
+    DECLARE v_cant_requerida   DECIMAL(12,4);
+    DECLARE v_stock_actual     DECIMAL(12,4);
+    DECLARE v_cant_total       DECIMAL(12,4);
+    DECLARE v_id_receta_valida INT;
+    DECLARE v_folio_existe     INT;
+
+    -- ── Cursor SOLO para validar stock (bloque 2) ─────────
+    DECLARE cur_validar CURSOR FOR
+        SELECT
+            dr.id_materia,
+            mp.nombre,
+            dr.cantidad_requerida,
+            mp.stock_actual
+        FROM detalle_recetas dr
+        JOIN materias_primas mp ON mp.id_materia = dr.id_materia
+        WHERE dr.id_receta = p_id_receta
+          AND mp.estatus   = 'activo';
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = TRUE;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET p_resultado     = 1;
+        SET p_mensaje       = 'Error interno. Se realizó ROLLBACK.';
+        SET p_id_produccion = 0;
+    END;
+
+    -- Valores por defecto de salida
+    SET p_resultado     = 1;
+    SET p_mensaje       = '';
+    SET p_id_produccion = 0;
+
+    -- ══════════════════════════════════════════════════════
+    --  BLOQUE 1 – Validaciones previas
+    -- ══════════════════════════════════════════════════════
+
+    -- 1.1 Folio duplicado
+    SELECT COUNT(*) INTO v_folio_existe
+    FROM produccion
+    WHERE folio_lote = p_folio_lote;
+
+    IF v_folio_existe > 0 THEN
+        SET p_mensaje = CONCAT('El folio "', p_folio_lote, '" ya existe.');
+        LEAVE sp_main;
+    END IF;
+
+    -- 1.2 Receta activa y corresponde al producto
+    SELECT id_receta INTO v_id_receta_valida
+    FROM recetas
+    WHERE id_receta   = p_id_receta
+      AND id_producto = p_id_producto
+      AND estatus     = 'activo'
+    LIMIT 1;
+
+    IF v_id_receta_valida IS NULL THEN
+        SET p_mensaje = 'La receta no corresponde al producto indicado o está inactiva.';
+        LEAVE sp_main;
+    END IF;
+
+    -- 1.3 La receta tiene insumos
+    IF NOT EXISTS (
+        SELECT 1 FROM detalle_recetas WHERE id_receta = p_id_receta LIMIT 1
+    ) THEN
+        SET p_mensaje = 'La receta no tiene insumos registrados.';
+        LEAVE sp_main;
+    END IF;
+
+    -- ══════════════════════════════════════════════════════
+    --  BLOQUE 2 – Validar stock insumo por insumo con cursor
+    -- ══════════════════════════════════════════════════════
+
+    OPEN cur_validar;
+
+    loop_validar: LOOP
+        FETCH cur_validar INTO
+            v_id_materia,
+            v_nombre_materia,
+            v_cant_requerida,
+            v_stock_actual;
+
+        IF v_done THEN
+            LEAVE loop_validar;
+        END IF;
+
+        SET v_cant_total = v_cant_requerida * p_cantidad_lotes;
+
+        IF v_stock_actual < v_cant_total THEN
+            CLOSE cur_validar;
+            SET p_mensaje = CONCAT(
+                'Stock insuficiente: "', v_nombre_materia, '". ',
+                'Requerido: ', ROUND(v_cant_total, 4), ' | ',
+                'Disponible: ', ROUND(v_stock_actual, 4)
+            );
+            LEAVE sp_main;
+        END IF;
+
+    END LOOP loop_validar;
+
+    CLOSE cur_validar;
+
+    -- ══════════════════════════════════════════════════════
+    --  BLOQUE 3 – Todo OK: transacción
+    --  Se usan INSERT...SELECT y UPDATE...JOIN para evitar
+    --  re-abrir el cursor (MySQL no lo permite en el mismo scope)
+    -- ══════════════════════════════════════════════════════
+
+    START TRANSACTION;
+
+        -- 3.1 Cabecera de producción
+        INSERT INTO produccion (
+            folio_lote,
+            id_producto,
+            id_receta,
+            cantidad_lotes,
+            piezas_esperadas,
+            piezas_producidas,
+            estado,
+            fecha_inicio,
+            fecha_fin_estimado,
+            fecha_fin_real,
+            operario_id,
+            observaciones,
+            creado_en,
+            creado_por
+        ) VALUES (
+            p_folio_lote,
+            p_id_producto,
+            p_id_receta,
+            p_cantidad_lotes,
+            p_piezas_esperadas,
+            NULL,
+            'pendiente',
+            p_fecha_inicio,
+            p_fecha_fin_est,
+            NULL,
+            p_operario_id,
+            p_observaciones,
+            NOW(),
+            p_creado_por
+        );
+
+        SET p_id_produccion = LAST_INSERT_ID();
+
+        -- 3.2 Insertar detalle_produccion con INSERT...SELECT
+        --     cantidad_requerida * lotes = total a consumir
+        INSERT INTO detalle_produccion (
+            id_produccion,
+            id_materia,
+            cantidad_requerida,
+            cantidad_descontada
+        )
+        SELECT
+            p_id_produccion,
+            dr.id_materia,
+            dr.cantidad_requerida * p_cantidad_lotes,
+            dr.cantidad_requerida * p_cantidad_lotes
+        FROM detalle_recetas dr
+        JOIN materias_primas mp ON mp.id_materia = dr.id_materia
+        WHERE dr.id_receta = p_id_receta
+          AND mp.estatus   = 'activo';
+
+        -- 3.3 Descontar stock con UPDATE...JOIN
+        UPDATE materias_primas mp
+        JOIN detalle_recetas dr ON dr.id_materia = mp.id_materia
+        SET
+            mp.stock_actual   = mp.stock_actual - (dr.cantidad_requerida * p_cantidad_lotes),
+            mp.actualizado_en = NOW()
+        WHERE dr.id_receta = p_id_receta
+          AND mp.estatus   = 'activo';
+
+    COMMIT;
+
+    -- ══════════════════════════════════════════════════════
+    --  BLOQUE 4 – Éxito
+    -- ══════════════════════════════════════════════════════
+    SET p_resultado = 0;
+    SET p_mensaje   = CONCAT(
+        'Producción registrada. Lote: ', p_folio_lote,
+        ' | ID: ', p_id_produccion
+    );
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_siguiente_folio_pedido` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_siguiente_folio_pedido`(OUT p_folio VARCHAR(15))
+BEGIN
+    DECLARE v_ultimo VARCHAR(15);
+    DECLARE v_num    INT;
+
+    SELECT folio INTO v_ultimo
+    FROM pedidos
+    ORDER BY id_pedido DESC
+    LIMIT 1
+    FOR UPDATE;          -- bloqueo de lectura para evitar folio duplicado bajo carga
+
+    IF v_ultimo IS NULL THEN
+        SET v_num = 1;
+    ELSE
+        SET v_num = CAST(SUBSTRING(v_ultimo, 5) AS UNSIGNED) + 1;
+    END IF;
+
+    SET p_folio = CONCAT('PED-', LPAD(v_num, 4, '0'));
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `_fix_pedidos_tipo` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `_fix_pedidos_tipo`()
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME   = 'pedidos'
+      AND COLUMN_NAME  = 'tipo'
+  ) THEN
+    ALTER TABLE `pedidos`
+      ADD COLUMN `tipo` ENUM('simple','mixta','triple') NOT NULL DEFAULT 'simple'
+          AFTER `id_tamanio`;
+  END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
 -- Final view structure for view `v_caja_pedido`
 --
 
@@ -1503,4 +2546,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-26 15:35:08
+-- Dump completed on 2026-03-30 12:51:32
