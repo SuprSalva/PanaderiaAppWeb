@@ -74,10 +74,6 @@ class ProductoForm(Form):
         validators.DataRequired(message='El precio de venta es obligatorio.'),
         NumberRange(min=0.01, message='El precio debe ser mayor a 0.'),
     ], places=2)
-    stock_minimo = DecimalField('Stock Mínimo (pzas)', [
-        Optional(),
-        NumberRange(min=0, message='El stock mínimo no puede ser negativo.'),
-    ], places=2)
 
 class PanCajaForm(Form):
 

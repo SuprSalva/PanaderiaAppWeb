@@ -10,12 +10,8 @@ from flask_login import current_user
 from sqlalchemy import text
 from models import db
 from pedidos import pedidos_bp
-from forms import PedidoCajaForm  # usado en crear_pedido para validación
+from forms import PedidoCajaForm 
 
-
-# ─────────────────────────────────────────────
-#  CATÁLOGO
-# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/nuevo', methods=['GET'])
 def catalogo():
@@ -49,24 +45,14 @@ def catalogo():
                            productos_json=productos_json)
 
 
-# ─────────────────────────────────────────────
-#  CREAR PEDIDO DE CAJA  (múltiples cajas)
-# ─────────────────────────────────────────────
-
 @pedidos_bp.route('/nuevo', methods=['POST'])
 def crear_pedido():
     form = PedidoCajaForm(request.form)
-
-    # ── Reconstruir la lista de cajas desde el JSON del form ──
-    # El JS envía un campo oculto "cajas_json" con el array serializado
-    # para no tener que mapear FieldList dinámico con prefijos WTForms.
     cajas_raw = request.form.get('cajas_json', '').strip()
 
     if not cajas_raw:
         flash('No se recibieron cajas en el pedido.', 'danger')
         return redirect(url_for('pedidos.catalogo'))
-
-    # Cargar y validar estructura básica
     try:
         cajas_data = json.loads(cajas_raw)
     except (ValueError, TypeError):
@@ -77,20 +63,17 @@ def crear_pedido():
         flash('Agrega al menos una caja al pedido.', 'danger')
         return redirect(url_for('pedidos.catalogo'))
 
-    # Validar fecha con el form
     fecha_str = request.form.get('fecha_recogida', '').strip()
     if not fecha_str:
         flash('Indica la fecha y hora de recolección.', 'danger')
         return redirect(url_for('pedidos.catalogo'))
 
-    # ── Validaciones en Python usando las reglas de forms.py ──
     errores = _validar_cajas(cajas_data)
     if errores:
         for e in errores:
             flash(e, 'danger')
         return redirect(url_for('pedidos.catalogo'))
 
-    # ── Llamar al SP con el JSON completo de cajas ────────────
     try:
         db.session.execute(
             text("SET @p_id_pedido = NULL, @p_folio = NULL, @p_error = NULL")
@@ -133,10 +116,6 @@ def crear_pedido():
 
 
 def _validar_cajas(cajas_data: list) -> list[str]:
-    """
-    Valida la lista de cajas usando las mismas reglas que CajaForm / PanCajaForm.
-    Retorna lista de mensajes de error (vacía si todo está bien).
-    """
     errores = []
     TIPOS_VALIDOS   = {'simple', 'mixta', 'triple'}
     PANES_POR_TIPO  = {'simple': 1, 'mixta': 2, 'triple': 3}
@@ -145,7 +124,6 @@ def _validar_cajas(cajas_data: list) -> list[str]:
     for i, caja in enumerate(cajas_data, start=1):
         label = f'Caja {i}'
 
-        # Tamaño
         try:
             id_tamanio = int(caja.get('id_tamanio', 0))
             if id_tamanio <= 0:
@@ -154,13 +132,11 @@ def _validar_cajas(cajas_data: list) -> list[str]:
             errores.append(f'{label}: selecciona un tamaño de charola válido.')
             continue
 
-        # Tipo
         tipo = caja.get('tipo', '')
         if tipo not in TIPOS_VALIDOS:
             errores.append(f'{label}: tipo de caja inválido ("{tipo}").')
             continue
 
-        # Panes
         panes = caja.get('panes', [])
         if not isinstance(panes, list) or len(panes) == 0:
             errores.append(f'{label}: agrega al menos un tipo de pan.')
@@ -199,10 +175,6 @@ def _validar_cajas(cajas_data: list) -> list[str]:
     return errores
 
 
-# ─────────────────────────────────────────────
-#  MIS PEDIDOS (cliente)
-# ─────────────────────────────────────────────
-
 @pedidos_bp.route('/mis-pedidos')
 def mis_pedidos():
     conn = db.session.connection()
@@ -227,10 +199,6 @@ def mis_pedidos():
                            pedidos=pedidos,
                            notifs=notifs)
 
-
-# ─────────────────────────────────────────────
-#  LISTA INTERNA (staff)
-# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/pedidos')
 def lista():
@@ -261,9 +229,6 @@ def lista():
                            filtro_q=buscar      or '')
 
 
-# ─────────────────────────────────────────────
-#  DETALLE DE PEDIDO
-# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/<folio>')
 def detalle(folio):
@@ -305,9 +270,6 @@ def detalle(folio):
                            historial=historial)
 
 
-# ─────────────────────────────────────────────
-#  CAMBIAR ESTADO (staff)
-# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/<folio>/estado', methods=['POST'])
 def cambiar_estado(folio):
@@ -352,10 +314,6 @@ def cambiar_estado(folio):
 
     return redirect(url_for('pedidos.detalle', folio=folio))
 
-
-# ─────────────────────────────────────────────
-#  NOTIFICACIONES
-# ─────────────────────────────────────────────
 
 @pedidos_bp.route('/notificaciones/leer', methods=['POST'])
 def marcar_leidas():
