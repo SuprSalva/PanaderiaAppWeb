@@ -66,7 +66,12 @@ GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_editar_usuario          TO rol_admin;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_estatus_usuario TO rol_admin;
 GRANT SELECT ON dulce_migaja.vw_usuarios TO rol_admin;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_password TO rol_admin;
-
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_pedido_compra    TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_agregar_detalle_compra TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cancelar_compra        TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_finalizar_compra       TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_unidad_compra TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_limpiar_detalles_compra TO rol_admin;
 SHOW GRANTS FOR rol_admin;
 
 
@@ -94,6 +99,13 @@ GRANT SELECT, INSERT         ON dulce_migaja.tickets          TO rol_vendedor;
 GRANT SELECT, INSERT         ON dulce_migaja.logs_sistema     TO rol_vendedor;
 
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_password TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_pedido_compra    TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_agregar_detalle_compra TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cancelar_compra        TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_finalizar_compra       TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_unidad_compra TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_limpiar_detalles_compra TO rol_vendedor;
+
 -- SPs de ventas (descomentar cuando se creen)
 -- GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_venta  TO rol_vendedor;
 -- GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cerrar_corte TO rol_vendedor;

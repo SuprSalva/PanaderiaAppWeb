@@ -6,6 +6,9 @@
 
 USE dulce_migaja;
 
+ALTER TABLE usuarios
+    ADD COLUMN telefono VARCHAR(20) NULL AFTER nombre_completo;
+
 -- ─────────────────────────────────────────────
 --  SP: sp_crear_usuario
 -- ─────────────────────────────────────────────

@@ -115,14 +115,18 @@ class UnidadPresentacion(db.Model):
 
 class Compra(db.Model):
     __tablename__ = 'compras'
-    id_compra     = db.Column(db.Integer,    primary_key=True, autoincrement=True)
-    folio         = db.Column(db.String(20), nullable=False, unique=True)
-    id_proveedor  = db.Column(db.Integer,    db.ForeignKey('proveedores.id_proveedor'), nullable=False)
-    fecha_compra  = db.Column(db.Date,       nullable=False)
-    total         = db.Column(db.Numeric(12,2), nullable=False, default=0)
-    observaciones = db.Column(db.Text)
-    creado_en     = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
-    creado_por    = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=True)
+    id_compra            = db.Column(db.Integer,    primary_key=True, autoincrement=True)
+    folio                = db.Column(db.String(20), nullable=False, unique=True)
+    folio_factura        = db.Column(db.String(60), nullable=True)
+    id_proveedor         = db.Column(db.Integer,    db.ForeignKey('proveedores.id_proveedor'), nullable=False)
+    fecha_compra         = db.Column(db.Date,       nullable=False)
+    total                = db.Column(db.Numeric(12,2), nullable=False, default=0)
+    estatus              = db.Column(db.Enum('ordenado','cancelado','finalizado'),
+                           nullable=False, default='ordenado')
+    motivo_cancelacion   = db.Column(db.Text, nullable=True)
+    observaciones        = db.Column(db.Text)
+    creado_en            = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
+    creado_por           = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=True)
 
     proveedor = db.relationship('Proveedor', back_populates='compras')
     detalles  = db.relationship('DetalleCompra', back_populates='compra', cascade='all, delete-orphan')
