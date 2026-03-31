@@ -1,13 +1,17 @@
 # usuarios/routes.py
 import uuid
+import re
 
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from sqlalchemy import text
 
+_PWD_RE = re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$')
+
 from models import db, Usuario, Rol
 from auth import roles_required
+from utils.db_roles import call_sp
 from . import registrar_usuario_bp
 
 
@@ -15,8 +19,10 @@ from . import registrar_usuario_bp
 @login_required
 @roles_required('admin')
 def usuarios():
-    lista = Usuario.query.order_by(Usuario.nombre_completo).all()
-    roles = Rol.query.order_by(Rol.nombre_rol).all()
+    lista = db.session.execute(
+        text("SELECT * FROM vw_usuarios ORDER BY nombre_completo")
+    ).mappings().all()
+    roles     = Rol.query.order_by(Rol.nombre_rol).all()
     total     = len(lista)
     activos   = sum(1 for u in lista if u.estatus == 'activo')
     inactivos = total - activos
@@ -44,6 +50,10 @@ def crear_usuario():
 
     if not nombre or not username or not id_rol or not password:
         flash('Todos los campos son obligatorios.', 'error')
+        return redirect(url_for('registrar_usuario.usuarios'))
+
+    if not _PWD_RE.match(password):
+        flash('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).', 'error')
         return redirect(url_for('registrar_usuario.usuarios'))
 
     if password != confirmar:
@@ -93,9 +103,13 @@ def editar_usuario(id_usuario):
         flash('Nombre, usuario y rol son obligatorios.', 'error')
         return redirect(url_for('registrar_usuario.usuarios'))
 
-    if password and password != confirmar:
-        flash('Las contraseñas no coinciden.', 'error')
-        return redirect(url_for('registrar_usuario.usuarios'))
+    if password:
+        if not _PWD_RE.match(password):
+            flash('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).', 'error')
+            return redirect(url_for('registrar_usuario.usuarios'))
+        if password != confirmar:
+            flash('Las contraseñas no coinciden.', 'error')
+            return redirect(url_for('registrar_usuario.usuarios'))
 
     pwd_hash = generate_password_hash(password) if password else None
 
@@ -161,6 +175,79 @@ def cambiar_estatus_usuario(id_usuario):
             flash('Error al cambiar el estatus. Intenta de nuevo.', 'error')
 
     return redirect(url_for('registrar_usuario.usuarios'))
+
+
+@registrar_usuario_bp.route("/cambiar-password", methods=['GET', 'POST'])
+@login_required
+def cambiar_password():
+    if request.method == 'POST':
+        actual    = request.form.get('password_actual', '')
+        nueva     = request.form.get('password_nueva', '')
+        confirmar = request.form.get('confirmar', '')
+
+        usuario = db.session.get(Usuario, current_user.id_usuario)
+
+        from werkzeug.security import check_password_hash
+        if not check_password_hash(usuario.password_hash, actual):
+            flash('La contraseña actual es incorrecta.', 'error')
+            return redirect(url_for('registrar_usuario.cambiar_password'))
+
+        if not _PWD_RE.match(nueva):
+            flash('La nueva contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).', 'error')
+            return redirect(url_for('registrar_usuario.cambiar_password'))
+
+        if nueva != confirmar:
+            flash('Las contraseñas no coinciden.', 'error')
+            return redirect(url_for('registrar_usuario.cambiar_password'))
+
+        try:
+            call_sp(
+                "CALL sp_cambiar_password(:id, :pwd_hash)",
+                {'id': current_user.id_usuario, 'pwd_hash': generate_password_hash(nueva)}
+            )
+            flash('Contraseña actualizada correctamente.', 'success')
+        except Exception as e:
+            msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+            flash(f'Error al cambiar la contraseña: {msg}', 'error')
+        return redirect(url_for('registrar_usuario.cambiar_password'))
+
+    return render_template("usuarios/cambiar_password.html")
+
+
+@registrar_usuario_bp.route("/mi-perfil", methods=['GET', 'POST'])
+@login_required
+def mi_perfil():
+    usuario = db.session.get(Usuario, current_user.id_usuario)
+
+    if request.method == 'POST':
+        nombre   = request.form.get('nombre', '').strip()
+        username = request.form.get('username', '').strip()
+        telefono = request.form.get('telefono', '').strip()
+
+        if not nombre or not username:
+            flash('Nombre y usuario son obligatorios.', 'error')
+            return redirect(url_for('registrar_usuario.mi_perfil'))
+
+        try:
+            call_sp(
+                "CALL sp_actualizar_perfil_cliente(:id, :nombre, :username, :telefono)",
+                {
+                    'id':       current_user.id_usuario,
+                    'nombre':   nombre,
+                    'username': username,
+                    'telefono': telefono or None,
+                }
+            )
+            flash('Perfil actualizado correctamente.', 'success')
+        except Exception as e:
+            msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+            if 'ya esta en uso' in msg:
+                flash(f'El usuario "{username}" ya está en uso. Elige otro.', 'error')
+            else:
+                flash('Error al actualizar el perfil. Intenta de nuevo.', 'error')
+        return redirect(url_for('registrar_usuario.mi_perfil'))
+
+    return render_template("usuarios/mi_perfil.html", usuario=usuario)
 
 
 @registrar_usuario_bp.route("/mis-pedido")

@@ -30,6 +30,7 @@ class Usuario(db.Model, UserMixin):
     id_usuario        = db.Column(db.Integer,     primary_key=True, autoincrement=True)
     uuid_usuario      = db.Column(db.String(36),  nullable=False, unique=True)
     nombre_completo   = db.Column(db.String(120), nullable=False)
+    telefono          = db.Column(db.String(20),  nullable=True)
     username          = db.Column(db.String(60),  nullable=False, unique=True)
     password_hash     = db.Column(db.String(255), nullable=False)
     id_rol            = db.Column(db.SmallInteger, db.ForeignKey('roles.id_rol'), nullable=False)
