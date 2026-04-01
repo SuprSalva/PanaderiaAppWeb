@@ -9,7 +9,19 @@ from sqlalchemy import text
 from models import db, Compra, DetalleCompra, Proveedor, MateriaPrima, UnidadPresentacion, SalidaEfectivo
 from auth import roles_required
 from utils.db_roles import call_sp
+from forms import CompraForm
 from . import compras
+
+
+def _compra_form():
+    """Instancia CompraForm con las opciones de proveedores activos."""
+    form = CompraForm(request.form)
+    form.id_proveedor.choices = (
+        [(-1, '— Seleccionar —')] +
+        [(p.id_proveedor, p.nombre)
+         for p in Proveedor.query.filter_by(estatus='activo').order_by(Proveedor.nombre).all()]
+    )
+    return form
 
 
 def _generar_folio(prefijo='C'):
@@ -43,6 +55,8 @@ def index_compras():
                         if c.fecha_compra >= mes_actual and c.estatus == 'finalizado')
     provs_activos = len(set(c.id_proveedor for c, _ in lista))
 
+    form = _compra_form()
+
     return render_template("compras/compras.html",
         compras=lista,
         proveedores=proveedores,
@@ -51,6 +65,7 @@ def index_compras():
         compras_mes=compras_mes,
         gasto_mes=gasto_mes,
         provs_activos=provs_activos,
+        form=form,
     )
 
 
@@ -75,12 +90,17 @@ def api_unidades_materia(id_materia):
 @login_required
 @roles_required('admin', 'empleado')
 def crear_compra():
-    id_proveedor   = request.form.get('id_proveedor', '')
-    fecha_compra   = request.form.get('fecha_compra', '')
-    folio_factura  = request.form.get('folio_factura', '').strip()
-    observaciones  = request.form.get('observaciones', '').strip()
+    form = _compra_form()
+    if not form.validate():
+        for errors in form.errors.values():
+            flash(errors[0], 'error')
+        return redirect(url_for('compras.index_compras'))
 
-    # Detalle: listas paralelas enviadas desde el form
+    id_proveedor   = form.id_proveedor.data
+    fecha_compra   = form.fecha_compra.data
+    folio_factura  = form.folio_factura.data.strip() if form.folio_factura.data else ''
+    observaciones  = form.observaciones.data.strip() if form.observaciones.data else ''
+
     ids_materia    = request.form.getlist('id_materia[]')
     ids_unidad     = request.form.getlist('id_unidad_presentacion[]')
     cantidades     = request.form.getlist('cantidad_comprada[]')
@@ -89,8 +109,9 @@ def crear_compra():
     cantidades_b   = request.form.getlist('cantidad_base[]')
     costos         = request.form.getlist('costo_unitario[]')
 
-    if not id_proveedor or not fecha_compra or not ids_materia:
-        flash('Proveedor, fecha e insumos son obligatorios.', 'error')
+    ids_materia = [m for m in ids_materia if m]
+    if not ids_materia:
+        flash('Debes agregar al menos un insumo.', 'error')
         return redirect(url_for('compras.index_compras'))
 
     folio = _generar_folio()
@@ -188,8 +209,14 @@ def finalizar_compra(id_compra):
 @login_required
 @roles_required('admin', 'empleado')
 def editar_compra(id_compra):
-    folio_factura  = request.form.get('folio_factura', '').strip()
-    observaciones  = request.form.get('observaciones', '').strip()
+    form = _compra_form()
+    # En edición solo validamos fecha (proveedor no se modifica)
+    if not form.fecha_compra.data:
+        flash('La fecha de compra es obligatoria.', 'error')
+        return redirect(url_for('compras.index_compras'))
+
+    folio_factura  = form.folio_factura.data.strip() if form.folio_factura.data else ''
+    observaciones  = form.observaciones.data.strip() if form.observaciones.data else ''
 
     ids_materia    = request.form.getlist('id_materia[]')
     ids_unidad     = request.form.getlist('id_unidad_presentacion[]')
@@ -199,6 +226,7 @@ def editar_compra(id_compra):
     cantidades_b   = request.form.getlist('cantidad_base[]')
     costos         = request.form.getlist('costo_unitario[]')
 
+    ids_materia = [m for m in ids_materia if m]
     if not ids_materia:
         flash('Debes agregar al menos un insumo.', 'error')
         return redirect(url_for('compras.index_compras'))

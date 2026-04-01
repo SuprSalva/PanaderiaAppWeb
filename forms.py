@@ -3,7 +3,7 @@ from wtforms import (
     TextAreaField, DecimalField, IntegerField, HiddenField,
     FieldList, FormField, validators
 )
-from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError
+from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length
 
 
 class LoginForm(Form):
@@ -32,6 +32,18 @@ class RegistroUsuarioForm(Form):
         ('empleado', 'Empleado'),
         ('panadero', 'Panadero'),
     ])
+
+
+class CompraForm(Form):
+    """Valida el encabezado de un pedido de compra (nueva o edición)."""
+    id_proveedor  = SelectField('Proveedor', coerce=int,
+                                validators=[DataRequired(message='Selecciona un proveedor.')])
+    fecha_compra  = StringField('Fecha de Compra',
+                                [DataRequired(message='La fecha de compra es obligatoria.')])
+    folio_factura = StringField('No. Factura / Referencia',
+                                [Optional(), Length(max=60)])
+    observaciones = StringField('Observaciones',
+                                [Optional(), Length(max=500)])
 
 
 class RecetaForm(Form):
