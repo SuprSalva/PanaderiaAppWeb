@@ -8,9 +8,6 @@ from . import produccion
 
 POR_PAGINA = 15
 
-# ──────────────────────────────────────────────────────────────
-# Helper OUT-params
-# ──────────────────────────────────────────────────────────────
 def _call_sp(call_sql, select_sql, params):
     conn = db.session.connection()
     conn.execute(text(call_sql), params)
