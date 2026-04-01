@@ -1,770 +1,686 @@
 {% extends "layout.html" %}
+{% block title %}Producción{% endblock %}
 
-{% block container %}
+{% block extra_head %}
 <style>
-  @keyframes fadeUp {
+:root {
+  --st-pending: #f59e0b; --st-pending-bg: #fef3c7; --st-pending-cl: #92400e;
+  --st-process: #3b82f6; --st-process-bg: #dbeafe; --st-process-cl: #1d4ed8;
+  --st-done:    #10b981; --st-done-bg:    #d1fae5; --st-done-cl:    #065f46;
+  --st-cancel:  #6b7280; --st-cancel-bg:  #f3f4f6; --st-cancel-cl:  #374151;
+}
+
+/* ── Base ── */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px;
+       border-radius:9px; font-size:13px; font-weight:700; cursor:pointer;
+       border:none; transition:all .18s; text-decoration:none; font-family:'Lato',sans-serif; }
+.btn-primary   { background:var(--brown-dk); color:var(--cream); }
+.btn-primary:hover { background:var(--rust); }
+.btn-success   { background:#10b981; color:#fff; }
+.btn-success:hover { background:#059669; }
+.btn-danger    { background:#ef4444; color:#fff; }
+.btn-danger:hover  { background:#dc2626; }
+.btn-blue      { background:#3b82f6; color:#fff; }
+.btn-blue:hover    { background:#2563eb; }
+.btn-outline   { background:#fff; color:var(--brown-dk); border:1.5px solid var(--tan); }
+.btn-outline:hover { border-color:var(--brown); background:var(--warm-bg); }
+.btn-sm  { padding:5px 11px; font-size:12px; border-radius:7px; }
+.btn-xs  { padding:4px 9px;  font-size:11px; border-radius:6px; }
+
+/* ── Layout ── */
+.prod-wrap { display:flex; flex-direction:column; gap:20px; }
+
+/* ── Flash ── */
+.flash { padding:11px 16px; border-radius:10px; font-size:13px; font-weight:600;
+         display:flex; align-items:center; gap:8px; }
+.flash-success { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+.flash-danger  { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+
+@keyframes fadeUp {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .anim   { animation: fadeUp .35s ease both; }
-  .anim-1 { animation-delay: .05s; }
-  .anim-2 { animation-delay: .10s; }
-  .anim-3 { animation-delay: .15s; }
 
-  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
-  .db-page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
-  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-  .db-breadcrumb span { color: var(--tan); }
+.anim   { animation: fadeUp .35s ease both; }
+.anim-1 { animation-delay: .05s; }
+.anim-2 { animation-delay: .10s; }
+.anim-3 { animation-delay: .15s; }
 
-  /* ── STATS ── */
-  .p-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
-  .p-stat { background: var(--white); border: 1px solid var(--tan); border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px var(--shadow); display: flex; align-items: center; gap: 12px; transition: transform .2s; }
-  .p-stat:hover { transform: translateY(-2px); }
-  .p-stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .p-stat-icon.brown { background: #f3e8d8; }
-  .p-stat-icon.green { background: #e2eede; }
-  .p-stat-icon.gold  { background: #fef3d0; }
-  .p-stat-icon.rust  { background: #fce8df; }
-  .p-stat-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
-  .p-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
+/* ── Header ── */
+.db-topbar { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.db-page-title { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--brown-dk); display:flex; align-items:center; gap:10px; }
+.db-breadcrumb { font-size:12px; color:var(--brown-lt); margin-top:5px; display:flex; align-items:center; gap:5px; }
+.db-breadcrumb span { color:var(--tan); }
 
-  /* ── TOOLBAR ── */
-  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-  .search-wrap { position: relative; flex: 1; min-width: 200px; }
-  .search-wrap input { width: 100%; padding: 9px 14px 9px 38px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; background: var(--white); color: var(--text); outline: none; transition: border .2s; box-sizing: border-box; }
-  .search-wrap input:focus { border-color: var(--brown); }
-  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
-  .filter-select { padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13px; background: var(--white); color: var(--text); outline: none; cursor: pointer; }
+/* ── Stat cards ── */
+.stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+@media(max-width:860px){ .stat-grid { grid-template-columns:repeat(2,1fr); } }
+.stat-card { background:#fff; border:1px solid var(--tan); border-radius:13px;
+             padding:16px 18px; display:flex; align-items:center; gap:13px;
+             cursor:pointer; transition:border-color .15s; }
+.stat-card:hover, .stat-card.active { border-color:var(--brown); background:var(--warm-bg); }
+.stat-icon { width:44px; height:44px; border-radius:11px; display:flex;
+             align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.si-pending { background:var(--st-pending-bg); }
+.si-process { background:var(--st-process-bg); }
+.si-done    { background:var(--st-done-bg); }
+.si-cancel  { background:var(--st-cancel-bg); }
+.stat-num { font-size:26px; font-weight:900; color:var(--brown-dk); line-height:1; }
+.stat-lbl { font-size:11px; color:var(--brown-lt); font-weight:700;
+            text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
 
-  /* ── TABLE ── */
-  .table-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--warm-bg); }
-  thead th { padding: 12px 16px; font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown); text-align: left; white-space: nowrap; }
-  thead th:first-child { padding-left: 22px; }
-  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
-  tbody tr:hover { background: #fdf3e6; }
-  tbody td { padding: 12px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
-  tbody td:first-child { padding-left: 22px; }
+/* ── Filtros ── */
+.filter-bar { background:#fff; border:1px solid var(--tan); border-radius:12px;
+              padding:12px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.filter-bar label { font-size:12px; font-weight:700; color:var(--brown); white-space:nowrap; }
+.filter-bar select, .filter-bar input[type=date]
+             { border:1.5px solid var(--tan); border-radius:8px; padding:6px 10px;
+               font-size:13px; color:var(--text); background:#fff; height:34px; }
+.filter-bar select:focus, .filter-bar input:focus
+             { outline:none; border-color:var(--brown); }
+.filter-sep  { color:var(--tan); font-size:14px; }
 
-  .folio-chip { font-family: monospace; font-size: 12px; font-weight: 700; background: var(--warm-bg); color: var(--brown-dk); padding: 3px 9px; border-radius: 6px; border: 1px solid var(--tan); }
-  .prod-name-cell { font-weight: 700; color: var(--brown-dk); }
-  .prod-sub      { font-size: 11px; color: var(--brown-lt); margin-top: 2px; }
-  .qty-chip { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--brown-dk); }
+/* ── Table card ── */
+.table-card { background:#fff; border:1px solid var(--tan); border-radius:13px; overflow:hidden; }
+.table-card table { width:100%; border-collapse:collapse; }
+.table-card th { background:var(--warm-bg); padding:10px 13px; font-size:11px;
+                 text-transform:uppercase; letter-spacing:.5px; color:var(--brown);
+                 font-weight:800; text-align:left; white-space:nowrap; }
+.table-card td { padding:12px 13px; font-size:13px; border-bottom:1px solid var(--tan);
+                 vertical-align:middle; }
+.table-card tr:last-child td { border-bottom:none; }
+.table-card tr:hover td { background:#fdfaf6; }
 
-  /* ── ESTADO BADGES ── */
-  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .badge-en-proceso { background: #fef3d0; color: #8a6200; }
-  .badge-terminado  { background: #e2eede; color: #3a6034; }
-  .badge-pendiente  { background: #fce8df; color: #9c3a1a; }
-  .badge-cancelado  { background: #ebebeb; color: #666; }
-  .badge .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .badge-en-proceso .dot { background: #c9950a; animation: pulse 1.5s infinite; }
-  .badge-terminado  .dot { background: #5a7a52; }
-  .badge-pendiente  .dot { background: var(--rust); }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+/* ── Estado pill ── */
+.pill { display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
+        border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.pill-pendiente  { background:var(--st-pending-bg); color:var(--st-pending-cl); }
+.pill-en_proceso { background:var(--st-process-bg); color:var(--st-process-cl); }
+.pill-finalizado { background:var(--st-done-bg);    color:var(--st-done-cl); }
+.pill-cancelado  { background:var(--st-cancel-bg);  color:var(--st-cancel-cl); }
 
-  /* ── PROGRESS BAR ── */
-  .prog-wrap { display: flex; align-items: center; gap: 8px; min-width: 110px; }
-  .prog-track { flex: 1; height: 6px; border-radius: 3px; background: var(--tan); overflow: hidden; }
-  .prog-fill  { height: 100%; border-radius: 3px; transition: width .4s; }
-  .prog-fill.done { background: #5a7a52; }
-  .prog-fill.inprog { background: #c9950a; }
-  .prog-fill.pend  { background: var(--rust); }
-  .prog-pct { font-size: 11px; font-weight: 700; color: var(--brown-lt); white-space: nowrap; }
+/* ── Folio ── */
+.folio { font-family:monospace; font-weight:800; font-size:13px; color:var(--brown-dk);
+         background:var(--warm-bg); padding:3px 8px; border-radius:6px; }
 
-  .actions-cell { display: flex; gap: 6px; }
-  .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
-  .table-footer p { font-size: 12px; color: var(--brown-lt); }
-  .pagination { display: flex; gap: 4px; }
-  .page-btn { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); transition: all .15s; }
-  .page-btn:hover { background: var(--warm-bg); }
-  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
+/* ── Demand badge ── */
+.demand { display:inline-flex; align-items:center; gap:3px; padding:2px 7px;
+          border-radius:10px; font-size:10px; font-weight:700;
+          background:#fef3c7; color:#92400e; }
 
-  /* ── MODAL ── */
-  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 660px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
-  .modal-xl { max-width: 800px; }
-  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
-  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); display: flex; align-items: center; gap: 10px; }
-  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
-  .modal-close:hover { background: rgba(255,255,255,.25); }
-  .modal-body { padding: 26px; max-height: 78vh; overflow-y: auto; }
-  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
+/* ── Actions cell ── */
+.act-cell { display:flex; gap:5px; flex-wrap:nowrap; }
 
-  .form-row { display: grid; gap: 14px; }
-  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
-  .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
-  .form-input, .form-select, .form-textarea { padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; color: var(--text); background: var(--cream); outline: none; transition: border .2s; }
-  .form-input:focus, .form-select:focus { border-color: var(--brown); background: var(--white); }
-  .form-hint { font-size: 11px; color: var(--brown-lt); }
-  .section-divider { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brown-lt); padding: 6px 0 2px; border-bottom: 1px solid var(--tan); margin-bottom: 2px; grid-column: 1/-1; }
+/* ── Paginación ── */
+.pag { display:flex; align-items:center; justify-content:space-between;
+       padding:12px 16px; border-top:1px solid var(--tan); flex-wrap:wrap; gap:8px; }
+.pag-info { font-size:12px; color:var(--brown-lt); }
+.pag-btns { display:flex; gap:6px; }
+.pag-btns a { padding:5px 13px; border-radius:8px; font-size:12px; font-weight:700;
+              border:1.5px solid var(--tan); color:var(--brown-dk); text-decoration:none; }
+.pag-btns a:hover { border-color:var(--brown); background:var(--warm-bg); }
+.pag-btns .cur { background:var(--brown-dk); color:var(--cream); border-color:var(--brown-dk);
+                  pointer-events:none; }
 
-  /* ── PREVIEW INSUMOS ── */
-  .preview-box { background: var(--warm-bg); border: 1px solid var(--tan); border-radius: 10px; padding: 14px 16px; margin-top: 4px; }
-  .preview-title { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); margin-bottom: 10px; }
-  .preview-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--tan); }
-  .preview-row:last-child { border-bottom: none; }
-  .preview-nombre { font-size: 12.5px; color: var(--brown-dk); font-weight: 600; display: flex; align-items: center; gap: 6px; }
-  .preview-cant   { font-size: 12px; font-weight: 700; color: var(--brown); }
-  .preview-merma  { font-size: 10px; color: #8a6200; background: #fef3d0; padding: 1px 6px; border-radius: 10px; }
-  .preview-total  { font-size: 12px; font-weight: 700; color: var(--rust); }
+/* ── Empty state ── */
+.empty { text-align:center; padding:56px 20px; color:var(--brown-lt); }
+.empty .e-icon { font-size:44px; margin-bottom:10px; }
+.empty h3 { font-size:15px; font-weight:700; color:var(--brown); margin-bottom:5px; }
 
-  .stock-alert { display: flex; align-items: center; gap: 8px; background: #fce8df; border: 1px solid #e07a52; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #9c3a1a; margin-top: 10px; }
-  .stock-ok    { display: flex; align-items: center; gap: 8px; background: #e2eede; border: 1px solid #b2d4aa; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #3a6034; margin-top: 10px; }
+/* ══ MODAL ══ */
+.modal-bd { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45);
+            z-index:1000; align-items:center; justify-content:center; }
+.modal-bd.open { display:flex; }
+.modal    { background:#fff; border-radius:16px; width:min(620px,95vw);
+            max-height:92vh; overflow-y:auto;
+            box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s; }
+@keyframes fadeUp { from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1} }
+.m-header { padding:18px 22px 14px; border-bottom:1px solid var(--tan);
+            display:flex; align-items:center; justify-content:space-between; }
+.m-title  { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; color:var(--brown-dk); }
+.m-close  { background:none; border:none; font-size:20px; cursor:pointer;
+            color:var(--brown-lt); border-radius:7px; width:30px; height:30px;
+            display:flex; align-items:center; justify-content:center; }
+.m-close:hover { background:var(--warm-bg); }
+.m-body   { padding:18px 22px; display:flex; flex-direction:column; gap:14px; }
+.m-footer { padding:12px 22px 18px; border-top:1px solid var(--tan);
+            display:flex; justify-content:flex-end; gap:9px; }
 
-  /* ── TOTAL BAR ── */
-  .total-bar { display: flex; align-items: center; justify-content: space-between; background: var(--brown-dk); color: var(--cream); padding: 13px 18px; border-radius: 10px; margin-top: 14px; }
-  .total-bar span { font-size: 12px; opacity: .8; }
-  .total-bar strong { font-family: 'Playfair Display', serif; font-size: 20px; }
+/* Form groups */
+.fg { display:flex; flex-direction:column; gap:4px; }
+.fg label { font-size:11px; font-weight:700; color:var(--brown);
+            text-transform:uppercase; letter-spacing:.4px; }
+.fg select, .fg input, .fg textarea
+         { border:1.5px solid var(--tan); border-radius:9px; padding:8px 12px;
+           font-size:13px; color:var(--text); font-family:'Lato',sans-serif; width:100%; }
+.fg select:focus, .fg input:focus, .fg textarea:focus
+         { outline:none; border-color:var(--brown); box-shadow:0 0 0 3px rgba(156,111,62,.08); }
+.fg textarea { resize:vertical; min-height:70px; }
+.fg-hint { font-size:11px; color:var(--brown-lt); }
 
-  /* ── DETALLE MODAL ── */
-  .det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
-  .det-item label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); display: block; margin-bottom: 3px; }
-  .det-item span  { font-size: 13.5px; color: var(--brown-dk); font-weight: 600; }
+/* Receta info card */
+.rec-card { background:var(--warm-bg); border:1.5px solid var(--tan);
+            border-radius:10px; padding:11px 14px; font-size:12px; line-height:1.8; display:none; }
+.rec-card b { color:var(--brown-dk); }
+.rec-demand { display:inline-flex; align-items:center; gap:4px; padding:2px 8px;
+              border-radius:8px; font-size:11px; font-weight:700;
+              background:#fef3c7; color:#92400e; }
 
-  .consumo-table { width: 100%; border-collapse: collapse; }
-  .consumo-table thead { background: var(--warm-bg); }
-  .consumo-table thead th { padding: 9px 14px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown); text-align: left; }
-  .consumo-table tbody tr { border-top: 1px solid var(--tan); }
-  .consumo-table tbody tr:hover { background: #fdf3e6; }
-  .consumo-table tbody td { padding: 10px 14px; font-size: 12.5px; }
-  .merma-val { color: #8a6200; font-weight: 700; font-size: 11px; }
-  .descuento-val { color: var(--rust); font-weight: 700; }
-
-  /* ── TIMELINE ESTADO ── */
-  .timeline { display: flex; align-items: center; gap: 0; margin: 18px 0; }
-  .tl-step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
-  .tl-step:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: 50%; width: 100%; height: 2px; background: var(--tan); z-index: 0; }
-  .tl-step.done::after  { background: #5a7a52; }
-  .tl-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; position: relative; z-index: 1; border: 2px solid var(--tan); background: var(--white); }
-  .tl-dot.done    { background: #5a7a52; border-color: #5a7a52; color: #fff; }
-  .tl-dot.current { background: #c9950a; border-color: #c9950a; color: #fff; animation: pulse 1.5s infinite; }
-  .tl-dot.pending { background: var(--tan); border-color: var(--tan); color: var(--brown-lt); }
-  .tl-label { font-size: 10px; font-weight: 700; margin-top: 5px; color: var(--brown-lt); text-align: center; }
-  .tl-label.done    { color: #5a7a52; }
-  .tl-label.current { color: #8a6200; }
-
-  .info-box { background: #f3e8d8; border: 1px solid var(--tan); border-radius: 10px; padding: 11px 14px; font-size: 12px; color: var(--brown-dk); display: flex; gap: 8px; align-items: flex-start; margin-bottom: 14px; }
-  .info-box .ii { flex-shrink: 0; font-size: 15px; }
+/* Insumos table inside modal */
+.ins-tbl { width:100%; border-collapse:collapse; font-size:12px; }
+.ins-tbl th { background:var(--warm-bg); padding:6px 10px; text-align:left;
+              color:var(--brown); font-weight:800; font-size:10px; text-transform:uppercase; }
+.ins-tbl td { padding:7px 10px; border-bottom:1px solid var(--tan); }
+.ins-tbl tr.fail td { background:#fff5f5; }
+.ins-ok  { color:#065f46; font-weight:700; }
+.ins-ko  { color:#dc2626; font-weight:700; }
+.bar-mini { display:inline-block; width:50px; height:5px; background:var(--tan);
+            border-radius:4px; vertical-align:middle; margin-left:5px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; }
 </style>
+{% endblock %}
 
-<!-- TOPBAR -->
-<div class="db-topbar anim">
-  <div>
-    <div class="db-page-title">⚙️ Producción</div>
-    <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Producción</div>
-  </div>
-  <button class="btn btn-primary" onclick="openModal('modal-add')">＋ Nueva Orden de Producción</button>
-</div>
+{% block container %}
+<div class="prod-wrap">
 
-<!-- STATS -->
-<div class="p-stats anim anim-1">
-  <div class="p-stat">
-    <div class="p-stat-icon brown">⚙️</div>
-    <div><div class="p-stat-val">3</div><div class="p-stat-lbl">En Proceso Hoy</div></div>
-  </div>
-  <div class="p-stat">
-    <div class="p-stat-icon green">✅</div>
-    <div><div class="p-stat-val">18</div><div class="p-stat-lbl">Terminados este Mes</div></div>
-  </div>
-  <div class="p-stat">
-    <div class="p-stat-icon gold">🍞</div>
-    <div><div class="p-stat-val">890</div><div class="p-stat-lbl">Piezas Producidas Hoy</div></div>
-  </div>
-  <div class="p-stat">
-    <div class="p-stat-icon rust">⏳</div>
-    <div><div class="p-stat-val">2</div><div class="p-stat-lbl">Solicitudes Pendientes</div></div>
-  </div>
-</div>
-
-<!-- TOOLBAR -->
-<div class="toolbar anim anim-2">
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input type="text" placeholder="Buscar por folio o producto…" id="searchInput" oninput="filterTable()">
-  </div>
-  <select class="filter-select" id="filterEstado" onchange="filterTable()">
-    <option value="">Todos los estados</option>
-    <option value="en-proceso">En Proceso</option>
-    <option value="terminado">Terminado</option>
-    <option value="pendiente">Pendiente</option>
-  </select>
-  <input type="date" class="filter-select" id="filterFecha" onchange="filterTable()" title="Filtrar por fecha">
-</div>
-
-<!-- TABLE -->
-<div class="table-card anim anim-3">
-  <table id="prodTable">
-    <thead>
-      <tr>
-        <th>Lote</th>
-        <th>Producto / Receta</th>
-        <th>Cantidad</th>
-        <th>Estado</th>
-        <th>Avance</th>
-        <th>Inicio</th>
-        <th>Fin estimado</th>
-        <th>Operario</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-
-      <tr data-estado="en-proceso">
-        <td><span class="folio-chip">L-0021</span></td>
-        <td>
-          <div class="prod-name-cell">🥐 Cuernito de Mantequilla</div>
-          <div class="prod-sub">Receta: Cuernito de Mantequilla · 16 pza/lote</div>
-        </td>
-        <td><span class="qty-chip">32</span> <small style="color:var(--brown-lt)">pzas (2 lotes)</small></td>
-        <td><span class="badge badge-en-proceso"><span class="dot"></span>En Proceso</span></td>
-        <td>
-          <div class="prog-wrap">
-            <div class="prog-track"><div class="prog-fill inprog" style="width:60%"></div></div>
-            <span class="prog-pct">60%</span>
-          </div>
-        </td>
-        <td>Hoy 08:00</td>
-        <td>Hoy 10:30</td>
-        <td>José Juan G.</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
-            <button class="btn btn-primary btn-sm" onclick="openFinalizar('Cuernito de Mantequilla', 'L-0021', 32)">✅ Finalizar</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-estado="en-proceso">
-        <td><span class="folio-chip">L-0022</span></td>
-        <td>
-          <div class="prod-name-cell">🍞 Concha de Vainilla</div>
-          <div class="prod-sub">Receta: Concha de Vainilla · 12 pza/lote</div>
-        </td>
-        <td><span class="qty-chip">60</span> <small style="color:var(--brown-lt)">pzas (5 lotes)</small></td>
-        <td><span class="badge badge-en-proceso"><span class="dot"></span>En Proceso</span></td>
-        <td>
-          <div class="prog-wrap">
-            <div class="prog-track"><div class="prog-fill inprog" style="width:40%"></div></div>
-            <span class="prog-pct">40%</span>
-          </div>
-        </td>
-        <td>Hoy 09:15</td>
-        <td>Hoy 12:00</td>
-        <td>José Juan G.</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
-            <button class="btn btn-primary btn-sm" onclick="openFinalizar('Concha de Vainilla', 'L-0022', 60)">✅ Finalizar</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-estado="pendiente">
-        <td><span class="folio-chip">L-0023</span></td>
-        <td>
-          <div class="prod-name-cell">🍩 Dona Glaseada</div>
-          <div class="prod-sub">Receta: Dona Glaseada · 15 pza/lote</div>
-        </td>
-        <td><span class="qty-chip">45</span> <small style="color:var(--brown-lt)">pzas (3 lotes)</small></td>
-        <td><span class="badge badge-pendiente"><span class="dot"></span>Pendiente</span></td>
-        <td>
-          <div class="prog-wrap">
-            <div class="prog-track"><div class="prog-fill pend" style="width:0%"></div></div>
-            <span class="prog-pct">0%</span>
-          </div>
-        </td>
-        <td>—</td>
-        <td>Hoy 14:00</td>
-        <td>—</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
-            <button class="btn btn-outline btn-sm" onclick="openIniciar('Dona Glaseada', 'L-0023')">▶ Iniciar</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-estado="terminado">
-        <td><span class="folio-chip">L-0020</span></td>
-        <td>
-          <div class="prod-name-cell">🥖 Bolillo Relleno</div>
-          <div class="prod-sub">Receta: Bolillo Relleno · 20 pza/lote</div>
-        </td>
-        <td><span class="qty-chip">120</span> <small style="color:var(--brown-lt)">pzas (6 lotes)</small></td>
-        <td><span class="badge badge-terminado"><span class="dot"></span>Terminado</span></td>
-        <td>
-          <div class="prog-wrap">
-            <div class="prog-track"><div class="prog-fill done" style="width:100%"></div></div>
-            <span class="prog-pct">100%</span>
-          </div>
-        </td>
-        <td>Ayer 07:00</td>
-        <td>Ayer 09:30</td>
-        <td>José Juan G.</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
-          </div>
-        </td>
-      </tr>
-
-      <tr data-estado="terminado">
-        <td><span class="folio-chip">L-0019</span></td>
-        <td>
-          <div class="prod-name-cell">🍫 Pan de Chocolate</div>
-          <div class="prod-sub">Receta: Pan de Chocolate · 10 pza/lote</div>
-        </td>
-        <td><span class="qty-chip">50</span> <small style="color:var(--brown-lt)">pzas (5 lotes)</small></td>
-        <td><span class="badge badge-terminado"><span class="dot"></span>Terminado</span></td>
-        <td>
-          <div class="prog-wrap">
-            <div class="prog-track"><div class="prog-fill done" style="width:100%"></div></div>
-            <span class="prog-pct">100%</span>
-          </div>
-        </td>
-        <td>Ayer 06:00</td>
-        <td>Ayer 08:00</td>
-        <td>José Juan G.</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" onclick="openDetalle()">👁️</button>
-          </div>
-        </td>
-      </tr>
-
-    </tbody>
-  </table>
-  <div class="table-footer">
-    <p>Mostrando <span id="visibleCount">5</span> de 23 lotes</p>
-    <div class="pagination">
-      <div class="page-btn active">1</div>
-      <div class="page-btn">2</div>
-      <div class="page-btn">3</div>
-      <div class="page-btn">›</div>
+  <!-- FLASH -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="flash flash-{{ cat }}">
+      {{ '✅' if cat=='success' else '⚠️' }} {{ msg }}
     </div>
-  </div>
-</div>
+    {% endfor %}
+  {% endwith %}
 
-<!-- ══════════════════════════════════════
-     MODAL: NUEVA ORDEN DE PRODUCCIÓN
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-add">
-  <div class="modal modal-xl">
-    <div class="modal-header">
-      <h2>⚙️ Nueva Orden de Producción</h2>
-      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+  <div class="db-topbar anim">
+    <div>
+      <h1 class="db-page-title">⚙️ Producción</h1>
+      <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Producción</div>
     </div>
-    <div class="modal-body">
+    <button class="btn btn-primary" onclick="abrirNueva()">＋ Nueva Orden</button>
+  </div>
 
-      <div class="form-row cols-3" style="margin-bottom:20px">
-        <div class="section-divider">Datos del Lote</div>
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">Producto / Receta</label>
-          <select class="form-select" id="sel-receta" onchange="loadReceta()">
-            <option value="">— Seleccionar receta —</option>
-            <option value="concha"    data-rend="12" data-emoji="🍞">Concha de Vainilla (12 pza/lote)</option>
-            <option value="chocolate" data-rend="10" data-emoji="🍫">Pan de Chocolate (10 pza/lote)</option>
-            <option value="bolillo"   data-rend="20" data-emoji="🥖">Bolillo Relleno (20 pza/lote)</option>
-            <option value="dona"      data-rend="15" data-emoji="🍩">Dona Glaseada (15 pza/lote)</option>
-            <option value="cuernito"  data-rend="16" data-emoji="🥐">Cuernito de Mantequilla (16 pza/lote)</option>
+  <!-- STAT CARDS (clicables como filtro) -->
+  <div class="stat-grid">
+    {% set stats = [
+      ('pendiente',  '📋', 'si-pending', 'Pendientes'),
+      ('en_proceso', '⚙️', 'si-process', 'En Proceso'),
+      ('finalizado', '✅', 'si-done',    'Finalizados'),
+      ('cancelado',  '❌', 'si-cancel',  'Cancelados'),
+    ] %}
+    {% for est, icn, cls, lbl in stats %}
+    <div class="stat-card {% if estado_sel == est %}active{% endif %}"
+         onclick="filtrarEstado('{{ est }}')">
+      <div class="stat-icon {{ cls }}">{{ icn }}</div>
+      <div>
+        <div class="stat-num">{{ conteos[est] }}</div>
+        <div class="stat-lbl">{{ lbl }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- FILTROS -->
+  <form method="GET" action="" class="filter-bar" id="form-filtro">
+    <label>Estado:</label>
+    <select name="estado" onchange="this.form.submit()">
+      <option value="" {% if not estado_sel %}selected{% endif %}>Todos</option>
+      <option value="pendiente"  {% if estado_sel=='pendiente'  %}selected{% endif %}>Pendiente</option>
+      <option value="en_proceso" {% if estado_sel=='en_proceso' %}selected{% endif %}>En Proceso</option>
+      <option value="finalizado" {% if estado_sel=='finalizado' %}selected{% endif %}>Finalizado</option>
+      <option value="cancelado"  {% if estado_sel=='cancelado'  %}selected{% endif %}>Cancelado</option>
+    </select>
+    <span class="filter-sep">|</span>
+    <label>Del:</label>
+    <input type="date" name="fecha_ini" value="{{ fecha_ini }}" onchange="this.form.submit()">
+    <label>Al:</label>
+    <input type="date" name="fecha_fin" value="{{ fecha_fin }}" onchange="this.form.submit()">
+    {% if estado_sel or fecha_ini or fecha_fin %}
+    <a href="{{ url_for('produccion.index_produccion') }}" class="btn btn-outline btn-sm">✕ Limpiar</a>
+    {% endif %}
+  </form>
+
+  <!-- TABLA -->
+  <div class="table-card">
+    {% if lotes %}
+    <table>
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Receta / Producto</th>
+          <th>Lotes</th>
+          <th>Piezas</th>
+          <th>Estado</th>
+          <th>Operario</th>
+          <th>Creado por</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in lotes %}
+        <tr>
+          <td><span class="folio">{{ l.folio_lote }}</span></td>
+          <td>
+            <div style="font-weight:700; color:var(--brown-dk); font-size:13px;">
+              {{ l.nombre_producto }}
+            </div>
+            <div style="font-size:11px; color:var(--brown-lt);">{{ l.nombre_receta }}</div>
+            {% if l.pedidos_pendientes %}
+            <span class="demand">📦 {{ l.pedidos_pendientes }} pedido(s)</span>
+            {% endif %}
+          </td>
+          <td style="font-weight:700;">{{ l.cantidad_lotes | int }}</td>
+          <td style="font-weight:700; color:var(--brown);">
+            {{ l.piezas_producidas | int if l.piezas_producidas else l.piezas_esperadas | int }} pzas
+          </td>
+          <td>
+            <span class="pill pill-{{ l.estado }}">
+              {% if l.estado=='pendiente'  %}📋
+              {% elif l.estado=='en_proceso' %}⚙️
+              {% elif l.estado=='finalizado' %}✅
+              {% else %}❌{% endif %}
+              {{ l.estado | replace('_',' ') | title }}
+            </span>
+          </td>
+          <td style="font-size:12px;">{{ l.operario or '—' }}</td>
+          <td style="font-size:12px; color:var(--brown-lt);">{{ l.creado_por_nombre or '—' }}</td>
+          <td style="font-size:11px; color:var(--brown-lt);">
+            {{ l.creado_en.strftime('%d/%m/%Y') if l.creado_en else '—' }}
+            {% if l.fecha_inicio %}
+            <br><span style="color:var(--st-process);">▶ {{ l.fecha_inicio.strftime('%d/%m %H:%M') }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="act-cell">
+              <a href="{{ url_for('produccion.detalle_orden', id_produccion=l.id_produccion) }}"
+                 class="btn btn-outline btn-xs">👁 Ver</a>
+
+              {% if l.estado == 'pendiente' %}
+              <form method="POST"
+                    action="{{ url_for('produccion.iniciar_orden', id_produccion=l.id_produccion) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('¿Iniciar la orden {{ l.folio_lote }}?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-blue btn-xs">▶ Iniciar</button>
+              </form>
+              {% elif l.estado == 'en_proceso' %}
+              <button class="btn btn-success btn-xs"
+                      onclick="abrirFinalizar({{ l.id_produccion }},'{{ l.folio_lote }}',{{ l.piezas_esperadas | int }})">
+                ✅ Finalizar
+              </button>
+              {% endif %}
+
+              {% if l.estado in ('pendiente','en_proceso') %}
+              <button class="btn btn-danger btn-xs"
+                      onclick="abrirCancelar({{ l.id_produccion }},'{{ l.folio_lote }}')">
+                ✕
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <div class="pag">
+      <span class="pag-info">
+        Página {{ pagina }}
+        {% if estado_sel %} · Filtro: {{ estado_sel | replace('_',' ') | title }}{% endif %}
+      </span>
+      <div class="pag-btns">
+        {% if pagina > 1 %}
+        <a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ pagina-1 }}">← Anterior</a>
+        {% endif %}
+        <span class="cur">{{ pagina }}</span>
+        {% if tiene_mas %}
+        <a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ pagina+1 }}">Siguiente →</a>
+        {% endif %}
+      </div>
+    </div>
+
+    {% else %}
+    <div class="empty">
+      <div class="e-icon">🏭</div>
+      <h3>Sin órdenes de producción</h3>
+      <p>Crea tu primera orden usando el botón de arriba.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div><!-- prod-wrap -->
+
+
+<!-- ══ MODAL NUEVA ORDEN ══ -->
+<div class="modal-bd" id="modalNueva">
+  <div class="modal">
+    <div class="m-header">
+      <div class="m-title">⚙️ Nueva Orden de Producción</div>
+      <button class="m-close" onclick="cerrarModal('modalNueva')">✕</button>
+    </div>
+    <form method="POST" action="{{ url_for('produccion.produccion_nueva') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="m-body">
+
+        <!-- Receta -->
+        <div class="fg">
+          <label>Receta a producir *</label>
+          <select name="id_receta" id="sel-receta" required onchange="onRecetaChange()">
+            <option value="">— Selecciona una receta —</option>
+            {% for r in recetas %}
+            <option value="{{ r.id_receta }}"
+                    data-rendimiento="{{ r.rendimiento }}"
+                    data-unidad="{{ r.unidad_rendimiento }}"
+                    data-producto="{{ r.nombre_producto }}"
+                    data-tamano="{{ r.tamano or '' }}"
+                    data-demanda="{{ r.pedidos_pendientes }}">
+              {{ r.nombre_producto }} — {{ r.nombre_receta }}
+              {% if r.pedidos_pendientes %} (📦 {{ r.pedidos_pendientes }} pedidos){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="fg-hint">Las recetas con 📦 tienen pedidos activos pendientes.</div>
+        </div>
+
+        <!-- Info de la receta seleccionada -->
+        <div class="rec-card" id="rec-info">
+          <div id="ri-producto" style="font-size:13px; font-weight:700; color:var(--brown-dk); margin-bottom:4px;"></div>
+          <div>Rendimiento por lote: <b id="ri-rend"></b></div>
+          <div id="ri-demand-row" style="display:none;">
+            Demanda activa: <span class="rec-demand" id="ri-demand"></span>
+          </div>
+          <div>Total de piezas: <b id="ri-piezas">—</b></div>
+        </div>
+
+        <!-- Cantidad de lotes -->
+        <div class="fg">
+          <label>Cantidad de lotes *</label>
+          <input type="number" name="cantidad_lotes" id="inp-lotes"
+                 min="1" step="1" value="1" required oninput="onLotesChange()">
+          <div class="fg-hint" id="hint-piezas">Piezas totales: —</div>
+        </div>
+
+        <!-- Operario -->
+        <div class="fg">
+          <label>Panadero asignado</label>
+          <select name="operario_id">
+            <option value="">— Sin asignar —</option>
+            {% for o in operarios %}
+            <option value="{{ o.id_usuario }}">
+              {{ o.nombre_completo }}{% if o.nombre_rol == 'Administrador' %} (Admin){% endif %}
+            </option>
+            {% endfor %}
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Número de Lotes</label>
-          <input type="number" class="form-input" id="num-lotes" value="1" min="1" oninput="calcPiezas()">
-          <span class="form-hint" id="hint-rend">Selecciona una receta primero</span>
+
+        <!-- Observaciones -->
+        <div class="fg">
+          <label>Observaciones</label>
+          <textarea name="observaciones" placeholder="Lote matutino, urgente..."></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">Total de Piezas</label>
-          <input type="text" class="form-input" id="total-piezas" readonly value="—" style="background:var(--warm-bg);font-weight:700;color:var(--brown-dk);">
+
+        <!-- Verificación de insumos -->
+        <div id="ins-section" style="display:none;">
+          <div style="font-size:11px; font-weight:800; color:var(--brown); text-transform:uppercase;
+               letter-spacing:.5px; margin-bottom:6px;">Verificación de insumos</div>
+          <div id="ins-loading" style="font-size:12px; color:var(--brown-lt);">Calculando…</div>
+          <div id="ins-content" style="display:none;">
+            <div id="ins-alerta" style="display:none; background:#fee2e2; border:1px solid #fca5a5;
+                 border-radius:9px; padding:9px 12px; font-size:12px; color:#991b1b;
+                 font-weight:700; margin-bottom:8px;"></div>
+            <div id="ins-ok-msg" style="display:none; background:#d1fae5; border:1px solid #6ee7b7;
+                 border-radius:9px; padding:9px 12px; font-size:12px; color:#065f46;
+                 font-weight:700; margin-bottom:8px;"></div>
+            <div style="overflow-x:auto;">
+              <table class="ins-tbl">
+                <thead>
+                  <tr><th>Insumo</th><th>Unidad</th><th>Requerido</th>
+                      <th>Disponible</th><th>Estado</th></tr>
+                </thead>
+                <tbody id="ins-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Fecha de Inicio</label>
-          <input type="datetime-local" class="form-input" id="fecha-inicio">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Operario Responsable</label>
-          <select class="form-select">
-            <option>— Seleccionar —</option>
-            <option>José Juan García H.</option>
-            <option>Mariana Guadalupe C.</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Notas del Lote</label>
-          <input type="text" class="form-input" placeholder="Observaciones opcionales">
-        </div>
+
+      </div><!-- m-body -->
+      <div class="m-footer">
+        <button type="button" class="btn btn-outline" onclick="cerrarModal('modalNueva')">Cancelar</button>
+        <button type="button" class="btn btn-outline" id="btn-verificar" onclick="verificarInsumos()">
+          🔍 Verificar Insumos
+        </button>
+        <button type="submit" class="btn btn-primary">＋ Crear Orden</button>
       </div>
-
-      <!-- Preview insumos -->
-      <div id="preview-wrapper" style="display:none">
-        <div class="info-box">
-          <span class="ii">⚠️</span>
-          <span>Al confirmar, se descontarán automáticamente los insumos del inventario conforme a la receta <strong>incluyendo mermas</strong>. Esta acción no se puede deshacer.</span>
-        </div>
-
-        <div class="preview-box">
-          <div class="preview-title">📦 Insumos que se descontarán del inventario</div>
-          <div id="preview-insumos"></div>
-        </div>
-
-        <div id="stock-status" class="stock-ok">
-          <span>✅</span> <span>Stock suficiente para producir este lote.</span>
-        </div>
-
-        <div class="total-bar">
-          <span>Costo estimado del lote</span>
-          <strong id="costo-lote">—</strong>
-        </div>
-      </div>
-
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
-      <button class="btn btn-primary" id="btn-confirmar" disabled>⚙️ Iniciar Producción y Descontar Stock</button>
-    </div>
+    </form>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MODAL: FINALIZAR LOTE
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-finalizar">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-header" style="background:#5a7a52">
-      <h2>✅ Finalizar Lote de Producción</h2>
-      <button class="modal-close" onclick="closeModal('modal-finalizar')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="text-align:center; padding: 10px 0 20px;">
-        <div style="font-size:48px; margin-bottom:10px;">🎉</div>
-        <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--brown-dk);" id="fin-nombre">Cuernito de Mantequilla</div>
-        <div style="font-size:12px;color:var(--brown-lt);margin-top:4px;" id="fin-folio">Lote L-0021</div>
-      </div>
 
-      <div class="form-row cols-2">
-        <div class="form-group">
-          <label class="form-label">Piezas Producidas</label>
-          <input type="number" class="form-input" id="fin-piezas" value="32">
-          <span class="form-hint">Confirma o ajusta la cantidad real obtenida</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Hora de Finalización</label>
-          <input type="datetime-local" class="form-input" id="fin-hora">
-        </div>
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">Observaciones</label>
-          <input type="text" class="form-input" placeholder="Ej. Merma adicional por accidente...">
+<!-- ══ MODAL FINALIZAR (desde tabla) ══ -->
+<div class="modal-bd" id="modalFinalizar">
+  <div class="modal">
+    <div class="m-header">
+      <div class="m-title">✅ Finalizar Orden <span id="fin-folio" style="font-family:monospace;"></span></div>
+      <button class="m-close" onclick="cerrarModal('modalFinalizar')">✕</button>
+    </div>
+    <form method="POST" id="form-finalizar" action="">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="m-body">
+        <p style="font-size:13px; color:var(--text); line-height:1.6;">
+          Al finalizar se descontarán las materias primas y se acreditarán las piezas
+          al inventario de producto terminado. Esta operación es <strong>irreversible</strong>.
+        </p>
+        <div class="fg">
+          <label>Piezas producidas reales</label>
+          <input type="number" name="piezas_reales" id="fin-piezas"
+                 min="1" step="1" placeholder="Dejar en blanco para usar piezas esperadas">
+          <div class="fg-hint" id="fin-hint"></div>
         </div>
       </div>
-
-      <div class="stock-ok" style="margin-top:14px;">
-        <span>📦</span>
-        <span>Las <strong id="fin-piezas-label">32 piezas</strong> se agregarán automáticamente al inventario de producto terminado.</span>
+      <div class="m-footer">
+        <button type="button" class="btn btn-outline" onclick="cerrarModal('modalFinalizar')">Cancelar</button>
+        <button type="submit" class="btn btn-success">✅ Confirmar Finalización</button>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-finalizar')">Cancelar</button>
-      <button class="btn btn-primary" style="background:#5a7a52; box-shadow:0 3px 10px rgba(90,122,82,.35)">✅ Confirmar y Enviar a Inventario</button>
-    </div>
+    </form>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MODAL: INICIAR LOTE PENDIENTE
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-iniciar">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-header">
-      <h2>▶ Iniciar Producción</h2>
-      <button class="modal-close" onclick="closeModal('modal-iniciar')">✕</button>
+
+<!-- ══ MODAL CANCELAR (desde tabla) ══ -->
+<div class="modal-bd" id="modalCancelar">
+  <div class="modal">
+    <div class="m-header">
+      <div class="m-title">❌ Cancelar Orden <span id="can-folio" style="font-family:monospace;"></span></div>
+      <button class="m-close" onclick="cerrarModal('modalCancelar')">✕</button>
     </div>
-    <div class="modal-body">
-      <div style="text-align:center;padding:8px 0 18px">
-        <div style="font-size:40px;margin-bottom:8px;">⚙️</div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--brown-dk);" id="ini-nombre">Dona Glaseada</div>
-        <div style="font-size:12px;color:var(--brown-lt);margin-top:3px;" id="ini-folio">Lote L-0023</div>
+    <form method="POST" id="form-cancelar" action="">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="m-body">
+        <div class="fg">
+          <label>Motivo de cancelación *</label>
+          <textarea name="motivo" required
+                    placeholder="Ej. Cambio de prioridades, error en la captura..."></textarea>
+        </div>
       </div>
-      <div class="info-box">
-        <span class="ii">⚠️</span>
-        <span>Al iniciar, se descontarán los insumos del inventario según la receta. Asegúrate de tener stock suficiente.</span>
+      <div class="m-footer">
+        <button type="button" class="btn btn-outline" onclick="cerrarModal('modalCancelar')">No, volver</button>
+        <button type="submit" class="btn btn-danger">Sí, cancelar</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Operario Responsable</label>
-        <select class="form-select">
-          <option>José Juan García H.</option>
-          <option>Mariana Guadalupe C.</option>
-        </select>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-iniciar')">Cancelar</button>
-      <button class="btn btn-primary">⚙️ Iniciar y Descontar Stock</button>
-    </div>
+    </form>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MODAL: VER DETALLE DEL LOTE
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-detalle">
-  <div class="modal modal-xl">
-    <div class="modal-header">
-      <h2>📋 Detalle del Lote — <span style="opacity:.7;font-size:14px">L-0021</span></h2>
-      <button class="modal-close" onclick="closeModal('modal-detalle')">✕</button>
-    </div>
-    <div class="modal-body">
+{% endblock %}
 
-      <!-- Timeline -->
-      <div class="timeline">
-        <div class="tl-step done">
-          <div class="tl-dot done">✓</div>
-          <div class="tl-label done">Registrado</div>
-        </div>
-        <div class="tl-step done">
-          <div class="tl-dot done">✓</div>
-          <div class="tl-label done">Stock descontado</div>
-        </div>
-        <div class="tl-step">
-          <div class="tl-dot current">⚙</div>
-          <div class="tl-label current">En producción</div>
-        </div>
-        <div class="tl-step">
-          <div class="tl-dot pending">📦</div>
-          <div class="tl-label">A inventario</div>
-        </div>
-        <div class="tl-step">
-          <div class="tl-dot pending">✅</div>
-          <div class="tl-label">Finalizado</div>
-        </div>
-      </div>
-
-      <!-- Info general -->
-      <div class="det-grid" style="margin-bottom:18px">
-        <div class="det-item"><label>Producto</label><span>🥐 Cuernito de Mantequilla</span></div>
-        <div class="det-item"><label>Receta</label><span>Cuernito de Mantequilla</span></div>
-        <div class="det-item"><label>Lotes</label><span>2 lotes × 16 pzas</span></div>
-        <div class="det-item"><label>Total Piezas</label><span>32 piezas</span></div>
-        <div class="det-item"><label>Inicio</label><span>Hoy 08:00 am</span></div>
-        <div class="det-item"><label>Fin Estimado</label><span>Hoy 10:30 am</span></div>
-        <div class="det-item"><label>Operario</label><span>José Juan García H.</span></div>
-        <div class="det-item"><label>Estado</label><span><span class="badge badge-en-proceso"><span class="dot"></span>En Proceso</span></span></div>
-      </div>
-
-      <!-- Consumos -->
-      <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--brown-dk);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--tan);">
-        🌾 Consumo de Insumos (descuento aplicado)
-      </div>
-      <table class="consumo-table">
-        <thead>
-          <tr>
-            <th>Insumo</th>
-            <th>Cant. x Receta</th>
-            <th>Merma %</th>
-            <th>Total Descontado</th>
-            <th>Stock Anterior</th>
-            <th>Stock Actual</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>🌾 Harina de Trigo</strong></td>
-            <td>960 g <small style="color:var(--brown-lt)">(480g × 2)</small></td>
-            <td><span class="merma-val">3%</span></td>
-            <td><span class="descuento-val">988.8 g</span></td>
-            <td>40,000 g</td>
-            <td><strong>39,011.2 g</strong></td>
-          </tr>
-          <tr>
-            <td><strong>🧈 Mantequilla</strong></td>
-            <td>400 g <small style="color:var(--brown-lt)">(200g × 2)</small></td>
-            <td><span class="merma-val">2%</span></td>
-            <td><span class="descuento-val">408 g</span></td>
-            <td>6,500 g</td>
-            <td><strong>6,092 g</strong></td>
-          </tr>
-          <tr>
-            <td><strong>🥚 Huevo</strong></td>
-            <td>160 g <small style="color:var(--brown-lt)">(80g × 2)</small></td>
-            <td><span class="merma-val">4%</span></td>
-            <td><span class="descuento-val">166.4 g</span></td>
-            <td>3,500 g</td>
-            <td><strong>3,333.6 g</strong></td>
-          </tr>
-          <tr>
-            <td><strong>🍚 Azúcar Refinada</strong></td>
-            <td>120 g <small style="color:var(--brown-lt)">(60g × 2)</small></td>
-            <td><span class="merma-val">1%</span></td>
-            <td><span class="descuento-val">121.2 g</span></td>
-            <td>5,600 g</td>
-            <td><strong>5,478.8 g</strong></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="total-bar" style="margin-top:14px">
-        <span>Costo estimado del lote (con mermas)</span>
-        <strong>$176.80</strong>
-      </div>
-
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-detalle')">Cerrar</button>
-      <button class="btn btn-primary" onclick="closeModal('modal-detalle'); openFinalizar('Cuernito de Mantequilla','L-0021',32)">✅ Finalizar Lote</button>
-    </div>
-  </div>
-</div>
-
+{% block extra_scripts %}
 <script>
-  function openModal(id)  { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-  });
+document.addEventListener('DOMContentLoaded', function () {
 
-  function openDetalle()  { openModal('modal-detalle'); }
+  /* ══ Datos de recetas ══ */
+  const RECETAS = {};
+  {% for r in recetas %}
+  RECETAS[{{ r.id_receta }}] = {
+    id:         {{ r.id_receta }},
+    rendimiento: {{ r.rendimiento }},
+    unidad:     "{{ r.unidad_rendimiento | e }}",
+    producto:   "{{ r.nombre_producto | e }}",
+    tamano:     "{{ r.tamano or '' | e }}",
+    demanda:    {{ r.pedidos_pendientes }},
+  };
+  {% endfor %}
 
-  function openFinalizar(nombre, folio, piezas) {
-    document.getElementById('fin-nombre').textContent = nombre;
-    document.getElementById('fin-folio').textContent  = 'Lote ' + folio;
-    document.getElementById('fin-piezas').value       = piezas;
-    document.getElementById('fin-piezas-label').textContent = piezas + ' piezas';
-    const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById('fin-hora').value = now.toISOString().slice(0,16);
-    openModal('modal-finalizar');
+  /* ── Modales genéricos ── */
+  window.cerrarModal = function(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  function abrirModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
+  document.querySelectorAll('.modal-bd').forEach(m =>
+    m.addEventListener('click', e => { if (e.target === m) { m.classList.remove('open'); document.body.style.overflow=''; } })
+  );
 
-  function openIniciar(nombre, folio) {
-    document.getElementById('ini-nombre').textContent = nombre;
-    document.getElementById('ini-folio').textContent  = 'Lote ' + folio;
-    openModal('modal-iniciar');
-  }
-
-  // Datos simulados de recetas
-  const recetaData = {
-    concha:    { rend: 12, emoji:'🍞', costo: 170.40, insumos:[
-      { nom:'🌾 Harina de Trigo', cant:'500 g', merma:'3%', total:'515 g', stock:'40,000 g', ok: true },
-      { nom:'🍚 Azúcar Refinada', cant:'120 g', merma:'1%', total:'121.2 g', stock:'5,600 g', ok: true },
-      { nom:'🧈 Mantequilla',     cant:'80 g',  merma:'2%', total:'81.6 g',  stock:'6,500 g', ok: true },
-      { nom:'🥚 Huevo',           cant:'120 g', merma:'4%', total:'124.8 g', stock:'3,500 g', ok: true },
-    ]},
-    chocolate: { rend: 10, emoji:'🍫', costo: 178.00, insumos:[
-      { nom:'🌾 Harina de Trigo', cant:'450 g', merma:'3%', total:'463.5 g', stock:'40,000 g', ok: true },
-      { nom:'🍚 Azúcar Refinada', cant:'100 g', merma:'1%', total:'101 g',   stock:'5,600 g', ok: true },
-      { nom:'🥛 Leche Entera',    cant:'100 ml',merma:'0%', total:'100 ml',  stock:'200 ml',  ok: false },
-    ]},
-    bolillo:   { rend: 20, emoji:'🥖', costo:  85.00, insumos:[
-      { nom:'🌾 Harina de Trigo', cant:'600 g', merma:'3%', total:'618 g',   stock:'40,000 g', ok: true },
-      { nom:'🧫 Levadura Seca',   cant:'10 g',  merma:'5%', total:'10.5 g',  stock:'550 g',    ok: true },
-    ]},
-    dona:      { rend: 15, emoji:'🍩', costo: 126.00, insumos:[
-      { nom:'🌾 Harina de Trigo', cant:'400 g', merma:'3%', total:'412 g',   stock:'40,000 g', ok: true },
-      { nom:'🍚 Azúcar Refinada', cant:'150 g', merma:'1%', total:'151.5 g', stock:'5,600 g', ok: true },
-      { nom:'🥛 Leche Entera',    cant:'150 ml',merma:'0%', total:'150 ml',  stock:'200 ml',  ok: false },
-    ]},
-    cuernito:  { rend: 16, emoji:'🥐', costo: 176.80, insumos:[
-      { nom:'🌾 Harina de Trigo', cant:'480 g', merma:'3%', total:'494.4 g', stock:'40,000 g', ok: true },
-      { nom:'🧈 Mantequilla',     cant:'200 g', merma:'2%', total:'204 g',   stock:'6,500 g',  ok: true },
-      { nom:'🥚 Huevo',           cant:'80 g',  merma:'4%', total:'83.2 g',  stock:'3,500 g',  ok: true },
-    ]},
+  /* ── Nueva orden ── */
+  window.abrirNueva = () => {
+    document.getElementById('ins-section').style.display = 'none';
+    document.getElementById('ins-content').style.display = 'none';
+    document.getElementById('rec-info').style.display    = 'none';
+    abrirModal('modalNueva');
   };
 
-  function loadReceta() {
-    const sel  = document.getElementById('sel-receta');
-    const key  = sel.value;
-    const data = recetaData[key];
-    const lotes = parseInt(document.getElementById('num-lotes').value) || 1;
-
-    if (!data) {
-      document.getElementById('preview-wrapper').style.display = 'none';
-      document.getElementById('hint-rend').textContent = 'Selecciona una receta primero';
-      document.getElementById('total-piezas').value = '—';
-      document.getElementById('btn-confirmar').disabled = true;
-      return;
-    }
-
-    document.getElementById('hint-rend').textContent = data.rend + ' piezas por lote';
+  /* ── Cambio de receta ── */
+  function onRecetaChange() {
+    const id = parseInt(document.getElementById('sel-receta').value);
+    const ri = document.getElementById('rec-info');
+    document.getElementById('ins-section').style.display = 'none';
+    if (!id) { ri.style.display = 'none'; return; }
+    const r = RECETAS[id];
+    document.getElementById('ri-producto').textContent = r.producto + (r.tamano ? ' — ' + r.tamano : '');
+    document.getElementById('ri-rend').textContent = r.rendimiento + ' ' + r.unidad;
+    const demRow = document.getElementById('ri-demand-row');
+    const demEl  = document.getElementById('ri-demand');
+    if (r.demanda > 0) { demRow.style.display='block'; demEl.textContent = r.demanda + ' pedido(s) pendiente(s)'; }
+    else { demRow.style.display='none'; }
+    ri.style.display = 'block';
     calcPiezas();
-    renderPreview(key, lotes);
   }
+  window.onRecetaChange = onRecetaChange;
 
   function calcPiezas() {
-    const sel  = document.getElementById('sel-receta');
-    const key  = sel.value;
-    const data = recetaData[key];
-    if (!data) return;
-    const lotes  = parseInt(document.getElementById('num-lotes').value) || 1;
-    document.getElementById('total-piezas').value = (data.rend * lotes) + ' piezas';
-    renderPreview(key, lotes);
+    const id   = parseInt(document.getElementById('sel-receta').value);
+    const cant = parseFloat(document.getElementById('inp-lotes').value) || 0;
+    const hint = document.getElementById('hint-piezas');
+    const piEl = document.getElementById('ri-piezas');
+    if (!id || !cant) { hint.textContent = 'Piezas totales: —'; if(piEl) piEl.textContent='—'; return; }
+    const pzs = (RECETAS[id].rendimiento * cant).toFixed(0);
+    hint.textContent = `Piezas totales a producir: ${pzs}`;
+    if (piEl) piEl.textContent = pzs + ' pzas';
   }
+  window.onLotesChange = calcPiezas;
 
-  function renderPreview(key, lotes) {
-    const data  = recetaData[key];
-    const wrap  = document.getElementById('preview-wrapper');
-    const cont  = document.getElementById('preview-insumos');
-    const stEl  = document.getElementById('stock-status');
-    const costoEl = document.getElementById('costo-lote');
-    const btnConf = document.getElementById('btn-confirmar');
+  /* ── Verificar insumos ── */
+  let _debTimer = null;
+  window.verificarInsumos = async function() {
+    const id   = parseInt(document.getElementById('sel-receta').value);
+    const cant = parseFloat(document.getElementById('inp-lotes').value) || 0;
+    if (!id)       { alert('Selecciona una receta.'); return; }
+    if (cant <= 0) { alert('Ingresa una cantidad válida.'); return; }
 
-    wrap.style.display = 'block';
+    const sec     = document.getElementById('ins-section');
+    const loadEl  = document.getElementById('ins-loading');
+    const contEl  = document.getElementById('ins-content');
+    const alertEl = document.getElementById('ins-alerta');
+    const okEl    = document.getElementById('ins-ok-msg');
+    const tbody   = document.getElementById('ins-tbody');
 
-    let hasStockIssue = false;
-    cont.innerHTML = '';
+    sec.style.display   = 'block';
+    loadEl.style.display= 'block';
+    contEl.style.display= 'none';
 
-    data.insumos.forEach(ins => {
-      const div = document.createElement('div');
-      div.className = 'preview-row';
-      div.innerHTML = `
-        <span class="preview-nombre">${ins.nom}</span>
-        <span class="preview-cant">${ins.cant} × ${lotes} lote${lotes>1?'s':''}</span>
-        <span class="preview-merma">+${ins.merma} merma</span>
-        <span class="preview-total">−${parseFloat(ins.total) * lotes} ${ins.total.includes('ml')?'ml':'g'}</span>
-        <span style="font-size:11px;color:${ins.ok?'#5a7a52':'var(--rust)'};">${ins.ok ? '✅ Ok' : '⚠️ Insuficiente'}</span>
-      `;
-      cont.appendChild(div);
-      if (!ins.ok) hasStockIssue = true;
-    });
+    try {
+      const resp = await fetch(`/produccion/api/verificar?id_receta=${id}&cantidad=${cant}`);
+      const d    = await resp.json();
+      loadEl.style.display = 'none';
+      contEl.style.display = 'block';
 
-    costoEl.textContent = '$' + (data.costo * lotes).toFixed(2);
+      if (!d.ok) {
+        alertEl.style.display = 'block'; alertEl.textContent = '⚠️ ' + d.mensaje;
+        okEl.style.display    = 'none';  tbody.innerHTML = '';
+        return;
+      }
 
-    if (hasStockIssue) {
-      stEl.className = 'stock-alert';
-      stEl.innerHTML = '<span>⚠️</span><span>Stock <strong>insuficiente</strong> en uno o más insumos. Revisa el inventario antes de continuar.</span>';
-      btnConf.disabled = true;
-    } else {
-      stEl.className = 'stock-ok';
-      stEl.innerHTML = '<span>✅</span><span>Stock suficiente para producir este lote.</span>';
-      btnConf.disabled = false;
+      if (d.hay_faltantes) {
+        alertEl.style.display = 'block';
+        alertEl.innerHTML = `⛔ Stock insuficiente: ${d.insumos_ok} de ${d.total_insumos} insumos disponibles.`;
+        okEl.style.display = 'none';
+      } else {
+        okEl.style.display = 'block';
+        okEl.textContent   = `✅ Stock suficiente para todos los insumos (${d.total_insumos}).`;
+        alertEl.style.display = 'none';
+      }
+
+      tbody.innerHTML = '';
+      d.insumos.forEach(ins => {
+        const ok  = ins.stock_suficiente;
+        const pct = Math.min(ins.pct_disponible || 0, 100);
+        const col = ok ? '#10b981' : (pct >= 50 ? '#f59e0b' : '#ef4444');
+        tbody.innerHTML += `<tr class="${ok ? '' : 'fail'}">
+          <td style="font-weight:700;">${ins.nombre_materia}</td>
+          <td style="color:var(--brown-lt);">${ins.unidad_base}</td>
+          <td>${ins.cantidad_requerida.toFixed(2)}</td>
+          <td>
+            ${ins.stock_actual.toFixed(2)}
+            <span class="bar-mini"><span class="bar-fill" style="width:${pct}%;background:${col};"></span></span>
+          </td>
+          <td class="${ok ? 'ins-ok' : 'ins-ko'}">
+            ${ok ? '✅ OK' : '⛔ Faltan ' + (ins.cantidad_requerida - ins.stock_actual).toFixed(2)}
+          </td>
+        </tr>`;
+      });
+    } catch(e) {
+      loadEl.style.display  = 'none';
+      contEl.style.display  = 'block';
+      alertEl.style.display = 'block';
+      alertEl.textContent   = 'Error: ' + e.message;
     }
-  }
+  };
 
-  // Set datetime now
-  document.addEventListener('DOMContentLoaded', () => {
-    const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    const fi = document.getElementById('fecha-inicio');
-    if (fi) fi.value = now.toISOString().slice(0,16);
+  // Re-verificar al cambiar cantidad si ya fue verificado
+  document.getElementById('inp-lotes').addEventListener('input', function() {
+    calcPiezas();
+    clearTimeout(_debTimer);
+    if (document.getElementById('ins-section').style.display !== 'none') {
+      _debTimer = setTimeout(verificarInsumos, 800);
+    }
   });
 
-  function filterTable() {
-    const q   = document.getElementById('searchInput').value.toLowerCase();
-    const est = document.getElementById('filterEstado').value;
-    const rows = document.querySelectorAll('#prodTable tbody tr');
-    let visible = 0;
-    rows.forEach(row => {
-      const text    = row.textContent.toLowerCase();
-      const rowEst  = row.dataset.estado;
-      const show = (!q || text.includes(q)) && (!est || rowEst === est);
-      row.style.display = show ? '' : 'none';
-      if (show) visible++;
-    });
-    document.getElementById('visibleCount').textContent = visible;
-  }
-</script>
+  /* ── Finalizar desde tabla ── */
+  window.abrirFinalizar = function(id, folio, pzEsp) {
+    document.getElementById('fin-folio').textContent = folio;
+    document.getElementById('fin-piezas').value = '';
+    document.getElementById('fin-hint').textContent = `Piezas esperadas: ${pzEsp}. Dejar en blanco para usar ese valor.`;
+    document.getElementById('form-finalizar').action = `/produccion/${id}/finalizar`;
+    abrirModal('modalFinalizar');
+  };
 
-<div style="height:40px"></div>
+  /* ── Cancelar desde tabla ── */
+  window.abrirCancelar = function(id, folio) {
+    document.getElementById('can-folio').textContent = folio;
+    document.getElementById('form-cancelar').action = `/produccion/${id}/cancelar`;
+    abrirModal('modalCancelar');
+  };
+
+  /* ── Filtrar por estado (clic en stat cards) ── */
+  window.filtrarEstado = function(est) {
+    const f = document.getElementById('form-filtro');
+    f.querySelector('[name=estado]').value = est;
+    f.submit();
+  };
+
+});
+</script>
 {% endblock %}
