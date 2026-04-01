@@ -449,3 +449,75 @@ class Ticket(db.Model):
     contenido_json = db.Column(db.JSON, nullable=False)
     impreso        = db.Column(db.Boolean, nullable=False, default=False)
     generado_en    = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
+
+
+class LoteProduccionCaja(db.Model):
+    __tablename__ = 'lotes_produccion_caja'
+
+    id_lote               = db.Column(db.Integer,     primary_key=True, autoincrement=True)
+    folio_lote            = db.Column(db.String(30),  nullable=False, unique=True)
+    id_caja               = db.Column(db.Integer,     nullable=False)  # FK sin relationship (Caja no tiene modelo ORM)
+    cantidad_cajas        = db.Column(db.Integer,     nullable=False)
+    piezas_esperadas      = db.Column(db.Integer,     nullable=False, default=0)
+    estado                = db.Column(
+                              db.Enum('pendiente','en_proceso','finalizado','cancelado'),
+                              nullable=False, default='pendiente')
+    insumos_descontados   = db.Column(db.Boolean,     nullable=False, default=False)
+    inventario_acreditado = db.Column(db.Boolean,     nullable=False, default=False)
+    fecha_inicio          = db.Column(db.DateTime,    nullable=True)
+    fecha_fin_real        = db.Column(db.DateTime,    nullable=True)
+    operario_id           = db.Column(db.Integer,     db.ForeignKey('usuarios.id_usuario',
+                              ondelete='SET NULL'), nullable=True)
+    observaciones         = db.Column(db.Text,        nullable=True)
+    creado_en             = db.Column(db.DateTime,    nullable=False,
+                              default=datetime.datetime.now)
+    creado_por            = db.Column(db.Integer,     db.ForeignKey('usuarios.id_usuario',
+                              ondelete='SET NULL'), nullable=True)
+
+    # Solo relationships hacia modelos que SÍ existen
+    operario = db.relationship('Usuario', foreign_keys=[operario_id])
+    autor    = db.relationship('Usuario', foreign_keys=[creado_por])
+
+    insumos  = db.relationship('InsumoLoteCaja',       back_populates='lote',
+                                cascade='all, delete-orphan')
+    salidas  = db.relationship('SalidaInventarioLote', back_populates='lote',
+                                cascade='all, delete-orphan')
+
+
+class InsumoLoteCaja(db.Model):
+    __tablename__ = 'insumos_lote_caja'
+    __table_args__ = (
+        db.UniqueConstraint('id_lote', 'id_materia', 'id_receta',
+                            name='uq_insumo_lote_materia_receta'),
+    )
+
+    id_insumo           = db.Column(db.Integer,       primary_key=True, autoincrement=True)
+    id_lote             = db.Column(db.Integer,       db.ForeignKey('lotes_produccion_caja.id_lote',
+                            ondelete='CASCADE'), nullable=False)
+    id_receta           = db.Column(db.Integer,       db.ForeignKey('recetas.id_receta'), nullable=False)
+    id_materia          = db.Column(db.Integer,       db.ForeignKey('materias_primas.id_materia'),
+                            nullable=False)
+    cantidad_requerida  = db.Column(db.Numeric(14,4), nullable=False)
+    cantidad_descontada = db.Column(db.Numeric(14,4), nullable=False)
+
+    lote    = db.relationship('LoteProduccionCaja', back_populates='insumos')
+    receta  = db.relationship('Receta')
+    materia = db.relationship('MateriaPrima')
+
+
+class SalidaInventarioLote(db.Model):
+    __tablename__ = 'salida_inventario_lote'
+    __table_args__ = (
+        db.UniqueConstraint('id_lote', 'id_producto', name='uq_salida_lote_producto'),
+    )
+
+    id_salida          = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_lote            = db.Column(db.Integer, db.ForeignKey('lotes_produccion_caja.id_lote',
+                           ondelete='CASCADE'), nullable=False)
+    id_receta          = db.Column(db.Integer, db.ForeignKey('recetas.id_receta'), nullable=False)
+    id_producto        = db.Column(db.Integer, db.ForeignKey('productos.id_producto'), nullable=False)
+    piezas_producidas  = db.Column(db.Integer, nullable=False)
+
+    lote     = db.relationship('LoteProduccionCaja', back_populates='salidas')
+    receta   = db.relationship('Receta')
+    producto = db.relationship('Producto')
