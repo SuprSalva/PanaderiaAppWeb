@@ -1,120 +1,11 @@
 {% extends "layout.html" %}
 {% block breadcrumb %}Compras{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/compras.css') }}">
+{% endblock %}
+
 {% block container %}
-<style>
-  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-  .anim{animation:fadeUp .35s ease both} .anim-1{animation-delay:.05s} .anim-2{animation-delay:.10s} .anim-3{animation-delay:.15s}
-
-  @keyframes alertEntrada{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes alertSalida{0%{opacity:1;max-height:80px;margin-bottom:12px;padding:11px 14px}80%{opacity:0;max-height:80px;margin-bottom:12px;padding:11px 14px}100%{opacity:0;max-height:0;margin-bottom:0;padding:0}}
-  .alert{padding:11px 14px 11px 16px;border-radius:8px;margin-bottom:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:12px;overflow:hidden;animation:alertEntrada .3s ease both,alertSalida .6s ease 5s forwards}
-  .alert-success{background:#e2eede;color:#3a6034;border:1px solid #b2d4aa}
-  .alert-error,.alert-danger{background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0}
-
-  .db-topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
-  .db-page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--brown-dk);display:flex;align-items:center;gap:10px}
-  .db-breadcrumb{font-size:12px;color:var(--brown-lt);margin-top:5px;display:flex;align-items:center;gap:5px}
-  .db-breadcrumb span{color:var(--tan)}
-
-  .c-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
-  .c-stat{background:var(--white);border:1px solid var(--tan);border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;gap:12px;transition:transform .2s}
-  .c-stat:hover{transform:translateY(-2px)}
-  .c-stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
-  .c-stat-icon.brown{background:#f3e8d8} .c-stat-icon.green{background:#e2eede} .c-stat-icon.gold{background:#fef3d0} .c-stat-icon.rust{background:#fce8df}
-  .c-stat-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--brown-dk);line-height:1}
-  .c-stat-lbl{font-size:11px;color:var(--brown-lt);margin-top:3px;font-weight:600}
-
-  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-  .search-wrap{position:relative;flex:1;min-width:200px}
-  .search-wrap input{width:100%;padding:9px 14px 9px 38px;border:1.5px solid var(--tan);border-radius:8px;font-family:'Lato',sans-serif;font-size:13.5px;background:var(--white);color:var(--text);outline:none;transition:border .2s;box-sizing:border-box}
-  .search-wrap input:focus{border-color:var(--brown)}
-  .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--brown-lt);font-size:14px}
-  .filter-select{padding:9px 12px;border:1.5px solid var(--tan);border-radius:8px;font-family:'Lato',sans-serif;font-size:13px;background:var(--white);color:var(--text);outline:none;cursor:pointer}
-  .filter-select:focus{border-color:var(--brown)}
-
-  .table-card{background:var(--white);border:1px solid var(--tan);border-radius:14px;box-shadow:0 4px 16px var(--shadow);overflow:hidden}
-  table{width:100%;border-collapse:collapse}
-  thead{background:var(--warm-bg)}
-  thead th{padding:12px 16px;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--brown);text-align:left;white-space:nowrap}
-  thead th:first-child{padding-left:22px}
-  tbody tr{border-top:1px solid var(--tan);transition:background .15s}
-  tbody tr:hover{background:#fdf3e6}
-  tbody td{padding:12px 16px;font-size:13px;color:var(--text);vertical-align:middle}
-  tbody td:first-child{padding-left:22px}
-  .folio-chip{font-family:monospace;font-size:12px;font-weight:700;background:var(--warm-bg);color:var(--brown-dk);padding:3px 9px;border-radius:6px;border:1px solid var(--tan)}
-  .prov-tag{font-weight:700;color:var(--brown-dk)} .prov-sub{font-size:11px;color:var(--brown-lt)}
-  .monto-val{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--brown-dk)}
-  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
-  .badge-ordenado  {background:#fef3d0;color:#8a6200}
-  .badge-finalizado{background:#e2eede;color:#3a6034}
-  .badge-cancelado {background:#fce8df;color:#9c3a1a}
-  .actions-cell{display:flex;gap:6px}
-  .table-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-top:1px solid var(--tan);background:var(--warm-bg)}
-  .table-footer p{font-size:12px;color:var(--brown-lt)}
-
-  .modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(59,42,26,.45);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:24px}
-  .modal-overlay.open{display:flex}
-  .modal{background:var(--white);border-radius:16px;width:100%;max-width:700px;box-shadow:0 20px 60px rgba(59,42,26,.3);overflow:hidden;animation:fadeUp .25s ease}
-  .modal-lg{max-width:860px}
-  .modal-sm{max-width:460px}
-  .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 26px;background:var(--brown-dk)}
-  .modal-header h2{font-family:'Playfair Display',serif;font-size:17px;color:var(--cream);display:flex;align-items:center;gap:10px}
-  .modal-header.danger{background:var(--rust)}
-  .modal-header.success{background:#5a7a52}
-  .modal-close{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.15);border:none;cursor:pointer;color:var(--cream);font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .2s}
-  .modal-close:hover{background:rgba(255,255,255,.25)}
-  .modal-body{padding:26px;max-height:76vh;overflow-y:auto}
-  .modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 26px;border-top:1px solid var(--tan);background:var(--warm-bg)}
-
-  .form-row{display:grid;gap:14px} .form-row.cols-2{grid-template-columns:1fr 1fr} .form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
-  .form-group{display:flex;flex-direction:column;gap:5px}
-  .form-label{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--brown)}
-  .form-input,.form-select{padding:9px 13px;border:1.5px solid var(--tan);border-radius:8px;font-family:'Lato',sans-serif;font-size:13.5px;color:var(--text);background:var(--cream);outline:none;transition:border .2s}
-  .form-input:focus,.form-select:focus{border-color:var(--brown);background:var(--white)}
-  .form-hint{font-size:11px;color:var(--brown-lt)}
-  .section-divider{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brown-lt);padding:6px 0 2px;border-bottom:1px solid var(--tan);margin-bottom:2px;grid-column:1/-1}
-
-  .detalle-header{display:grid;grid-template-columns:2fr 1fr 1.5fr 1fr 1fr 36px;gap:8px;padding:8px 10px;background:var(--warm-bg);border-radius:8px 8px 0 0;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown)}
-  .detalle-row{display:grid;grid-template-columns:2fr 1fr 1.5fr 1fr 1fr 36px;gap:8px;padding:8px 10px;border:1px solid var(--tan);border-top:none;align-items:center;background:var(--white)}
-  .detalle-row:first-of-type{border-top:1px solid var(--tan)}
-  .detalle-row:last-child{border-radius:0 0 8px 8px}
-  .det-input{width:100%;padding:7px 10px;border:1.5px solid var(--tan);border-radius:7px;font-family:'Lato',sans-serif;font-size:12.5px;color:var(--text);background:var(--white);outline:none;transition:border .2s;box-sizing:border-box}
-  .det-input:focus{border-color:var(--brown)}
-
-  /* ── Buscador de materia prima (igual que recetas) ── */
-  .insumo-wrap{position:relative}
-  .insumo-buscar{width:100%;padding:7px 28px 7px 28px;border:1.5px solid var(--tan);border-radius:7px;font-family:'Lato',sans-serif;font-size:12.5px;color:var(--text);background:var(--white);outline:none;box-sizing:border-box;transition:border-color .2s;cursor:pointer}
-  .insumo-buscar:focus,.insumo-buscar.abierto{border-color:var(--brown);border-radius:7px 7px 0 0}
-  .insumo-buscar-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--brown-lt);pointer-events:none}
-  .insumo-arrow{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--brown-lt);pointer-events:none}
-  .insumo-lista{display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1.5px solid var(--brown);border-top:none;border-radius:0 0 7px 7px;max-height:180px;overflow-y:auto;z-index:200;box-shadow:0 6px 16px rgba(0,0,0,.12)}
-  .insumo-lista.abierta{display:block}
-  .insumo-opcion{padding:8px 12px;font-size:12.5px;color:var(--text);cursor:pointer;transition:background .12s}
-  .insumo-opcion:hover{background:var(--warm-bg)}
-  .insumo-opcion.activo{background:#f3e8d8;font-weight:700;color:var(--brown-dk)}
-  .insumo-opcion.oculto{display:none}
-  .insumo-sin-res{padding:8px 12px;font-size:12px;color:var(--brown-lt);font-style:italic;display:none}
-  .det-select{width:100%;padding:7px 8px;border:1.5px solid var(--tan);border-radius:7px;font-family:'Lato',sans-serif;font-size:12px;color:var(--text);background:var(--white);outline:none;cursor:pointer}
-  .btn-remove{width:28px;height:28px;border-radius:6px;background:#fce8df;border:none;color:var(--rust);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
-  .btn-remove:hover{background:var(--rust);color:#fff}
-  .total-bar{display:flex;align-items:center;justify-content:space-between;background:var(--brown-dk);color:var(--cream);padding:14px 20px;border-radius:10px;margin-top:16px}
-  .total-bar span{font-size:13px;opacity:.8} .total-bar strong{font-family:'Playfair Display',serif;font-size:22px}
-  .info-box{background:#f3e8d8;border:1px solid var(--tan);border-radius:10px;padding:11px 14px;font-size:12px;color:var(--brown-dk);display:flex;gap:8px;align-items:flex-start;margin-bottom:12px}
-
-  .det-view-table{width:100%;border-collapse:collapse}
-  .det-view-table thead{background:var(--warm-bg)}
-  .det-view-table thead th{padding:9px 12px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown);text-align:left}
-  .det-view-table tbody tr{border-top:1px solid var(--tan)}
-  .det-view-table tbody td{padding:10px 12px;font-size:12.5px}
-  .detail-section{margin-bottom:20px}
-  .detail-section h4{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--brown-dk);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--tan)}
-  .detail-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .detail-item label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);display:block;margin-bottom:3px}
-  .detail-item span{font-size:13.5px;color:var(--brown-dk);font-weight:600}
-  .cancelado-box{background:#fce8df;border:1px solid #f5c6b0;border-radius:8px;padding:12px 14px;font-size:13px;color:#9c3a1a;margin-top:10px}
-</style>
-
 
 <!-- TOPBAR -->
 <div class="db-topbar anim">
@@ -193,7 +84,7 @@
         <td><span class="folio-chip">{{ c.folio }}</span></td>
         <td>
           <div class="prov-tag">{{ prov.nombre }}</div>
-          {% if c.folio_factura %}<div class="prov-sub">Fact: {{ c.folio_factura }}</div>{% endif %}
+          {% if c.folio_factura %}<div class="prov-sub">Fact/Ref: {{ c.folio_factura }}</div>{% endif %}
         </td>
         <td>{{ c.fecha_compra.strftime('%d/%m/%Y') }}</td>
         <td>
@@ -231,7 +122,7 @@
 
 
 <!-- ══════════════════════════════════════
-     MODAL: REGISTRAR PEDIDO
+    MODAL: REGISTRAR PEDIDO
 ══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal modal-lg">
@@ -318,7 +209,7 @@
 
 
 <!-- ══════════════════════════════════════
-     MODAL: VER DETALLE
+    MODAL: VER DETALLE
 ══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-detalle">
   <div class="modal modal-lg">
@@ -337,7 +228,7 @@
 
 
 <!-- ══════════════════════════════════════
-     MODAL: FINALIZAR PEDIDO
+    MODAL: FINALIZAR PEDIDO
 ══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-finalizar">
   <div class="modal modal-sm">
@@ -365,7 +256,7 @@
 
 
 <!-- ══════════════════════════════════════
-     MODAL: CANCELAR PEDIDO
+    MODAL: CANCELAR PEDIDO
 ══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-cancelar">
   <div class="modal modal-sm">
@@ -401,518 +292,31 @@
   <div class="insumo-sin-res">Sin resultados</div>
   {% for m in materias %}
   <div class="insumo-opcion"
-       data-val="{{ m.id_materia }}"
-       data-txt="{{ m.nombre | e }} ({{ m.unidad_base | e }})"
-       data-unidad-base="{{ m.unidad_base | e }}"
-       onmousedown="seleccionarInsumoC(this)">
+      data-val="{{ m.id_materia }}"
+      data-txt="{{ m.nombre | e }} ({{ m.unidad_base | e }})"
+      data-unidad-base="{{ m.unidad_base | e }}"
+      onmousedown="seleccionarInsumoC(this)">
     {{ m.nombre }} <span style="color:var(--brown-lt);font-size:11px">({{ m.unidad_base }})</span>
   </div>
   {% endfor %}
 </template>
 
 <script>
-  /* ── Datos de materias primas para JS ── */
   const MATERIAS = {
     {% for m in materias %}
     {{ m.id_materia }}: { nombre: {{ m.nombre | tojson }}, unidad_base: {{ m.unidad_base | tojson }} },
     {% endfor %}
   };
-
-  /* ── Modales ── */
-  function openModal(id)  { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-  });
-
-  /* ── MODAL NUEVA COMPRA ── */
-  let renglonCount = 0;
-  let _tplOpciones = '';
-
-  function _initTpl() {
-    if (!_tplOpciones) {
-      const tpl = document.getElementById('tpl-opciones-materia');
-      _tplOpciones = tpl ? tpl.innerHTML : '';
-    }
-  }
-
-  function _resetModal() {
-    document.getElementById('renglones-container').innerHTML = '';
-    renglonCount = 0;
-    document.getElementById('total-compra').textContent = '$0.00';
-    document.getElementById('conversion-info').textContent = 'Selecciona una materia prima y unidad para ver la conversión.';
-    document.getElementById('form-error').style.display = 'none';
-    document.getElementById('form-nueva-compra').reset();
-  }
-
-  function abrirModalNueva() {
-    _initTpl();
-    _resetModal();
-    document.getElementById('form-nueva-compra').action = '{{ url_for("compras.crear_compra") }}';
-    document.getElementById('modal-add-titulo').textContent = '🛒 Nuevo Pedido de Compra';
-    document.getElementById('fecha-compra').value = new Date().toISOString().split('T')[0];
-    addRenglon();
-    addRenglon();
-    openModal('modal-add');
-  }
-
-  function abrirEditar(id, folio) {
-    _initTpl();
-    _resetModal();
-    document.getElementById('form-nueva-compra').action = `/compras/editar/${id}`;
-    document.getElementById('modal-add-titulo').textContent = `✏️ Editar Pedido — ${folio}`;
-    document.getElementById('form-error').textContent = '';
-
-    fetch(`/compras/detalle/${id}`)
-      .then(r => r.json())
-      .then(d => {
-        /* Pre-llenar campos de cabecera */
-        const form = document.getElementById('form-nueva-compra');
-        form.querySelector('select[name="id_proveedor"]').value  = d.id_proveedor;
-        form.querySelector('input[name="fecha_compra"]').value   = d.fecha_compra_iso;
-        form.querySelector('input[name="folio_factura"]').value  = d.folio_factura  || '';
-        form.querySelector('input[name="observaciones"]').value  = d.observaciones  || '';
-
-        /* Agregar un renglon por cada detalle existente */
-        d.detalles.forEach(det => {
-          addRenglon();
-          const n = renglonCount;
-          /* Llenar el buscador de materia */
-          const buscarInput = document.querySelector(`#renglon-${n} .insumo-buscar`);
-          const matHidden   = document.getElementById('imat-' + n);
-          buscarInput.value = `${det.materia} (${det.unidad_base})`;
-          matHidden.value   = det.id_materia;
-          /* Marcar la opción activa en la lista */
-          const lista = document.querySelector(`#renglon-${n} .insumo-lista`);
-          lista.querySelectorAll('.insumo-opcion').forEach(op => {
-            if (op.dataset.val == det.id_materia) op.classList.add('activo');
-          });
-          /* Cargar unidades y pre-seleccionar la correcta */
-          onMateriaCambio(n, det.id_unidad);
-          /* Cantidad y costo (se llenan luego de que carguen las unidades) */
-          document.getElementById('qty-' + n)._preval   = det.cantidad_comprada;
-          document.getElementById('costo-' + n)._preval = det.costo_unitario;
-        });
-        openModal('modal-add');
-      })
-      .catch(() => { mostrarErrorForm('⚠️ Error al cargar el pedido.'); });
-  }
-
-  function addRenglon() {
-    renglonCount++;
-    const n = renglonCount;
-    const container = document.getElementById('renglones-container');
-    const div = document.createElement('div');
-    div.className = 'detalle-row';
-    div.id = 'renglon-' + n;
-    div.innerHTML = `
-      <div class="insumo-wrap">
-        <span class="insumo-buscar-icon">🔍</span>
-        <span class="insumo-arrow">▾</span>
-        <input type="text" class="insumo-buscar" placeholder="— Buscar materia prima —"
-               autocomplete="off"
-               oninput="buscarInsumoC(this)"
-               onfocus="abrirListaC(this)"
-               onblur="cerrarListaDelayC(this, ${n})">
-        <input type="hidden" name="id_materia[]" class="insumo-val" id="imat-${n}" value="">
-        <div class="insumo-lista">${_tplOpciones}</div>
-      </div>
-      <input type="number" class="det-input" name="cantidad_comprada[]"
-             placeholder="0" min="0.001" step="0.001" id="qty-${n}" oninput="calcSubtotal(${n})" required>
-      <div style="display:flex;gap:4px;align-items:center">
-        <select class="det-select" name="id_unidad_presentacion[]" id="usel-${n}"
-                onchange="onUnidadCambio(${n})" style="flex:1;min-width:0">
-          <option value="">— Elige materia primero —</option>
-        </select>
-        <button type="button" title="Nueva unidad de compra"
-          style="flex-shrink:0;width:28px;height:28px;border-radius:6px;background:#f3e8d8;border:1.5px solid var(--tan);color:var(--brown);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s"
-          onmouseover="this.style.background='var(--tan)'" onmouseout="this.style.background='#f3e8d8'"
-          onclick="abrirModalNuevaUnidad(${n})">＋</button>
-      </div>
-      <input type="number" class="det-input" name="costo_unitario[]"
-             placeholder="$0.00" min="0" step="0.01" id="costo-${n}" oninput="calcSubtotal(${n})" required>
-      <input type="text" class="det-input" readonly id="sub-${n}" value="$0.00"
-             style="background:var(--warm-bg);font-weight:700;color:var(--brown-dk);">
-      <input type="hidden" name="unidad_compra[]"     id="unidad-str-${n}" value="">
-      <input type="hidden" name="factor_conversion[]" id="factor-${n}"     value="1">
-      <input type="hidden" name="cantidad_base[]"     id="cant-base-${n}"  value="0">
-      <button type="button" class="btn-remove" onclick="removeRenglon(${n})">✕</button>
-    `;
-    container.appendChild(div);
-  }
-
-  /* ── Funciones del buscador de materia prima ── */
-  function seleccionarInsumoC(op) {
-    const wrap  = op.closest('.insumo-wrap');
-    const input = wrap.querySelector('.insumo-buscar');
-    const val   = wrap.querySelector('.insumo-val');
-    const lista = wrap.querySelector('.insumo-lista');
-    input.value = op.dataset.txt;
-    val.value   = op.dataset.val;
-    input.classList.remove('abierto');
-    lista.classList.remove('abierta');
-    lista.querySelectorAll('.insumo-opcion').forEach(o => o.classList.remove('activo'));
-    op.classList.add('activo');
-    // Extraer n del id del hidden field (imat-N)
-    const n = parseInt(val.id.replace('imat-', ''));
-    onMateriaCambio(n);
-  }
-
-  function abrirListaC(input) {
-    const lista = input.closest('.insumo-wrap').querySelector('.insumo-lista');
-    document.querySelectorAll('.insumo-lista.abierta').forEach(l => { if (l !== lista) l.classList.remove('abierta'); });
-    lista.classList.add('abierta');
-    input.classList.add('abierto');
-    lista.querySelectorAll('.insumo-opcion').forEach(op => op.classList.remove('oculto'));
-    lista.querySelector('.insumo-sin-res').style.display = 'none';
-  }
-
-  function buscarInsumoC(input) {
-    const q = input.value.toLowerCase().trim();
-    const wrap = input.closest('.insumo-wrap');
-    const lista = wrap.querySelector('.insumo-lista');
-    let hay = false;
-    if (!q) wrap.querySelector('.insumo-val').value = '';
-    lista.querySelectorAll('.insumo-opcion').forEach(op => {
-      const ok = op.dataset.txt.toLowerCase().includes(q);
-      op.classList.toggle('oculto', !ok);
-      if (ok) hay = true;
-    });
-    lista.querySelector('.insumo-sin-res').style.display = hay ? 'none' : 'block';
-    lista.classList.add('abierta');
-  }
-
-  function cerrarListaDelayC(input, n) {
-    setTimeout(() => {
-      const wrap  = input.closest('.insumo-wrap');
-      const lista = wrap.querySelector('.insumo-lista');
-      const val   = wrap.querySelector('.insumo-val');
-      lista.classList.remove('abierta');
-      input.classList.remove('abierto');
-      if (!val.value) input.value = '';
-    }, 150);
-  }
-
-  function removeRenglon(n) {
-    const el = document.getElementById('renglon-' + n);
-    if (el) { el.remove(); updateTotal(); }
-  }
-
-  /* Cuando cambia la materia prima: cargar sus unidades de compra via API */
-  function onMateriaCambio(n, preselectUnitId = null) {
-    const idMat = document.getElementById('imat-' + n)?.value || '';
-    const uSel  = document.getElementById('usel-' + n);
-    uSel.innerHTML = '<option value="">Cargando…</option>';
-    document.getElementById('factor-' + n).value     = '1';
-    document.getElementById('unidad-str-' + n).value = '';
-    document.getElementById('cant-base-' + n).value  = '0';
-    if (!idMat) { uSel.innerHTML = '<option value="">— Elige materia primero —</option>'; return; }
-
-    fetch(`/compras/api/unidades/${idMat}`)
-      .then(r => r.json())
-      .then(data => {
-        if (!data.length) {
-          const base = MATERIAS[idMat]?.unidad_base || 'u';
-          uSel.innerHTML = `<option value="0" data-factor="1" data-simbolo="${base}">${base} (base)</option>`;
-        } else {
-          uSel.innerHTML = data.map(u =>
-            `<option value="${u.id}" data-factor="${u.factor_a_base}" data-simbolo="${u.simbolo}">${u.nombre} (×${u.factor_a_base})</option>`
-          ).join('');
-        }
-        /* Pre-seleccionar unidad si venimos de editar */
-        if (preselectUnitId) {
-          uSel.value = preselectUnitId;
-        }
-        onUnidadCambio(n);
-        /* Restaurar cantidad y costo pre-cargados (modo editar) */
-        const qtyEl   = document.getElementById('qty-' + n);
-        const costoEl = document.getElementById('costo-' + n);
-        if (qtyEl._preval   != null) { qtyEl.value   = qtyEl._preval;   delete qtyEl._preval; }
-        if (costoEl._preval != null) { costoEl.value = costoEl._preval; delete costoEl._preval; calcSubtotal(n); }
-      })
-      .catch(() => {
-        uSel.innerHTML = '<option value="0" data-factor="1">Unidad base</option>';
-      });
-  }
-
-  function onUnidadCambio(n) {
-    const uSel   = document.getElementById('usel-' + n);
-    const opt    = uSel.options[uSel.selectedIndex];
-    const factor = parseFloat(opt?.dataset?.factor || 1);
-    const simb   = opt?.dataset?.simbolo || '';
-    const idMat  = document.getElementById('imat-' + n)?.value || '';
-    const base   = idMat ? (MATERIAS[idMat]?.unidad_base || '?') : '?';
-
-    document.getElementById('factor-' + n).value     = factor;
-    document.getElementById('unidad-str-' + n).value  = simb;
-    calcSubtotal(n);
-
-    if (idMat && simb) {
-      document.getElementById('conversion-info').textContent =
-        `1 ${simb} × ${factor} = ${factor} ${base} sumados al inventario.`;
-    }
-  }
-
-  function calcSubtotal(n) {
-    const qty    = parseFloat(document.getElementById('qty-' + n)?.value)   || 0;
-    const costo  = parseFloat(document.getElementById('costo-' + n)?.value) || 0;
-    const factor = parseFloat(document.getElementById('factor-' + n)?.value || 1);
-    const sub    = qty * costo;
-    const base   = qty * factor;
-    const subEl  = document.getElementById('sub-' + n);
-    if (subEl) subEl.value = '$' + sub.toFixed(2);
-    const cbEl = document.getElementById('cant-base-' + n);
-    if (cbEl) cbEl.value = base.toFixed(4);
-    updateTotal();
-  }
-
-  function updateTotal() {
-    let total = 0;
-    document.querySelectorAll('[id^="sub-"]').forEach(el => {
-      total += parseFloat(el.value.replace('$','')) || 0;
-    });
-    document.getElementById('total-compra').textContent = '$' + total.toFixed(2);
-  }
-
-  /* Helper: muestra error en el cuadro del modal y lo oculta a los 4s */
-  function mostrarErrorForm(msg) {
-    const err = document.getElementById('form-error');
-    err.style.background  = '#fce8df';
-    err.style.color       = '#9c3a1a';
-    err.style.borderColor = '#f5c6b0';
-    err.textContent       = msg;
-    err.style.display     = 'block';
-    clearTimeout(err._t);
-    err._t = setTimeout(() => { err.style.display = 'none'; }, 4000);
-  }
-
-  /* Validación del form */
-  document.getElementById('form-nueva-compra').addEventListener('submit', function(e) {
-    document.getElementById('form-error').style.display = 'none';
-    const prov  = this.querySelector('select[name="id_proveedor"]').value;
-    const fecha = this.querySelector('input[name="fecha_compra"]').value;
-    if (!prov || !fecha) {
-      e.preventDefault(); mostrarErrorForm('⚠️ Proveedor y fecha son obligatorios.'); return;
-    }
-    const filas = document.querySelectorAll('#renglones-container .detalle-row');
-    let tieneInsumos = false;
-    for (const fila of filas) {
-      const matInput = fila.querySelector('.insumo-val');
-      const mat = matInput ? matInput.value : '';
-      if (!mat) continue;
-      tieneInsumos = true;
-      const qty   = parseFloat(fila.querySelector('input[name="cantidad_comprada[]"]').value);
-      const costo = fila.querySelector('input[name="costo_unitario[]"]').value.trim();
-      if (!qty || qty <= 0) {
-        e.preventDefault(); mostrarErrorForm('⚠️ Todos los insumos deben tener una cantidad mayor a 0.'); return;
-      }
-      if (costo === '' || parseFloat(costo) < 0) {
-        e.preventDefault(); mostrarErrorForm('⚠️ Todos los insumos deben tener un costo unitario válido.'); return;
-      }
-    }
-    if (!tieneInsumos) {
-      e.preventDefault(); mostrarErrorForm('⚠️ Debes agregar al menos un insumo.'); return;
-    }
-    /* Deshabilitar botón para evitar doble envío */
-    const btn = this.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = '⏳ Guardando…';
-  });
-
-  /* ── MODAL VER DETALLE ── */
-  function verDetalle(id) {
-    document.getElementById('det-folio').textContent = '';
-    document.getElementById('det-body').innerHTML = '<p style="text-align:center;color:var(--brown-lt);padding:20px">Cargando…</p>';
-    openModal('modal-detalle');
-    fetch(`/compras/detalle/${id}`)
-      .then(r => r.json())
-      .then(d => {
-        document.getElementById('det-folio').textContent = d.folio;
-        const estatusBadge = {
-          ordenado:   '<span class="badge badge-ordenado">📋 Ordenado</span>',
-          finalizado: '<span class="badge badge-finalizado">✅ Finalizado</span>',
-          cancelado:  '<span class="badge badge-cancelado">🚫 Cancelado</span>',
-        }[d.estatus] || d.estatus;
-
-        const cancelBox = d.estatus === 'cancelado'
-          ? `<div class="cancelado-box"><strong>Motivo de cancelación:</strong> ${d.motivo_cancelacion}</div>` : '';
-
-        const filas = d.detalles.map(det => `
-          <tr>
-            <td><strong>${det.materia}</strong></td>
-            <td>${det.cantidad_comprada} ${det.unidad_compra}</td>
-            <td style="color:var(--brown-lt);font-size:11px">${det.cantidad_comprada} × ${det.factor} = <strong>${det.cantidad_base} ${det.unidad_base}</strong></td>
-            ${d.estatus === 'finalizado' ? `<td>+${det.cantidad_base} ${det.unidad_base}</td>` : '<td style="color:var(--brown-lt)">—</td>'}
-            <td>$${det.costo_unitario.toFixed(2)}</td>
-            <td><strong>$${det.subtotal.toFixed(2)}</strong></td>
-          </tr>`).join('');
-
-        document.getElementById('det-body').innerHTML = `
-          <div class="detail-section">
-            <h4>📦 Cabecera</h4>
-            <div class="detail-grid-2">
-              <div class="detail-item"><label>Folio</label><span>${d.folio}</span></div>
-              <div class="detail-item"><label>Estatus</label><span>${estatusBadge}</span></div>
-              <div class="detail-item"><label>Fecha</label><span>${d.fecha_compra}</span></div>
-              <div class="detail-item"><label>No. Factura/Referencia</label><span>${d.folio_factura || '—'}</span></div>
-              <div class="detail-item"><label>Total</label><span style="font-family:'Playfair Display',serif;font-size:18px">$${d.total.toFixed(2)}</span></div>
-              ${d.observaciones ? `<div class="detail-item"><label>Observaciones</label><span>${d.observaciones}</span></div>` : ''}
-            </div>
-            ${cancelBox}
-          </div>
-          <div class="detail-section">
-            <h4>🌾 Insumos</h4>
-            <table class="det-view-table">
-              <thead>
-                <tr>
-                  <th>Materia Prima</th><th>Cant. Comprada</th><th>Conversión</th>
-                  <th>${d.estatus === 'finalizado' ? 'Stock Sumado' : 'Pendiente'}</th>
-                  <th>Costo Unit.</th><th>Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>${filas}</tbody>
-            </table>
-          </div>
-          <div style="background:var(--brown-dk);color:var(--cream);padding:12px 18px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:13px;opacity:.8">Total del Pedido</span>
-            <strong style="font-family:'Playfair Display',serif;font-size:22px">$${d.total.toFixed(2)}</strong>
-          </div>`;
-      })
-      .catch(() => {
-        document.getElementById('det-body').innerHTML = '<p style="color:var(--rust);text-align:center;padding:20px">Error al cargar el detalle.</p>';
-      });
-  }
-
-  /* ── MODAL FINALIZAR ── */
-  function abrirFinalizar(id, folio) {
-    document.getElementById('fin-folio').textContent = folio;
-    document.getElementById('form-finalizar').action = `/compras/finalizar/${id}`;
-    openModal('modal-finalizar');
-  }
-
-  /* ── MODAL CANCELAR ── */
-  function abrirCancelar(id, folio) {
-    document.getElementById('can-folio').textContent = folio;
-    document.getElementById('can-motivo').value = '';
-    document.getElementById('can-error').style.display = 'none';
-    document.getElementById('form-cancelar').action = `/compras/cancelar/${id}`;
-    openModal('modal-cancelar');
-  }
-
-  document.getElementById('form-cancelar').addEventListener('submit', function(e) {
-    const motivo = document.getElementById('can-motivo').value.trim();
-    if (!motivo) {
-      e.preventDefault();
-      const err = document.getElementById('can-error');
-      err.textContent = '⚠️ El motivo de cancelación es obligatorio.';
-      err.style.display = 'block';
-      clearTimeout(err._t);
-      err._t = setTimeout(() => { err.style.display = 'none'; }, 4000);
-    }
-  });
-
-  /* ── MODAL NUEVA UNIDAD ── */
-  let _nuRenglon = null;
-
-  function abrirModalNuevaUnidad(n) {
-    const matInput = document.getElementById('imat-' + n);
-    if (!matInput || !matInput.value) {
-      mostrarErrorForm('⚠️ Primero selecciona una materia prima en esa fila antes de agregar una unidad.');
-      return;
-    }
-    _nuRenglon = n;
-    const mat = MATERIAS[matInput.value];
-    document.getElementById('nu-materia-nombre').textContent = mat ? `${mat.nombre} (${mat.unidad_base})` : '';
-    document.getElementById('nu-hint').textContent = `Cuántas ${mat?.unidad_base || 'unidades base'} equivale 1 de esta unidad.`;
-    document.getElementById('nu-nombre').value  = '';
-    document.getElementById('nu-simbolo').value = '';
-    document.getElementById('nu-factor').value  = '';
-    document.getElementById('nu-uso').value     = 'compra';
-    document.getElementById('nu-error').style.display = 'none';
-    openModal('modal-nueva-unidad');
-  }
-
-  function guardarNuevaUnidad() {
-    const err    = document.getElementById('nu-error');
-    err.style.display = 'none';
-    const nombre = document.getElementById('nu-nombre').value.trim();
-    const simbolo= document.getElementById('nu-simbolo').value.trim();
-    const factor = document.getElementById('nu-factor').value.trim();
-    const uso    = document.getElementById('nu-uso').value;
-    function _nuErr(msg) {
-      err.textContent = msg; err.style.display = 'block';
-      clearTimeout(err._t); err._t = setTimeout(() => { err.style.display = 'none'; }, 4000);
-    }
-    if (!nombre || !simbolo || !factor) { _nuErr('⚠️ Nombre, símbolo y factor son obligatorios.'); return; }
-    if (parseFloat(factor) <= 0)        { _nuErr('⚠️ El factor debe ser mayor a 0.');              return; }
-    const n        = _nuRenglon;
-    const matInput = document.getElementById('imat-' + n);
-    const btn      = document.getElementById('nu-guardar-btn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Guardando…';
-    fetch('/compras/api/unidades/nueva', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
-      body: JSON.stringify({ id_materia: matInput.value, nombre, simbolo, factor_a_base: parseFloat(factor), uso }),
-    })
-    .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
-    .then(({ ok, data }) => {
-      btn.disabled = false; btn.textContent = '💾 Guardar Unidad';
-      if (!ok) { _nuErr('⚠️ ' + (data.error || 'Error al guardar.')); return; }
-      /* Agregar la nueva unidad al select y seleccionarla */
-      const uSel = document.getElementById('usel-' + n);
-      const opt  = document.createElement('option');
-      opt.value              = data.id;
-      opt.dataset.factor     = data.factor_a_base;
-      opt.dataset.simbolo    = data.simbolo;
-      opt.textContent        = `${data.nombre} (×${data.factor_a_base})`;
-      uSel.appendChild(opt);
-      uSel.value = data.id;
-      onUnidadCambio(n);
-      closeModal('modal-nueva-unidad');
-      /* Mostrar mensaje de éxito en el modal de compra */
-      const msgEl = document.getElementById('form-error');
-      msgEl.style.background  = '#e2eede';
-      msgEl.style.color       = '#3a6034';
-      msgEl.style.borderColor = '#b2d4aa';
-      msgEl.textContent       = `✅ Unidad "${data.nombre}" agregada correctamente.`;
-      msgEl.style.display     = 'block';
-      setTimeout(() => { msgEl.style.display='none'; msgEl.style.background=''; msgEl.style.color=''; msgEl.style.borderColor=''; }, 4000);
-    })
-    .catch(() => {
-      btn.disabled = false; btn.textContent = '💾 Guardar Unidad';
-      _nuErr('⚠️ Error de red al guardar.');
-    });
-  }
-
-  /* ── FILTRO DE TABLA ── */
-  function filterTable() {
-    const q       = document.getElementById('searchInput').value.toLowerCase();
-    const prov    = document.getElementById('filterProv').value.toLowerCase();
-    const estatus = document.getElementById('filterEstatus').value;
-    const desde   = document.getElementById('filterDesde').value;
-    const hasta   = document.getElementById('filterHasta').value;
-    const rows    = document.querySelectorAll('#comprasTable tbody tr');
-    let visible   = 0;
-    rows.forEach(row => {
-      const text    = row.textContent.toLowerCase();
-      const rProv   = row.dataset.prov   || '';
-      const rEst    = row.dataset.estatus || '';
-      const rFecha  = row.dataset.fecha   || '';
-      const show = (!q       || text.includes(q))
-                && (!prov    || rProv.includes(prov))
-                && (!estatus || rEst === estatus)
-                && (!desde   || rFecha >= desde)
-                && (!hasta   || rFecha <= hasta);
-      row.style.display = show ? '' : 'none';
-      if (show) visible++;
-    });
-    document.getElementById('visibleCount').textContent = visible;
-  }
+  const URL_CREAR_COMPRA = '{{ url_for("compras.crear_compra") }}';
+  const CSRF_TOKEN = '{{ csrf_token() }}';
 </script>
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/compras.js') }}"></script>
+{% endblock %}
+
 
 <!-- ══════════════════════════════════════
-     MODAL: NUEVA UNIDAD DE COMPRA
+    MODAL: NUEVA UNIDAD DE COMPRA
 ══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-nueva-unidad">
   <div class="modal modal-sm">
