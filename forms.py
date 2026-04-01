@@ -156,3 +156,38 @@ class PedidoCajaForm(Form):
     def validate_cajas(self, field):
         if len(field.entries) == 0:
             raise ValidationError('Agrega al menos una caja al pedido.')
+        
+
+class ProveedorForm(Form):
+    nombre = StringField('Nombre / Razón Social', [
+        validators.DataRequired(message='El nombre es obligatorio.'),
+        validators.Length(max=150, message='Máximo 150 caracteres.'),
+    ])
+    rfc = StringField('RFC', [
+        Optional(),
+        validators.Length(max=13, message='El RFC no puede exceder 13 caracteres.'),
+        validators.Regexp(
+            r'^$|^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$',
+            message='RFC inválido. Formato esperado: 3-4 letras, 6 dígitos, 3 alfanuméricos.',
+        ),
+    ])
+    contacto = StringField('Persona de Contacto', [
+        Optional(),
+        validators.Length(max=120, message='Máximo 120 caracteres.'),
+    ])
+    telefono = StringField('Teléfono', [
+        Optional(),
+        validators.Length(max=20, message='Máximo 20 caracteres.'),
+    ])
+    email = StringField('Correo Electrónico', [
+        Optional(),
+        validators.Regexp(
+            r'^$|^[^@\s]+@[^@\s]+\.[^@\s]+$',
+            message='Correo electrónico inválido.',
+        ),
+        validators.Length(max=150, message='Máximo 150 caracteres.'),
+    ])
+    direccion = TextAreaField('Dirección', [
+        Optional(),
+        validators.Length(max=2000, message='Máximo 2000 caracteres.'),
+    ])

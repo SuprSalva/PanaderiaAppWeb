@@ -89,6 +89,9 @@
     }
     .sidebar.collapsed .nav-section-label { opacity: 0; }
 
+    /* nav-section oculta cuando todos sus items están filtrados */
+    .nav-section.hidden-by-search { display: none; }
+
     .nav-item {
       display: flex; align-items: center; gap: 10px;
       padding: 9px 10px; border-radius: 9px;
@@ -106,6 +109,8 @@
       width: 3px; border-radius: 0 2px 2px 0;
       background: var(--rust-lt);
     }
+    /* item oculto por búsqueda */
+    .nav-item.hidden-by-search { display: none; }
 
     .nav-icon { font-size: 17px; flex-shrink: 0; width: 22px; text-align: center; }
     .nav-label { flex: 1; overflow: hidden; text-overflow: ellipsis; transition: opacity .2s; }
@@ -133,6 +138,16 @@
       z-index: 200;
     }
     .sidebar.collapsed .nav-item:hover .nav-tooltip { opacity: 1; }
+
+    /* Sin resultados */
+    #nav-no-results {
+      display: none;
+      text-align: center;
+      padding: 24px 12px 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,.35);
+      font-style: italic;
+    }
 
     /* Collapse toggle */
     .sidebar-toggle {
@@ -182,6 +197,7 @@
 
     .topbar-spacer { flex: 1; }
 
+    /* ── Buscador de menú ── */
     .topbar-search {
       position: relative;
     }
@@ -193,7 +209,23 @@
       outline: none; width: 200px; transition: border .2s, width .3s;
     }
     .topbar-search input:focus { border-color: var(--brown); width: 260px; background: var(--white); }
-    .topbar-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--brown-lt); }
+    .topbar-search input::placeholder { color: var(--brown-lt); }
+    .topbar-search-icon {
+      position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%); font-size: 13px; color: var(--brown-lt);
+      pointer-events: none;
+    }
+    /* Botón limpiar búsqueda */
+    .search-clear {
+      position: absolute; right: 8px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-size: 13px; color: var(--brown-lt);
+      display: none; line-height: 1; padding: 2px;
+      border-radius: 4px; transition: color .15s;
+    }
+    .search-clear:hover { color: var(--rust); }
+    .search-clear.visible { display: block; }
 
     .topbar-actions { display: flex; align-items: center; gap: 8px; }
     .topbar-btn {
@@ -321,20 +353,22 @@
     </a>
 
     <!-- Nav -->
-    <nav class="sidebar-nav">
+    <nav class="sidebar-nav" id="sidebarNav">
 
       <!-- INICIO -->
-      <div class="nav-section">
+      <div class="nav-section" id="section-principal">
         <div class="nav-section-label">Principal</div>
 
         <a href="{{ url_for('dashboard') }}"
-           class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}"
+           data-label="Dashboard">
           <span class="nav-icon">📊</span>
           <span class="nav-label">Dashboard</span>
           <span class="nav-tooltip">Dashboard</span>
         </a>
         <a href="{{ url_for('dashboard_ventas') }}"
-           class="nav-item {% if request.endpoint == 'dashboard_ventas' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'dashboard_ventas' %}active{% endif %}"
+           data-label="Dashboard Ventas">
           <span class="nav-icon">📊</span>
           <span class="nav-label">Dashboard Ventas</span>
           <span class="nav-tooltip">Dashboard Ventas</span>
@@ -342,45 +376,52 @@
       </div>
 
       <!-- ADMINISTRACIÓN -->
-      <div class="nav-section">
+      <div class="nav-section" id="section-admin">
         <div class="nav-section-label">Administración</div>
 
         <a href="{{ url_for('pedidos.lista') }}"
-           class="nav-item {% if request.endpoint == 'registrar_usuario.mis_pedidos' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'pedidos.lista' %}active{% endif %}"
+           data-label="Pedidos">
           <span class="nav-icon">📋</span>
           <span class="nav-label">Pedidos</span>
           <span class="nav-tooltip">Pedidos</span>
         </a>
 
         <a href="{{ url_for('registrar_usuario.usuarios') }}"
-           class="nav-item {% if request.endpoint in ['registrar_usuario.usuarios', 'registrar_usuario'] %}active{% endif %}">
+           class="nav-item {% if request.endpoint in ['registrar_usuario.usuarios', 'registrar_usuario'] %}active{% endif %}"
+           data-label="Usuarios">
           <span class="nav-icon">👥</span>
           <span class="nav-label">Usuarios</span>
           <span class="nav-tooltip">Usuarios</span>
         </a>
 
         <a href="{{ url_for('proveedores.index_proveedores') }}"
-           class="nav-item {% if request.endpoint == 'proveedores.index_proveedores' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'proveedores.index_proveedores' %}active{% endif %}"
+           data-label="Proveedores">
           <span class="nav-icon">🏪</span>
           <span class="nav-label">Proveedores</span>
           <span class="nav-tooltip">Proveedores</span>
         </a>
 
         <a href="{{ url_for('materias_primas.index_materias_primas') }}"
-           class="nav-item {% if request.endpoint == 'materias_primas.index_materias_primas' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'materias_primas.index_materias_primas' %}active{% endif %}"
+           data-label="Materias Primas">
           <span class="nav-icon">🌾</span>
           <span class="nav-label">Materias Primas</span>
           <span class="nav-tooltip">Materias Primas</span>
         </a>
 
         <a href="{{ url_for('compras.index_compras') }}"
-           class="nav-item {% if request.endpoint == 'compras.index_compras' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'compras.index_compras' %}active{% endif %}"
+           data-label="Compras">
           <span class="nav-icon">🛒</span>
           <span class="nav-label">Compras</span>
           <span class="nav-tooltip">Compras</span>
         </a>
+
         <a href="{{ url_for('productos_bp.index_productos') }}"
-          class="nav-item {% if request.endpoint == 'productos_bp.index_productos' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'productos_bp.index_productos' %}active{% endif %}"
+           data-label="Productos">
           <span class="nav-icon">🏷️</span>
           <span class="nav-label">Productos</span>
           <span class="nav-tooltip">Productos</span>
@@ -388,25 +429,28 @@
       </div>
 
       <!-- PRODUCCIÓN -->
-      <div class="nav-section">
+      <div class="nav-section" id="section-produccion">
         <div class="nav-section-label">Producción</div>
 
         <a href="{{ url_for('recetas_bp.index_recetas') }}"
-           class="nav-item {% if request.endpoint == 'recetas_bp.index_recetas' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'recetas_bp.index_recetas' %}active{% endif %}"
+           data-label="Recetas">
           <span class="nav-icon">📖</span>
           <span class="nav-label">Recetas</span>
           <span class="nav-tooltip">Recetas</span>
         </a>
 
         <a href="{{ url_for('produccion.index_produccion') }}"
-           class="nav-item {% if request.endpoint == 'produccion.index_produccion' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'produccion.index_produccion' %}active{% endif %}"
+           data-label="Producción">
           <span class="nav-icon">⚙️</span>
           <span class="nav-label">Producción</span>
           <span class="nav-tooltip">Producción</span>
         </a>
 
         <a href="{{ url_for('produccion.index_produccion_solicitud') }}"
-           class="nav-item {% if request.endpoint == 'produccion.index_produccion_solicitud' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'produccion.index_produccion_solicitud' %}active{% endif %}"
+           data-label="Solicitudes Producción">
           <span class="nav-icon">📬</span>
           <span class="nav-label">Solicitudes</span>
           <span class="nav-tooltip">Solicitudes Prod.</span>
@@ -414,75 +458,76 @@
           <span class="nav-badge">{{ pendientes_solicitudes }}</span>
           {% endif %}
         </a>
-
-        <a href="{{ url_for('productoTerminado.index_producto_terminado') }}"
-           class="nav-item {% if request.endpoint == 'productoTerminado.index_producto_terminado' %}active{% endif %}">
-          <span class="nav-icon">📦</span>
-          <span class="nav-label">Inv. Terminado</span>
-          <span class="nav-tooltip">Inv. Terminado</span>
-        </a>
       </div>
 
       <!-- VENTAS -->
-      <div class="nav-section">
+      <div class="nav-section" id="section-ventas">
         <div class="nav-section-label">Ventas</div>
 
         <a href="{{ url_for('ventas.index_ventas') }}"
-           class="nav-item {% if request.endpoint == 'ventas.index_ventas' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'ventas.index_ventas' %}active{% endif %}"
+           data-label="Ventas">
           <span class="nav-icon">🏷️</span>
           <span class="nav-label">Ventas</span>
           <span class="nav-tooltip">Ventas</span>
         </a>
 
         <a href="{{ url_for('ventas.corte_ventas') }}"
-           class="nav-item {% if request.endpoint == 'ventas.corte_ventas' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'ventas.corte_ventas' %}active{% endif %}"
+           data-label="Corte Diario">
           <span class="nav-icon">📊</span>
           <span class="nav-label">Corte Diario</span>
           <span class="nav-tooltip">Corte Diario</span>
         </a>
 
         <a href="{{ url_for('efectivo.index_salida_efectivo') }}"
-           class="nav-item {% if request.endpoint == 'efectivo.index_salida_efectivo' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'efectivo.index_salida_efectivo' %}active{% endif %}"
+           data-label="Salida de Efectivo">
           <span class="nav-icon">💸</span>
           <span class="nav-label">Salida de Efectivo</span>
           <span class="nav-tooltip">Salida de Efectivo</span>
         </a>
 
-        <!-- ══ VENTA EN LÍNEA ══ -->
         <a href="{{ url_for('pedidos.catalogo') }}"
-           class="nav-item {% if request.endpoint in ['ventas.ventas_online', 'ventas.checkout'] %}active{% endif %}">
+           class="nav-item {% if request.endpoint in ['ventas.ventas_online', 'ventas.checkout'] %}active{% endif %}"
+           data-label="Venta en Línea">
           <span class="nav-icon">🌐</span>
           <span class="nav-label">Venta en Línea</span>
           <span class="nav-tooltip">Venta en Línea</span>
         </a>
 
         <a href="{{ url_for('pedidos.mis_pedidos') }}"
-           class="nav-item {% if request.endpoint == 'registrar_usuario.mis_pedidos' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'pedidos.mis_pedidos' %}active{% endif %}"
+           data-label="Mis Pedidos">
           <span class="nav-icon">📋</span>
           <span class="nav-label">Mis Pedidos</span>
           <span class="nav-tooltip">Mis Pedidos</span>
         </a>
-
       </div>
 
       <!-- REPORTES -->
-      <div class="nav-section">
+      <div class="nav-section" id="section-reportes">
         <div class="nav-section-label">Reportes</div>
 
         <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}"
-           class="nav-item {% if request.endpoint == 'costoUtilidad.index_costo_utilidad' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'costoUtilidad.index_costo_utilidad' %}active{% endif %}"
+           data-label="Costo y Utilidad">
           <span class="nav-icon">💰</span>
           <span class="nav-label">Costo y Utilidad</span>
           <span class="nav-tooltip">Costo y Utilidad</span>
         </a>
 
         <a href="{{ url_for('costoUtilidad.index_utilidad') }}"
-           class="nav-item {% if request.endpoint == 'costoUtilidad.index_utilidad' %}active{% endif %}">
+           class="nav-item {% if request.endpoint == 'costoUtilidad.index_utilidad' %}active{% endif %}"
+           data-label="Utilidad Diaria">
           <span class="nav-icon">📈</span>
           <span class="nav-label">Utilidad Diaria</span>
           <span class="nav-tooltip">Utilidad Diaria</span>
         </a>
       </div>
+
+      <!-- Mensaje sin resultados -->
+      <div id="nav-no-results">Sin resultados para tu búsqueda.</div>
 
     </nav>
 
@@ -517,10 +562,17 @@
 
       <div class="topbar-spacer"></div>
 
-      <!-- Búsqueda -->
+      <!-- ── Buscador de menú ── -->
       <div class="topbar-search">
         <span class="topbar-search-icon">🔍</span>
-        <input type="text" placeholder="Buscar…">
+        <input
+          type="text"
+          id="menuSearch"
+          placeholder="Buscar en menú…"
+          autocomplete="off"
+          oninput="filterNav(this.value)"
+        >
+        <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpiar búsqueda">✕</button>
       </div>
 
       <!-- Acciones -->
@@ -529,7 +581,10 @@
           🔔
           <span class="notif-dot"></span>
         </button>
-        <button class="topbar-btn" title="Pantalla completa" onclick="toggleFullscreen()">⛶</button>
+        <!-- Botón pantalla completa — el ícono cambia según estado -->
+        <button class="topbar-btn" id="btnFullscreen" title="Pantalla completa" onclick="toggleFullscreen()">
+          <span id="iconFullscreen">⛶</span>
+        </button>
       </div>
 
       <!-- Usuario -->
@@ -573,15 +628,15 @@
     </header>
     {% endif %}
     <main class="page-content">
-
       {% block container %}{% endblock %}
     </main>
-
   </div>
 </div>
 
 <script>
-  /* ── SIDEBAR COLLAPSE ── */
+  /* ════════════════════════════════════════
+     SIDEBAR COLLAPSE
+  ════════════════════════════════════════ */
   const sidebar    = document.getElementById('sidebar');
   const toggleIcon = document.getElementById('toggleIcon');
   let collapsed = false;
@@ -593,14 +648,16 @@
     localStorage.setItem('dmSidebarCollapsed', collapsed);
   }
 
-  /* Restore state */
+  /* Restaurar estado guardado */
   if (localStorage.getItem('dmSidebarCollapsed') === 'true') {
     collapsed = true;
     sidebar.classList.add('collapsed');
-    toggleIcon.textContent = '▶';
+    if (toggleIcon) toggleIcon.textContent = '▶';
   }
 
-  /* ── MOBILE SIDEBAR ── */
+  /* ════════════════════════════════════════
+     MOBILE SIDEBAR
+  ════════════════════════════════════════ */
   const overlay = document.getElementById('sidebarOverlay');
 
   function openMobileSidebar() {
@@ -615,30 +672,105 @@
     document.body.style.overflow = '';
   }
 
-  /* ── USER DROPDOWN ── */
+  /* ════════════════════════════════════════
+     USER DROPDOWN
+  ════════════════════════════════════════ */
   const userMenu = document.getElementById('userMenu');
 
-  function toggleUserMenu() {
-    userMenu.classList.toggle('open');
-  }
+  function toggleUserMenu() { userMenu.classList.toggle('open'); }
 
-  document.addEventListener('click', function(e) {
-    if (!userMenu.contains(e.target)) {
+  document.addEventListener('click', function (e) {
+    if (userMenu && !userMenu.contains(e.target)) {
       userMenu.classList.remove('open');
     }
   });
 
-  /* ── FULLSCREEN ── */
+  /* ════════════════════════════════════════
+     FULLSCREEN — ícono alterna ⛶ / ⛶
+  ════════════════════════════════════════ */
+  const iconFullscreen = document.getElementById('iconFullscreen');
+
+  // ⛶ = expandir  |  ✕ estilo "comprimir" — usamos caracteres Unicode claros
+  const ICON_EXPAND   = '⛶';   // pantalla completa
+  const ICON_COMPRESS = '⊡';   // salir de pantalla completa (cuadro con punto)
+
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.();
+      document.documentElement.requestFullscreen?.().catch(() => {});
     } else {
       document.exitFullscreen?.();
     }
   }
 
-  /* ── ACTIVE LINK HIGHLIGHT (fallback for Jinja) ── */
-  document.querySelectorAll('.nav-item').forEach(link => {
+  /* Escuchar el evento del navegador para actualizar el ícono de forma fiable */
+  document.addEventListener('fullscreenchange', function () {
+    if (iconFullscreen) {
+      iconFullscreen.textContent = document.fullscreenElement ? ICON_COMPRESS : ICON_EXPAND;
+    }
+  });
+
+  /* ════════════════════════════════════════
+     BUSCADOR DE MENÚ
+  ════════════════════════════════════════ */
+  const menuSearchInput = document.getElementById('menuSearch');
+  const searchClearBtn  = document.getElementById('searchClear');
+  const noResults       = document.getElementById('nav-no-results');
+
+  function filterNav(query) {
+    const q = query.trim().toLowerCase();
+
+    // Mostrar / ocultar botón limpiar
+    searchClearBtn.classList.toggle('visible', q.length > 0);
+
+    // Si el sidebar está colapsado, expandirlo temporalmente para ver resultados
+    if (q.length > 0 && collapsed) {
+      sidebar.classList.remove('collapsed');
+    } else if (q.length === 0 && collapsed) {
+      sidebar.classList.add('collapsed');
+    }
+
+    const sections  = document.querySelectorAll('#sidebarNav .nav-section');
+    const allItems  = document.querySelectorAll('#sidebarNav .nav-item');
+    let   anyVisible = false;
+
+    sections.forEach(function (section) {
+      const items        = section.querySelectorAll('.nav-item');
+      let   sectionHasMatch = false;
+
+      items.forEach(function (item) {
+        const label = (item.getAttribute('data-label') || item.querySelector('.nav-label')?.textContent || '').toLowerCase();
+        const match = q === '' || label.includes(q);
+
+        item.classList.toggle('hidden-by-search', !match);
+        if (match) { sectionHasMatch = true; }
+      });
+
+      // Ocultar sección completa si ningún item coincide
+      section.classList.toggle('hidden-by-search', !sectionHasMatch && q !== '');
+      if (sectionHasMatch) { anyVisible = true; }
+    });
+
+    // Mensaje sin resultados
+    if (noResults) {
+      noResults.style.display = (q !== '' && !anyVisible) ? 'block' : 'none';
+    }
+  }
+
+  function clearSearch() {
+    menuSearchInput.value = '';
+    filterNav('');
+    menuSearchInput.focus();
+  }
+
+  /* Atajo de teclado: Escape limpia la búsqueda */
+  menuSearchInput && menuSearchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { clearSearch(); }
+  });
+
+  /* ════════════════════════════════════════
+     ACTIVE LINK HIGHLIGHT (fallback JS)
+  ════════════════════════════════════════ */
+  document.querySelectorAll('.nav-item').forEach(function (link) {
     if (link.href === window.location.href) {
       link.classList.add('active');
     }
