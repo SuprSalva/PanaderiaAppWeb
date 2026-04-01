@@ -5,7 +5,6 @@
 <style>
   .ol-page { display: flex; flex-direction: column; gap: 20px; }
 
-  /* ══ HERO ══ */
   .ol-hero {
     background: linear-gradient(135deg, var(--brown-dk) 0%, #9c4a1a 100%);
     border-radius: 16px; padding: 28px 32px;
@@ -16,7 +15,6 @@
   .ol-hero-text h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--cream); margin-bottom: 6px; }
   .ol-hero-text p  { font-size: 13px; color: rgba(255,255,255,.65); max-width: 400px; }
 
-  /* ══ PASOS ══ */
   .steps-bar {
     display: flex; background: var(--white);
     border: 1.5px solid var(--tan); border-radius: 14px; overflow: hidden;
@@ -35,7 +33,6 @@
   }
   .step.done .step-num { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
 
-  /* ══ SECCIÓN ══ */
   .section-card {
     background: var(--white); border: 1.5px solid var(--tan);
     border-radius: 14px; padding: 22px 24px;
@@ -45,7 +42,6 @@
     margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
   }
 
-  /* ══ TARJETAS DE TAMAÑO ══ */
   .size-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .size-card {
     border: 2px solid var(--tan); border-radius: 14px; padding: 20px 16px;
@@ -58,7 +54,6 @@
   .size-card .cap  { font-size: 12px; color: var(--brown-lt); }
   .size-card .desc { font-size: 11px; color: var(--brown-lt); margin-top: 6px; }
 
-  /* ══ TIPO DE CAJA ══ */
   .tipo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .tipo-grid.tres-opciones { grid-template-columns: 1fr 1fr 1fr; }
   .tipo-card {
@@ -72,7 +67,6 @@
   .tipo-card .tipo-nom  { font-weight: 800; font-size: 14px; color: var(--brown-dk); margin-bottom: 3px; }
   .tipo-card .tipo-desc { font-size: 11px; color: var(--brown-lt); line-height: 1.4; }
 
-  /* ══ SELECCIÓN DE PANES ══ */
   .ol-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
   .ol-search-wrap { position: relative; flex: 1; min-width: 180px; }
   .ol-search-wrap input {
@@ -102,7 +96,6 @@
   .btn-sel-pan:hover  { background: var(--rust); }
   .btn-sel-pan.quitar { background: #fce8df; color: var(--rust); border: 1px solid var(--rust); }
 
-  /* ══ INDICADOR DE PIEZAS ══ */
   .piezas-bar {
     border-radius: 10px; padding: 12px 16px; font-size: 13px;
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -112,7 +105,6 @@
   .piezas-progress { flex: 1; height: 8px; border-radius: 4px; background: rgba(0,0,0,.1); overflow: hidden; }
   .piezas-fill     { height: 100%; border-radius: 4px; background: currentColor; transition: width .3s; }
 
-  /* ══ BOTÓN AGREGAR AL CARRITO ══ */
   .btn-agregar-carrito {
     width: 100%; padding: 16px; margin-top: 20px; border-radius: 12px; border: none;
     background: var(--rust); color: #fff; font-size: 15px; font-weight: 800;
@@ -122,29 +114,6 @@
   .btn-agregar-carrito:hover   { background: #9c3a1a; transform: translateY(-1px); }
   .btn-agregar-carrito:disabled { background: var(--tan); cursor: not-allowed; transform: none; }
 
-  /* ══ CARRITO EN PÁGINA ══ */
-  .carrito-section {
-    background: var(--white); border: 2px solid var(--rust);
-    border-radius: 14px; padding: 20px 24px;
-  }
-  .carrito-item {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    padding: 14px 0; border-bottom: 1px dashed var(--tan); gap: 12px;
-  }
-  .carrito-item:last-child { border-bottom: none; }
-  .carrito-item-ico  { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
-  .carrito-item-info { flex: 1; }
-  .carrito-item-nom  { font-weight: 800; font-size: 14px; color: var(--brown-dk); margin-bottom: 4px; }
-  .carrito-item-det  { font-size: 12px; color: var(--brown-lt); }
-  .carrito-item-precio { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--rust); white-space: nowrap; }
-  .btn-quitar-caja {
-    background: #fce8df; border: none; color: var(--rust); border-radius: 8px;
-    padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
-    transition: background .2s; flex-shrink: 0;
-  }
-  .btn-quitar-caja:hover { background: #f5c6b0; }
-
-  /* ══ FAB ══ */
   .cart-fab {
     position: fixed; bottom: 28px; right: 28px; z-index: 300;
     width: 58px; height: 58px; border-radius: 50%;
@@ -160,7 +129,6 @@
     display: none; align-items: center; justify-content: center;
   }
 
-  /* ══ DRAWER ══ */
   .drawer-overlay {
     position: fixed; inset: 0; background: rgba(59,42,26,.45); backdrop-filter: blur(3px);
     z-index: 400; opacity: 0; pointer-events: none; transition: opacity .3s;
@@ -199,7 +167,6 @@
 {% block container %}
 <div class="ol-page">
 
-  <!-- HERO -->
   <div class="ol-hero">
     <div class="ol-hero-text">
       <h1>📦 Pedir Cajas de Pan</h1>
@@ -212,7 +179,6 @@
     </a>
   </div>
 
-  <!-- BARRA DE PASOS -->
   <div class="steps-bar" id="stepsBar">
     <div class="step active" id="step1-ind"><div class="step-num">1</div> Tamaño de charola</div>
     <div class="step"        id="step2-ind"><div class="step-num">2</div> Tipo de caja</div>
@@ -235,7 +201,6 @@
     </div>
   </div>
 
-  <!-- PASO 2: TIPO (oculto hasta elegir tamaño; se salta para charola chica) -->
   <div class="section-card hidden" id="paso2">
     <div class="section-title">🎨 Paso 2 — ¿Cómo quieres tu caja?</div>
     <div class="tipo-grid" id="tipoGrid">
@@ -263,7 +228,6 @@
     </div>
   </div>
 
-  <!-- PASO 3: PANES (oculto hasta elegir tipo) -->
   <div class="section-card hidden" id="paso3">
     <div class="section-title" id="paso3-titulo">🥖 Paso 3 — Elige tu pan</div>
 
@@ -297,53 +261,24 @@
       {% endfor %}
     </div>
 
-    <!-- BOTÓN AGREGAR AL CARRITO — aparece al completar la selección -->
     <button type="button" class="btn-agregar-carrito" id="btnAgregarCarrito"
             onclick="agregarAlCarrito()" disabled>
       🛒 Agregar caja al pedido
     </button>
   </div>
 
-  <!-- CARRITO EN PÁGINA — visible cuando hay al menos 1 caja -->
-  <div class="carrito-section hidden" id="carritoSection">
-    <div class="section-title" style="margin-bottom:14px;">
-      🛒 Tu pedido
-      <span id="carritoCount" style="background:var(--rust);color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-family:'Lato',sans-serif;"></span>
-    </div>
-    <div id="carritoItems"></div>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:14px; border-top:2px solid var(--tan);">
-      <div style="font-size:13px; color:var(--brown-lt); font-weight:700;">TOTAL ESTIMADO</div>
-      <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:800; color:var(--rust);" id="carritoTotal">$0.00</div>
-    </div>
-    <div style="display:flex; gap:12px; margin-top:16px;">
-      <button type="button" onclick="resetearPasos()"
-              style="flex:1; padding:13px; border-radius:10px; border:2px solid var(--tan);
-                     background:var(--white); color:var(--brown-dk); font-weight:700; cursor:pointer; font-size:13px;">
-        + Agregar otra caja
-      </button>
-      <button type="button" onclick="abrirDrawer()"
-              style="flex:1; padding:13px; border-radius:10px; border:none;
-                     background:var(--brown-dk); color:var(--cream); font-weight:700; cursor:pointer; font-size:13px;">
-        Finalizar pedido →
-      </button>
-    </div>
-  </div>
-
 </div>
 
-<!-- FAB (visible siempre que haya cajas) -->
-<button class="cart-fab hidden" id="cartFab" onclick="abrirDrawer()">
+<button class="cart-fab" id="cartFab" onclick="abrirDrawer()">
   🛒
   <span class="cart-badge" id="cartBadge"></span>
 </button>
 
-<!-- OVERLAY -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="cerrarDrawer()"></div>
 
-<!-- DRAWER — solo resumen y checkout -->
 <div class="cart-drawer" id="cartDrawer">
   <div class="drawer-header">
-    <h2>🛒 Finalizar pedido</h2>
+    <h2>🛒 Tu pedido</h2>
     <button class="btn-close-drawer" onclick="cerrarDrawer()">✕</button>
   </div>
 
@@ -355,6 +290,13 @@
 
     <div class="drawer-body">
       <div id="drawerResumen"></div>
+
+      <button type="button" onclick="cerrarDrawer(); resetearPasos();"
+              style="width:100%; margin-top:16px; padding:11px; border-radius:10px;
+                     border:2px dashed var(--tan); background:var(--white);
+                     color:var(--brown-dk); font-weight:700; font-size:13px; cursor:pointer;">
+        + Agregar otra caja
+      </button>
 
       <div class="checkout-fields" style="margin-top:20px;">
         <div style="display:flex; gap:10px;">
@@ -382,7 +324,6 @@
   </form>
 </div>
 
-<!-- DATA JSON -->
 <script type="application/json" id="data-tamanios">{{ tamanios_json | safe }}</script>
 <script type="application/json" id="data-productos">{{ productos_json | safe }}</script>
 
@@ -390,15 +331,11 @@
   const TAMANIOS  = JSON.parse(document.getElementById('data-tamanios').textContent);
   const PRODUCTOS = JSON.parse(document.getElementById('data-productos').textContent);
 
-  // ── Estado global ─────────────────────────────────────────────
-  let tamanio = null;   // { id, capacidad, nombre }
-  let tipo    = null;   // 'simple' | 'mixta' | 'triple'
-  let slots   = [];     // [{ id_producto, nombre, precio, cantidad }] — permite repetidos
-  let carrito = [];     // [{ tamanio, tipo, slots }]
+  let tamanio = null;   
+  let tipo    = null; 
+  let slots   = [];     
+  let carrito = [];    
 
-  // ── Reglas ────────────────────────────────────────────────────
-  // Devuelve cuántos SLOTS de pan tiene la caja según tipo
-  // (un slot puede ser el mismo pan repetido)
   function numSlots() {
     if (!tipo) return 0;
     if (tipo === 'simple') return 1;
@@ -407,17 +344,15 @@
     return 0;
   }
 
-  // Piezas por slot según tamaño y tipo
   function piezasPorSlot() {
     if (!tamanio || !tipo) return 0;
-    return tamanio.capacidad / numSlots();  // 4/1=4, 8/1=8, 8/2=4, 12/1=12, 12/2=6, 12/3=4
+    return tamanio.capacidad / numSlots();
   }
 
   function cajaCompleta() {
     return tamanio && tipo && slots.length === numSlots();
   }
 
-  // ── PASO 1: TAMAÑO ────────────────────────────────────────────
   function elegirTamanio(id, capacidad, nombre) {
     tamanio = { id, capacidad, nombre };
     tipo    = null;
@@ -444,7 +379,6 @@
     actualizarBtnAgregar();
   }
 
-  // ── PASO 2: TIPO ──────────────────────────────────────────────
   function elegirTipo(t) {
     tipo  = t;
     slots = [];
@@ -470,10 +404,6 @@
     document.getElementById('paso3').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // ── PASO 3: SLOTS ─────────────────────────────────────────────
-  // Cada click agrega UN slot con el pan elegido.
-  // Si ya hay numSlots() slots, el botón se deshabilita.
-  // El mismo pan puede aparecer en varios slots.
   function elegirPan(id, precio) {
     if (slots.length >= numSlots()) return;
     slots.push({
@@ -494,18 +424,15 @@
     actualizarBtnAgregar();
   }
 
-  // Renderiza los slots elegidos debajo del buscador y actualiza botones
   function renderSlots() {
     const n     = numSlots();
     const lleno = slots.length >= n;
 
-    // Deshabilitar todos los botones "Elegir" si ya están llenos los slots
     document.querySelectorAll('.btn-sel-pan').forEach(b => {
       b.disabled = lleno;
       b.style.opacity = lleno ? '0.4' : '1';
     });
 
-    // Renderizar slots seleccionados (si el contenedor existe)
     let cont = document.getElementById('slotsSeleccionados');
     if (!cont) {
       cont = document.createElement('div');
@@ -514,10 +441,7 @@
       document.getElementById('piezasBar').insertAdjacentElement('afterend', cont);
     }
 
-    if (slots.length === 0) {
-      cont.innerHTML = '';
-      return;
-    }
+    if (slots.length === 0) { cont.innerHTML = ''; return; }
 
     let html = `<div style="font-size:11px;font-weight:700;color:var(--brown-lt);text-transform:uppercase;margin-bottom:4px;">
                   Panes elegidos (${slots.length}/${n})</div>`;
@@ -527,39 +451,33 @@
                     background:var(--warm-bg);border:1.5px solid var(--tan);
                     border-radius:10px;padding:10px 14px;">
           <div>
-            <span style="font-weight:700;font-size:13px;color:var(--brown-dk);">
-              ${s.nombre}
-            </span>
+            <span style="font-weight:700;font-size:13px;color:var(--brown-dk);">${s.nombre}</span>
             <span style="font-size:12px;color:var(--brown-lt);margin-left:8px;">
               × ${s.cantidad} pzas — $${(s.precio * s.cantidad).toFixed(2)}
             </span>
           </div>
           <button type="button" onclick="quitarSlot(${idx})"
                   style="background:#fce8df;border:none;color:var(--rust);border-radius:7px;
-                         padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;">
-            ✕
-          </button>
+                         padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;">✕</button>
         </div>`;
     });
     cont.innerHTML = html;
   }
 
   function actualizarPiezasBar() {
-    const n    = numSlots();
-    const pzs  = slots.reduce((a, s) => a + s.cantidad, 0);
-    const pct  = n > 0 ? (slots.length / n) * 100 : 0;
+    const n   = numSlots();
+    const pzs = slots.reduce((a, s) => a + s.cantidad, 0);
+    const pct = n > 0 ? (slots.length / n) * 100 : 0;
     document.getElementById('piezasFill').style.width = pct + '%';
     document.getElementById('piezasTexto').textContent =
       `${slots.length} de ${n} slot${n > 1 ? 's' : ''} — ${pzs} / ${tamanio ? tamanio.capacidad : 0} piezas`;
-    const bar = document.getElementById('piezasBar');
-    bar.classList.toggle('ok', slots.length === n && n > 0);
+    document.getElementById('piezasBar').classList.toggle('ok', slots.length === n && n > 0);
   }
 
   function actualizarBtnAgregar() {
     document.getElementById('btnAgregarCarrito').disabled = !cajaCompleta();
   }
 
-  // ── STEPS ─────────────────────────────────────────────────────
   function actualizarSteps(completado) {
     for (let i = 1; i <= 3; i++) {
       const el = document.getElementById('step' + i + '-ind');
@@ -569,7 +487,6 @@
     }
   }
 
-  // ── AGREGAR AL CARRITO ────────────────────────────────────────
   function agregarAlCarrito() {
     if (!cajaCompleta()) return;
 
@@ -580,12 +497,12 @@
     });
 
     const btn = document.getElementById('btnAgregarCarrito');
-    btn.textContent = '✅ ¡Caja agregada!';
+    btn.textContent = '¡Caja agregada! 🎉';
     btn.style.background = '#3a6034';
     setTimeout(() => { btn.textContent = '🛒 Agregar caja al pedido'; btn.style.background = ''; }, 1200);
-    setTimeout(() => resetearPasos(), 1300);
 
     actualizarCarritoEnPagina();
+    setTimeout(() => { resetearPasos(); abrirDrawer(); }, 1350);
   }
 
   function quitarDelCarrito(idx) {
@@ -593,7 +510,16 @@
     actualizarCarritoEnPagina();
   }
 
-  // ── RESETEAR PASOS ────────────────────────────────────────────
+  function duplicarCaja(idx) {
+    const original = carrito[idx];
+    carrito.push({
+      tamanio: { ...original.tamanio },
+      tipo:    original.tipo,
+      slots:   original.slots.map(s => ({ ...s }))
+    });
+    actualizarCarritoEnPagina();
+  }
+
   function resetearPasos() {
     tamanio = null; tipo = null; slots = [];
 
@@ -602,11 +528,9 @@
     document.getElementById('paso2').classList.add('hidden');
     document.getElementById('paso3').classList.add('hidden');
 
-    // Limpiar slots renderizados
     const cont = document.getElementById('slotsSeleccionados');
     if (cont) cont.innerHTML = '';
 
-    // Re-habilitar botones de pan
     document.querySelectorAll('.btn-sel-pan').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
 
     actualizarSteps(0);
@@ -614,52 +538,18 @@
     document.getElementById('stepsBar').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // ── CARRITO EN PÁGINA ─────────────────────────────────────────
   function actualizarCarritoEnPagina() {
-    const section = document.getElementById('carritoSection');
-    const fab     = document.getElementById('cartFab');
-    const badge   = document.getElementById('cartBadge');
+    const badge = document.getElementById('cartBadge');
 
-    if (carrito.length === 0) {
-      section.classList.add('hidden');
-      fab.classList.add('hidden');
-      return;
+    if (carrito.length > 0) {
+      badge.textContent   = carrito.length;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
     }
 
-    section.classList.remove('hidden');
-    fab.classList.remove('hidden');
-    badge.textContent   = carrito.length;
-    badge.style.display = 'flex';
+    document.getElementById('btnEnviar').disabled = carrito.length === 0;
 
-    document.getElementById('carritoCount').textContent =
-      `${carrito.length} caja${carrito.length > 1 ? 's' : ''}`;
-
-    const icos = { simple: '🍞', mixta: '🎭', triple: '🌈' };
-    let html = '', total = 0;
-
-    carrito.forEach((c, idx) => {
-      const det      = c.slots.map(s => `${s.nombre} × ${s.cantidad} pzas`).join(' · ');
-      const subtotal = c.slots.reduce((a, s) => a + s.precio * s.cantidad, 0);
-      total += subtotal;
-      html += `
-        <div class="carrito-item">
-          <div class="carrito-item-ico">${icos[c.tipo]}</div>
-          <div class="carrito-item-info">
-            <div class="carrito-item-nom">${c.tamanio.nombre} — ${c.tipo.charAt(0).toUpperCase()+c.tipo.slice(1)}</div>
-            <div class="carrito-item-det">${det}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div class="carrito-item-precio">$${subtotal.toFixed(2)}</div>
-            <button type="button" class="btn-quitar-caja" onclick="quitarDelCarrito(${idx})">✕</button>
-          </div>
-        </div>`;
-    });
-
-    document.getElementById('carritoItems').innerHTML   = html;
-    document.getElementById('carritoTotal').textContent = '$' + total.toFixed(2);
-    document.getElementById('drawerTotal').textContent  = '$' + total.toFixed(2);
-
-    // Serializar para el form
     document.getElementById('h_cajas_json').value = JSON.stringify(
       carrito.map(c => ({
         id_tamanio: c.tamanio.id,
@@ -672,29 +562,57 @@
       }))
     );
 
-    document.getElementById('btnEnviar').disabled = carrito.length === 0;
+    const icos = { simple: '🍞', mixta: '🎭', triple: '🌈' };
+    let total = 0, resHTML = '';
 
-    // Resumen en drawer
-    let resHTML = '';
-    carrito.forEach((c, idx) => {
-      const subtotal = c.slots.reduce((a, s) => a + s.precio * s.cantidad, 0);
-      resHTML += `
-        <div class="resumen-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
-          <div style="display:flex;justify-content:space-between;width:100%;">
-            <strong>${icos[c.tipo]} Caja ${idx+1} — ${c.tamanio.nombre}</strong>
-            <span style="color:var(--rust);font-weight:700;">$${subtotal.toFixed(2)}</span>
-          </div>
-          <div style="font-size:11px;color:var(--brown-lt);">
-            ${c.slots.map(s => `${s.nombre} × ${s.cantidad}`).join(' · ')}
+    if (carrito.length === 0) {
+      resHTML = `
+        <div style="text-align:center; padding:40px 0; color:var(--brown-lt);">
+          <div style="font-size:44px; margin-bottom:12px;">🛒</div>
+          <div style="font-size:13px; line-height:1.6;">
+            Tu carrito está vacío.<br>Arma una caja para empezar.
           </div>
         </div>`;
-    });
+    } else {
+      carrito.forEach((c, idx) => {
+        const subtotal = c.slots.reduce((a, s) => a + s.precio * s.cantidad, 0);
+        total += subtotal;
+        resHTML += `
+          <div class="resumen-row" style="flex-direction:column; align-items:flex-start; gap:8px; padding:14px 0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+              <strong style="font-size:14px;">${icos[c.tipo]} Caja ${idx+1} — ${c.tamanio.nombre}</strong>
+              <span style="color:var(--rust); font-weight:700; font-size:15px;">$${subtotal.toFixed(2)}</span>
+            </div>
+            <div style="font-size:12px; color:var(--brown-lt); line-height:1.5;">
+              ${c.slots.map(s => `${s.nombre} × ${s.cantidad} pzas`).join(' · ')}
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" onclick="duplicarCaja(${idx})"
+                      style="padding:5px 12px; border-radius:8px; border:1.5px solid var(--tan);
+                             background:var(--white); color:var(--brown-dk); font-size:12px;
+                             font-weight:700; cursor:pointer; transition:background .15s;"
+                      onmouseover="this.style.background='var(--warm-bg)'"
+                      onmouseout="this.style.background='var(--white)'">
+                + Agregar igual
+              </button>
+              <button type="button" onclick="quitarDelCarrito(${idx})"
+                      style="padding:5px 12px; border-radius:8px; border:none;
+                             background:#fce8df; color:var(--rust); font-size:12px;
+                             font-weight:700; cursor:pointer; transition:background .15s;"
+                      onmouseover="this.style.background='#f5c6b0'"
+                      onmouseout="this.style.background='#fce8df'">
+                ✕ Quitar
+              </button>
+            </div>
+          </div>`;
+      });
+    }
+
     document.getElementById('drawerResumen').innerHTML = resHTML;
+    document.getElementById('drawerTotal').textContent = '$' + total.toFixed(2);
   }
 
-  // ── DRAWER ────────────────────────────────────────────────────
   function abrirDrawer() {
-    if (carrito.length === 0) { alert('Agrega al menos una caja antes de finalizar.'); return; }
     document.getElementById('drawerOverlay').classList.add('open');
     document.getElementById('cartDrawer').classList.add('open');
     configurarFechaHora();
@@ -705,7 +623,6 @@
     document.getElementById('cartDrawer').classList.remove('open');
   }
 
-  // ── BUSCADOR ──────────────────────────────────────────────────
   function filtrar(q) {
     const query = q.toLowerCase();
     document.querySelectorAll('.prod-card').forEach(c => {
@@ -713,7 +630,6 @@
     });
   }
 
-  // ── FECHA Y HORA ──────────────────────────────────────────────
   function configurarFechaHora() {
     const dateInput = document.getElementById('uiDate');
     const ahora     = new Date();
@@ -768,5 +684,7 @@
     const t = document.getElementById('uiTime').value;
     document.getElementById('h_fecha').value = (d && t) ? `${d}T${t}` : '';
   }
+
+  actualizarCarritoEnPagina();
 </script>
 {% endblock %}

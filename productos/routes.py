@@ -69,7 +69,7 @@ def productos_nuevo():
     inv = InventarioPT(
         id_producto  = nuevo.id_producto,
         stock_actual = 0,
-        stock_minimo = float(form.stock_minimo.data or 0),
+        stock_minimo = 0,
     )
     db.session.add(inv)
     db.session.commit()

@@ -14,7 +14,6 @@ from compras.routes import compras
 from proveedores.routes import proveedores
 from recetas.routes import recetas_bp
 from produccion.routes import produccion
-from productoTerminado.routes import productoTerminado
 from ventas.routes import ventas
 from efectivo.routes import efectivo
 from costoUtilidad.routes import costoUtilidad
@@ -39,7 +38,6 @@ app.register_blueprint(compras)
 app.register_blueprint(proveedores)
 app.register_blueprint(recetas_bp)
 app.register_blueprint(produccion)
-app.register_blueprint(productoTerminado)
 app.register_blueprint(ventas)
 app.register_blueprint(efectivo)
 app.register_blueprint(costoUtilidad)

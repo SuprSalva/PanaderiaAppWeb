@@ -3,7 +3,7 @@ from wtforms import (
     TextAreaField, DecimalField, IntegerField, HiddenField,
     FieldList, FormField, validators
 )
-from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError
+from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length
 
 
 class LoginForm(Form):
@@ -32,6 +32,18 @@ class RegistroUsuarioForm(Form):
         ('empleado', 'Empleado'),
         ('panadero', 'Panadero'),
     ])
+
+
+class CompraForm(Form):
+    """Valida el encabezado de un pedido de compra (nueva o edición)."""
+    id_proveedor  = SelectField('Proveedor', coerce=int,
+                                validators=[DataRequired(message='Selecciona un proveedor.')])
+    fecha_compra  = StringField('Fecha de Compra',
+                                [DataRequired(message='La fecha de compra es obligatoria.')])
+    folio_factura = StringField('No. Factura / Referencia',
+                                [Optional(), Length(max=60)])
+    observaciones = StringField('Observaciones',
+                                [Optional(), Length(max=500)])
 
 
 class RecetaForm(Form):
@@ -73,10 +85,6 @@ class ProductoForm(Form):
     precio_venta = DecimalField('Precio de Venta ($)', [
         validators.DataRequired(message='El precio de venta es obligatorio.'),
         NumberRange(min=0.01, message='El precio debe ser mayor a 0.'),
-    ], places=2)
-    stock_minimo = DecimalField('Stock Mínimo (pzas)', [
-        Optional(),
-        NumberRange(min=0, message='El stock mínimo no puede ser negativo.'),
     ], places=2)
 
 class PanCajaForm(Form):
@@ -160,3 +168,38 @@ class PedidoCajaForm(Form):
     def validate_cajas(self, field):
         if len(field.entries) == 0:
             raise ValidationError('Agrega al menos una caja al pedido.')
+        
+
+class ProveedorForm(Form):
+    nombre = StringField('Nombre / Razón Social', [
+        validators.DataRequired(message='El nombre es obligatorio.'),
+        validators.Length(max=150, message='Máximo 150 caracteres.'),
+    ])
+    rfc = StringField('RFC', [
+        Optional(),
+        validators.Length(max=13, message='El RFC no puede exceder 13 caracteres.'),
+        validators.Regexp(
+            r'^$|^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$',
+            message='RFC inválido. Formato esperado: 3-4 letras, 6 dígitos, 3 alfanuméricos.',
+        ),
+    ])
+    contacto = StringField('Persona de Contacto', [
+        Optional(),
+        validators.Length(max=120, message='Máximo 120 caracteres.'),
+    ])
+    telefono = StringField('Teléfono', [
+        Optional(),
+        validators.Length(max=20, message='Máximo 20 caracteres.'),
+    ])
+    email = StringField('Correo Electrónico', [
+        Optional(),
+        validators.Regexp(
+            r'^$|^[^@\s]+@[^@\s]+\.[^@\s]+$',
+            message='Correo electrónico inválido.',
+        ),
+        validators.Length(max=150, message='Máximo 150 caracteres.'),
+    ])
+    direccion = TextAreaField('Dirección', [
+        Optional(),
+        validators.Length(max=2000, message='Máximo 2000 caracteres.'),
+    ])
