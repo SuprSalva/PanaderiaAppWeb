@@ -1,9 +1,13 @@
+import re as _re
+
 from wtforms import (
     Form, StringField, PasswordField, SelectField,
     TextAreaField, DecimalField, IntegerField, HiddenField,
     FieldList, FormField, validators
 )
 from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length
+
+_USR_PWD_RE = _re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$')
 
 
 class LoginForm(Form):
@@ -14,11 +18,11 @@ class LoginForm(Form):
 class RegistroUsuarioForm(Form):
     nombre = StringField('Nombre Completo', [
         validators.DataRequired(message="El nombre es obligatorio"),
-        validators.Length(min=3, max=120)
+        validators.Length(min=3, max=120, message="El nombre debe tener entre 3 y 120 caracteres.")
     ])
     usuario = StringField('Nombre de Usuario', [
         validators.DataRequired(message="El usuario es obligatorio"),
-        validators.Length(min=4, max=60)
+        validators.Length(min=4, max=60, message="El usuario debe tener entre 4 y 60 caracteres.")
     ])
     password = PasswordField('Contraseña', [
         validators.DataRequired(message="La contraseña es obligatoria"),
@@ -44,6 +48,59 @@ class CompraForm(Form):
                                 [Optional(), Length(max=60)])
     observaciones = StringField('Observaciones',
                                 [Optional(), Length(max=500)])
+
+
+class RegistroClienteForm(Form):
+    """Registro público de clientes (el rol siempre es 'cliente')."""
+    nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
+    telefono  = StringField('Teléfono', [DataRequired(message='El teléfono es obligatorio.'), Length(max=20, message='El teléfono no puede exceder 20 caracteres.')])
+    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    password  = PasswordField('Contraseña', [DataRequired(message='La contraseña es obligatoria.')])
+    confirmar = PasswordField('Confirmar Contraseña', [DataRequired(message='Confirma la contraseña.')])
+
+    def validate_password(self, field):
+        if field.data and not _USR_PWD_RE.match(field.data):
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+
+    def validate_confirmar(self, field):
+        if self.password.data and field.data != self.password.data:
+            raise ValidationError('Las contraseñas no coinciden.')
+
+
+class CrearUsuarioForm(Form):
+    """Valida el formulario de creación de usuario (password obligatorio)."""
+    nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
+    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    id_rol    = SelectField('Rol', coerce=int, validators=[NumberRange(min=1, message='Selecciona un rol.')])
+    password  = PasswordField('Contraseña', [DataRequired(message='La contraseña es obligatoria.')])
+    confirmar = PasswordField('Confirmar Contraseña', [DataRequired(message='Confirma la contraseña.')])
+    estatus   = SelectField('Estatus', choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')])
+
+    def validate_password(self, field):
+        if field.data and not _USR_PWD_RE.match(field.data):
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+
+    def validate_confirmar(self, field):
+        if self.password.data and field.data != self.password.data:
+            raise ValidationError('Las contraseñas no coinciden.')
+
+
+class EditarUsuarioForm(Form):
+    """Valida el formulario de edición de usuario (password opcional)."""
+    nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
+    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    id_rol    = SelectField('Rol', coerce=int, validators=[NumberRange(min=1, message='Selecciona un rol.')])
+    password  = PasswordField('Contraseña', [Optional()])
+    confirmar = PasswordField('Confirmar Contraseña', [Optional()])
+    estatus   = SelectField('Estatus', choices=[('activo', 'Activo'), ('inactivo', 'Inactivo'), ('bloqueado', 'Bloqueado')])
+
+    def validate_password(self, field):
+        if field.data and not _USR_PWD_RE.match(field.data):
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+
+    def validate_confirmar(self, field):
+        if self.password.data and field.data != self.password.data:
+            raise ValidationError('Las contraseñas no coinciden.')
 
 
 class RecetaForm(Form):
