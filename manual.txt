@@ -1,7 +1,7 @@
 ejecuta lo siguiente en Mysql con tu usuario root
     CREATE DATABASE dulce_migaja CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    CREATE USER 'web_user'@'localhost' IDENTIFIED BY '123';
-    GRANT ALL PRIVILEGES ON dulce_migaja.* TO 'web_user'@'localhost';
+    CREATE USER 'dm_web_user'@'localhost' IDENTIFIED BY 'Xycjym-rirmyv-3nuwho';
+    GRANT ALL PRIVILEGES ON dulce_migaja.* TO 'dm_web_user'@'localhost';
     FLUSH PRIVILEGES;
 
 instalar flowbite:
