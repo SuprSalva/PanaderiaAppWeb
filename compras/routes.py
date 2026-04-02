@@ -40,20 +40,17 @@ def _generar_folio_salida():
 @login_required
 @roles_required('admin', 'empleado')
 def index_compras():
-    lista = (
-        db.session.query(Compra, Proveedor)
-        .join(Proveedor, Compra.id_proveedor == Proveedor.id_proveedor)
-        .order_by(Compra.creado_en.desc())
-        .all()
-    )
+    lista = db.session.execute(
+        text("SELECT * FROM vw_compras ORDER BY creado_en DESC")
+    ).mappings().all()
     proveedores   = Proveedor.query.filter_by(estatus='activo').order_by(Proveedor.nombre).all()
     materias      = MateriaPrima.query.filter_by(estatus='activo').order_by(MateriaPrima.nombre).all()
     total_compras = len(lista)
     mes_actual    = datetime.date.today().replace(day=1)
-    compras_mes   = sum(1 for c, _ in lista if c.fecha_compra >= mes_actual)
-    gasto_mes     = sum(float(c.total) for c, _ in lista
+    compras_mes   = sum(1 for c in lista if c.fecha_compra >= mes_actual)
+    gasto_mes     = sum(float(c.total) for c in lista
                         if c.fecha_compra >= mes_actual and c.estatus == 'finalizado')
-    provs_activos = len(set(c.id_proveedor for c, _ in lista))
+    provs_activos = len(set(c.id_proveedor for c in lista))
 
     form = _compra_form()
 

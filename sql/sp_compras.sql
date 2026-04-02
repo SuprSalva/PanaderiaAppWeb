@@ -294,4 +294,28 @@ END$$
 
 DELIMITER ;
 
+-- ─────────────────────────────────────────────
+--  Vista: vw_compras
+--  Joins compras con proveedores para mostrar
+--  la lista en el módulo de compras.
+--  el permiso para consultar se enceuntra en db_roles_permisos.sql
+-- ─────────────────────────────────────────────
+DROP VIEW IF EXISTS vw_compras;
+
+CREATE VIEW vw_compras AS
+SELECT
+    c.id_compra,
+    c.folio,
+    c.folio_factura,
+    c.id_proveedor,
+    p.nombre          AS nombre_proveedor,
+    c.fecha_compra,
+    c.total,
+    c.estatus,
+    c.motivo_cancelacion,
+    c.observaciones,
+    c.creado_en,
+    c.creado_por
+FROM compras c
+JOIN proveedores p ON c.id_proveedor = p.id_proveedor;
 

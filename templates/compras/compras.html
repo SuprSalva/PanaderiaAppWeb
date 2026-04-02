@@ -79,11 +79,11 @@
       </tr>
     </thead>
     <tbody>
-      {% for c, prov in compras %}
-      <tr data-estatus="{{ c.estatus }}" data-prov="{{ prov.nombre.lower() }}" data-fecha="{{ c.fecha_compra }}">
+      {% for c in compras %}
+      <tr data-estatus="{{ c.estatus }}" data-prov="{{ c.nombre_proveedor.lower() }}" data-fecha="{{ c.fecha_compra }}">
         <td><span class="folio-chip">{{ c.folio }}</span></td>
         <td>
-          <div class="prov-tag">{{ prov.nombre }}</div>
+          <div class="prov-tag">{{ c.nombre_proveedor }}</div>
           {% if c.folio_factura %}<div class="prov-sub">Fact/Ref: {{ c.folio_factura }}</div>{% endif %}
         </td>
         <td>{{ c.fecha_compra.strftime('%d/%m/%Y') }}</td>
