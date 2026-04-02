@@ -178,10 +178,10 @@ BEGIN
     DECLARE v_total        DECIMAL(12,2);
     DECLARE v_id_proveedor INT;
     DECLARE v_fecha        DATE;
+    DECLARE v_folio        VARCHAR(20);
 
-    -- Verificar existencia y estatus
-    SELECT estatus, total, id_proveedor, fecha_compra
-    INTO   v_estatus, v_total, v_id_proveedor, v_fecha
+    SELECT estatus, total, id_proveedor, fecha_compra, folio
+    INTO   v_estatus, v_total, v_id_proveedor, v_fecha, v_folio
     FROM   compras WHERE id_compra = p_id_compra;
 
     IF v_estatus IS NULL THEN
@@ -194,30 +194,31 @@ BEGIN
             SET MESSAGE_TEXT = 'Solo se pueden finalizar pedidos en estatus ordenado.';
     END IF;
 
-    -- ── 1. Actualizar stock de cada materia prima ──────────
+    -- 1. Actualizar stock
     UPDATE materias_primas mp
     JOIN detalle_compras dc ON dc.id_materia = mp.id_materia
     SET mp.stock_actual = mp.stock_actual + dc.cantidad_base
     WHERE dc.id_compra = p_id_compra;
 
-    -- ── 2. Cambiar estatus del pedido ──────────────────────
+    -- 2. Cambiar estatus del pedido
     UPDATE compras
     SET estatus = 'finalizado'
     WHERE id_compra = p_id_compra;
 
-    -- ── 3. Registrar salida de efectivo ────────────────────
+    -- 3. Registrar salida pendiente de autorización
     INSERT INTO salidas_efectivo (
-        folio_salida, id_proveedor, categoria,
+        folio_salida, id_proveedor, id_compra, categoria,
         descripcion, monto, fecha_salida,
         estado, registrado_por, creado_en, actualizado_en
     ) VALUES (
         p_folio_salida,
         v_id_proveedor,
+        p_id_compra,
         'compra_insumos',
-        CONCAT('Pago pedido compra #', p_id_compra),
+        CONCAT('Pago pedido compra ', v_folio),
         v_total,
         v_fecha,
-        'aprobada',
+        'pendiente',
         p_ejecutado_por,
         NOW(),
         NOW()
@@ -294,6 +295,83 @@ END$$
 
 DELIMITER ;
 
+-- ── 5. SP: sp_corregir_precio_compra ────────────────────────
+--    Actualiza los costos unitarios de los detalles de una
+--    compra finalizada cuyo pago fue rechazado, recalcula el
+--    total y genera una nueva salida de efectivo pendiente.
+--    Los campos de cantidad/inventario NO se tocan.
+DROP PROCEDURE IF EXISTS sp_corregir_precio_compra;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_corregir_precio_compra(
+    IN p_id_compra     INT,
+    IN p_folio_salida  VARCHAR(20) CHARACTER SET utf8mb4,
+    IN p_ejecutado_por INT
+)
+BEGIN
+    DECLARE v_estatus_pago VARCHAR(10);
+    DECLARE v_folio        VARCHAR(20);
+    DECLARE v_id_proveedor INT;
+    DECLARE v_fecha        DATE;
+    DECLARE v_nuevo_total  DECIMAL(12,2);
+
+    -- Verificar que la compra existe y está finalizada
+    SELECT folio, id_proveedor, fecha_compra
+    INTO   v_folio, v_id_proveedor, v_fecha
+    FROM   compras WHERE id_compra = p_id_compra;
+
+    IF v_folio IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'El pedido de compra no existe.';
+    END IF;
+
+    -- Verificar que el pago está rechazado
+    SELECT estado INTO v_estatus_pago
+    FROM   salidas_efectivo
+    WHERE  id_compra = p_id_compra
+    ORDER BY id_salida DESC
+    LIMIT 1;
+
+    IF v_estatus_pago IS NULL OR v_estatus_pago <> 'rechazada' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Solo se puede corregir el precio de compras con pago rechazado.';
+    END IF;
+
+    -- Recalcular total con los nuevos costos ya actualizados desde Python
+    UPDATE compras
+    SET total = (
+        SELECT COALESCE(SUM(cantidad_comprada * costo_unitario), 0)
+        FROM detalle_compras
+        WHERE id_compra = p_id_compra
+    )
+    WHERE id_compra = p_id_compra;
+
+    SELECT total INTO v_nuevo_total
+    FROM   compras WHERE id_compra = p_id_compra;
+
+    -- Registrar nueva salida pendiente con el precio corregido
+    INSERT INTO salidas_efectivo (
+        folio_salida, id_proveedor, id_compra, categoria,
+        descripcion, monto, fecha_salida,
+        estado, registrado_por, creado_en, actualizado_en
+    ) VALUES (
+        p_folio_salida,
+        v_id_proveedor,
+        p_id_compra,
+        'compra_insumos',
+        CONCAT('Pago corregido pedido ', v_folio),
+        v_nuevo_total,
+        v_fecha,
+        'pendiente',
+        p_ejecutado_por,
+        NOW(),
+        NOW()
+    );
+END$$
+
+DELIMITER ;
+
 -- ─────────────────────────────────────────────
 --  Vista: vw_compras
 --  Joins compras con proveedores para mostrar
@@ -315,7 +393,15 @@ SELECT
     c.motivo_cancelacion,
     c.observaciones,
     c.creado_en,
-    c.creado_por
+    c.creado_por,
+    (
+        SELECT se.estado
+        FROM salidas_efectivo se
+        WHERE se.id_compra = c.id_compra
+        ORDER BY se.id_salida DESC
+        LIMIT 1
+    ) AS estatus_pago
 FROM compras c
 JOIN proveedores p ON c.id_proveedor = p.id_proveedor;
+
 

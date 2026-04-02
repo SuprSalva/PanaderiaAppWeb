@@ -73,6 +73,10 @@ GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_finalizar_compra       TO rol_admin;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_unidad_compra TO rol_admin;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_limpiar_detalles_compra TO rol_admin;
 GRANT SELECT ON dulce_migaja.vw_compras TO rol_admin;
+GRANT SELECT ON dulce_migaja.vw_salidas_efectivo TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_registrar_salida_manual TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_aprobar_salida TO rol_admin;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_corregir_precio_compra TO rol_admin;
 SHOW GRANTS FOR rol_admin;
 
 
@@ -107,6 +111,9 @@ GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_finalizar_compra       TO rol_vendedo
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_unidad_compra TO rol_vendedor;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_limpiar_detalles_compra TO rol_vendedor;
 GRANT SELECT ON dulce_migaja.vw_compras TO rol_vendedor;
+GRANT SELECT ON dulce_migaja.vw_salidas_efectivo TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_registrar_salida_manual TO rol_vendedor;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_corregir_precio_compra TO rol_vendedor;
 -- SPs de ventas (descomentar cuando se creen)
 -- GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_venta  TO rol_vendedor;
 -- GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cerrar_corte TO rol_vendedor;

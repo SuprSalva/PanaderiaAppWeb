@@ -193,7 +193,7 @@ def finalizar_compra(id_compra):
             "CALL sp_finalizar_compra(:id, :usr, :folio)",
             {'id': id_compra, 'usr': current_user.id_usuario, 'folio': folio_salida}
         )
-        flash('Mercancía aceptada: inventario actualizado y salida de efectivo registrada.', 'success')
+        flash('Mercancía aceptada: inventario actualizado. Salida de efectivo registrada y en espera de autorización del administrador.', 'success')
     except Exception as e:
         orig = getattr(e, 'orig', None)
         msg = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
@@ -267,6 +267,44 @@ def editar_compra(id_compra):
         orig = getattr(e, 'orig', None)
         msg = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         flash(f'Error al editar: {msg}', 'error')
+
+    return redirect(url_for('compras.index_compras'))
+
+
+# ── CORREGIR PRECIO (pago rechazado) ───────────────────────
+@compras.route("/compras/corregir-precio/<int:id_compra>", methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado')
+def corregir_precio_compra(id_compra):
+    costos = request.form.getlist('costo_unitario[]')
+    ids_detalle = request.form.getlist('id_detalle[]')
+
+    if not ids_detalle or not costos or len(ids_detalle) != len(costos):
+        flash('Datos de corrección incompletos.', 'error')
+        return redirect(url_for('compras.index_compras'))
+
+    folio_salida = _generar_folio_salida()
+    try:
+        # 1. Actualizar cada costo unitario
+        for id_det, costo in zip(ids_detalle, costos):
+            db.session.execute(
+                text("UPDATE detalle_compras SET costo_unitario = :c WHERE id_detalle_compra = :id"),
+                {'c': float(costo), 'id': int(id_det)}
+            )
+        db.session.execute(text("COMMIT"))
+
+        # 2. SP recalcula total y genera nueva salida pendiente
+        db.session.execute(
+            text("CALL sp_corregir_precio_compra(:id, :folio, :usr)"),
+            {'id': id_compra, 'folio': folio_salida, 'usr': current_user.id_usuario}
+        )
+        db.session.execute(text("COMMIT"))
+        flash('Precio corregido. Nueva salida de efectivo enviada para autorización.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        orig = getattr(e, 'orig', None)
+        msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
+        flash(f'Error al corregir: {msg}', 'error')
 
     return redirect(url_for('compras.index_compras'))
 
@@ -345,6 +383,7 @@ def detalle_compra(id_compra):
         'total':               float(compra.total),
         'observaciones':       compra.observaciones or '',
         'detalles': [{
+            'id_detalle_compra': d.DetalleCompra.id_detalle_compra,
             'id_materia':       d.MateriaPrima.id_materia,
             'id_unidad':        d.DetalleCompra.id_unidad_presentacion,
             'materia':          d.MateriaPrima.nombre,

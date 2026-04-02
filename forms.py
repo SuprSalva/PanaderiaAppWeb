@@ -227,6 +227,35 @@ class PedidoCajaForm(Form):
             raise ValidationError('Agrega al menos una caja al pedido.')
         
 
+class SalidaEfectivoForm(Form):
+    """Valida el registro manual de una salida de efectivo."""
+    id_proveedor = SelectField(
+        'Proveedor', coerce=int,
+        validators=[Optional()],
+    )
+    categoria = SelectField(
+        'Categoría',
+        choices=[
+            ('compra_insumos',      '🛒 Compra de Insumos'),
+            ('servicios_utilities', '⚡ Servicios / Utilities'),
+            ('mantenimiento',       '🔧 Mantenimiento'),
+            ('otros',               '📦 Otros'),
+        ],
+        validators=[DataRequired(message='Selecciona una categoría.')],
+    )
+    descripcion = StringField('Descripción', [
+        DataRequired(message='La descripción es obligatoria.'),
+        Length(max=255, message='La descripción no puede exceder 255 caracteres.'),
+    ])
+    monto = DecimalField('Monto', [
+        DataRequired(message='El monto es obligatorio.'),
+        NumberRange(min=0.01, message='El monto debe ser mayor a cero.'),
+    ], places=2)
+    fecha_salida = StringField('Fecha', [
+        DataRequired(message='La fecha es obligatoria.'),
+    ])
+
+
 class ProveedorForm(Form):
     nombre = StringField('Nombre / Razón Social', [
         validators.DataRequired(message='El nombre es obligatorio.'),

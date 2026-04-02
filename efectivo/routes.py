@@ -1,7 +1,148 @@
+import datetime
+from collections import defaultdict
+
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import login_required, current_user
+from sqlalchemy import text
+
+from models import db, Proveedor
+from auth import roles_required
+from forms import SalidaEfectivoForm
 from . import efectivo
-from flask import render_template
 
+
+def _salida_form():
+    """Instancia SalidaEfectivoForm con las opciones de proveedores activos."""
+    form = SalidaEfectivoForm(request.form)
+    form.id_proveedor.choices = (
+        [(0, '— Sin proveedor —')] +
+        [(p.id_proveedor, p.nombre)
+         for p in Proveedor.query.filter_by(estatus='activo').order_by(Proveedor.nombre).all()]
+    )
+    return form
+
+
+def _gen_folio():
+    total = db.session.execute(
+        text("SELECT COUNT(*) FROM salidas_efectivo")
+    ).scalar() + 1
+    return f"SE-{total:04d}"
+
+
+# ── LISTA DE SALIDAS ────────────────────────────────────────
 @efectivo.route("/salida-efectivo")
+@login_required
+@roles_required('admin', 'empleado')
 def index_salida_efectivo():
-    return render_template("efectivo/salidaEfectivo.html")
+    lista = db.session.execute(
+        text("SELECT * FROM vw_salidas_efectivo ORDER BY creado_en DESC")
+    ).mappings().all()
 
+    proveedores = Proveedor.query.filter_by(estatus='activo').order_by(Proveedor.nombre).all()
+    form = _salida_form()
+
+    hoy         = datetime.date.today()
+    mes_inicio  = hoy.replace(day=1)
+    mes_ant_fin = mes_inicio - datetime.timedelta(days=1)
+    mes_ant_ini = mes_ant_fin.replace(day=1)
+
+    egresos_hoy     = sum(float(s.monto) for s in lista
+                          if s.fecha_salida == hoy and s.estado == 'aprobada')
+    egresos_mes     = sum(float(s.monto) for s in lista
+                          if s.fecha_salida >= mes_inicio and s.estado == 'aprobada')
+    egresos_mes_ant = sum(float(s.monto) for s in lista
+                          if mes_ant_ini <= s.fecha_salida <= mes_ant_fin
+                          and s.estado == 'aprobada')
+    movimientos_hoy = sum(1 for s in lista if s.fecha_salida == hoy)
+    pendientes      = sum(1 for s in lista if s.estado == 'pendiente')
+
+    # Egresos aprobados por categoría (hoy)
+    cats_map = defaultdict(lambda: {'count': 0, 'total': 0.0})
+    for s in lista:
+        if s.fecha_salida == hoy and s.estado == 'aprobada':
+            cats_map[s.categoria]['count'] += 1
+            cats_map[s.categoria]['total'] += float(s.monto)
+    cats_hoy = sorted(
+        [{'key': k, **v} for k, v in cats_map.items() if v['total'] > 0],
+        key=lambda x: x['total'], reverse=True,
+    )
+    max_cat = max((c['total'] for c in cats_hoy), default=1)
+
+    return render_template("efectivo/salidaEfectivo.html",
+        salidas=lista,
+        proveedores=proveedores,
+        form=form,
+        egresos_hoy=egresos_hoy,
+        egresos_mes=egresos_mes,
+        egresos_mes_ant=egresos_mes_ant,
+        movimientos_hoy=movimientos_hoy,
+        pendientes=pendientes,
+        total_salidas=len(lista),
+        cats_hoy=cats_hoy,
+        max_cat=max_cat,
+    )
+
+
+# ── REGISTRAR SALIDA MANUAL ─────────────────────────────────
+@efectivo.route("/salida-efectivo/registrar", methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado')
+def crear_salida():
+    form = _salida_form()
+    if not form.validate():
+        # El JS valida antes de enviar; si llega aquí es sin JS — mostramos el primer error
+        primer_error = next(iter(form.errors.values()))[0]
+        flash(f'⚠️ {primer_error}', 'error')
+        return redirect(url_for('efectivo.index_salida_efectivo'))
+
+    id_proveedor = form.id_proveedor.data or None
+    folio = _gen_folio()
+    try:
+        db.session.execute(
+            text("CALL sp_registrar_salida_manual(:folio,:prov,:cat,:desc,:monto,:fecha,:usr)"),
+            {
+                'folio': folio,
+                'prov':  int(id_proveedor) if id_proveedor else None,
+                'cat':   form.categoria.data,
+                'desc':  form.descripcion.data.strip(),
+                'monto': float(form.monto.data),
+                'fecha': form.fecha_salida.data,
+                'usr':   current_user.id_usuario,
+            }
+        )
+        db.session.execute(text("COMMIT"))
+        flash(f'Salida {folio} registrada correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        orig = getattr(e, 'orig', None)
+        msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
+        flash(f'Error al registrar: {msg}', 'error')
+
+    return redirect(url_for('efectivo.index_salida_efectivo'))
+
+
+# ── APROBAR / RECHAZAR SALIDA ───────────────────────────────
+@efectivo.route("/salida-efectivo/aprobar/<int:id_salida>", methods=['POST'])
+@login_required
+@roles_required('admin')
+def aprobar_salida(id_salida):
+    decision = request.form.get('decision', '')
+    if decision not in ('aprobada', 'rechazada'):
+        flash('Decisión no válida.', 'error')
+        return redirect(url_for('efectivo.index_salida_efectivo'))
+
+    try:
+        db.session.execute(
+            text("CALL sp_aprobar_salida(:id, :dec, :usr)"),
+            {'id': id_salida, 'dec': decision, 'usr': current_user.id_usuario}
+        )
+        db.session.execute(text("COMMIT"))
+        accion = 'aprobada' if decision == 'aprobada' else 'rechazada'
+        flash(f'Salida {accion} correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        orig = getattr(e, 'orig', None)
+        msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
+        flash(f'Error: {msg}', 'error')
+
+    return redirect(url_for('efectivo.index_salida_efectivo'))

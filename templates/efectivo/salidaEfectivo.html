@@ -1,134 +1,10 @@
 {% extends "layout.html" %}
+{% block breadcrumb %}Salida de Efectivo{% endblock %}
 
 {% block container %}
-<style>
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .anim   { animation: fadeUp .35s ease both; }
-  .anim-1 { animation-delay: .05s; }
-  .anim-2 { animation-delay: .10s; }
-  .anim-3 { animation-delay: .15s; }
-
-  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
-  .db-page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
-  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-  .db-breadcrumb span { color: var(--tan); }
-
-  /* ── STATS ── */
-  .e-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
-  .e-stat { background: var(--white); border: 1px solid var(--tan); border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px var(--shadow); display: flex; align-items: center; gap: 12px; transition: transform .2s; }
-  .e-stat:hover { transform: translateY(-2px); }
-  .e-stat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-  .e-stat-icon.rust  { background: #fce8df; }
-  .e-stat-icon.gold  { background: #fef3d0; }
-  .e-stat-icon.brown { background: #f3e8d8; }
-  .e-stat-icon.green { background: #e2eede; }
-  .e-stat-val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
-  .e-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
-
-  /* ── MAIN GRID ── */
-  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  @media(max-width:1050px){ .main-grid { grid-template-columns:1fr; } }
-
-  /* ── PANEL ── */
-  .panel-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 3px 12px var(--shadow); overflow: hidden; }
-  .panel-header { padding: 15px 20px; background: var(--warm-bg); border-bottom: 1px solid var(--tan); display: flex; align-items: center; justify-content: space-between; }
-  .panel-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 8px; }
-  .panel-body { padding: 18px 20px; }
-
-  /* ── CATEGORÍAS ── */
-  .cat-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--tan); }
-  .cat-row:last-child { border-bottom: none; }
-  .cat-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-  .cat-name  { font-weight: 700; color: var(--brown-dk); font-size: 13px; flex: 1; }
-  .cat-count { font-size: 11px; color: var(--brown-lt); }
-  .cat-monto { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--rust); }
-  .cat-bar-wrap { width: 70px; height: 6px; border-radius: 3px; background: var(--tan); overflow: hidden; }
-  .cat-bar-fill { height: 100%; border-radius: 3px; }
-
-  /* ── TABLE ── */
-  .table-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--warm-bg); }
-  thead th { padding: 11px 16px; font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown); text-align: left; white-space: nowrap; }
-  thead th:first-child { padding-left: 22px; }
-  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; cursor: pointer; }
-  tbody tr:hover { background: #fdf3e6; }
-  tbody td { padding: 11px 16px; font-size: 13px; color: var(--text); vertical-align: middle; }
-  tbody td:first-child { padding-left: 22px; }
-
-  .folio-chip { font-family: monospace; font-size: 12px; font-weight: 700; background: var(--warm-bg); color: var(--brown-dk); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tan); }
-  .monto-neg { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--rust); }
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .badge-aprobado  { background: #e2eede; color: #3a6034; }
-  .badge-pendiente { background: #fef3d0; color: #8a6200; }
-  .badge-rechazado { background: #ebebeb; color: #666; }
-
-  .cat-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 700; background: var(--warm-bg); color: var(--brown); border: 1px solid var(--tan); }
-
-  .actions-cell { display: flex; gap: 6px; }
-  .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
-  .table-footer p { font-size: 12px; color: var(--brown-lt); }
-  .pagination { display: flex; gap: 4px; }
-  .page-btn { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); transition: all .15s; }
-  .page-btn:hover { background: var(--warm-bg); }
-  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
-
-  /* ── TOOLBAR ── */
-  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-  .search-wrap { position: relative; flex: 1; min-width: 200px; }
-  .search-wrap input { width: 100%; padding: 9px 14px 9px 38px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; background: var(--white); color: var(--text); outline: none; transition: border .2s; box-sizing: border-box; }
-  .search-wrap input:focus { border-color: var(--brown); }
-  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brown-lt); font-size: 14px; }
-  .filter-select { padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13px; background: var(--white); color: var(--text); outline: none; cursor: pointer; }
-
-  /* ── MODAL ── */
-  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
-  .modal-xl { max-width: 640px; }
-  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
-  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); display: flex; align-items: center; gap: 10px; }
-  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
-  .modal-close:hover { background: rgba(255,255,255,.25); }
-  .modal-body { padding: 26px; max-height: 76vh; overflow-y: auto; }
-  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
-
-  .form-row { display: grid; gap: 14px; }
-  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
-  .form-input, .form-select, .form-textarea { padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 13.5px; color: var(--text); background: var(--cream); outline: none; transition: border .2s; }
-  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--brown); background: var(--white); }
-  .form-hint { font-size: 11px; color: var(--brown-lt); }
-  .form-textarea { resize: vertical; min-height: 65px; }
-  .section-divider { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brown-lt); padding: 6px 0 2px; border-bottom: 1px solid var(--tan); margin-bottom: 2px; grid-column: 1/-1; }
-
-  /* ── MONTO INPUT ── */
-  .monto-wrap { position: relative; }
-  .monto-wrap .peso { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; font-weight: 700; color: var(--brown-lt); }
-  .monto-wrap .form-input { padding-left: 26px; font-size: 18px; font-weight: 700; color: var(--rust); }
-
-  /* ── INFO BOX ── */
-  .info-box { background: #f3e8d8; border: 1px solid var(--tan); border-radius: 10px; padding: 11px 14px; font-size: 12px; color: var(--brown-dk); display: flex; gap: 8px; align-items: flex-start; margin-bottom: 14px; }
-  .info-box .ii { flex-shrink: 0; font-size: 15px; }
-  .warn-box { background: #fce8df; border: 1px solid #e07a52; border-radius: 10px; padding: 11px 14px; font-size: 12px; color: #9c3a1a; display: flex; gap: 8px; align-items: flex-start; }
-  .warn-box .ii { flex-shrink: 0; font-size: 15px; }
-
-  /* ── DETALLE MODAL ── */
-  .det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .det-item label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); display: block; margin-bottom: 3px; }
-  .det-item span  { font-size: 13.5px; color: var(--brown-dk); font-weight: 600; }
-
-  /* ── APROBACIÓN ── */
-  .aprov-btns { display: flex; gap: 10px; margin-top: 16px; }
-  .btn-aprobar  { flex: 1; padding: 11px; border-radius: 9px; background: #5a7a52; color: #fff; border: none; font-family: 'Lato',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s; }
-  .btn-aprobar:hover { background: #48623f; }
-  .btn-rechazar { flex: 1; padding: 11px; border-radius: 9px; background: var(--rust); color: #fff; border: none; font-family: 'Lato',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s; }
-  .btn-rechazar:hover { background: #a84020; }
-</style>
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/salidaEfectivo.css') }}">
+{% endblock %}
 
 <!-- TOPBAR -->
 <div class="db-topbar anim">
@@ -136,447 +12,401 @@
     <div class="db-page-title">💸 Salida de Efectivo</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Finanzas <span>›</span> Salida de Efectivo</div>
   </div>
-  <button class="btn btn-primary" onclick="openModal('modal-add')">＋ Registrar Salida</button>
+  <button class="btn btn-primary" onclick="abrirNuevaSalida()">＋ Registrar Salida</button>
 </div>
 
 <!-- STATS -->
 <div class="e-stats anim anim-1">
   <div class="e-stat">
     <div class="e-stat-icon rust">💸</div>
-    <div><div class="e-stat-val">$1,840</div><div class="e-stat-lbl">Egresos Hoy</div></div>
+    <div>
+      <div class="e-stat-val">${{ "%.0f"|format(egresos_hoy) }}</div>
+      <div class="e-stat-lbl">Egresos Hoy (aprobados)</div>
+    </div>
   </div>
   <div class="e-stat">
     <div class="e-stat-icon gold">📅</div>
-    <div><div class="e-stat-val">$9,320</div><div class="e-stat-lbl">Egresos este Mes</div></div>
+    <div>
+      <div class="e-stat-val">${{ "%.0f"|format(egresos_mes) }}</div>
+      <div class="e-stat-lbl">Egresos este Mes</div>
+    </div>
   </div>
   <div class="e-stat">
     <div class="e-stat-icon brown">🧾</div>
-    <div><div class="e-stat-val">7</div><div class="e-stat-lbl">Movimientos Hoy</div></div>
+    <div>
+      <div class="e-stat-val">{{ movimientos_hoy }}</div>
+      <div class="e-stat-lbl">Movimientos Hoy</div>
+    </div>
   </div>
   <div class="e-stat">
     <div class="e-stat-icon gold">⏳</div>
-    <div><div class="e-stat-val">2</div><div class="e-stat-lbl">Pendientes Aprobar</div></div>
+    <div>
+      <div class="e-stat-val">{{ pendientes }}</div>
+      <div class="e-stat-lbl">Pendientes Aprobar</div>
+    </div>
   </div>
 </div>
 
-<!-- MAIN GRID: categorías + saldo caja -->
+<!-- ALERTAS -->
+{% with msgs = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in msgs %}
+<div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
+{% endfor %}
+{% endwith %}
+
+<!-- MAIN GRID: categorías + balance mes -->
+{% set cat_meta = {
+'compra_insumos': ('🛒', '#f3e8d8', 'var(--brown)', 'Compra de Insumos'),
+'servicios_utilities': ('⚡', '#fef3d0', '#c9950a', 'Servicios / Utilities'),
+'mantenimiento': ('🔧', '#fce8df', 'var(--rust)', 'Mantenimiento'),
+'otros': ('📦', '#ebebeb', '#888', 'Otros'),
+} %}
+
 <div class="main-grid anim anim-2">
 
-  <!-- POR CATEGORÍA -->
+  <!-- POR CATEGORÍA (hoy) -->
   <div class="panel-card">
     <div class="panel-header">
       <div class="panel-title">📂 Egresos por Categoría (hoy)</div>
     </div>
     <div class="panel-body">
+      {% for c in cats_hoy %}
+      {% set ico, bg, color, label = cat_meta.get(c.key, ('📦','#ebebeb','#888','Otros')) %}
+      {% set pct = ((c.total / max_cat) * 100)|int %}
       <div class="cat-row">
-        <div class="cat-icon" style="background:#f3e8d8">🛒</div>
+        <div class="cat-icon" style="background:{{ bg }}">{{ ico }}</div>
         <div style="flex:1">
-          <div class="cat-name">Compra de Insumos</div>
-          <div class="cat-count">3 movimientos</div>
+          <div class="cat-name">{{ label }}</div>
+          <div class="cat-count">{{ c.count }} movimiento{{ 's' if c.count != 1 else '' }}</div>
         </div>
-        <div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:65%;background:var(--brown)"></div></div>
-        <span class="cat-monto">$1,200.00</span>
-      </div>
-      <div class="cat-row">
-        <div class="cat-icon" style="background:#fef3d0">⚡</div>
-        <div style="flex:1">
-          <div class="cat-name">Servicios / Utilities</div>
-          <div class="cat-count">1 movimiento</div>
+        <div class="cat-bar-wrap">
+          <div class="cat-bar-fill" style="width:{{ pct }}%;background:{{ color }}"></div>
         </div>
-        <div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:22%;background:#c9950a"></div></div>
-        <span class="cat-monto">$400.00</span>
+        <span class="cat-monto">${{ "%.2f"|format(c.total) }}</span>
       </div>
-      <div class="cat-row">
-        <div class="cat-icon" style="background:#fce8df">🔧</div>
-        <div style="flex:1">
-          <div class="cat-name">Mantenimiento</div>
-          <div class="cat-count">1 movimiento</div>
-        </div>
-        <div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:13%;background:var(--rust)"></div></div>
-        <span class="cat-monto">$240.00</span>
-      </div>
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--tan);display:flex;justify-content:space-between;align-items:center;">
+      {% else %}
+      <p style="text-align:center;color:var(--brown-lt);padding:24px 0;font-size:12px;">Sin egresos registrados hoy.</p>
+      {% endfor %}
+      {% if cats_hoy %}
+      <div
+        style="margin-top:14px;padding-top:12px;border-top:1px solid var(--tan);display:flex;justify-content:space-between;align-items:center;">
         <span style="font-size:12px;color:var(--brown-lt);font-weight:700;">TOTAL EGRESOS HOY</span>
-        <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--rust);">−$1,840.00</span>
+        <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--rust);">−${{
+          "%.2f"|format(egresos_hoy) }}</span>
       </div>
+      {% endif %}
     </div>
   </div>
 
-  <!-- SALDO CAJA + BALANCE -->
+  <!-- BALANCE MENSUAL -->
   <div class="panel-card">
     <div class="panel-header">
-      <div class="panel-title">💰 Balance de Caja — Hoy</div>
+      <div class="panel-title">📊 Balance Mensual</div>
     </div>
     <div class="panel-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-        <div style="background:#e2eede;border-radius:10px;padding:14px;text-align:center;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#3a6034;margin-bottom:5px;">Ingresos (Ventas)</div>
-          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#3a6034;">+$4,250</div>
-        </div>
         <div style="background:#fce8df;border-radius:10px;padding:14px;text-align:center;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9c3a1a;margin-bottom:5px;">Egresos (Salidas)</div>
-          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--rust);">−$1,840</div>
+          <div
+            style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9c3a1a;margin-bottom:5px;">
+            Aprobados (mes)</div>
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--rust);">−${{
+            "%.0f"|format(egresos_mes) }}</div>
+        </div>
+        <div style="background:#fef3d0;border-radius:10px;padding:14px;text-align:center;">
+          <div
+            style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8a6200;margin-bottom:5px;">
+            Pendientes</div>
+          <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#8a6200;">{{ pendientes
+            }}</div>
         </div>
       </div>
-      <div style="background:var(--brown-dk);border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:13px;color:rgba(255,255,255,.75);font-weight:700;">Saldo Neto del Día</span>
-        <span style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--cream);">$2,410</span>
+      <div
+        style="background:var(--brown-dk);border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:rgba(255,255,255,.75);font-weight:700;">Total Egresos Mes</span>
+        <span style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--cream);">−${{
+          "%.0f"|format(egresos_mes) }}</span>
       </div>
       <div style="margin-top:14px;background:var(--warm-bg);border-radius:10px;padding:12px 16px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:8px;">Comparativo vs Ayer</div>
+        <div
+          style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:8px;">
+          Comparativo vs Mes Anterior</div>
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="flex:1">
-            <div style="font-size:11px;color:var(--brown-lt)">Ayer</div>
-            <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--brown)">$2,180</div>
+            <div style="font-size:11px;color:var(--brown-lt)">Mes anterior</div>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--brown)">${{
+              "%.0f"|format(egresos_mes_ant) }}</div>
           </div>
           <div style="font-size:22px;">→</div>
           <div style="flex:1;text-align:right">
-            <div style="font-size:11px;color:var(--brown-lt)">Hoy</div>
-            <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#3a6034">$2,410 ↑10%</div>
+            <div style="font-size:11px;color:var(--brown-lt)">Este mes</div>
+            {% if egresos_mes_ant > 0 %}
+            {% set diff_pct = (((egresos_mes - egresos_mes_ant) / egresos_mes_ant) * 100)|round(0)|int %}
+            <div
+              style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:{% if diff_pct <= 0 %}#3a6034{% else %}var(--rust){% endif %}">
+              ${{ "%.0f"|format(egresos_mes) }} {% if diff_pct > 0 %}↑{{ diff_pct }}%{% elif diff_pct < 0 %}↓{{
+                (-diff_pct) }}%{% else %}={% endif %} </div>
+                {% else %}
+                <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--brown)">${{
+                  "%.0f"|format(egresos_mes) }}</div>
+                {% endif %}
+            </div>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 
-</div>
-
-<!-- TOOLBAR + TABLE -->
-<div class="toolbar anim anim-3">
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input type="text" placeholder="Buscar por descripción o categoría…" id="searchInput" oninput="filterTable()">
+  <!-- TOOLBAR + TABLE -->
+  <div class="toolbar anim anim-3">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Buscar por folio, descripción o proveedor…" id="searchInput"
+        oninput="filterTable()">
+    </div>
+    <input type="date" class="filter-select" id="filterDesde" onchange="filterTable()" title="Desde">
+    <input type="date" class="filter-select" id="filterHasta" onchange="filterTable()" title="Hasta">
+    <select class="filter-select" id="filterCat" onchange="filterTable()">
+      <option value="">Todas las categorías</option>
+      <option value="compra_insumos">🛒 Compra de Insumos</option>
+      <option value="servicios_utilities">⚡ Servicios / Utilities</option>
+      <option value="mantenimiento">🔧 Mantenimiento</option>
+      <option value="otros">📦 Otros</option>
+    </select>
+    <select class="filter-select" id="filterEstado" onchange="filterTable()">
+      <option value="">Todos los estados</option>
+      <option value="aprobada">✅ Aprobada</option>
+      <option value="pendiente">⏳ Pendiente</option>
+      <option value="rechazada">🚫 Rechazada</option>
+    </select>
   </div>
-  <input type="date" class="filter-select" title="Fecha">
-  <select class="filter-select" id="filterCat" onchange="filterTable()">
-    <option value="">Todas las categorías</option>
-    <option value="insumos">Compra de Insumos</option>
-    <option value="servicios">Servicios</option>
-    <option value="mantenimiento">Mantenimiento</option>
-    <option value="nomina">Nómina / Personal</option>
-    <option value="otro">Otro</option>
-  </select>
-  <select class="filter-select" id="filterEstado" onchange="filterTable()">
-    <option value="">Todos los estados</option>
-    <option value="aprobado">Aprobado</option>
-    <option value="pendiente">Pendiente</option>
-    <option value="rechazado">Rechazado</option>
-  </select>
-</div>
 
-<div class="table-card anim anim-3">
-  <table id="egresosTable">
-    <thead>
-      <tr>
-        <th>Folio</th>
-        <th>Descripción</th>
-        <th>Categoría</th>
-        <th>Monto</th>
-        <th>Estado</th>
-        <th>Registró</th>
-        <th>Fecha</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-
-      <tr data-cat="insumos" data-estado="aprobado" onclick="openDetalle('E-0041','Compra de harina a Harinera del Molino','Compra de Insumos',980.00,'Aprobado','Salvador E.','Hoy 09:00','Se compraron 50 kg de harina para producción del día.')">
-        <td><span class="folio-chip">E-0041</span></td>
-        <td>Compra de harina — Harinera del Molino</td>
-        <td><span class="cat-chip">🛒 Insumos</span></td>
-        <td><span class="monto-neg">−$980.00</span></td>
-        <td><span class="badge badge-aprobado">✅ Aprobado</span></td>
-        <td>Salvador E.</td>
-        <td>Hoy 09:00</td>
-        <td><div class="actions-cell" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openDetalle('E-0041','Compra de harina a Harinera del Molino','Compra de Insumos',980.00,'Aprobado','Salvador E.','Hoy 09:00','Se compraron 50 kg de harina.')">👁️</button>
-        </div></td>
-      </tr>
-
-      <tr data-cat="servicios" data-estado="aprobado" onclick="openDetalle('E-0040','Pago de electricidad — CFE','Servicios',400.00,'Aprobado','Salvador E.','Hoy 08:30','Pago mensual de luz.')">
-        <td><span class="folio-chip">E-0040</span></td>
-        <td>Pago de electricidad — CFE</td>
-        <td><span class="cat-chip">⚡ Servicios</span></td>
-        <td><span class="monto-neg">−$400.00</span></td>
-        <td><span class="badge badge-aprobado">✅ Aprobado</span></td>
-        <td>Salvador E.</td>
-        <td>Hoy 08:30</td>
-        <td><div class="actions-cell" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openDetalle('E-0040','Pago de electricidad — CFE','Servicios',400.00,'Aprobado','Salvador E.','Hoy 08:30','Pago mensual.')">👁️</button>
-        </div></td>
-      </tr>
-
-      <tr data-cat="insumos" data-estado="aprobado" onclick="openDetalle('E-0039','Compra de mantequilla — Lácteos Altos','Compra de Insumos',220.00,'Aprobado','Mariana C.','Hoy 08:00','5 kg de mantequilla para producción.')">
-        <td><span class="folio-chip">E-0039</span></td>
-        <td>Compra de mantequilla — Lácteos Altos</td>
-        <td><span class="cat-chip">🛒 Insumos</span></td>
-        <td><span class="monto-neg">−$220.00</span></td>
-        <td><span class="badge badge-aprobado">✅ Aprobado</span></td>
-        <td>Mariana C.</td>
-        <td>Hoy 08:00</td>
-        <td><div class="actions-cell" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openDetalle('E-0039','Compra de mantequilla','Compra de Insumos',220.00,'Aprobado','Mariana C.','Hoy 08:00','5 kg mantequilla.')">👁️</button>
-        </div></td>
-      </tr>
-
-      <tr data-cat="mantenimiento" data-estado="pendiente" onclick="openDetalle('E-0038','Reparación de horno #2','Mantenimiento',240.00,'Pendiente','José Juan G.','Hoy 07:30','Horno falló en encendido, técnico externo.')">
-        <td><span class="folio-chip">E-0038</span></td>
-        <td>Reparación de horno #2</td>
-        <td><span class="cat-chip">🔧 Mantenimiento</span></td>
-        <td><span class="monto-neg">−$240.00</span></td>
-        <td><span class="badge badge-pendiente">⏳ Pendiente</span></td>
-        <td>José Juan G.</td>
-        <td>Hoy 07:30</td>
-        <td><div class="actions-cell" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openDetalle('E-0038','Reparación de horno #2','Mantenimiento',240.00,'Pendiente','José Juan G.','Hoy 07:30','Horno falló en encendido, técnico externo.')">👁️</button>
-          <button class="btn btn-outline btn-sm" style="color:#3a6034;border-color:#3a6034;" onclick="event.stopPropagation();openAprobacion('E-0038','Reparación de horno #2',240.00)">🔄 Aprobar</button>
-        </div></td>
-      </tr>
-
-      <tr data-cat="insumos" data-estado="pendiente" onclick="openDetalle('E-0037','Compra de azúcar — Gran Mayoreo','Compra de Insumos',180.00,'Pendiente','Mariana C.','Ayer 16:00','10 kg azúcar refinada.')">
-        <td><span class="folio-chip">E-0037</span></td>
-        <td>Compra de azúcar — Gran Mayoreo</td>
-        <td><span class="cat-chip">🛒 Insumos</span></td>
-        <td><span class="monto-neg">−$180.00</span></td>
-        <td><span class="badge badge-pendiente">⏳ Pendiente</span></td>
-        <td>Mariana C.</td>
-        <td>Ayer 16:00</td>
-        <td><div class="actions-cell" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openDetalle('E-0037','Compra de azúcar','Compra de Insumos',180.00,'Pendiente','Mariana C.','Ayer 16:00','10 kg azúcar.')">👁️</button>
-          <button class="btn btn-outline btn-sm" style="color:#3a6034;border-color:#3a6034;" onclick="event.stopPropagation();openAprobacion('E-0037','Compra de azúcar — Gran Mayoreo',180.00)">🔄 Aprobar</button>
-        </div></td>
-      </tr>
-
-      <tr data-cat="otro" data-estado="rechazado">
-        <td><span class="folio-chip">E-0036</span></td>
-        <td>Decoraciones sin justificación</td>
-        <td><span class="cat-chip">📦 Otro</span></td>
-        <td><span class="monto-neg" style="color:#aaa;">−$350.00</span></td>
-        <td><span class="badge badge-rechazado">🚫 Rechazado</span></td>
-        <td>Laura R.</td>
-        <td>Ayer 14:00</td>
-        <td><div class="actions-cell" onclick="event.stopPropagation()">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openDetalle('E-0036','Decoraciones sin justificación','Otro',350.00,'Rechazado','Laura R.','Ayer 14:00','Sin comprobante ni autorización previa.')">👁️</button>
-        </div></td>
-      </tr>
-
-    </tbody>
-  </table>
-  <div class="table-footer">
-    <p>Mostrando <span id="visibleCount">6</span> de 28 movimientos</p>
-    <div class="pagination">
-      <div class="page-btn active">1</div>
-      <div class="page-btn">2</div>
-      <div class="page-btn">3</div>
-      <div class="page-btn">›</div>
+  <div class="table-card anim anim-3">
+    <table id="egresosTable">
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Descripción</th>
+          <th>Categoría</th>
+          <th>Monto</th>
+          <th>Estado</th>
+          <th>Solicitó</th>
+          <th>Autorizó</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in salidas %}
+        <tr data-cat="{{ s.categoria }}" data-estado="{{ s.estado }}" data-fecha="{{ s.fecha_salida }}"
+          data-id="{{ s.id_salida }}" data-folio="{{ s.folio_salida }}" data-desc="{{ s.descripcion | e }}"
+          data-monto="{{ s.monto }}" data-registrador="{{ s.nombre_registrador }}"
+          data-proveedor="{{ s.nombre_proveedor or '—' }}" data-aprobador="{{ s.nombre_aprobador or '' }}"
+          data-folio-compra="{{ s.folio_compra or '' }}" onclick="openDetalleRow(this)">
+          <td><span class="folio-chip">{{ s.folio_salida }}</span></td>
+          <td>
+            {{ s.descripcion }}
+            {% if s.nombre_proveedor %}
+            <div style="font-size:11px;color:var(--brown-lt)">{{ s.nombre_proveedor }}</div>
+            {% endif %}
+          </td>
+          <td>
+            <span class="cat-chip">
+              {% if s.categoria == 'compra_insumos' %}🛒 Insumos
+              {% elif s.categoria == 'servicios_utilities' %}⚡ Servicios
+              {% elif s.categoria == 'mantenimiento' %}🔧 Mantenimiento
+              {% else %}📦 Otros{% endif %}
+            </span>
+          </td>
+          <td><span class="monto-neg">−${{ "%.2f"|format(s.monto) }}</span></td>
+          <td>
+            {% if s.estado == 'aprobada' %}
+            <span class="badge badge-aprobada">✅ Aprobada</span>
+            {% elif s.estado == 'pendiente' %}
+            <span class="badge badge-pendiente">⏳ Pendiente</span>
+            {% else %}
+            <span class="badge badge-rechazada">🚫 Rechazada</span>
+            {% endif %}
+          </td>
+          <td>{{ s.nombre_registrador }}</td>
+          <td>{{ s.nombre_aprobador or '—' }}</td>
+          <td>{{ s.fecha_salida.strftime('%d/%m/%Y') }}</td>
+          <td>
+            <div class="actions-cell" onclick="event.stopPropagation()">
+              <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle"
+                onclick="openDetalleRow(this.closest('tr'))">👁️</button>
+              {% if s.estado == 'pendiente' and current_user.rol and current_user.rol.clave_rol == 'admin' %}
+              <button class="btn btn-outline btn-sm" style="color:#3a6034;border-color:#3a6034;"
+                data-id="{{ s.id_salida }}" data-folio="{{ s.folio_salida }}" data-monto="{{ s.monto }}"
+                data-desc="{{ s.descripcion | e }}" onclick="openAprobacionBtn(this)">🔄 Aprobar</button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" style="text-align:center;padding:24px;color:var(--brown-lt)">No hay salidas de efectivo
+            registradas.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="table-footer">
+      <p>Mostrando <span id="visibleCount">{{ total_salidas }}</span> de {{ total_salidas }} movimientos</p>
     </div>
   </div>
-</div>
 
-<!-- ══════════════════════════════════════
+
+  <!-- ══════════════════════════════════════
      MODAL: REGISTRAR SALIDA
 ══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-add">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>💸 Registrar Salida de Efectivo</h2>
-      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
-    </div>
-    <div class="modal-body">
-
-      <div class="info-box">
-        <span class="ii">🔐</span>
-        <span>Toda salida de efectivo queda registrada en bitácora. Las salidas mayores a <strong>$500.00</strong> requieren aprobación del administrador antes de ejecutarse.</span>
+  <div class="modal-overlay" id="modal-add">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>💸 Registrar Salida de Efectivo</h2>
+        <button class="modal-close" type="button" onclick="closeModal('modal-add')">✕</button>
       </div>
+      <form method="POST" action="{{ url_for('efectivo.crear_salida') }}" id="form-nueva-salida" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
 
-      <div class="form-row cols-2">
-        <div class="section-divider">Datos del Egreso</div>
+          <div class="info-box">
+            <span class="ii">🔐</span>
+            <span>Toda salida de efectivo queda en estado <strong>Pendiente</strong> hasta que el administrador la
+              autorice, sin importar el monto.</span>
+          </div>
 
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">Descripción</label>
-          <input type="text" class="form-input" placeholder="Ej. Compra de harina, pago de gas, reparación…">
-        </div>
+          <div class="form-row cols-2">
+            <div class="section-divider">Datos del Egreso</div>
 
-        <div class="form-group">
-          <label class="form-label">Categoría</label>
-          <select class="form-select" id="add-cat" onchange="checkMonto()">
-            <option value="">— Seleccionar —</option>
-            <option value="insumos">🛒 Compra de Insumos</option>
-            <option value="servicios">⚡ Servicios / Utilities</option>
-            <option value="mantenimiento">🔧 Mantenimiento</option>
-            <option value="nomina">👤 Nómina / Personal</option>
-            <option value="otro">📦 Otro</option>
-          </select>
-        </div>
+            <div class="form-group" style="grid-column:1/-1">
+              <label class="form-label">Descripción *</label>
+              <input type="text" name="descripcion" class="form-input"
+                placeholder="Ej. Compra de harina, pago de gas, reparación…" required>
+            </div>
 
-        <div class="form-group">
-          <label class="form-label">Fecha</label>
-          <input type="date" class="form-input" id="add-fecha">
-        </div>
+            <div class="form-group">
+              <label class="form-label">Categoría *</label>
+              <select name="categoria" class="form-select" id="add-cat" required>
+                <option value="">— Seleccionar —</option>
+                <option value="compra_insumos">🛒 Compra de Insumos</option>
+                <option value="servicios_utilities">⚡ Servicios / Utilities</option>
+                <option value="mantenimiento">🔧 Mantenimiento</option>
+                <option value="otros">📦 Otros</option>
+              </select>
+            </div>
 
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">Monto</label>
-          <div class="monto-wrap">
-            <span class="peso">$</span>
-            <input type="number" class="form-input" id="add-monto" placeholder="0.00" min="0" step="0.50" oninput="checkMonto()">
+            <div class="form-group">
+              <label class="form-label">Fecha *</label>
+              <input type="date" name="fecha_salida" class="form-input" id="add-fecha" required>
+            </div>
+
+            <div class="form-group" style="grid-column:1/-1">
+              <label class="form-label">Monto *</label>
+              <div class="monto-wrap">
+                <span class="peso">$</span>
+                <input type="number" name="monto" class="form-input" id="add-monto" placeholder="0.00" min="0.01"
+                  step="0.50" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="grid-column:1/-1">
+              <label class="form-label">Proveedor (opcional)</label>
+              <select name="id_proveedor" class="form-select">
+                {% for val, label in form.id_proveedor.choices %}
+                <option value="{{ val }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div id="salida-form-error"
+            style="display:none;margin-top:12px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;">
           </div>
         </div>
-
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">Beneficiario / Proveedor</label>
-          <input type="text" class="form-input" placeholder="Ej. Harinera del Molino, CFE, Juan Plomero…">
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-registrar">💾 Registrar Salida</button>
         </div>
-
-        <div class="section-divider">Comprobante</div>
-
-        <div class="form-group">
-          <label class="form-label">No. Factura / Recibo</label>
-          <input type="text" class="form-input" placeholder="Opcional">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Registrado por</label>
-          <input type="text" class="form-input" value="Salvador Esquivel" readonly style="background:var(--warm-bg);">
-        </div>
-
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">Notas / Justificación</label>
-          <textarea class="form-textarea" placeholder="Describe brevemente el motivo o condiciones especiales…"></textarea>
-        </div>
-      </div>
-
-      <div class="warn-box" id="warn-aprobacion" style="display:none;margin-top:12px;">
-        <span class="ii">⚠️</span>
-        <span>Este monto supera <strong>$500.00</strong>. La salida quedará como <strong>Pendiente de aprobación</strong> hasta que el administrador la autorice.</span>
-      </div>
-
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
-      <button class="btn btn-primary" id="btn-registrar">💾 Registrar Salida</button>
+      </form>
     </div>
   </div>
-</div>
 
-<!-- ══════════════════════════════════════
+
+  <!-- ══════════════════════════════════════
      MODAL: APROBACIÓN
 ══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-aprobacion">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-header">
-      <h2>🔄 Aprobar / Rechazar Salida</h2>
-      <button class="modal-close" onclick="closeModal('modal-aprobacion')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="text-align:center;padding:10px 0 16px">
-        <div style="font-size:38px;margin-bottom:8px">💸</div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--brown-dk);" id="aprov-desc">Reparación de horno #2</div>
-        <div style="font-size:11px;color:var(--brown-lt);margin-top:4px;" id="aprov-folio">Folio E-0038</div>
-        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--rust);margin-top:8px;" id="aprov-monto">−$240.00</div>
+  <div class="modal-overlay" id="modal-aprobacion">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-header">
+        <h2>🔄 Aprobar / Rechazar Salida</h2>
+        <button class="modal-close" type="button" onclick="closeModal('modal-aprobacion')">✕</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Nota de resolución (opcional)</label>
-        <textarea class="form-textarea" placeholder="Ej. Aprobado, gasto necesario · Rechazado, sin comprobante…"></textarea>
-      </div>
-      <div class="aprov-btns">
-        <button class="btn-rechazar" onclick="closeModal('modal-aprobacion')">🚫 Rechazar</button>
-        <button class="btn-aprobar"  onclick="closeModal('modal-aprobacion')">✅ Aprobar</button>
-      </div>
+      <form method="POST" id="form-aprobacion" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="decision" id="aprov-decision">
+        <div class="modal-body">
+          <div style="text-align:center;padding:10px 0 16px">
+            <div style="font-size:38px;margin-bottom:8px">💸</div>
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--brown-dk);"
+              id="aprov-desc"></div>
+            <div style="font-size:11px;color:var(--brown-lt);margin-top:4px;" id="aprov-folio"></div>
+            <div
+              style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--rust);margin-top:8px;"
+              id="aprov-monto"></div>
+          </div>
+          <div class="aprov-btns">
+            <button type="button" class="btn-rechazar"
+              onclick="document.getElementById('aprov-decision').value='rechazada'; document.getElementById('form-aprobacion').submit()">
+              🚫 Rechazar
+            </button>
+            <button type="button" class="btn-aprobar"
+              onclick="document.getElementById('aprov-decision').value='aprobada'; document.getElementById('form-aprobacion').submit()">
+              ✅ Aprobar
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
-</div>
 
-<!-- ══════════════════════════════════════
+
+  <!-- ══════════════════════════════════════
      MODAL: DETALLE
 ══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-detalle">
-  <div class="modal modal-xl">
-    <div class="modal-header">
-      <h2>📋 Detalle de Salida</h2>
-      <button class="modal-close" onclick="closeModal('modal-detalle')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="det-grid">
-        <div class="det-item"><label>Folio</label><span id="det-folio">E-0041</span></div>
-        <div class="det-item"><label>Estado</label><span id="det-estado">Aprobado</span></div>
-        <div class="det-item" style="grid-column:1/-1"><label>Descripción</label><span id="det-desc">—</span></div>
-        <div class="det-item"><label>Categoría</label><span id="det-cat">—</span></div>
-        <div class="det-item"><label>Fecha</label><span id="det-fecha">—</span></div>
-        <div class="det-item"><label>Monto</label><span id="det-monto" style="font-family:'Playfair Display',serif;font-size:22px;color:var(--rust);">—</span></div>
-        <div class="det-item"><label>Registró</label><span id="det-user">—</span></div>
-        <div class="det-item" style="grid-column:1/-1"><label>Notas</label><span id="det-notas" style="font-size:12.5px;color:var(--brown-lt);">—</span></div>
+  <div class="modal-overlay" id="modal-detalle">
+    <div class="modal modal-xl">
+      <div class="modal-header">
+        <h2>📋 Detalle de Salida</h2>
+        <button class="modal-close" type="button" onclick="closeModal('modal-detalle')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="det-grid">
+          <div class="det-item"><label>Folio</label><span id="det-folio">—</span></div>
+          <div class="det-item"><label>Estado</label><span id="det-estado">—</span></div>
+          <div class="det-item" style="grid-column:1/-1"><label>Descripción</label><span id="det-desc">—</span></div>
+          <div class="det-item"><label>Categoría</label><span id="det-cat">—</span></div>
+          <div class="det-item"><label>Proveedor</label><span id="det-proveedor">—</span></div>
+          <div class="det-item"><label>Fecha</label><span id="det-fecha">—</span></div>
+          <div class="det-item"><label>Monto</label><span id="det-monto"
+              style="font-family:'Playfair Display',serif;font-size:22px;color:var(--rust);">—</span></div>
+          <div class="det-item"><label>Solicitó</label><span id="det-user">—</span></div>
+          <div class="det-item"><label>Autorizó / Rechazó</label><span id="det-aprobador">—</span></div>
+          <div class="det-item" id="det-compra-wrap" style="grid-column:1/-1;display:none"><label>Compra
+              origen</label><span id="det-folio-compra"
+              style="font-family:monospace;font-weight:700;color:var(--brown-dk);">—</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-detalle')">Cerrar</button>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-detalle')">Cerrar</button>
-    </div>
   </div>
-</div>
 
-<script>
-  function openModal(id)  { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-  });
+  {% endblock %}
 
-  // Set today
-  document.addEventListener('DOMContentLoaded', () => {
-    const today = new Date().toISOString().split('T')[0];
-    const af = document.getElementById('add-fecha');
-    if (af) af.value = today;
-  });
+  {% block extra_scripts %}
+  <script src="{{ url_for('static', filename='js/salidaEfectivo.js') }}"></script>
+  {% endblock %}
 
-  function checkMonto() {
-    const monto = parseFloat(document.getElementById('add-monto').value) || 0;
-    const warn  = document.getElementById('warn-aprobacion');
-    const btn   = document.getElementById('btn-registrar');
-    if (monto > 500) {
-      warn.style.display = 'flex';
-      btn.textContent = '📤 Enviar para Aprobación';
-    } else {
-      warn.style.display = 'none';
-      btn.textContent = '💾 Registrar Salida';
-    }
-  }
-
-  function openAprobacion(folio, desc, monto) {
-    document.getElementById('aprov-folio').textContent = 'Folio ' + folio;
-    document.getElementById('aprov-desc').textContent  = desc;
-    document.getElementById('aprov-monto').textContent = '−$' + monto.toFixed(2);
-    openModal('modal-aprobacion');
-  }
-
-  function openDetalle(folio, desc, cat, monto, estado, user, fecha, notas) {
-    document.getElementById('det-folio').textContent = folio;
-    document.getElementById('det-desc').textContent  = desc;
-    document.getElementById('det-cat').textContent   = cat;
-    document.getElementById('det-monto').textContent = '−$' + monto.toFixed(2);
-    document.getElementById('det-estado').textContent = estado;
-    document.getElementById('det-user').textContent  = user;
-    document.getElementById('det-fecha').textContent = fecha;
-    document.getElementById('det-notas').textContent = notas;
-    const estadoEl = document.getElementById('det-estado');
-    estadoEl.style.color = estado === 'Aprobado' ? '#3a6034' : estado === 'Pendiente' ? '#8a6200' : '#888';
-    openModal('modal-detalle');
-  }
-
-  function filterTable() {
-    const q   = document.getElementById('searchInput').value.toLowerCase();
-    const cat = document.getElementById('filterCat').value;
-    const est = document.getElementById('filterEstado').value;
-    const rows = document.querySelectorAll('#egresosTable tbody tr');
-    let visible = 0;
-    rows.forEach(row => {
-      const text    = row.textContent.toLowerCase();
-      const rowCat  = row.dataset.cat || '';
-      const rowEst  = row.dataset.estado || '';
-      const show = (!q || text.includes(q)) && (!cat || rowCat === cat) && (!est || rowEst === est);
-      row.style.display = show ? '' : 'none';
-      if (show) visible++;
-    });
-    document.getElementById('visibleCount').textContent = visible;
-  }
-</script>
-
-<div style="height:40px"></div>
-{% endblock %}
+  <div style="height:40px"></div>
