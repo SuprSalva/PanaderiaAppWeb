@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block container %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login_cliente.css') }}">
+{% endblock %}
+
+<div class="login-page">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="login-left">
+    <div class="brand-logo-area">
+      <div class="brand-logo-placeholder">🥐</div>
+      <div>
+        <div class="brand-name">Dulce Migaja</div>
+        <div class="brand-tagline">Portal de Clientes</div>
+      </div>
+    </div>
+
+    <h1 class="welcome-heading">
+      Tu panadería<br>favorita
+    </h1>
+    <p class="welcome-sub">
+      Realiza tus pedidos de pan y pasteles en línea, consulta tu historial y más desde un solo lugar.
+    </p>
+
+    <div class="feature-pills">
+      <div class="feature-pill">
+        <div class="pill-icon">🛍️</div> Realiza tu Pedido en Línea
+      </div>
+      <div class="feature-pill">
+        <div class="pill-icon">📦</div> Consulta tus Pedidos
+      </div>
+      <div class="feature-pill">
+        <div class="pill-icon">🎂</div> Catálogo de Productos
+      </div>
+      <div class="feature-pill">
+        <div class="pill-icon">👤</div> Gestiona tu Perfil
+      </div>
+    </div>
+  </div>
+
+  <div class="login-divider"></div>
+
+  <div class="login-right">
+    <div class="login-card">
+      <div class="card-greeting">¡Bienvenido!</div>
+      <div class="card-sub">Ingresa a tu cuenta de cliente</div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          {% if category == 'success' %}
+            <div class="flash-success">✅ {{ message }}</div>
+          {% else %}
+            <div class="flash-error">⚠️ {{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      {% endwith %}
+
+      <form action="" method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="login-form-group">
+          <label class="login-label">Usuario</label>
+          <div class="login-input-wrap">
+            <span class="l-icon">👤</span>
+            {{ form.usuario(class="", placeholder="Tu nombre de usuario", autocomplete="username") }}
+          </div>
+          {% if form.usuario.errors %}
+            {% for e in form.usuario.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+          {% endif %}
+        </div>
+
+        <div class="login-form-group">
+          <label class="login-label">Contraseña</label>
+          <div class="login-input-wrap">
+            <span class="l-icon">🔒</span>
+            {{ form.password(class="", placeholder="••••••••", autocomplete="current-password") }}
+          </div>
+          {% if form.password.errors %}
+            {% for e in form.password.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn-login">Iniciar Sesión →</button>
+      </form>
+
+      <div class="login-footer-link">
+        ¿No tienes cuenta?
+        <a href="{{ url_for('registrar_cliente') }}">Regístrate aquí</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/login_cliente.js') }}"></script>
+{% endblock %}
+{% endblock %}

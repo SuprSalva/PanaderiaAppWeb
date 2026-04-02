@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from config import DevelopmentConfig
+from sqlalchemy import text
 from models import db, Usuario, Rol
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
@@ -79,9 +80,70 @@ def login():
 @app.route("/logout")
 @login_required
 def logout():
+    es_cliente = (current_user.rol.clave_rol == 'cliente') if current_user.rol else False
     logout_user()
     flash('Sesión cerrada correctamente.', 'success')
-    return redirect(url_for('login'))
+    return redirect(url_for('login_cliente' if es_cliente else 'login'))
+
+@app.route("/cliente/login", methods=['GET', 'POST'])
+def login_cliente():
+    if current_user.is_authenticated:
+        return redirect(url_for('pedidos.mis_pedidos'))
+
+    form = forms.LoginForm(request.form)
+    if request.method == 'POST' and form.validate():
+        usuario = Usuario.query.filter_by(username=form.usuario.data).first()
+        if usuario and check_password_hash(usuario.password_hash, form.password.data):
+            if usuario.estatus != 'activo':
+                flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.', 'error')
+                return render_template("login_cliente.html", form=form)
+            clave = usuario.rol.clave_rol if usuario.rol else ''
+            if clave != 'cliente':
+                flash('Esta área es exclusiva para clientes.', 'error')
+                return render_template("login_cliente.html", form=form)
+            login_user(usuario)
+            usuario.ultimo_login = datetime.datetime.now()
+            db.session.commit()
+            return redirect(url_for('pedidos.mis_pedidos'))
+        else:
+            flash('Usuario o contraseña incorrectos.', 'error')
+
+    return render_template("login_cliente.html", form=form)
+
+
+@app.route("/cliente/registro", methods=['GET', 'POST'])
+def registrar_cliente():
+    if current_user.is_authenticated:
+        return redirect(url_for('pedidos.mis_pedidos'))
+
+    form = forms.RegistroClienteForm(request.form)
+    if request.method == 'POST' and form.validate():
+        try:
+            db.session.execute(
+                text("CALL sp_registrar_cliente(:uuid, :nombre, :telefono, :username, :pwd_hash)"),
+                {
+                    'uuid':     str(uuid.uuid4()),
+                    'nombre':   form.nombre.data.strip(),
+                    'telefono': form.telefono.data.strip(),
+                    'username': form.username.data.strip(),
+                    'pwd_hash': generate_password_hash(form.password.data),
+                }
+            )
+            db.session.commit()
+            flash('¡Cuenta creada exitosamente! Ya puedes iniciar sesión.', 'success')
+            return redirect(url_for('login_cliente'))
+        except Exception as e:
+            db.session.rollback()
+            orig = getattr(e, 'orig', None)
+            code = orig.args[0] if orig and hasattr(orig, 'args') and len(orig.args) >= 1 else None
+            msg  = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
+            if code == 1062 or 'ya esta en uso' in msg or 'ya está en uso' in msg:
+                flash('El nombre de usuario ya está en uso. Elige otro.', 'error')
+            else:
+                flash(msg, 'error')
+
+    return render_template("usuarios/registrar_cliente.html", form=form)
+
 
 @app.route("/usuarios/registrar", methods=['GET', 'POST'])
 def registrar_usuario():

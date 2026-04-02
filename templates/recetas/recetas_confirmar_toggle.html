@@ -11,30 +11,49 @@
     box-shadow: 0 8px 32px var(--shadow);
     overflow: hidden;
   }
+
   .confirm-header {
     padding: 20px 26px;
     text-align: center;
   }
-  .confirm-header.hdr-danger  { background: var(--rust); }
-  .confirm-header.hdr-success { background: #5a7a52; }
-  .confirm-header .icon { font-size: 40px; display: block; margin-bottom: 6px; }
+
+  .confirm-header.hdr-danger {
+    background: var(--rust);
+  }
+
+  .confirm-header.hdr-success {
+    background: #5a7a52;
+  }
+
+  .confirm-header .icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
   .confirm-header h2 {
     font-family: 'Playfair Display', serif;
     font-size: 18px;
     color: #fff;
     margin: 0;
   }
+
   .confirm-body {
     padding: 28px 32px;
     text-align: center;
   }
+
   .confirm-body p {
     font-size: 14px;
     color: var(--brown-dk);
     line-height: 1.7;
     margin-bottom: 24px;
   }
-  .confirm-body strong { color: var(--brown-dk); }
+
+  .confirm-body strong {
+    color: var(--brown-dk);
+  }
+
   .confirm-actions {
     display: flex;
     gap: 12px;
@@ -59,20 +78,18 @@
   <div class="confirm-body">
     <p>
       {% if receta.estatus == 'activo' %}
-        La receta <strong>{{ receta.nombre }}</strong> no podrá usarse en nuevas
-        órdenes de producción.<br>El historial de producción se conserva.
+      La receta <strong>{{ receta.nombre }}</strong> no podrá usarse en nuevas
+      órdenes de producción.<br>El historial de producción se conserva.
       {% else %}
-        La receta <strong>{{ receta.nombre }}</strong> volverá a estar disponible
-        para producción.
+      La receta <strong>{{ receta.nombre }}</strong> volverá a estar disponible
+      para producción.
       {% endif %}
     </p>
 
     <div class="confirm-actions">
-      <a href="{{ url_for('recetas_bp.index_recetas') }}"
-         class="btn btn-outline">Cancelar</a>
+      <a href="{{ url_for('recetas_bp.index_recetas') }}" class="btn btn-outline">Cancelar</a>
 
-      <form method="POST"
-            action="{{ url_for('recetas_bp.recetas_toggle', id_receta=receta.id_receta) }}">
+      <form method="POST" action="{{ url_for('recetas_bp.recetas_toggle', id_receta=receta.id_receta) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% if receta.estatus == 'activo' %}
         <button type="submit" class="btn btn-danger">🚫 Sí, desactivar</button>

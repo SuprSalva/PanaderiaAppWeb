@@ -229,6 +229,55 @@ DELIMITER ;
 
 
 -- ─────────────────────────────────────────────
+--  SP: sp_registrar_cliente
+--  Registro público de clientes desde el portal.
+--  El rol 'cliente' debe existir en la tabla roles.
+-- ─────────────────────────────────────────────
+DROP PROCEDURE IF EXISTS sp_registrar_cliente;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_registrar_cliente(
+    IN  p_uuid            VARCHAR(36),
+    IN  p_nombre_completo VARCHAR(120),
+    IN  p_telefono        VARCHAR(20),
+    IN  p_username        VARCHAR(60),
+    IN  p_password_hash   VARCHAR(255)
+)
+BEGIN
+    -- La restricción UNIQUE de la columna username maneja duplicados (error 1062)
+    INSERT INTO usuarios (
+        uuid_usuario,
+        nombre_completo,
+        telefono,
+        username,
+        password_hash,
+        id_rol,
+        estatus,
+        intentos_fallidos,
+        cambio_pwd_req,
+        creado_en,
+        actualizado_en,
+        creado_por
+    ) VALUES (
+        p_uuid,
+        p_nombre_completo,
+        NULLIF(p_telefono, ''),
+        p_username,
+        p_password_hash,
+        4,
+        'activo',
+        0,
+        0,
+        NOW(),
+        NOW(),
+        NULL
+    );
+END$$
+
+DELIMITER ;
+
+-- ─────────────────────────────────────────────
 --  Usuario: admin / administrator!
 -- ─────────────────────────────────────────────
 INSERT IGNORE INTO usuarios (

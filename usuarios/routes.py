@@ -12,7 +12,17 @@ _PWD_RE = re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$')
 from models import db, Usuario, Rol
 from auth import roles_required
 from utils.db_roles import call_sp
+from forms import CrearUsuarioForm, EditarUsuarioForm
 from . import registrar_usuario_bp
+
+
+def _usuario_form(FormClass):
+    form = FormClass(request.form)
+    form.id_rol.choices = (
+        [(0, '— Seleccionar —')] +
+        [(r.id_rol, r.nombre_rol) for r in Rol.query.order_by(Rol.nombre_rol).all()]
+    )
+    return form
 
 
 @registrar_usuario_bp.route("/usuarios")
@@ -41,24 +51,17 @@ def usuarios():
 @login_required
 @roles_required('admin')
 def crear_usuario():
-    nombre    = request.form.get('nombre',    '').strip()
-    username  = request.form.get('username',  '').strip()
-    id_rol    = request.form.get('id_rol',    '')
-    password  = request.form.get('password',  '')
-    confirmar = request.form.get('confirmar', '')
-    estatus   = request.form.get('estatus',   'activo')
-
-    if not nombre or not username or not id_rol or not password:
-        flash('Todos los campos son obligatorios.', 'error')
+    form = _usuario_form(CrearUsuarioForm)
+    if not form.validate():
+        first_err = next(iter(next(iter(form.errors.values()))))
+        flash(first_err, 'error')
         return redirect(url_for('registrar_usuario.usuarios'))
 
-    if not _PWD_RE.match(password):
-        flash('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).', 'error')
-        return redirect(url_for('registrar_usuario.usuarios'))
-
-    if password != confirmar:
-        flash('Las contraseñas no coinciden.', 'error')
-        return redirect(url_for('registrar_usuario.usuarios'))
+    nombre   = form.nombre.data.strip()
+    username = form.username.data.strip()
+    id_rol   = form.id_rol.data
+    password = form.password.data
+    estatus  = form.estatus.data
 
     try:
         db.session.execute(
@@ -68,7 +71,7 @@ def crear_usuario():
                 'nombre':     nombre,
                 'username':   username,
                 'pwd_hash':   generate_password_hash(password),
-                'id_rol':     int(id_rol),
+                'id_rol':     id_rol,
                 'estatus':    estatus,
                 'creado_por': current_user.id_usuario,
             }
@@ -77,7 +80,8 @@ def crear_usuario():
         flash(f'Usuario "{nombre}" creado exitosamente.', 'success')
     except Exception as e:
         db.session.rollback()
-        msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+        orig = getattr(e, 'orig', None)
+        msg  = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         if 'ya esta en uso' in msg or 'ya está en uso' in msg:
             flash(f'El usuario "{username}" ya está en uso. Elige otro.', 'error')
         elif 'no es valido' in msg or 'no es válido' in msg:
@@ -92,24 +96,17 @@ def crear_usuario():
 @login_required
 @roles_required('admin')
 def editar_usuario(id_usuario):
-    nombre    = request.form.get('nombre',    '').strip()
-    username  = request.form.get('username',  '').strip()
-    id_rol    = request.form.get('id_rol',    '')
-    estatus   = request.form.get('estatus',   'activo')
-    password  = request.form.get('password',  '').strip()
-    confirmar = request.form.get('confirmar', '').strip()
-
-    if not nombre or not username or not id_rol:
-        flash('Nombre, usuario y rol son obligatorios.', 'error')
+    form = _usuario_form(EditarUsuarioForm)
+    if not form.validate():
+        first_err = next(iter(next(iter(form.errors.values()))))
+        flash(first_err, 'error')
         return redirect(url_for('registrar_usuario.usuarios'))
 
-    if password:
-        if not _PWD_RE.match(password):
-            flash('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).', 'error')
-            return redirect(url_for('registrar_usuario.usuarios'))
-        if password != confirmar:
-            flash('Las contraseñas no coinciden.', 'error')
-            return redirect(url_for('registrar_usuario.usuarios'))
+    nombre   = form.nombre.data.strip()
+    username = form.username.data.strip()
+    id_rol   = form.id_rol.data
+    estatus  = form.estatus.data
+    password = form.password.data
 
     pwd_hash = generate_password_hash(password) if password else None
 
@@ -120,7 +117,7 @@ def editar_usuario(id_usuario):
                 'id':       id_usuario,
                 'nombre':   nombre,
                 'username': username,
-                'id_rol':   int(id_rol),
+                'id_rol':   id_rol,
                 'estatus':  estatus,
                 'pwd_hash': pwd_hash,
             }
@@ -129,7 +126,8 @@ def editar_usuario(id_usuario):
         flash(f'Usuario "{nombre}" actualizado correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
-        msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+        orig = getattr(e, 'orig', None)
+        msg  = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         if 'ya esta en uso' in msg or 'ya está en uso' in msg:
             flash(f'El usuario "{username}" ya está en uso. Elige otro.', 'error')
         elif 'no existe' in msg:
