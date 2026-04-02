@@ -1,0 +1,350 @@
+{# ============================================================
+   _panel_produccion.html
+   Incluir en pedidos/detalle.html con:
+       {% include 'pedidos/_panel_produccion.html' %}
+
+   Requiere que el contexto tenga: `pedido` (NamedTuple con
+   folio, estado, id_cliente, etc.)
+   ============================================================ #}
+
+{% set est = pedido.estado %}
+
+{% if est not in ('entregado',) %}
+<!-- ══ PANEL DE PRODUCCIÓN ══════════════════════════════════ -->
+<div style="background:#fff; border:1px solid var(--tan); border-radius:13px;
+            overflow:hidden; margin-top:18px;" id="panel-produccion">
+
+  <!-- Header del panel -->
+  <div style="background:var(--warm-bg); padding:13px 18px; border-bottom:1px solid var(--tan);
+              display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+    <div style="font-size:12px; font-weight:800; color:var(--brown);
+                text-transform:uppercase; letter-spacing:.5px;">
+      ⚙️ Gestión de Producción
+    </div>
+    <!-- Flujo visual de estados -->
+    <div style="display:flex; align-items:center; gap:4px; font-size:11px;">
+      {% set pasos = [
+        ('pendiente',         '📋', 'Pendiente'),
+        ('aprobado',          '✅', 'Aprobado'),
+        ('en_produccion',     '⚙️', 'Producción'),
+        ('listo',             '🎉', 'Listo'),
+        ('entregado',         '📦', 'Entregado'),
+      ] %}
+      {% set orden = ['pendiente','aprobado','pendiente_insumos','en_produccion','listo','entregado','rechazado'] %}
+      {% set pos_actual = orden.index(est) if est in orden else 0 %}
+
+      {% if est == 'rechazado' %}
+        <span style="background:#fee2e2; color:#991b1b; border-radius:8px;
+                     padding:3px 10px; font-weight:700;">❌ Rechazado</span>
+      {% elif est == 'pendiente_insumos' %}
+        <span style="background:#ede9fe; color:#5b21b6; border-radius:8px;
+                     padding:3px 10px; font-weight:700;">🛒 Pendiente de Insumos</span>
+      {% else %}
+        {% for s_key, s_ico, s_lbl in pasos %}
+          {% set s_pos = orden.index(s_key) if s_key in orden else 0 %}
+          {% set is_done   = s_pos < pos_actual %}
+          {% set is_active = s_key == est %}
+          <span style="display:inline-flex; align-items:center; gap:3px; padding:3px 8px;
+                       border-radius:8px; font-weight:700;
+                       background:{% if is_active %}var(--brown-dk){% elif is_done %}#d1fae5{% else %}var(--warm-bg){% endif %};
+                       color:{% if is_active %}var(--cream){% elif is_done %}#065f46{% else %}var(--brown-lt){% endif %};">
+            {{ '✓' if is_done and not is_active else s_ico }} {{ s_lbl }}
+          </span>
+          {% if not loop.last %}
+          <span style="color:var(--tan);">›</span>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="padding:16px 18px; display:flex; flex-direction:column; gap:14px;">
+
+    <!-- ALERTAS CONTEXTUALES -->
+    {% if est == 'pendiente' %}
+    <div style="background:#fef3c7; border:1px solid #fcd34d; border-radius:9px;
+                padding:10px 14px; font-size:12px; color:#92400e;">
+      📋 Este pedido está esperando tu revisión. Apruébalo para poder iniciar la producción,
+      o recházalo indicando el motivo.
+    </div>
+    {% elif est == 'aprobado' %}
+    <div style="background:#dbeafe; border:1px solid #93c5fd; border-radius:9px;
+                padding:10px 14px; font-size:12px; color:#1d4ed8;">
+      ✅ Pedido aprobado. Cuando quieras iniciar la producción, el sistema verificará el stock
+      de insumos automáticamente. Si faltan insumos, te indicará exactamente cuánto comprar.
+    </div>
+    {% elif est == 'pendiente_insumos' %}
+    <div style="background:#ede9fe; border:1px solid #c4b5fd; border-radius:9px;
+                padding:10px 14px; font-size:12px; color:#5b21b6;">
+      🛒 <strong>Faltan insumos para iniciar.</strong>
+      Haz una compra de los materiales faltantes y después reintenta el inicio.
+      <br><br>
+      <a href="{{ url_for('compras.index_compras') }}"
+         onclick="guardarFaltantes('{{ pedido.folio }}')"
+         style="color:#5b21b6; font-weight:700; text-decoration:underline;">
+        → Ir al módulo de Compras con los faltantes precargados
+      </a>
+    </div>
+    {% elif est == 'en_produccion' %}
+    <div style="background:#d1fae5; border:1px solid #6ee7b7; border-radius:9px;
+                padding:10px 14px; font-size:12px; color:#065f46;">
+      ⚙️ <strong>En producción.</strong>
+      Cuando termines de preparar el pedido, márcalo como listo.
+      El cliente recibirá una notificación automática.
+    </div>
+    {% elif est == 'listo' %}
+    <div style="background:#ffedd5; border:1px solid #fed7aa; border-radius:9px;
+                padding:10px 14px; font-size:12px; color:#9a3412;">
+      🎉 <strong>¡Listo para recoger!</strong>
+      El cliente ya fue notificado. Cuando pase a recogerlo, márcalo como entregado.
+    </div>
+    {% endif %}
+
+    <!-- INSUMOS REQUERIDOS (colapsable) -->
+    {% if est not in ('rechazado',) %}
+    <div>
+      <button onclick="toggleInsDetalle()" id="btn-toggle-ins"
+              style="background:none; border:1.5px solid var(--tan); border-radius:9px;
+                     padding:8px 14px; font-size:12px; font-weight:700; color:var(--brown);
+                     cursor:pointer; display:flex; align-items:center; gap:6px; width:100%;
+                     justify-content:space-between;">
+        <span>🌾 Ver insumos {{ 'consumidos' if est in ('en_produccion','listo','entregado') else 'requeridos' }}</span>
+        <span id="ins-toggle-icon">▼</span>
+      </button>
+
+      <div id="ins-detalle-panel" style="display:none; margin-top:8px; border:1px solid var(--tan);
+           border-radius:9px; overflow:hidden;">
+        <div id="ins-detalle-body"
+             style="padding:10px 14px; font-size:12px; color:var(--brown-lt);">
+          Cargando insumos…
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ACCIONES -->
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+
+      {% if est == 'pendiente' %}
+        <button class="btn btn-success btn-sm"
+                onclick="abrirAprobarDet('{{ pedido.folio }}')">✅ Aprobar Pedido</button>
+        <button class="btn btn-danger btn-sm"
+                onclick="abrirRechazarDet('{{ pedido.folio }}')">❌ Rechazar Pedido</button>
+
+      {% elif est == 'aprobado' %}
+        <form method="POST"
+              action="{{ url_for('pedidos.iniciar_produccion', folio=pedido.folio) }}"
+              onsubmit="return confirm('¿Iniciar producción? Se verificará y descontará el stock de insumos.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-blue btn-sm">▶ Iniciar Producción</button>
+        </form>
+        <button class="btn btn-danger btn-sm"
+                onclick="abrirRechazarDet('{{ pedido.folio }}')">❌ Rechazar</button>
+
+      {% elif est == 'pendiente_insumos' %}
+        <form method="POST"
+              action="{{ url_for('pedidos.iniciar_produccion', folio=pedido.folio) }}"
+              onsubmit="return confirm('¿Reintentar inicio? Se volverá a verificar el stock.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm" style="background:#8b5cf6; color:#fff;">🔄 Reintentar Inicio</button>
+        </form>
+
+      {% elif est == 'en_produccion' %}
+        <form method="POST"
+              action="{{ url_for('pedidos.terminar_produccion', folio=pedido.folio) }}"
+              onsubmit="return confirm('¿Marcar como LISTO? El cliente recibirá una notificación.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-success btn-sm">🎉 Marcar como Listo</button>
+        </form>
+
+      {% elif est == 'listo' %}
+        <form method="POST"
+              action="{{ url_for('pedidos.cambiar_estado', folio=pedido.folio) }}"
+              onsubmit="return confirm('¿Confirmar entrega?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="estado" value="entregado">
+          <button class="btn btn-outline btn-sm">📦 Confirmar Entrega</button>
+        </form>
+      {% endif %}
+
+    </div><!-- acciones -->
+  </div><!-- body del panel -->
+</div><!-- panel-produccion -->
+
+
+<!-- ══ MODAL APROBAR (desde detalle) ══ -->
+<div class="modal-bd" id="modalAprobarDet" style="display:none; position:fixed; inset:0;
+     background:rgba(0,0,0,.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:15px; width:min(440px,95vw);
+              box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s;">
+    <div style="padding:16px 20px 12px; border-bottom:1px solid var(--tan);
+                display:flex; align-items:center; justify-content:space-between;">
+      <div style="font-family:'Playfair Display',serif; font-size:16px; font-weight:700;
+                  color:var(--brown-dk);">✅ Aprobar Pedido {{ pedido.folio }}</div>
+      <button onclick="document.getElementById('modalAprobarDet').style.display='none'"
+              style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);">✕</button>
+    </div>
+    <form method="POST" action="{{ url_for('pedidos.aprobar_pedido', folio=pedido.folio) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="padding:16px 20px; display:flex; flex-direction:column; gap:10px;">
+        <p style="font-size:13px; color:var(--text);">
+          Se notificará al cliente que su pedido fue aceptado. Los insumos se
+          descuentan cuando inicies la producción.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size:11px; font-weight:700; color:var(--brown); text-transform:uppercase;">
+            Nota (opcional)
+          </label>
+          <input type="text" name="nota" placeholder="Ej. Lo tendremos listo el viernes"
+                 style="border:1.5px solid var(--tan); border-radius:9px; padding:8px 12px;
+                        font-size:13px; width:100%;">
+        </div>
+      </div>
+      <div style="padding:12px 20px 18px; border-top:1px solid var(--tan);
+                  display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button"
+                onclick="document.getElementById('modalAprobarDet').style.display='none'"
+                class="btn btn-outline btn-sm">Cancelar</button>
+        <button type="submit" class="btn btn-success btn-sm">✅ Aprobar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL RECHAZAR (desde detalle) ══ -->
+<div class="modal-bd" id="modalRechazarDet" style="display:none; position:fixed; inset:0;
+     background:rgba(0,0,0,.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:15px; width:min(440px,95vw);
+              box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s;">
+    <div style="padding:16px 20px 12px; border-bottom:1px solid var(--tan);
+                display:flex; align-items:center; justify-content:space-between;">
+      <div style="font-family:'Playfair Display',serif; font-size:16px; font-weight:700;
+                  color:var(--brown-dk);">❌ Rechazar Pedido {{ pedido.folio }}</div>
+      <button onclick="document.getElementById('modalRechazarDet').style.display='none'"
+              style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);">✕</button>
+    </div>
+    <form method="POST" action="{{ url_for('pedidos.rechazar_pedido', folio=pedido.folio) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="padding:16px 20px;">
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size:11px; font-weight:700; color:var(--brown); text-transform:uppercase;">
+            Motivo del rechazo *
+          </label>
+          <textarea name="motivo" required rows="3"
+                    placeholder="Ej. No hay disponibilidad para esa fecha..."
+                    style="border:1.5px solid var(--tan); border-radius:9px; padding:8px 12px;
+                           font-size:13px; width:100%; font-family:'Lato',sans-serif;
+                           resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div style="padding:12px 20px 18px; border-top:1px solid var(--tan);
+                  display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button"
+                onclick="document.getElementById('modalRechazarDet').style.display='none'"
+                class="btn btn-outline btn-sm">Cancelar</button>
+        <button type="submit" class="btn btn-danger btn-sm">❌ Rechazar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px;
+       border-radius:9px; font-size:12px; font-weight:700; cursor:pointer;
+       border:none; transition:all .18s; text-decoration:none; font-family:'Lato',sans-serif; }
+.btn-success { background:#10b981; color:#fff; }
+.btn-success:hover { background:#059669; }
+.btn-blue    { background:#3b82f6; color:#fff; }
+.btn-blue:hover { background:#2563eb; }
+.btn-danger  { background:#ef4444; color:#fff; }
+.btn-danger:hover { background:#dc2626; }
+.btn-outline { background:#fff; color:var(--brown-dk); border:1.5px solid var(--tan); }
+.btn-outline:hover { border-color:var(--brown); background:var(--warm-bg); }
+.btn-sm { padding:6px 12px; font-size:12px; }
+@keyframes fadeUp { from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1} }
+</style>
+
+<script>
+/* ── Toggle insumos en detalle ── */
+let _insDetLoaded = false;
+window.toggleInsDetalle = function() {
+  const panel   = document.getElementById('ins-detalle-panel');
+  const icon    = document.getElementById('ins-toggle-icon');
+  const visible = panel.style.display === 'block';
+
+  panel.style.display = visible ? 'none' : 'block';
+  icon.textContent    = visible ? '▼' : '▲';
+
+  if (!_insDetLoaded && !visible) {
+    _insDetLoaded = true;
+    cargarInsDetalle();
+  }
+};
+
+async function cargarInsDetalle() {
+  const body = document.getElementById('ins-detalle-body');
+  try {
+    const r = await fetch(`/api/{{ pedido.folio }}/insumos`);
+    const d = await r.json();
+
+    if (!d.ok) { body.innerHTML = `<p style="color:#dc2626;font-size:12px;">${d.mensaje}</p>`; return; }
+
+    const alert = d.hay_faltantes
+      ? `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;
+              font-size:12px;color:#991b1b;font-weight:700;margin-bottom:8px;">
+           ⛔ ${d.total - d.ok_count} insumo(s) con stock insuficiente para completar este pedido.
+         </div>`
+      : `<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:8px 12px;
+              font-size:12px;color:#065f46;font-weight:700;margin-bottom:8px;">
+           ✅ Todos los insumos disponibles (${d.total}).
+         </div>`;
+
+    let html = alert + '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+      '<thead><tr style="background:var(--warm-bg);">' +
+      '<td style="padding:6px 10px;font-weight:800;color:var(--brown);">Insumo</td>' +
+      '<td style="padding:6px 10px;font-weight:800;color:var(--brown);">Requerido</td>' +
+      '<td style="padding:6px 10px;font-weight:800;color:var(--brown);">Disponible</td>' +
+      '<td style="padding:6px 10px;font-weight:800;color:var(--brown);">Estado</td>' +
+      '</tr></thead><tbody>';
+
+    d.insumos.forEach(ins => {
+      const ok  = ins.stock_suficiente;
+      const pct = Math.min(ins.pct_disponible || 0, 100);
+      const col = ok ? '#10b981' : (pct >= 50 ? '#f59e0b' : '#ef4444');
+      html += `<tr style="${ok ? '' : 'background:#fff5f5;'}">
+        <td style="padding:6px 10px;font-weight:700;">${ins.nombre_materia}</td>
+        <td style="padding:6px 10px;">${ins.cantidad_requerida.toFixed(2)} ${ins.unidad_base}</td>
+        <td style="padding:6px 10px;">
+          ${ins.stock_actual.toFixed(2)} ${ins.unidad_base}
+          <span style="display:inline-block;width:40px;height:4px;background:var(--tan);
+                border-radius:4px;vertical-align:middle;overflow:hidden;margin-left:5px;">
+            <span style="display:block;height:100%;width:${pct}%;background:${col};border-radius:4px;"></span>
+          </span>
+        </td>
+        <td style="padding:6px 10px;font-weight:700;color:${ok ? '#065f46' : '#dc2626'};">
+          ${ok ? '✅ OK' : '⛔ Falta ' + (ins.cantidad_requerida - ins.stock_actual).toFixed(2)}
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  } catch(e) {
+    body.innerHTML = `<p style="color:#dc2626;font-size:12px;">Error: ${e.message}</p>`;
+  }
+}
+
+/* ── Modales desde detalle ── */
+window.abrirAprobarDet  = () => { document.getElementById('modalAprobarDet').style.display  = 'flex'; };
+window.abrirRechazarDet = () => { document.getElementById('modalRechazarDet').style.display = 'flex'; };
+
+/* ── Guardar faltantes para compras ── */
+window.guardarFaltantes = async function(folio) {
+  try {
+    const r = await fetch(`/api/${folio}/faltantes-compra`);
+    const d = await r.json();
+    if (d.ok) sessionStorage.setItem('dm_faltantes_pedido', JSON.stringify(d));
+  } catch(e) {}
+};
+</script>
+{% endif %}{# end if not entregado #}

@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dulce Migaja — {% block title %}Sistema{% endblock %}</title>
-
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -418,15 +418,9 @@
           <span class="nav-tooltip">Producción</span>
         </a>
 
-        <a href="{{ url_for('produccion.index_produccion_solicitud') }}"
-           class="nav-item {% if request.endpoint == 'produccion.index_produccion_solicitud' %}active{% endif %}"
-           data-label="Solicitudes Producción">
-          <span class="nav-icon">📬</span>
-          <span class="nav-label">Solicitudes</span>
-          <span class="nav-tooltip">Solicitudes Prod.</span>
-          {% if pendientes_solicitudes is defined and pendientes_solicitudes > 0 %}
-          <span class="nav-badge">{{ pendientes_solicitudes }}</span>
-          {% endif %}
+        <a href="{{ url_for('pedidos.cola_produccion') }}" class="nav-item ...">
+          <span class="nav-icon">🧑‍🍳</span>
+          <span class="nav-label">Cola Producción</span>
         </a>
       </div>
 
