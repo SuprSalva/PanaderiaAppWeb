@@ -1,563 +1,326 @@
 {% extends "layout.html" %}
+{% block title %}Costo y Utilidad{% endblock %}
 
 {% block container %}
-<style>
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .anim   { animation: fadeUp .35s ease both; }
-  .anim-1 { animation-delay: .05s; }
-  .anim-2 { animation-delay: .10s; }
-  .anim-3 { animation-delay: .15s; }
+<link rel="stylesheet" href="{{ url_for('costoUtilidad.static', filename='css/costoUtilidad.css') }}">
 
-  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
-  .db-page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
-  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-  .db-breadcrumb span { color: var(--tan); }
-
-  /* ── STATS ── */
-  .cu-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
-  .cu-stat { background: var(--white); border: 1px solid var(--tan); border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px var(--shadow); display: flex; align-items: center; gap: 12px; transition: transform .2s; }
-  .cu-stat:hover { transform: translateY(-2px); }
-  .cu-stat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
-  .cu-stat-icon.brown { background: #f3e8d8; }
-  .cu-stat-icon.green { background: #e2eede; }
-  .cu-stat-icon.gold  { background: #fef3d0; }
-  .cu-stat-icon.rust  { background: #fce8df; }
-  .cu-stat-val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--brown-dk); line-height: 1; }
-  .cu-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
-
-  /* ── MAIN GRID ── */
-  .main-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 18px; margin-bottom: 18px; }
-  @media(max-width:1050px){ .main-grid { grid-template-columns: 1fr; } }
-
-  /* ── CARD ── */
-  .panel-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 3px 12px var(--shadow); overflow: hidden; }
-  .panel-header { padding: 16px 20px; background: var(--warm-bg); border-bottom: 1px solid var(--tan); display: flex; align-items: center; justify-content: space-between; }
-  .panel-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 8px; }
-  .panel-body { padding: 20px; }
-
-  /* ── TABLE ── */
-  table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--warm-bg); }
-  thead th { padding: 10px 14px; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: var(--brown); text-align: left; white-space: nowrap; }
-  thead th:first-child { padding-left: 18px; }
-  tbody tr { border-top: 1px solid var(--tan); transition: background .15s; cursor: pointer; }
-  tbody tr:hover { background: #fdf3e6; }
-  tbody td { padding: 11px 14px; font-size: 13px; color: var(--text); vertical-align: middle; }
-  tbody td:first-child { padding-left: 18px; }
-  tbody tr.selected-row { background: #f3e8d8 !important; }
-
-  .prod-cell { display: flex; align-items: center; gap: 8px; }
-  .prod-em { font-size: 18px; }
-  .prod-nm { font-weight: 700; color: var(--brown-dk); font-size: 13px; }
-
-  .money { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--brown-dk); }
-  .money-sm { font-size: 13px; }
-
-  /* ── MARGEN BAR ── */
-  .margen-wrap { display: flex; align-items: center; gap: 8px; }
-  .mbar { flex: 1; height: 8px; border-radius: 4px; background: var(--tan); overflow: hidden; min-width: 60px; }
-  .mbar-fill { height: 100%; border-radius: 4px; }
-  .mbar-high { background: #5a7a52; }
-  .mbar-mid  { background: #c9950a; }
-  .mbar-low  { background: var(--rust); }
-  .mbar-pct  { font-size: 12px; font-weight: 700; white-space: nowrap; }
-  .mbar-pct.high { color: #3a6034; }
-  .mbar-pct.mid  { color: #8a6200; }
-  .mbar-pct.low  { color: var(--rust); }
-
-  /* ── DESGLOSE PANEL ── */
-  .des-hero { display: flex; align-items: center; gap: 14px; padding: 16px; background: linear-gradient(135deg,var(--warm-bg),var(--cream)); border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--tan); }
-  .des-emoji { font-size: 36px; }
-  .des-name  { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--brown-dk); }
-  .des-rend  { font-size: 11px; color: var(--brown-lt); margin-top: 3px; }
-
-  .des-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .des-metric { background: var(--warm-bg); border: 1px solid var(--tan); border-radius: 9px; padding: 12px 14px; text-align: center; }
-  .des-metric label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); display: block; margin-bottom: 4px; }
-  .des-metric span  { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--brown-dk); }
-  .des-metric.green span { color: #3a6034; }
-  .des-metric.gold  span { color: #8a6200; }
-
-  /* ── INSUMO DESGLOSE ── */
-  .ins-des-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--tan); gap: 8px; }
-  .ins-des-row:last-child { border-bottom: none; }
-  .ins-des-left { display: flex; align-items: center; gap: 7px; flex: 1; }
-  .ins-ico  { font-size: 14px; }
-  .ins-nm   { font-size: 12.5px; font-weight: 600; color: var(--brown-dk); }
-  .ins-qty  { font-size: 11px; color: var(--brown-lt); }
-  .ins-sub  { font-size: 13px; font-weight: 700; color: var(--brown-dk); white-space: nowrap; }
-  .ins-pct-bar { width: 50px; height: 5px; border-radius: 3px; background: var(--tan); overflow: hidden; }
-  .ins-pct-fill { height: 100%; border-radius: 3px; background: var(--brown-lt); }
-
-  /* ── TOTALES COSTO ── */
-  .costo-breakdown { background: var(--warm-bg); border: 1px solid var(--tan); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
-  .cb-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid var(--tan); font-size: 13px; }
-  .cb-row:last-child { border-bottom: none; }
-  .cb-row.total-row { background: var(--brown-dk); color: var(--cream); }
-  .cb-row.total-row .money { color: var(--cream); }
-  .cb-label { color: var(--brown-lt); }
-  .cb-row.total-row .cb-label { color: rgba(255,255,255,.75); font-weight: 700; }
-
-  /* ── SIMULADOR ── */
-  .sim-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 3px 12px var(--shadow); overflow: hidden; }
-  .sim-header { padding: 16px 20px; background: var(--brown-dk); display: flex; align-items: center; gap: 8px; }
-  .sim-header h3 { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--cream); }
-  .sim-body { padding: 20px; }
-
-  .sim-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .sim-label { font-size: 12px; font-weight: 700; color: var(--brown); min-width: 140px; letter-spacing: .3px; }
-  .sim-input { flex: 1; padding: 8px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700; color: var(--brown-dk); background: var(--cream); outline: none; transition: border .2s; }
-  .sim-input:focus { border-color: var(--brown); background: var(--white); }
-  .sim-result { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; min-width: 80px; text-align: right; }
-  .sim-result.green { color: #3a6034; }
-  .sim-result.red   { color: var(--rust); }
-  .sim-result.gold  { color: #8a6200; }
-
-  .sim-divider { height: 1px; background: var(--tan); margin: 4px 0 16px; }
-
-  .sim-gauge { background: var(--warm-bg); border-radius: 10px; padding: 14px 16px; margin-top: 4px; }
-  .sim-gauge-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); margin-bottom: 8px; }
-  .sim-gauge-bar { height: 14px; border-radius: 7px; background: var(--tan); overflow: hidden; position: relative; margin-bottom: 6px; }
-  .sim-gauge-fill { height: 100%; border-radius: 7px; background: linear-gradient(90deg,var(--rust),#c9950a,#5a7a52); transition: width .4s; }
-  .sim-gauge-markers { display: flex; justify-content: space-between; font-size: 10px; color: var(--brown-lt); }
-  .sim-recom { font-size: 12px; color: var(--brown-dk); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
-
-  .info-box { background: #f3e8d8; border: 1px solid var(--tan); border-radius: 10px; padding: 11px 14px; font-size: 12px; color: var(--brown-dk); display: flex; gap: 8px; align-items: flex-start; margin-bottom: 14px; }
-  .info-box .ii { flex-shrink: 0; font-size: 15px; }
-</style>
-
-<!-- TOPBAR -->
-<div class="db-topbar anim">
-  <div>
-    <div class="db-page-title">💰 Costo y Utilidad</div>
-    <div class="db-breadcrumb">Inicio <span>›</span> Reportes <span>›</span> Costo y Utilidad</div>
+{# ── TOPBAR ── #}
+<div class="cu-topbar anim">
+  <div class="cu-title-wrap">
+    <div class="cu-page-title">💰 Costos y Utilidad</div>
+    <div class="cu-breadcrumb">
+      Inicio <span>›</span> Reportes <span>›</span> Costo y Utilidad
+    </div>
   </div>
 </div>
 
-<!-- STATS -->
+{# ── FLASH ── #}
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div class="alert alert-{{ cat }}">{{ msg }}</div>
+  {% endfor %}
+{% endwith %}
+
+{# ── KPI CARDS ──────────────────────────────────────────────────────────── #}
+{# Orden del diseño del documento:                                           #}
+{# Margen Prom. | Costo Prom./pza | Precio Prom./pza | Margen bajo (<20%)   #}
 <div class="cu-stats anim anim-1">
+
   <div class="cu-stat">
-    <div class="cu-stat-icon green">💹</div>
-    <div><div class="cu-stat-val">38%</div><div class="cu-stat-lbl">Margen Promedio</div></div>
+    <div class="cu-stat-icon green">📈</div>
+    <div>
+      {% set vmp = kpis.get('margen_prom') %}
+      <div class="cu-stat-val">
+        {% if vmp is not none and vmp != '' %}
+          {{ "%.1f"|format(vmp|float) }}%
+        {% else %}—{% endif %}
+      </div>
+      <div class="cu-stat-lbl">Margen Promedio</div>
+    </div>
   </div>
+
   <div class="cu-stat">
-    <div class="cu-stat-icon brown">🧾</div>
-    <div><div class="cu-stat-val">$14.82</div><div class="cu-stat-lbl">Costo Prom. / Pieza</div></div>
+    <div class="cu-stat-icon brown">🧮</div>
+    <div>
+      {% set vcp = kpis.get('costo_prom') %}
+      <div class="cu-stat-val">
+        {% if vcp is not none and vcp != '' %}
+          ${{ "%.2f"|format(vcp|float) }}
+        {% else %}—{% endif %}
+      </div>
+      <div class="cu-stat-lbl">Costo Prom. / Pieza</div>
+    </div>
   </div>
+
   <div class="cu-stat">
     <div class="cu-stat-icon gold">🏷️</div>
-    <div><div class="cu-stat-val">$23.17</div><div class="cu-stat-lbl">Precio Prom. / Pieza</div></div>
+    <div>
+      {% set vpp = kpis.get('precio_prom') %}
+      <div class="cu-stat-val">
+        {% if vpp is not none and vpp != '' %}
+          ${{ "%.2f"|format(vpp|float) }}
+        {% else %}—{% endif %}
+      </div>
+      <div class="cu-stat-lbl">Precio Prom. / Pieza</div>
+    </div>
   </div>
+
   <div class="cu-stat">
     <div class="cu-stat-icon rust">⚠️</div>
-    <div><div class="cu-stat-val">1</div><div class="cu-stat-lbl">Margen bajo (&lt;20%)</div></div>
+    <div>
+      <div class="cu-stat-val">{{ kpis.get('productos_margen_bajo', 0) or 0 }}</div>
+      <div class="cu-stat-lbl">Margen bajo (&lt;20%)</div>
+    </div>
   </div>
+
 </div>
 
-<!-- MAIN GRID: tabla + desglose -->
-<div class="main-grid anim anim-2">
+{# ── TOOLBAR ── #}
+<form method="GET" action="{{ url_for('costoUtilidad.index_costo_utilidad') }}" id="form-filtro">
+  <div class="toolbar anim anim-2">
 
-  <!-- TABLA PRODUCTOS -->
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">📋 Productos — Costo vs. Precio</div>
-      <span style="font-size:11px;color:var(--brown-lt);">Click para ver desglose</span>
+    {# Búsqueda por nombre #}
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      {{ form.buscar(
+           id='buscador',
+           placeholder='Buscar producto…',
+           autocomplete='off',
+           oninput='debounceSubmit()'
+      ) }}
     </div>
+
+    {# Rango de utilidad #}
+    <div class="range-wrap">
+      <span class="range-lbl">Utilidad $</span>
+      {{ form.utilidad_min(
+           id='utilidad_min',
+           placeholder='Mín',
+           class_='range-input',
+           oninput='debounceSubmit()'
+      ) }}
+      <span class="range-sep">—</span>
+      {{ form.utilidad_max(
+           id='utilidad_max',
+           placeholder='Máx',
+           class_='range-input',
+           oninput='debounceSubmit()'
+      ) }}
+    </div>
+
+    {# Ordenamiento #}
+    {{ form.orden(
+         id='filtro-orden',
+         class_='filter-select',
+         onchange='this.form.submit()'
+    ) }}
+
+    {# Botón limpiar (solo si hay filtros activos) #}
+    {% if buscar or util_min is not none or util_max is not none %}
+    <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}" class="btn-limpiar">
+      ✕ Limpiar
+    </a>
+    {% endif %}
+
+  </div>
+</form>
+
+{# Indicador de filtro de utilidad activo #}
+{% if util_min is not none or util_max is not none %}
+<div class="filtro-activo anim">
+  🔎 Utilidad filtrada:
+  {% if util_min is not none and util_max is not none %}
+    entre ${{ "%.2f"|format(util_min) }} y ${{ "%.2f"|format(util_max) }}
+  {% elif util_min is not none %}
+    ≥ ${{ "%.2f"|format(util_min) }}
+  {% else %}
+    ≤ ${{ "%.2f"|format(util_max) }}
+  {% endif %}
+  — {{ productos|length }} resultado(s)
+</div>
+{% endif %}
+
+{# ── LAYOUT: tabla + panel desglose ── #}
+<div class="cu-layout anim anim-3">
+
+  {# ── TABLA ── #}
+  <div class="table-card">
+    <div class="tc-header">
+      <div class="tc-title">📋 Productos — Costo vs. Precio</div>
+      {% if productos %}
+      <span class="tc-hint">Haz click en un producto para ver su desglose</span>
+      {% endif %}
+    </div>
+
+    {% if productos %}
     <table id="costoTable">
       <thead>
         <tr>
           <th>Producto</th>
-          <th>Costo/pza</th>
+          <th>Rendimiento</th>
+          <th>Costo / pza</th>
           <th>Precio Venta</th>
-          <th>Utilidad</th>
+          <th>Utilidad / pza</th>
           <th>Margen</th>
         </tr>
       </thead>
-      <tbody>
-        <tr class="selected-row" onclick="selectProducto(this,'Cuernito de Mantequilla','🥐',22.10,28.00,16,176.80,'Mantequilla:26.28,Harina:9.27,Huevo:4.99,Azúcar:2.67')">
-          <td><div class="prod-cell"><span class="prod-em">🥐</span><span class="prod-nm">Cuernito de Mantequilla</span></div></td>
-          <td><span class="money money-sm">$22.10</span></td>
-          <td><span class="money money-sm">$28.00</span></td>
-          <td><span class="money money-sm" style="color:#3a6034">$5.90</span></td>
+      <tbody id="tabla-body">
+        {% for p in productos %}
+        {% set margen   = p.margen_pct|float %}
+        {% set cls_bar  = 'mbar-high' if margen >= 30 else ('mbar-mid' if margen >= 20 else 'mbar-low') %}
+        {% set cls_txt  = 'high'     if margen >= 30 else ('mid'     if margen >= 20 else 'low') %}
+        <tr class="prod-row {% if loop.first %}fila-activa{% endif %}"
+            onclick="selectProducto(this)"
+            data-id-receta="{{ p.id_receta }}"
+            data-nombre="{{ p.nombre_producto | e }}"
+            data-costo="{{ p.costo_unitario }}"
+            data-precio="{{ p.precio_venta }}"
+            data-utilidad="{{ p.utilidad_unitaria }}"
+            data-margen="{{ p.margen_pct }}"
+            data-rendimiento="{{ p.rendimiento }}"
+            data-unidad="{{ p.unidad_rendimiento }}">
+          <td>
+            <div class="prod-cell">
+              <div class="prod-emoji-box">🍞</div>
+              <span class="prod-nm">{{ p.nombre_producto }}</span>
+            </div>
+          </td>
+          <td style="color:var(--brown-lt); font-size:12px;">
+            {{ p.rendimiento }} {{ p.unidad_rendimiento }}
+          </td>
+          <td>
+            <span class="money">${{ "%.2f"|format(p.costo_unitario|float) }}</span>
+          </td>
+          <td>
+            <span class="money">${{ "%.2f"|format(p.precio_venta|float) }}</span>
+          </td>
+          <td>
+            <span class="money {{ 'pos' if p.utilidad_unitaria|float >= 0 else 'neg' }}">
+              ${{ "%.2f"|format(p.utilidad_unitaria|float) }}
+            </span>
+          </td>
           <td>
             <div class="margen-wrap">
-              <div class="mbar"><div class="mbar-fill mbar-mid" style="width:21%"></div></div>
-              <span class="mbar-pct mid">21%</span>
+              <div class="mbar">
+                <div class="mbar-fill {{ cls_bar }}"
+                     style="width:{{ [margen, 100]|min }}%"></div>
+              </div>
+              <span class="mbar-pct {{ cls_txt }}">{{ "%.1f"|format(margen) }}%</span>
             </div>
           </td>
         </tr>
-        <tr onclick="selectProducto(this,'Concha de Vainilla','🍞',14.20,22.00,12,170.40,'Mantequilla:26.28,Harina:9.27,Huevo:4.99,Azúcar:2.67,Vainilla:1.20')">
-          <td><div class="prod-cell"><span class="prod-em">🍞</span><span class="prod-nm">Concha de Vainilla</span></div></td>
-          <td><span class="money money-sm">$14.20</span></td>
-          <td><span class="money money-sm">$22.00</span></td>
-          <td><span class="money money-sm" style="color:#3a6034">$7.80</span></td>
-          <td>
-            <div class="margen-wrap">
-              <div class="mbar"><div class="mbar-fill mbar-high" style="width:35%"></div></div>
-              <span class="mbar-pct high">35%</span>
-            </div>
-          </td>
-        </tr>
-        <tr onclick="selectProducto(this,'Bolillo Relleno','🥖',8.50,18.00,20,170.00,'Harina:9.27,Levadura:1.20,Sal:0.08,Leche:2.10')">
-          <td><div class="prod-cell"><span class="prod-em">🥖</span><span class="prod-nm">Bolillo Relleno</span></div></td>
-          <td><span class="money money-sm">$8.50</span></td>
-          <td><span class="money money-sm">$18.00</span></td>
-          <td><span class="money money-sm" style="color:#3a6034">$9.50</span></td>
-          <td>
-            <div class="margen-wrap">
-              <div class="mbar"><div class="mbar-fill mbar-high" style="width:53%"></div></div>
-              <span class="mbar-pct high">53%</span>
-            </div>
-          </td>
-        </tr>
-        <tr onclick="selectProducto(this,'Pan de Chocolate','🍫',17.80,25.00,10,178.00,'Harina:8.35,Mantequilla:16.42,Azúcar:2.20,Leche:2.10')">
-          <td><div class="prod-cell"><span class="prod-em">🍫</span><span class="prod-nm">Pan de Chocolate</span></div></td>
-          <td><span class="money money-sm">$17.80</span></td>
-          <td><span class="money money-sm">$25.00</span></td>
-          <td><span class="money money-sm" style="color:#3a6034">$7.20</span></td>
-          <td>
-            <div class="margen-wrap">
-              <div class="mbar"><div class="mbar-fill mbar-high" style="width:29%"></div></div>
-              <span class="mbar-pct high">29%</span>
-            </div>
-          </td>
-        </tr>
-        <tr onclick="selectProducto(this,'Dona Glaseada','🍩',12.60,20.00,15,189.00,'Harina:7.42,Azúcar:3.30,Huevo:4.99,Leche:1.58')">
-          <td><div class="prod-cell"><span class="prod-em">🍩</span><span class="prod-nm">Dona Glaseada</span></div></td>
-          <td><span class="money money-sm">$12.60</span></td>
-          <td><span class="money money-sm">$20.00</span></td>
-          <td><span class="money money-sm" style="color:#3a6034">$7.40</span></td>
-          <td>
-            <div class="margen-wrap">
-              <div class="mbar"><div class="mbar-fill mbar-high" style="width:37%"></div></div>
-              <span class="mbar-pct high">37%</span>
-            </div>
-          </td>
-        </tr>
-        <tr onclick="selectProducto(this,'Cuernito de Canela','🥐',19.40,26.00,14,271.60,'Mantequilla:22.00,Harina:9.27,Azúcar:2.67,Canela:3.50')">
-          <td><div class="prod-cell"><span class="prod-em">🥐</span><span class="prod-nm">Cuernito de Canela</span></div></td>
-          <td><span class="money money-sm">$19.40</span></td>
-          <td><span class="money money-sm">$26.00</span></td>
-          <td><span class="money money-sm" style="color:#3a6034">$6.60</span></td>
-          <td>
-            <div class="margen-wrap">
-              <div class="mbar"><div class="mbar-fill mbar-mid" style="width:25%"></div></div>
-              <span class="mbar-pct mid">25%</span>
-            </div>
-          </td>
-        </tr>
-        <tr onclick="selectProducto(this,'Pan Integral','🍞',15.20,16.00,8,121.60,'Harina:7.50,Levadura:0.84,Sal:0.08,Leche:2.10')">
-          <td><div class="prod-cell"><span class="prod-em">🍞</span><span class="prod-nm">Pan Integral</span></div></td>
-          <td><span class="money money-sm">$15.20</span></td>
-          <td><span class="money money-sm">$16.00</span></td>
-          <td><span class="money money-sm" style="color:var(--rust)">$0.80</span></td>
-          <td>
-            <div class="margen-wrap">
-              <div class="mbar"><div class="mbar-fill mbar-low" style="width:5%"></div></div>
-              <span class="mbar-pct low">5%</span>
-            </div>
-          </td>
-        </tr>
+        {% endfor %}
       </tbody>
     </table>
+
+    {# ── PAGINADOR ── #}
+    <div class="paginador">
+      <div class="pag-info">
+        Mostrando
+        <strong id="pag-desde">1</strong>–<strong id="pag-hasta">10</strong>
+        de <strong id="pag-total">{{ productos|length }}</strong>
+        producto{{ 's' if productos|length != 1 else '' }}
+      </div>
+      <div class="pag-controles" id="pag-controles"></div>
+    </div>
+
+    {% else %}
+    {# Estado vacío #}
+    <div class="empty-state">
+      <span>🔍</span>
+      <p>No se encontraron productos con los filtros aplicados.</p>
+      {% if buscar or util_min is not none or util_max is not none %}
+      <br>
+      <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}"
+         class="btn-limpiar" style="margin-top:8px; display:inline-flex;">
+        ✕ Limpiar filtros
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
 
-  <!-- DESGLOSE LATERAL -->
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">🔍 Desglose de Costos</div>
+  {# ── PANEL DESGLOSE ── #}
+  <div class="desglose-card" id="desglose-panel">
+    <div class="des-header">
+      <div class="des-title" id="des-titulo">Desglose de Costos</div>
     </div>
-    <div class="panel-body" id="desglose-body">
 
-      <div class="des-hero">
-        <div class="des-emoji" id="des-emoji">🥐</div>
-        <div>
-          <div class="des-name"  id="des-name">Cuernito de Mantequilla</div>
-          <div class="des-rend"  id="des-rend">Rendimiento: 16 pzas/lote</div>
+    {# Placeholder inicial #}
+    <div class="des-placeholder" id="des-placeholder">
+      <span>👈</span>
+      <p>Selecciona un producto de la tabla para ver el desglose por insumo y simular precios.</p>
+    </div>
+
+    {# Spinner de carga #}
+    <div class="des-spinner" id="des-spinner">
+      <div class="spinner"></div>
+      <span>Cargando…</span>
+    </div>
+
+    {# Contenido del desglose #}
+    <div id="des-content" style="display:none">
+
+      {# KPIs — grid 2×2 #}
+      <div class="des-kpis">
+        <div class="des-kpi">
+          <div class="des-kpi-lbl">Costo / pieza</div>
+          <div class="des-kpi-val" id="des-costo">—</div>
+        </div>
+        <div class="des-kpi">
+          <div class="des-kpi-lbl">Costo / lote</div>
+          <div class="des-kpi-val" id="des-lote">—</div>
+        </div>
+        <div class="des-kpi">
+          <div class="des-kpi-lbl">Utilidad / pieza</div>
+          <div class="des-kpi-val" id="des-util">—</div>
+        </div>
+        <div class="des-kpi">
+          <div class="des-kpi-lbl">Margen</div>
+          <div class="des-kpi-val" id="des-margen">—</div>
         </div>
       </div>
 
-      <div class="des-metrics">
-        <div class="des-metric">
-          <label>Costo por Pieza</label>
-          <span id="des-costo">$22.10</span>
-        </div>
-        <div class="des-metric">
-          <label>Costo por Lote</label>
-          <span id="des-lote">$176.80</span>
-        </div>
-        <div class="des-metric green">
-          <label>Utilidad / Pieza</label>
-          <span id="des-util">$5.90</span>
-        </div>
-        <div class="des-metric gold">
-          <label>Margen</label>
-          <span id="des-margen">21%</span>
-        </div>
-      </div>
+      {# Desglose por insumo #}
+      <div class="des-section-lbl">Costo por Insumo</div>
+      <div class="des-insumos-wrap" id="des-insumos"></div>
 
-      <!-- Desglose insumos -->
-      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:8px;">Costo por Insumo</div>
-      <div id="des-insumos">
-        <div class="ins-des-row">
-          <div class="ins-des-left">
-            <span class="ins-ico">🧈</span>
-            <div>
-              <div class="ins-nm">Mantequilla</div>
-              <div class="ins-qty">200g × 2 lotes + 2% merma</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="ins-pct-bar"><div class="ins-pct-fill" style="width:62%"></div></div>
-            <span class="ins-sub">$26.28</span>
-          </div>
-        </div>
-        <div class="ins-des-row">
-          <div class="ins-des-left">
-            <span class="ins-ico">🌾</span>
-            <div>
-              <div class="ins-nm">Harina de Trigo</div>
-              <div class="ins-qty">480g + 3% merma</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="ins-pct-bar"><div class="ins-pct-fill" style="width:22%"></div></div>
-            <span class="ins-sub">$9.27</span>
-          </div>
-        </div>
-        <div class="ins-des-row">
-          <div class="ins-des-left">
-            <span class="ins-ico">🥚</span>
-            <div>
-              <div class="ins-nm">Huevo</div>
-              <div class="ins-qty">80g + 4% merma</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="ins-pct-bar"><div class="ins-pct-fill" style="width:12%"></div></div>
-            <span class="ins-sub">$4.99</span>
-          </div>
-        </div>
-        <div class="ins-des-row">
-          <div class="ins-des-left">
-            <span class="ins-ico">🍚</span>
-            <div>
-              <div class="ins-nm">Azúcar Refinada</div>
-              <div class="ins-qty">60g + 1% merma</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="ins-pct-bar"><div class="ins-pct-fill" style="width:6%"></div></div>
-            <span class="ins-sub">$2.67</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Totales -->
-      <div class="costo-breakdown" style="margin-top:14px">
+      {# Totales #}
+      <div class="des-breakdown">
         <div class="cb-row">
-          <span class="cb-label">Costo materiales</span>
-          <span class="money money-sm" id="des-mat">$43.21</span>
+          <span class="cb-label">Materiales / lote</span>
+          <span class="money" id="des-mat-lote" style="font-size:13px">—</span>
         </div>
-        <div class="cb-row">
-          <span class="cb-label">Merma incluida</span>
-          <span style="font-size:12px;color:#8a6200;font-weight:700;" id="des-merma-val">+$1.42</span>
-        </div>
-        <div class="cb-row total-row">
-          <span class="cb-label">Costo total / lote</span>
-          <span class="money money-sm" id="des-total-lote">$176.80</span>
+        <div class="cb-row cb-total-row">
+          <span class="cb-label">Costo unitario / pieza</span>
+          <span class="money" id="des-unit" style="font-size:14px">—</span>
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
-
-<!-- SIMULADOR DE PRECIO -->
-<div class="sim-card anim anim-3">
-  <div class="sim-header">
-    <span style="font-size:20px">🧮</span>
-    <h3>Simulador de Precio y Utilidad</h3>
-    <span style="font-size:11px;color:rgba(255,255,255,.6);margin-left:auto;">Ajusta el precio de venta y observa el impacto en el margen</span>
-  </div>
-  <div class="sim-body">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;align-items:start">
-
-      <!-- Columna 1: Inputs -->
-      <div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:12px;">Parámetros</div>
+      {# Simulador de precio #}
+      <div class="des-sim">
+        <div class="sim-title">🧮 Simular Precio de Venta</div>
         <div class="sim-row">
-          <span class="sim-label">Producto</span>
-          <select class="sim-input" id="sim-prod" onchange="simCalc()" style="font-size:13px;font-weight:400;">
-            <option value="22.10">Cuernito de Mantequilla</option>
-            <option value="14.20">Concha de Vainilla</option>
-            <option value="8.50">Bolillo Relleno</option>
-            <option value="17.80">Pan de Chocolate</option>
-            <option value="12.60">Dona Glaseada</option>
-            <option value="15.20">Pan Integral</option>
-          </select>
+          <label for="sim-precio">Nuevo precio ($)</label>
+          <input type="number" class="sim-input" id="sim-precio"
+                 min="0" step="0.01" placeholder="0.00" oninput="simular()">
         </div>
         <div class="sim-row">
-          <span class="sim-label">Costo / pieza</span>
-          <span class="sim-result" id="sim-costo-val" style="font-size:16px;color:var(--brown-dk);">$22.10</span>
-        </div>
-        <div class="sim-divider"></div>
-        <div class="sim-row">
-          <span class="sim-label">Precio de venta $</span>
-          <input type="number" class="sim-input" id="sim-precio" value="28.00" min="0" step="0.50" oninput="simCalc()">
+          <label>Utilidad simulada</label>
+          <span class="sim-result" id="sim-util">—</span>
         </div>
         <div class="sim-row">
-          <span class="sim-label">Cantidad a vender</span>
-          <input type="number" class="sim-input" id="sim-qty" value="50" min="1" oninput="simCalc()">
+          <label>Margen simulado</label>
+          <span class="sim-result" id="sim-margen">—</span>
         </div>
       </div>
 
-      <!-- Columna 2: Resultados -->
-      <div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:12px;">Resultados</div>
-        <div class="sim-row">
-          <span class="sim-label">Utilidad / pieza</span>
-          <span class="sim-result green" id="sim-util-pza">$5.90</span>
-        </div>
-        <div class="sim-row">
-          <span class="sim-label">Margen %</span>
-          <span class="sim-result gold" id="sim-margen">21%</span>
-        </div>
-        <div class="sim-divider"></div>
-        <div class="sim-row">
-          <span class="sim-label">Ingresos totales</span>
-          <span class="sim-result" id="sim-ingreso" style="color:var(--brown-dk);">$1,400.00</span>
-        </div>
-        <div class="sim-row">
-          <span class="sim-label">Costo total</span>
-          <span class="sim-result" id="sim-costo-total" style="color:var(--brown-lt);font-size:16px;">$1,105.00</span>
-        </div>
-        <div class="sim-row">
-          <span class="sim-label">Utilidad total</span>
-          <span class="sim-result green" id="sim-util-total">$295.00</span>
-        </div>
-      </div>
+    </div>{# /des-content #}
+  </div>{# /desglose-card #}
 
-      <!-- Columna 3: Gauge -->
-      <div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:12px;">Salud del Margen</div>
-        <div class="sim-gauge">
-          <div class="sim-gauge-label">Margen de utilidad</div>
-          <div class="sim-gauge-bar">
-            <div class="sim-gauge-fill" id="sim-gauge-fill" style="width:21%"></div>
-          </div>
-          <div class="sim-gauge-markers">
-            <span>0%</span><span>20%</span><span>40%</span><span>60%+</span>
-          </div>
-          <div class="sim-recom" id="sim-recom">
-            🟡 Margen aceptable. Se recomienda un precio de al menos <strong>$27.63</strong> para alcanzar margen del 20%.
-          </div>
-        </div>
-      </div>
+</div>{# /cu-layout #}
 
-    </div>
-  </div>
-</div>
+<div style="height:32px"></div>
 
-<script>
-  // Datos de productos
-  const productos = {
-    '22.10': { nombre:'Cuernito de Mantequilla', emoji:'🥐', rend:16, lote:176.80, precio:28.00 },
-    '14.20': { nombre:'Concha de Vainilla',       emoji:'🍞', rend:12, lote:170.40, precio:22.00 },
-    '8.50':  { nombre:'Bolillo Relleno',           emoji:'🥖', rend:20, lote:170.00, precio:18.00 },
-    '17.80': { nombre:'Pan de Chocolate',          emoji:'🍫', rend:10, lote:178.00, precio:25.00 },
-    '12.60': { nombre:'Dona Glaseada',             emoji:'🍩', rend:15, lote:189.00, precio:20.00 },
-    '15.20': { nombre:'Pan Integral',              emoji:'🍞', rend:8,  lote:121.60, precio:16.00 },
-  };
-
-  function selectProducto(row, nombre, emoji, costo, precio, rend, lote, insString) {
-    document.querySelectorAll('#costoTable tbody tr').forEach(r => r.classList.remove('selected-row'));
-    row.classList.add('selected-row');
-    const util   = precio - costo;
-    const margen = Math.round((util / precio) * 100);
-
-    document.getElementById('des-emoji').textContent = emoji;
-    document.getElementById('des-name').textContent  = nombre;
-    document.getElementById('des-rend').textContent  = 'Rendimiento: ' + rend + ' pzas/lote';
-    document.getElementById('des-costo').textContent = '$' + costo.toFixed(2);
-    document.getElementById('des-lote').textContent  = '$' + lote.toFixed(2);
-    document.getElementById('des-util').textContent  = '$' + util.toFixed(2);
-    document.getElementById('des-margen').textContent = margen + '%';
-    document.getElementById('des-mat').textContent   = '$' + (costo * rend * 0.97).toFixed(2);
-    document.getElementById('des-merma-val').textContent = '+$' + (costo * rend * 0.03).toFixed(2);
-    document.getElementById('des-total-lote').textContent = '$' + lote.toFixed(2);
-
-    // Insumos breakdown
-    const ins = document.getElementById('des-insumos');
-    ins.innerHTML = '';
-    const insData = insString.split(',').map(s => s.split(':'));
-    const total = insData.reduce((a,b) => a + parseFloat(b[1]), 0);
-    const icons  = { Mantequilla:'🧈', Harina:'🌾', Huevo:'🥚', Azúcar:'🍚', Vainilla:'🫙', Levadura:'🧫', Sal:'🧂', Leche:'🥛', Canela:'🫙' };
-    insData.forEach(([nm, val]) => {
-      const v = parseFloat(val);
-      const pct = Math.round((v / total) * 100);
-      const ico = Object.entries(icons).find(([k]) => nm.includes(k))?.[1] || '🧪';
-      ins.innerHTML += `
-        <div class="ins-des-row">
-          <div class="ins-des-left">
-            <span class="ins-ico">${ico}</span>
-            <div><div class="ins-nm">${nm}</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="ins-pct-bar"><div class="ins-pct-fill" style="width:${pct}%"></div></div>
-            <span class="ins-sub">$${v.toFixed(2)}</span>
-          </div>
-        </div>`;
-    });
-
-    // Sync simulador
-    const sel = document.getElementById('sim-prod');
-    for (let i = 0; i < sel.options.length; i++) {
-      if (sel.options[i].text.includes(nombre.split(' ')[0])) { sel.selectedIndex = i; break; }
-    }
-    simCalc();
-  }
-
-  function simCalc() {
-    const sel    = document.getElementById('sim-prod');
-    const costo  = parseFloat(sel.value) || 22.10;
-    const precio = parseFloat(document.getElementById('sim-precio').value) || 0;
-    const qty    = parseInt(document.getElementById('sim-qty').value) || 1;
-
-    const util   = precio - costo;
-    const margen = precio > 0 ? Math.round((util / precio) * 100) : 0;
-    const ingreso = precio * qty;
-    const costoT  = costo  * qty;
-    const utilT   = util   * qty;
-    const minPrecio20 = (costo / 0.80).toFixed(2);
-
-    document.getElementById('sim-costo-val').textContent   = '$' + costo.toFixed(2);
-    document.getElementById('sim-util-pza').textContent    = (util >= 0 ? '+' : '') + '$' + util.toFixed(2);
-    document.getElementById('sim-util-pza').className      = 'sim-result ' + (util >= 0 ? 'green' : 'red');
-    document.getElementById('sim-margen').textContent      = margen + '%';
-    document.getElementById('sim-margen').className        = 'sim-result ' + (margen >= 30 ? 'green' : margen >= 20 ? 'gold' : 'red');
-    document.getElementById('sim-ingreso').textContent     = '$' + ingreso.toFixed(2);
-    document.getElementById('sim-costo-total').textContent = '$' + costoT.toFixed(2);
-    document.getElementById('sim-util-total').textContent  = (utilT >= 0 ? '' : '') + '$' + utilT.toFixed(2);
-    document.getElementById('sim-util-total').className    = 'sim-result ' + (utilT >= 0 ? 'green' : 'red');
-
-    const gaugePct = Math.min(Math.max(margen, 0), 60);
-    document.getElementById('sim-gauge-fill').style.width = (gaugePct / 60 * 100) + '%';
-
-    let recom = '';
-    if (util < 0)       recom = '🔴 Precio <strong>por debajo del costo</strong>. Estás vendiendo a pérdida.';
-    else if (margen < 20) recom = `🟠 Margen bajo. Precio mínimo recomendado para 20%: <strong>$${minPrecio20}</strong>`;
-    else if (margen < 35) recom = `🟡 Margen aceptable. Para 35%+, precio sugerido: <strong>$${(costo/0.65).toFixed(2)}</strong>`;
-    else                  recom = '✅ Excelente margen. Precio competitivo y rentable.';
-    document.getElementById('sim-recom').innerHTML = recom;
-  }
-
-  // Init
-  document.addEventListener('DOMContentLoaded', simCalc);
-</script>
-
-<div style="height:40px"></div>
+<script src="{{ url_for('costoUtilidad.static', filename='js/costoUtilidad.js') }}"></script>
 {% endblock %}

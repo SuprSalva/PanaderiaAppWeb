@@ -289,3 +289,29 @@ class ProveedorForm(Form):
         Optional(),
         validators.Length(max=2000, message='Máximo 2000 caracteres.'),
     ])
+
+class CostoUtilidadFiltroForm(Form):
+    """Formulario de filtros para el reporte de Costos y Utilidad."""
+
+    buscar = StringField('Buscar Producto', [
+        Optional(),
+        validators.Length(max=120),
+    ])
+
+    orden = SelectField('Ordenar por', choices=[
+        ('nombre_asc',  'Nombre A-Z'),
+        ('margen_desc', 'Mayor Margen'),
+        ('margen_asc',  'Menor Margen'),
+        ('costo_desc',  'Mayor Costo'),
+        ('costo_asc',   'Menor Costo'),
+    ], default='nombre_asc')
+
+    utilidad_min = DecimalField('Utilidad mínima ($)', [
+        Optional(),
+        NumberRange(min=0, message='Debe ser mayor o igual a 0.'),
+    ], places=2)
+
+    utilidad_max = DecimalField('Utilidad máxima ($)', [
+        Optional(),
+        NumberRange(min=0, message='Debe ser mayor o igual a 0.'),
+    ], places=2)
