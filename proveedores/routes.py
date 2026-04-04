@@ -81,7 +81,7 @@ def proveedores_nuevo():
     if not form.validate():
         for campo, errores in form.errors.items():
             for err in errores:
-                flash(err, 'danger')
+                flash(err, 'error')
         return redirect(url_for('proveedores.index_proveedores', modal='nuevo'))
 
     rfc_val = (form.rfc.data or '').strip().upper() or None
@@ -148,7 +148,7 @@ def proveedores_editar(id_proveedor):
 
     except (OperationalError, IntegrityError) as e:
         db.session.rollback()
-        flash(_msg_error_sp(e), 'danger')
+        flash(_msg_error_sp(e), 'error')
         return redirect(url_for('proveedores.index_proveedores',
                                 modal='editar', id=id_proveedor))
 
@@ -187,6 +187,6 @@ def proveedores_toggle(id_proveedor):
 
     except (OperationalError, IntegrityError) as e:
         db.session.rollback()
-        flash(_msg_error_sp(e), 'danger')
+        flash(_msg_error_sp(e), 'error')
 
     return redirect(url_for('proveedores.index_proveedores'))

@@ -183,15 +183,6 @@
 {% block container %}
 <div class="prod-wrap">
 
-  <!-- FLASH -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for cat, msg in messages %}
-    <div class="flash flash-{{ cat }}">
-      {{ '✅' if cat=='success' else '⚠️' }} {{ msg }}
-    </div>
-    {% endfor %}
-  {% endwith %}
-
   <div class="db-topbar anim">
     <div>
       <h1 class="db-page-title">⚙️ Producción</h1>

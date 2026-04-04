@@ -114,7 +114,7 @@ def produccion_nueva():
     creado_por     = current_user.id_usuario
 
     if not id_receta or not cantidad_lotes:
-        flash('Selecciona una receta y una cantidad válida.', 'danger')
+        flash('Selecciona una receta y una cantidad válida.', 'error')
         return redirect(url_for('produccion.index_produccion'))
 
     try:
@@ -127,12 +127,12 @@ def produccion_nueva():
              'operario': operario_id, 'obs': observaciones, 'creado': creado_por}
         )
         if out['ok']:
-            flash(f"✅ {out['mensaje']}", 'success')
+            flash(f"{out['mensaje']}", 'success')
             return redirect(url_for('produccion.detalle_orden', id_produccion=out['id_produccion']))
-        flash(f"⚠️ {out['mensaje']}", 'danger')
+        flash(f"{out['mensaje']}", 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error inesperado: {exc}', 'danger')
+        flash(f'Error inesperado: {exc}', 'error')
     return redirect(url_for('produccion.index_produccion'))
 
 
@@ -154,7 +154,7 @@ def detalle_orden(id_produccion):
         ).mappings().one()
 
         if not out['ok']:
-            flash(f"⚠️ {out['mensaje']}", 'danger')
+            flash(f"{out['mensaje']}", 'error')
             return redirect(url_for('produccion.index_produccion'))
 
         cabecera = conn.execute(text("""
@@ -209,7 +209,7 @@ def detalle_orden(id_produccion):
         db.session.commit()
 
         if not cabecera:
-            flash('Orden no encontrada.', 'danger')
+            flash('Orden no encontrada.', 'warning')
             return redirect(url_for('produccion.index_produccion'))
 
         return render_template(
@@ -220,7 +220,7 @@ def detalle_orden(id_produccion):
         )
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        flash(f'Error: {exc}', 'error')
         return redirect(url_for('produccion.index_produccion'))
 
 
@@ -237,11 +237,11 @@ def iniciar_orden(id_produccion):
             "SELECT @ok AS ok, @msg AS mensaje",
             {'id': id_produccion, 'usr': current_user.id_usuario}
         )
-        flash(f"{'✅' if out['ok'] else '⚠️'} {out['mensaje']}",
-              'success' if out['ok'] else 'danger')
+        flash(f"{out['mensaje']}",
+              'success' if out['ok'] else 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error al iniciar: {exc}', 'danger')
+        flash(f'Error al iniciar: {exc}', 'error')
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 
 
@@ -259,11 +259,11 @@ def finalizar_orden(id_produccion):
             "SELECT @ok AS ok, @msg AS mensaje",
             {'id': id_produccion, 'usr': current_user.id_usuario, 'pzs': piezas_reales}
         )
-        flash(f"{'✅' if out['ok'] else '⚠️'} {out['mensaje']}",
-              'success' if out['ok'] else 'danger')
+        flash(f"{out['mensaje']}",
+              'success' if out['ok'] else 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error al finalizar: {exc}', 'danger')
+        flash(f'Error al finalizar: {exc}', 'error')
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 
 
@@ -281,11 +281,11 @@ def cancelar_orden(id_produccion):
             "SELECT @ok AS ok, @msg AS mensaje",
             {'id': id_produccion, 'usr': current_user.id_usuario, 'mot': motivo}
         )
-        flash(f"{'✅' if out['ok'] else '⚠️'} {out['mensaje']}",
-              'success' if out['ok'] else 'danger')
+        flash(f"{out['mensaje']}",
+              'success' if out['ok'] else 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error al cancelar: {exc}', 'danger')
+        flash(f'Error al cancelar: {exc}', 'error')
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 
 

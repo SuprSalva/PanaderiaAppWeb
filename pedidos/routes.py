@@ -57,27 +57,27 @@ def crear_pedido():
     cajas_raw = request.form.get('cajas_json', '').strip()
 
     if not cajas_raw:
-        flash('No se recibieron cajas en el pedido.', 'danger')
+        flash('No se recibieron cajas en el pedido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
     try:
         cajas_data = json.loads(cajas_raw)
     except (ValueError, TypeError):
-        flash('Error al leer los datos del pedido.', 'danger')
+        flash('Error al leer los datos del pedido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
     if not isinstance(cajas_data, list) or len(cajas_data) == 0:
-        flash('Agrega al menos una caja al pedido.', 'danger')
+        flash('Agrega al menos una caja al pedido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
     fecha_str = request.form.get('fecha_recogida', '').strip()
     if not fecha_str:
-        flash('Indica la fecha y hora de recolección.', 'danger')
+        flash('Indica la fecha y hora de recolección.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
     errores = _validar_cajas(cajas_data)
     if errores:
         for e in errores:
-            flash(e, 'danger')
+            flash(e, 'error')
         return redirect(url_for('pedidos.catalogo'))
 
     try:
@@ -103,7 +103,7 @@ def crear_pedido():
 
         if row[2]:
             db.session.rollback()
-            flash(f'Error: {row[2]}', 'danger')
+            flash(f'Error: {row[2]}', 'error')
             return redirect(url_for('pedidos.catalogo'))
 
         db.session.commit()
@@ -117,7 +117,7 @@ def crear_pedido():
 
     except Exception:
         db.session.rollback()
-        flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'danger')
+        flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
 
@@ -309,7 +309,7 @@ def cambiar_estado(folio):
 
         if row[0]:
             db.session.rollback()
-            flash(f'No se pudo cambiar el estado: {row[0]}', 'danger')
+            flash(f'No se pudo cambiar el estado: {row[0]}', 'error')
             return redirect(url_for('pedidos.detalle', folio=folio))
 
         db.session.commit()
@@ -588,12 +588,12 @@ def aprobar_pedido(folio):
         db.session.commit()
 
         if int(row['ok'] or 0) == 1:
-            flash(f'Pedido {folio} aprobado ✅', 'success')
+            flash(f'Pedido {folio} aprobado', 'success')
         else:
-            flash(f'No se pudo aprobar: {row["err"] or "Error desconocido"}', 'danger')
+            flash(f'No se pudo aprobar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        flash(f'Error: {exc}', 'error')
     return redirect(request.referrer or url_for('pedidos.cola_produccion'))
 
 
@@ -604,7 +604,7 @@ def aprobar_pedido(folio):
 def rechazar_pedido(folio):
     motivo = request.form.get('motivo', '').strip()
     if not motivo:
-        flash('Debes indicar el motivo del rechazo.', 'danger')
+        flash('Debes indicar el motivo del rechazo.', 'warning')
         return redirect(request.referrer or url_for('pedidos.cola_produccion'))
     try:
         conn = db.session.connection()
@@ -619,10 +619,10 @@ def rechazar_pedido(folio):
         if int(row['ok'] or 0) == 1:
             flash(f'Pedido {folio} rechazado.', 'success')
         else:
-            flash(f'No se pudo rechazar: {row["err"] or "Error desconocido"}', 'danger')
+            flash(f'No se pudo rechazar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        flash(f'Error: {exc}', 'error')
     return redirect(request.referrer or url_for('pedidos.cola_produccion'))
 
 @pedidos_bp.route('/<folio>/iniciar-produccion', methods=['POST'])
@@ -643,18 +643,18 @@ def iniciar_produccion(folio):
 
         if int(row['ok'] or 0) == 1:
             if row['estado'] == 'en_produccion':
-                flash(f'✅ Pedido {folio} iniciado. Insumos descontados.', 'success')
+                flash(f'Pedido {folio} iniciado. Insumos descontados.', 'success')
             else:
                 flash(
-                    f'⚠️ Insumos insuficientes. Pedido marcado como "Pendiente de Insumos". '
+                    f'Insumos insuficientes. Pedido marcado como "Pendiente de Insumos". '
                     f'Faltantes: {row["faltantes"]}',
                     'warning'
                 )
         else:
-            flash(f'No se pudo iniciar: {row["err"] or "Error desconocido"}', 'danger')
+            flash(f'No se pudo iniciar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        flash(f'Error: {exc}', 'error')
     return redirect(url_for('pedidos.cola_produccion', folio=folio))
 
 
@@ -673,12 +673,12 @@ def terminar_produccion(folio):
         db.session.commit()
 
         if int(row['ok'] or 0) == 1:
-            flash(f'🎉 Pedido {folio} listo. El cliente fue notificado.', 'success')
+            flash(f'Pedido {folio} listo. El cliente fue notificado.', 'success')
         else:
-            flash(f'No se pudo terminar: {row["err"] or "Error desconocido"}', 'danger')
+            flash(f'No se pudo terminar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        flash(f'Error: {exc}', 'error')
     return redirect(url_for('pedidos.cola_produccion', folio=folio))
 
 @pedidos_bp.route('/api/<folio>/detalle')

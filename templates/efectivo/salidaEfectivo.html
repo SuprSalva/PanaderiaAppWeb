@@ -47,12 +47,6 @@
   </div>
 </div>
 
-<!-- ALERTAS -->
-{% with msgs = get_flashed_messages(with_categories=true) %}
-{% for cat, msg in msgs %}
-<div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-{% endfor %}
-{% endwith %}
 
 <!-- MAIN GRID: categorías + balance mes -->
 {% set cat_meta = {

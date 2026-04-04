@@ -147,11 +147,11 @@ def recetas_nueva():
     if not form.validate():
         for errors in form.errors.values():
             for err in errors:
-                flash(err, 'danger')
+                flash(err, 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
 
     if not insumos:
-        flash('Agrega al menos un insumo a la receta.', 'danger')
+        flash('Agrega al menos un insumo a la receta.', 'warning')
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
 
     nueva = Receta(
@@ -194,11 +194,11 @@ def recetas_editar(id_receta):
     if not form.validate():
         for errors in form.errors.values():
             for err in errors:
-                flash(err, 'danger')
+                flash(err, 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
 
     if not insumos:
-        flash('La receta debe tener al menos un insumo.', 'danger')
+        flash('La receta debe tener al menos un insumo.', 'warning')
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
 
     receta.id_producto        = form.id_producto.data or None

@@ -64,11 +64,11 @@ def login():
 
         if usuario and check_password_hash(usuario.password_hash, form.password.data):
             if usuario.estatus != 'activo':
-                flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.')
+                flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.', 'warning')
                 return render_template("login.html", form=form)
 
             if usuario.rol and usuario.rol.clave_rol == 'cliente':
-                flash('Esta área es exclusiva para empleados. Usa el acceso de clientes.')
+                flash('Esta área es exclusiva para empleados. Usa el acceso de clientes.', 'warning')
                 return render_template("login.html", form=form)
 
             login_user(usuario)
@@ -77,7 +77,7 @@ def login():
 
             return redirect(url_for('dashboard'))
         else:
-            flash('Usuario o contraseña incorrectos.')
+            flash('Usuario o contraseña incorrectos.', 'error')
 
     return render_template("login.html", form=form)
 
@@ -155,12 +155,12 @@ def registrar_usuario():
 
     if request.method == 'POST' and form.validate():
         if Usuario.query.filter_by(username=form.usuario.data).first():
-            flash('El nombre de usuario ya está en uso. Elige otro.')
+            flash('El nombre de usuario ya está en uso. Elige otro.', 'warning')
             return render_template("usuarios/registrar.html", form=form)
 
         rol = Rol.query.filter_by(clave_rol=form.rol.data).first()
         if not rol:
-            flash('El rol seleccionado no es válido.')
+            flash('El rol seleccionado no es válido.', 'error')
             return render_template("usuarios/registrar.html", form=form)
 
         nuevo_usuario = Usuario(
@@ -176,11 +176,11 @@ def registrar_usuario():
         try:
             db.session.add(nuevo_usuario)
             db.session.commit()
-            flash('Usuario registrado exitosamente. Ya puedes iniciar sesión.')
+            flash('Usuario registrado exitosamente. Ya puedes iniciar sesión.', 'success')
             return redirect(url_for('login'))
         except Exception as e:
             db.session.rollback()
-            flash('Ocurrió un error al registrar. Intenta de nuevo.')
+            flash('Ocurrió un error al registrar. Intenta de nuevo.', 'error')
 
     return render_template("usuarios/registrar.html", form=form)
 

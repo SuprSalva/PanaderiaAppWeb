@@ -73,22 +73,22 @@ def materias_primas_nueva():
     estatus     = request.form.get('estatus', 'activo')
 
     if not nombre:
-        flash('El nombre es obligatorio.', 'danger')
+        flash('El nombre es obligatorio.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
     if not unidad_base:
-        flash('La unidad base es obligatoria.', 'danger')
+        flash('La unidad base es obligatoria.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
     if MateriaPrima.query.filter(
             db.func.lower(MateriaPrima.nombre) == nombre.lower()).first():
-        flash(f'Ya existe una materia prima llamada "{nombre}".', 'danger')
+        flash(f'Ya existe una materia prima llamada "{nombre}".', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
     try:
         stock_min_f = float(stock_min) if stock_min else 0.0
         stock_ini_f = float(stock_ini) if stock_ini else 0.0
     except ValueError:
-        flash('Los valores de stock deben ser numéricos.', 'danger')
+        flash('Los valores de stock deben ser numéricos.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
     ahora = datetime.datetime.now()
@@ -110,7 +110,7 @@ def materias_primas_nueva():
         flash(f'Materia prima "{nueva.nombre}" creada correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al guardar: {str(e)}', 'danger')
+        flash(f'Error al guardar: {str(e)}', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
     return redirect(url_for('materias_primas.index_materias_primas'))
@@ -128,11 +128,11 @@ def materias_primas_editar(id_materia):
     estatus     = request.form.get('estatus', '')
 
     if not nombre:
-        flash('El nombre es obligatorio.', 'danger')
+        flash('El nombre es obligatorio.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
     if not unidad_base:
-        flash('La unidad base es obligatoria.', 'danger')
+        flash('La unidad base es obligatoria.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
 
@@ -141,7 +141,7 @@ def materias_primas_editar(id_materia):
         MateriaPrima.id_materia != id_materia
     ).first()
     if dup:
-        flash(f'Ya existe otra materia prima llamada "{nombre}".', 'danger')
+        flash(f'Ya existe otra materia prima llamada "{nombre}".', 'error')
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
 
@@ -163,7 +163,7 @@ def materias_primas_editar(id_materia):
         flash(f'Materia prima "{materia.nombre}" actualizada correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al actualizar: {str(e)}', 'danger')
+        flash(f'Error al actualizar: {str(e)}', 'error')
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
 
@@ -184,6 +184,6 @@ def materias_primas_toggle(id_materia):
         flash(f'Materia prima "{materia.nombre}" {accion}.', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error: {str(e)}', 'danger')
+        flash(f'Error: {str(e)}', 'error')
 
     return redirect(url_for('materias_primas.index_materias_primas'))

@@ -6,12 +6,6 @@
 {% endblock %}
 
 {% block container %}
-<!-- Alertas -->
-{% with msgs = get_flashed_messages(with_categories=true) %}
-{% for cat, msg in msgs %}
-<div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-{% endfor %}
-{% endwith %}
 
 {% set partes = usuario.nombre_completo.split() %}
 {% set iniciales = partes[0][0] ~ (partes[-1][0] if partes|length > 1 else '') %}

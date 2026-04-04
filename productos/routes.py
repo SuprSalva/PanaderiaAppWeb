@@ -56,7 +56,7 @@ def productos_nuevo():
     if not form.validate():
         for errors in form.errors.values():
             for err in errors:
-                flash(err, 'danger')
+                flash(err, 'error')
         return redirect(url_for('productos_bp.index_productos', modal='nuevo'))
 
     nuevo = Producto(
@@ -93,7 +93,7 @@ def productos_editar(id_producto):
     if not form.validate():
         for errors in form.errors.values():
             for err in errors:
-                flash(err, 'danger')
+                flash(err, 'error')
         return redirect(url_for('productos_bp.index_productos', modal='editar', id=id_producto))
 
     producto.nombre         = form.nombre.data.strip()

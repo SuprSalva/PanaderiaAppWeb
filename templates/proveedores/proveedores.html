@@ -13,12 +13,6 @@
   <a href="?modal=nuevo" class="btn btn-primary">＋ Nuevo Proveedor</a>
 </div>
 
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-  {% endfor %}
-{% endwith %}
-
 <div class="prov-stats anim anim-1">
   <div class="prov-stat">
     <div class="prov-stat-icon brown">🏭</div>

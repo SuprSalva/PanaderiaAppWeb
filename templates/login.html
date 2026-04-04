@@ -51,16 +51,6 @@
       <div class="card-greeting ">Inicia sesión</div>
       <div class="card-sub">Ingresa tus credenciales para continuar</div>
 
-      {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-      {% if category == 'success' %}
-      <div class="flash-success">✅ {{ message }}</div>
-      {% else %}
-      <div class="flash-error">⚠️ {{ message }}</div>
-      {% endif %}
-      {% endfor %}
-      {% endwith %}
-
       <form action="" method="POST" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 

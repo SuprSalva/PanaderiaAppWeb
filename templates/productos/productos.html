@@ -14,13 +14,6 @@
   <a href="?modal=nuevo" class="btn btn-primary">＋ Nuevo Producto</a>
 </div>
 
-{# ══ FLASH ══ #}
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-  {% endfor %}
-{% endwith %}
-
 {# ══ STATS ══ #}
 <div class="p-stats anim anim-1">
   <div class="p-stat">

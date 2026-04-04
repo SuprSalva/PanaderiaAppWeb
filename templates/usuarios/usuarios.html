@@ -18,13 +18,6 @@
   </button>
 </div>
 
-<!-- ALERTAS -->
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-  {% endfor %}
-{% endwith %}
-
 <!-- STATS -->
 <div class="usr-stats anim anim-1">
   <div class="usr-stat">

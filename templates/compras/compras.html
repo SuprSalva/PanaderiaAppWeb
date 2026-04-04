@@ -36,13 +36,6 @@
   </div>
 </div>
 
-<!-- ALERTAS -->
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-  {% endfor %}
-{% endwith %}
-
 <!-- TOOLBAR -->
 <div class="toolbar anim anim-2">
   <div class="search-wrap">
