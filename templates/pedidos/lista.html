@@ -158,8 +158,7 @@
     </thead>
     <tbody>
       {% for p in pedidos %}
-      <tr onclick="window.location.href='{{ url_for('pedidos.detalle', folio=p.folio) }}'"
-          style="cursor:pointer;">
+      <tr onclick="abrirDetalle('{{ p.folio }}')" style="cursor:pointer;">
         <td style="padding-left:22px;">
           <span class="folio-chip">{{ p.folio }}</span>
         </td>
@@ -197,9 +196,9 @@
         </td>
         <td class="muted">{{ p.creado_en.strftime('%d/%m/%y %H:%M') }}</td>
         <td onclick="event.stopPropagation()">
-          <a href="{{ url_for('pedidos.detalle', folio=p.folio) }}" class="btn-ver">
-            Ver Detalle <span>→</span>
-          </a>
+          <button class="btn-ver" onclick="abrirDetalle('{{ p.folio }}')">
+            👁 Detalle
+          </button>
         </td>
       </tr>
       {% endfor %}
@@ -213,4 +212,182 @@
   </div>
   {% endif %}
 </div>
+
+<!-- MODAL DETALLE PEDIDO -->
+<div class="modal-bd" id="mDetalle" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:740px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.3);animation:fadeUpLista .22s ease;">
+    <div style="position:sticky;top:0;background:#fff;z-index:10;padding:16px 22px 14px;border-bottom:1px solid var(--tan);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--brown-dk);display:flex;align-items:center;gap:8px;">
+        📋 Pedido <span id="det-lista-folio" style="font-family:monospace;color:var(--rust);"></span>
+      </div>
+      <button onclick="cerrarModalLista('mDetalle')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div id="det-lista-body" style="padding:20px 22px;">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:12px;color:var(--brown-lt);">
+        <div style="width:32px;height:32px;border:3px solid var(--tan);border-top-color:var(--brown);border-radius:50%;animation:spinLista .7s linear infinite;"></div>
+        <span>Cargando…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL APROBAR PEDIDO -->
+<div class="modal-bd" id="mAprobar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.3);">
+    <div style="padding:16px 22px 14px;border-bottom:1px solid var(--tan);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--brown-dk);">
+        ✅ Aprobar — <span id="ap-lista-folio" style="font-family:monospace;"></span>
+      </div>
+      <button onclick="cerrarModalLista('mAprobar')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <form method="POST" id="form-lista-aprobar">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+        <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:9px;padding:10px 14px;font-size:12px;color:#1d4ed8;">
+          ✅ Al aprobar, el cliente será notificado. Los insumos se descuentan al iniciar producción.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="font-size:11px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:.4px;">Nota para el cliente (opcional)</label>
+          <input type="text" name="nota" placeholder="Ej. Listo para el viernes a las 10am…"
+                 style="border:1.5px solid var(--tan);border-radius:9px;padding:8px 12px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="padding:14px 22px 20px;border-top:1px solid var(--tan);display:flex;justify-content:flex-end;gap:9px;">
+        <button type="button" class="btn btn-outline" onclick="cerrarModalLista('mAprobar')">Cancelar</button>
+        <button type="submit" class="btn" style="background:#10b981;color:#fff;">✅ Confirmar Aprobación</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL RECHAZAR PEDIDO -->
+<div class="modal-bd" id="mRechazar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.3);">
+    <div style="padding:16px 22px 14px;border-bottom:1px solid var(--tan);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--brown-dk);">
+        ❌ Rechazar — <span id="rch-lista-folio" style="font-family:monospace;"></span>
+      </div>
+      <button onclick="cerrarModalLista('mRechazar')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <form method="POST" id="form-lista-rechazar">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+        <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:9px;padding:10px 14px;font-size:12px;color:#991b1b;">
+          ⚠️ El cliente recibirá una notificación con el motivo del rechazo.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <label style="font-size:11px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:.4px;">Motivo del rechazo *</label>
+          <textarea name="motivo" required placeholder="Ej. No hay disponibilidad para esa fecha…"
+                    style="border:1.5px solid var(--tan);border-radius:9px;padding:8px 12px;font-size:13px;font-family:inherit;width:100%;box-sizing:border-box;resize:vertical;min-height:80px;"></textarea>
+        </div>
+      </div>
+      <div style="padding:14px 22px 20px;border-top:1px solid var(--tan);display:flex;justify-content:flex-end;gap:9px;">
+        <button type="button" class="btn btn-outline" onclick="cerrarModalLista('mRechazar')">Cancelar</button>
+        <button type="submit" class="btn" style="background:#ef4444;color:#fff;">❌ Confirmar Rechazo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+@keyframes fadeUpLista { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes spinLista   { to{transform:rotate(360deg)} }
+.modal-bd.open { display:flex !important; }
+.det-info-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px; }
+.det-info-item .i-lbl { font-size:10px;font-weight:800;color:var(--brown-lt);text-transform:uppercase;letter-spacing:.5px; }
+.det-info-item .i-val { font-size:14px;font-weight:700;color:var(--brown-dk);margin-top:2px; }
+.det-items-tbl { width:100%;border-collapse:collapse;font-size:12px; }
+.det-items-tbl th { background:var(--warm-bg);padding:7px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:.4px; }
+.det-items-tbl td { padding:8px 12px;border-bottom:1px solid var(--tan); }
+.det-items-tbl tr:last-child td { border-bottom:none; }
+</style>
+
+<script>
+function cerrarModalLista(id) {
+  document.getElementById(id).classList.remove('open');
+  document.getElementById(id).style.display = 'none';
+}
+function abrirModalLista(id) {
+  var el = document.getElementById(id);
+  el.style.display = 'flex';
+  el.classList.add('open');
+}
+
+function abrirDetalle(folio) {
+  document.getElementById('det-lista-folio').textContent = folio;
+  var body = document.getElementById('det-lista-body');
+  body.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:12px;color:var(--brown-lt);"><div style="width:32px;height:32px;border:3px solid var(--tan);border-top-color:var(--brown);border-radius:50%;animation:spinLista .7s linear infinite;"></div><span>Cargando…</span></div>';
+  abrirModalLista('mDetalle');
+
+  fetch('/api/' + folio + '/detalle')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.ok) {
+        body.innerHTML = '<p style="padding:20px;color:var(--rust);">Error al cargar el pedido.</p>';
+        return;
+      }
+      var p = data.pedido;
+      var rol = '{{ session.get("rol", "") }}';
+      var acciones = '';
+      if (p.estado === 'pendiente' && (rol === 'admin' || rol === 'empleado')) {
+        acciones = '<button class="btn" style="background:#10b981;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;" onclick="cerrarModalLista(\'mDetalle\');abrirAprobar(\'' + folio + '\')">✅ Aprobar</button> '
+                 + '<button class="btn" style="background:#ef4444;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;" onclick="cerrarModalLista(\'mDetalle\');abrirRechazar(\'' + folio + '\')">❌ Rechazar</button> ';
+      }
+
+      var itemsRows = (data.items || []).map(function(i){
+        return '<tr><td style="font-weight:600;">' + i.producto_nombre + '</td>'
+             + '<td style="text-align:right">' + Math.round(i.cantidad) + ' pzas</td>'
+             + '<td style="text-align:right">$' + i.precio_unitario.toFixed(2) + '</td>'
+             + '<td style="text-align:right;font-weight:700;">$' + i.subtotal.toFixed(2) + '</td></tr>';
+      }).join('');
+
+      var estadoLabels = {
+        'pendiente':'⏳ Pendiente','aprobado':'✅ Aprobado','en_produccion':'⚙️ En Producción',
+        'listo':'🎉 Listo','entregado':'📦 Entregado','rechazado':'❌ Rechazado'
+      };
+
+      body.innerHTML = '<div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">'
+        + '<div class="det-info-grid">'
+        + '<div class="det-info-item"><div class="i-lbl">Cliente</div><div class="i-val">' + p.cliente_nombre + '</div></div>'
+        + '<div class="det-info-item"><div class="i-lbl">Recolección</div><div class="i-val" style="color:var(--rust);">' + p.fecha_recogida + '</div></div>'
+        + '<div class="det-info-item"><div class="i-lbl">Estado</div><div class="i-val"><span class="badge-estado badge-' + p.estado + '">' + (estadoLabels[p.estado] || p.estado) + '</span></div></div>'
+        + '<div class="det-info-item"><div class="i-lbl">Total Estimado</div><div class="i-val" style="color:var(--rust);">$' + p.total_estimado.toFixed(2) + '</div></div>'
+        + '<div class="det-info-item"><div class="i-lbl">Tipo de Caja</div><div class="i-val">' + p.tipo_caja + '</div></div>'
+        + '<div class="det-info-item"><div class="i-lbl">Tamaño</div><div class="i-val">' + p.tamanio_nombre + '</div></div>'
+        + '</div>'
+        + (itemsRows ? '<table class="det-items-tbl"><thead><tr><th>Pan</th><th style="text-align:right">Piezas</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>' + itemsRows + '</tbody></table>' : '')
+        + (p.motivo_rechazo ? '<div style="padding:10px 14px;background:#fff5f2;border:1px solid var(--rust);border-radius:8px;font-size:12px;color:var(--rust);"><strong>Motivo de rechazo:</strong> ' + p.motivo_rechazo + '</div>' : '')
+        + '</div>'
+        + '<div style="padding:14px 22px 20px;border-top:1px solid var(--tan);display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;">'
+        + acciones
+        + '<a href="/' + folio + '" class="btn btn-outline" style="font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;text-decoration:none;color:var(--brown-dk);border:1.5px solid var(--tan);">Ver Completo →</a>'
+        + '<button type="button" onclick="cerrarModalLista(\'mDetalle\')" class="btn btn-outline" style="font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;">Cerrar</button>'
+        + '</div>';
+    })
+    .catch(function(){
+      body.innerHTML = '<p style="padding:20px;color:var(--rust);">Error de conexión.</p>';
+    });
+}
+
+function abrirAprobar(folio) {
+  document.getElementById('ap-lista-folio').textContent = folio;
+  document.getElementById('form-lista-aprobar').action = '/' + folio + '/aprobar';
+  abrirModalLista('mAprobar');
+}
+
+function abrirRechazar(folio) {
+  document.getElementById('rch-lista-folio').textContent = folio;
+  document.getElementById('form-lista-rechazar').action = '/' + folio + '/rechazar';
+  abrirModalLista('mRechazar');
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  ['mDetalle','mAprobar','mRechazar'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('click', function(e){
+      if (e.target === this) cerrarModalLista(id);
+    });
+  });
+});
+</script>
 {% endblock %}

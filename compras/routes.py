@@ -38,7 +38,7 @@ def _generar_folio_salida():
 # ── LISTA DE COMPRAS ────────────────────────────────────────
 @compras.route("/compras")
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def index_compras():
     lista = db.session.execute(
         text("SELECT * FROM vw_compras ORDER BY creado_en DESC")
@@ -69,7 +69,7 @@ def index_compras():
 # ── API: unidades de una materia prima ───────────────────────
 @compras.route("/compras/api/unidades/<int:id_materia>")
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def api_unidades_materia(id_materia):
     unidades = UnidadPresentacion.query.filter_by(
         id_materia=id_materia, activo=True
@@ -85,7 +85,7 @@ def api_unidades_materia(id_materia):
 # ── CREAR PEDIDO (estatus: ordenado) ────────────────────────
 @compras.route("/compras/crear", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def crear_compra():
     form = _compra_form()
     if not form.validate():
@@ -163,7 +163,7 @@ def crear_compra():
 # ── CANCELAR PEDIDO ─────────────────────────────────────────
 @compras.route("/compras/cancelar/<int:id_compra>", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def cancelar_compra(id_compra):
     motivo = request.form.get('motivo_cancelacion', '').strip()
     if not motivo:
@@ -185,7 +185,7 @@ def cancelar_compra(id_compra):
 # ── FINALIZAR PEDIDO (acepta mercancía → actualiza stock + salida efectivo) ──
 @compras.route("/compras/finalizar/<int:id_compra>", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def finalizar_compra(id_compra):
     folio_salida = _generar_folio_salida()
     try:
@@ -204,7 +204,7 @@ def finalizar_compra(id_compra):
 # ── EDITAR PEDIDO (solo estatus ordenado) ───────────────────
 @compras.route("/compras/editar/<int:id_compra>", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def editar_compra(id_compra):
     form = _compra_form()
     # En edición solo validamos fecha (proveedor no se modifica)
@@ -274,7 +274,7 @@ def editar_compra(id_compra):
 # ── CORREGIR PRECIO (pago rechazado) ───────────────────────
 @compras.route("/compras/corregir-precio/<int:id_compra>", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def corregir_precio_compra(id_compra):
     costos = request.form.getlist('costo_unitario[]')
     ids_detalle = request.form.getlist('id_detalle[]')
@@ -312,7 +312,7 @@ def corregir_precio_compra(id_compra):
 # ── CREAR UNIDAD DE COMPRA ───────────────────────────────────
 @compras.route("/compras/api/unidades/nueva", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def crear_unidad():
     data = request.get_json()
     id_materia    = data.get('id_materia')
@@ -360,7 +360,7 @@ def crear_unidad():
 # ── DETALLE (JSON para modal) ───────────────────────────────
 @compras.route("/compras/detalle/<int:id_compra>")
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin', 'empleado', 'panadero')
 def detalle_compra(id_compra):
     compra = Compra.query.get_or_404(id_compra)
     detalles = (

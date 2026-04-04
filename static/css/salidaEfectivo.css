@@ -32,7 +32,7 @@
   }
   .alert { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 10px;
            font-size: 13.5px; font-weight: 600; margin-bottom: 14px; overflow: hidden;
-           animation: alertSalida .6s ease 3.4s forwards; }
+           animation: alertSalida .6s ease 5s forwards; }
   .alert-success { background: #e2eede; color: #2e5426; border: 1px solid #b0d4a8; }
   .alert-error   { background: #fce8df; color: #8c2a0e; border: 1px solid #f0a882; }
 

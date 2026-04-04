@@ -2,12 +2,16 @@ import uuid as _uuid
 import datetime
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from models import db, Receta, DetalleReceta, MateriaPrima, Producto, UnidadPresentacion
+from flask_login import login_required, current_user
+from auth import roles_required
 from forms import RecetaForm
 from . import recetas_bp
 
 POR_PAGINA = 9 
 
 @recetas_bp.route('/recetas/unidades/<int:id_materia>', methods=['GET'])
+@login_required
+@roles_required('admin', 'panadero')
 def recetas_unidades(id_materia):
     materia = MateriaPrima.query.get_or_404(id_materia)
     unidades = (UnidadPresentacion.query
@@ -84,6 +88,8 @@ def _form_con_productos(form_data=None):
     return form, productos
 
 @recetas_bp.route('/recetas', methods=['GET'])
+@login_required
+@roles_required('admin', 'panadero')
 def index_recetas():
     buscar  = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
@@ -132,6 +138,8 @@ def index_recetas():
     )
 
 @recetas_bp.route('/recetas/nueva', methods=['POST'])
+@login_required
+@roles_required('admin', 'panadero')
 def recetas_nueva():
     form, _ = _form_con_productos(request.form)
     insumos = _recopilar_insumos()
@@ -176,6 +184,8 @@ def recetas_nueva():
     return redirect(url_for('recetas_bp.index_recetas'))
 
 @recetas_bp.route('/recetas/editar/<int:id_receta>', methods=['POST'])
+@login_required
+@roles_required('admin', 'panadero')
 def recetas_editar(id_receta):
     receta = Receta.query.get_or_404(id_receta)
     form, _ = _form_con_productos(request.form)
@@ -215,11 +225,15 @@ def recetas_editar(id_receta):
     return redirect(url_for('recetas_bp.index_recetas'))
 
 @recetas_bp.route('/recetas/confirmar-toggle/<int:id_receta>', methods=['GET'])
+@login_required
+@roles_required('admin', 'panadero')
 def recetas_confirmar_toggle(id_receta):
     receta = Receta.query.get_or_404(id_receta)
     return render_template('recetas/recetas_confirmar_toggle.html', receta=receta)
 
 @recetas_bp.route('/recetas/toggle/<int:id_receta>', methods=['POST'])
+@login_required
+@roles_required('admin', 'panadero')
 def recetas_toggle(id_receta):
     receta = Receta.query.get_or_404(id_receta)
     receta.estatus        = 'inactivo' if receta.estatus == 'activo' else 'activo'

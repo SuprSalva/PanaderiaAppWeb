@@ -7,7 +7,7 @@ from wtforms import (
 )
 from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length
 
-_USR_PWD_RE = _re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$')
+_USR_PWD_RE = _re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,}$')
 
 
 class LoginForm(Form):
@@ -60,7 +60,7 @@ class RegistroClienteForm(Form):
 
     def validate_password(self, field):
         if field.data and not _USR_PWD_RE.match(field.data):
-            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).')
 
     def validate_confirmar(self, field):
         if self.password.data and field.data != self.password.data:
@@ -78,7 +78,7 @@ class CrearUsuarioForm(Form):
 
     def validate_password(self, field):
         if field.data and not _USR_PWD_RE.match(field.data):
-            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).')
 
     def validate_confirmar(self, field):
         if self.password.data and field.data != self.password.data:
@@ -96,7 +96,7 @@ class EditarUsuarioForm(Form):
 
     def validate_password(self, field):
         if field.data and not _USR_PWD_RE.match(field.data):
-            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).')
 
     def validate_confirmar(self, field):
         if self.password.data and field.data != self.password.data:

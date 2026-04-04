@@ -3,11 +3,15 @@ import datetime
 from flask import render_template, request, redirect, url_for, flash
 from models import db, MateriaPrima
 from . import materias_primas_bp
+from flask_login import login_required, current_user
+from auth import roles_required
 
 POR_PAGINA = 10
 
 
 @materias_primas_bp.route('/materias-primas', methods=['GET'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def index_materias_primas():
     buscar  = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
@@ -58,6 +62,8 @@ def index_materias_primas():
 
 
 @materias_primas_bp.route('/materias-primas/nueva', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def materias_primas_nueva():
     nombre      = request.form.get('nombre', '').strip()
     categoria   = request.form.get('categoria', '').strip()
@@ -111,6 +117,8 @@ def materias_primas_nueva():
 
 
 @materias_primas_bp.route('/materias-primas/editar/<int:id_materia>', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def materias_primas_editar(id_materia):
     materia     = MateriaPrima.query.get_or_404(id_materia)
     nombre      = request.form.get('nombre', '').strip()
@@ -163,6 +171,8 @@ def materias_primas_editar(id_materia):
 
 
 @materias_primas_bp.route('/materias-primas/toggle/<int:id_materia>', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def materias_primas_toggle(id_materia):
     materia = MateriaPrima.query.get_or_404(id_materia)
     materia.estatus        = 'inactivo' if materia.estatus == 'activo' else 'activo'

@@ -62,13 +62,13 @@ function openDelete(idUsuario, nombre, estatus) {
 }
 
 /* ── Validación de contraseña ── */
-const PWD_RE = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+const PWD_RE = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,}$/;
 
 function validarPassword(pwd, confirmar, esNuevo) {
   if (esNuevo && !pwd) return 'La contraseña es obligatoria.';
   if (pwd) {
     if (!PWD_RE.test(pwd))
-      return 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).';
+      return 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).';
     if (pwd !== confirmar) return 'Las contraseñas no coinciden.';
   } else if (confirmar) {
     return 'Escribe la nueva contraseña antes de confirmarla.';

@@ -67,6 +67,10 @@ def login():
                 flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.')
                 return render_template("login.html", form=form)
 
+            if usuario.rol and usuario.rol.clave_rol == 'cliente':
+                flash('Esta área es exclusiva para empleados. Usa el acceso de clientes.')
+                return render_template("login.html", form=form)
+
             login_user(usuario)
             usuario.ultimo_login = datetime.datetime.now()
             db.session.commit()
