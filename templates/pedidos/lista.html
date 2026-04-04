@@ -73,7 +73,10 @@
 
   .btn-ver { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown-dk); cursor: pointer; text-decoration: none; transition: all .2s; display: inline-flex; align-items: center; gap: 5px; }
   .btn-ver:hover { border-color: var(--rust); color: var(--rust); background: #fffcfb; }
+  .btn-ver:hover { border-color: var(--rust); color: var(--rust); background: #fffcfb; }
 
+  .btn-entregar { padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1.5px solid #d1c7bd; background: #f3e8d8; color: var(--brown-dk); cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 5px; }
+  .btn-entregar:hover { background: var(--brown-dk); color: #fff; border-color: var(--brown-dk); }
   .empty-state { text-align: center; padding: 60px 24px; color: var(--brown-lt); }
   .empty-state .icon { font-size: 48px; margin-bottom: 15px; opacity: .5; }
 </style>
@@ -197,9 +200,25 @@
         </td>
         <td class="muted">{{ p.creado_en.strftime('%d/%m/%y %H:%M') }}</td>
         <td onclick="event.stopPropagation()">
-          <a href="{{ url_for('pedidos.detalle', folio=p.folio) }}" class="btn-ver">
-            Ver Detalle <span>→</span>
-          </a>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <a href="{{ url_for('pedidos.detalle', folio=p.folio) }}" class="btn-ver">
+              Ver Detalle <span>→</span>
+            </a>
+            
+            {% if p.estado == 'listo' %}
+            <form action="{{ url_for('pedidos.cambiar_estado', folio=p.folio) }}" method="POST" style="margin: 0;">
+              
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              
+              <input type="hidden" name="estado" value="entregado">
+              <input type="hidden" name="nota" value="Pedido marcado como entregado desde la lista.">
+              
+              <button type="submit" class="btn-entregar" title="Marcar pedido como entregado">
+                📦 Entregar
+              </button>
+            </form>
+            {% endif %}
+          </div>
         </td>
       </tr>
       {% endfor %}
