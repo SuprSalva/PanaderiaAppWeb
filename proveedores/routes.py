@@ -1,5 +1,7 @@
 import uuid as _uuid
 from flask import render_template, request, redirect, url_for, flash, session
+from flask_login import login_required, current_user
+from auth import roles_required
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, IntegrityError
 
@@ -25,6 +27,8 @@ def _msg_error_sp(exc):
 
 # ─── Listado ───────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores', methods=['GET'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def index_proveedores():
     buscar  = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
@@ -69,6 +73,8 @@ def index_proveedores():
 
 # ─── Crear ─────────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/nuevo', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def proveedores_nuevo():
     form = ProveedorForm(request.form)
 
@@ -108,6 +114,8 @@ def proveedores_nuevo():
 
 # ─── Editar ────────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/editar/<int:id_proveedor>', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def proveedores_editar(id_proveedor):
     form = ProveedorForm(request.form)
 
@@ -149,6 +157,8 @@ def proveedores_editar(id_proveedor):
 
 # ─── Confirmar toggle ──────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/confirmar-toggle/<int:id_proveedor>', methods=['GET'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def proveedores_confirmar_toggle(id_proveedor):
     prov = Proveedor.query.get_or_404(id_proveedor)
     return render_template('proveedores/proveedores_confirmar_toggle.html', prov=prov)
@@ -156,6 +166,8 @@ def proveedores_confirmar_toggle(id_proveedor):
 
 # ─── Toggle estatus (activo ↔ inactivo) ───────────────────────────────────────
 @proveedores.route('/proveedores/toggle/<int:id_proveedor>', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def proveedores_toggle(id_proveedor):
     try:
         result = db.session.execute(

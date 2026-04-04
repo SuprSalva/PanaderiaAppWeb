@@ -249,5 +249,7 @@ def mi_perfil():
 
 
 @registrar_usuario_bp.route("/mis-pedido")
+@login_required
+@roles_required('cliente')
 def mis_pedidos():
     return render_template("usuarios/mispedidos.html")

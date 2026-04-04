@@ -2,6 +2,7 @@
 from functools import wraps
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import login_required, current_user
+from auth import roles_required
 from sqlalchemy import text
 from models import db
 from . import produccion
@@ -22,6 +23,7 @@ def _call_sp(call_sql, select_sql, params):
 # ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion')
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def index_produccion():
     estado    = request.args.get('estado', '')
     fecha_ini = request.args.get('fecha_ini', '')
@@ -103,6 +105,7 @@ def index_produccion():
 # ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/nueva', methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def produccion_nueva():
     id_receta      = request.form.get('id_receta', type=int)
     cantidad_lotes = request.form.get('cantidad_lotes', type=float)
@@ -138,6 +141,7 @@ def produccion_nueva():
 # ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/<int:id_produccion>')
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def detalle_orden(id_produccion):
     try:
         conn = db.session.connection()
@@ -225,6 +229,7 @@ def detalle_orden(id_produccion):
 # ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/<int:id_produccion>/iniciar', methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def iniciar_orden(id_produccion):
     try:
         out = _call_sp(
@@ -245,6 +250,7 @@ def iniciar_orden(id_produccion):
 # ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/<int:id_produccion>/finalizar', methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def finalizar_orden(id_produccion):
     piezas_reales = request.form.get('piezas_reales', type=float) or None
     try:
@@ -266,6 +272,7 @@ def finalizar_orden(id_produccion):
 # ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/<int:id_produccion>/cancelar', methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def cancelar_orden(id_produccion):
     motivo = (request.form.get('motivo', '') or '').strip() or 'Sin motivo'
     try:
@@ -288,6 +295,7 @@ def cancelar_orden(id_produccion):
 # ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/api/verificar')
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_verificar():
     id_receta = request.args.get('id_receta', type=int)
     cantidad  = request.args.get('cantidad',  type=float)
@@ -349,5 +357,6 @@ def api_verificar():
 # ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion-solicitud')
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def index_produccion_solicitud():
     return render_template('produccion/solicitudes.html')

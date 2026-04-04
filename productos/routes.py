@@ -1,6 +1,8 @@
 import uuid as _uuid
 import datetime
 from flask import render_template, request, redirect, url_for, flash
+from flask_login import login_required, current_user
+from auth import roles_required
 from models import db, Producto, InventarioPT
 from forms import ProductoForm
 from . import productos_bp
@@ -8,6 +10,8 @@ from . import productos_bp
 POR_PAGINA = 10
 
 @productos_bp.route('/productos', methods=['GET'])
+@login_required
+@roles_required('admin','empleado')
 def index_productos():
     buscar  = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
@@ -44,6 +48,8 @@ def index_productos():
     )
 
 @productos_bp.route('/productos/nuevo', methods=['POST'])
+@login_required
+@roles_required('admin','empleado')
 def productos_nuevo():
     form = ProductoForm(request.form)
 
@@ -78,6 +84,8 @@ def productos_nuevo():
     return redirect(url_for('productos_bp.index_productos'))
 
 @productos_bp.route('/productos/editar/<int:id_producto>', methods=['POST'])
+@login_required
+@roles_required('admin','empleado')
 def productos_editar(id_producto):
     producto = Producto.query.get_or_404(id_producto)
     form     = ProductoForm(request.form)
@@ -101,11 +109,15 @@ def productos_editar(id_producto):
     return redirect(url_for('productos_bp.index_productos'))
 
 @productos_bp.route('/productos/confirmar-toggle/<int:id_producto>', methods=['GET'])
+@login_required
+@roles_required('admin','empleado')
 def productos_confirmar_toggle(id_producto):
     producto = Producto.query.get_or_404(id_producto)
     return render_template('productos/productos_confirmar_toggle.html', producto=producto)
 
 @productos_bp.route('/productos/toggle/<int:id_producto>', methods=['POST'])
+@login_required 
+@roles_required('admin','empleado')
 def productos_toggle(id_producto):
     producto = Producto.query.get_or_404(id_producto)
     producto.estatus        = 'inactivo' if producto.estatus == 'activo' else 'activo'
