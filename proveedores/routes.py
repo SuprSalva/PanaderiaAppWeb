@@ -1,21 +1,35 @@
 import uuid as _uuid
 import datetime
-<<<<<<< Updated upstream
 from flask import render_template, request, redirect, url_for, flash, session, current_app
 from flask_login import login_required, current_user
 from auth import roles_required
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, IntegrityError
 
-=======
-from flask import render_template, request, redirect, url_for, flash
->>>>>>> Stashed changes
 from models import db, Proveedor
+from forms import ProveedorForm
 from . import proveedores
 
 POR_PAGINA = 10
 
+
+# ─── utilidad interna ──────────────────────────────────────────────────────────
+def _usuario_actual():
+    """Retorna el id_usuario de la sesión activa, o None si no hay sesión."""
+    return session.get('id_usuario')
+
+
+def _msg_error_sp(exc):
+    """Extrae el mensaje del SIGNAL SQLSTATE lanzado por un SP de MySQL."""
+    if exc.orig and len(exc.orig.args) > 1:
+        return exc.orig.args[1]
+    return 'Ocurrió un error al procesar la operación.'
+
+
+# ─── Listado ───────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores', methods=['GET'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def index_proveedores():
     current_app.logger.info('Vista de catalogo de proveedores accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     buscar  = request.args.get('buscar', '').strip()
@@ -26,7 +40,7 @@ def index_proveedores():
 
     query = Proveedor.query
     if buscar:
-        like = f'%{buscar}%'
+        like  = f'%{buscar}%'
         query = query.filter(
             db.or_(
                 Proveedor.nombre.ilike(like),
@@ -37,13 +51,14 @@ def index_proveedores():
     if estatus in ('activo', 'inactivo'):
         query = query.filter_by(estatus=estatus)
 
-    paginacion      = query.order_by(Proveedor.nombre).paginate(
-                          page=pagina, per_page=POR_PAGINA, error_out=False)
-    lista           = paginacion.items
+    paginacion = query.order_by(Proveedor.nombre).paginate(
+        page=pagina, per_page=POR_PAGINA, error_out=False
+    )
+    lista = paginacion.items
 
-    total_proveedores  = Proveedor.query.count()
-    total_activos      = Proveedor.query.filter_by(estatus='activo').count()
-    total_inactivos    = Proveedor.query.filter_by(estatus='inactivo').count()
+    total_proveedores = Proveedor.query.count()
+    total_activos     = Proveedor.query.filter_by(estatus='activo').count()
+    total_inactivos   = Proveedor.query.filter_by(estatus='inactivo').count()
 
     return render_template(
         'proveedores/proveedores.html',
@@ -57,16 +72,14 @@ def index_proveedores():
         estatus_sel=estatus,
     )
 
-@proveedores.route('/proveedores/nuevo', methods=['POST'])
-def proveedores_nuevo():
-    nombre   = request.form.get('nombre',   '').strip()
-    rfc      = request.form.get('rfc',      '').strip().upper() or None
-    contacto = request.form.get('contacto', '').strip() or None
-    telefono = request.form.get('telefono', '').strip() or None
-    email    = request.form.get('email',    '').strip() or None
-    direccion= request.form.get('direccion','').strip() or None
 
-<<<<<<< Updated upstream
+# ─── Crear ─────────────────────────────────────────────────────────────────────
+@proveedores.route('/proveedores/nuevo', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
+def proveedores_nuevo():
+    form = ProveedorForm(request.form)
+
     if not form.validate():
         current_app.logger.warning('Creacion de proveedor fallida (validacion) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         for campo, errores in form.errors.items():
@@ -99,14 +112,6 @@ def proveedores_nuevo():
         db.session.rollback()
         current_app.logger.error('Error db al crear proveedor | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(_msg_error_sp(e), 'danger')
-=======
-    if not nombre:
-        flash('El nombre del proveedor es obligatorio.', 'danger')
-        return redirect(url_for('proveedores.index_proveedores', modal='nuevo'))
-
-    if rfc and Proveedor.query.filter_by(rfc=rfc).first():
-        flash(f'Ya existe un proveedor con el RFC {rfc}.', 'danger')
->>>>>>> Stashed changes
         return redirect(url_for('proveedores.index_proveedores', modal='nuevo'))
     except Exception as e:
         db.session.rollback()
@@ -114,28 +119,16 @@ def proveedores_nuevo():
         flash('Error al crear proveedor.', 'danger')
         return redirect(url_for('proveedores.index_proveedores', modal='nuevo'))
 
-    nuevo = Proveedor(
-        uuid_proveedor = str(_uuid.uuid4()),
-        nombre         = nombre,
-        rfc            = rfc,
-        contacto       = contacto,
-        telefono       = telefono,
-        email          = email,
-        direccion      = direccion,
-        estatus        = 'activo',
-        creado_en      = datetime.datetime.now(),
-        actualizado_en = datetime.datetime.now(),
-    )
-    db.session.add(nuevo)
-    db.session.commit()
-    flash(f'Proveedor "{nuevo.nombre}" registrado correctamente.', 'success')
     return redirect(url_for('proveedores.index_proveedores'))
 
-@proveedores.route('/proveedores/editar/<int:id_proveedor>', methods=['POST'])
-def proveedores_editar(id_proveedor):
-    prov = Proveedor.query.get_or_404(id_proveedor)
 
-<<<<<<< Updated upstream
+# ─── Editar ────────────────────────────────────────────────────────────────────
+@proveedores.route('/proveedores/editar/<int:id_proveedor>', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
+def proveedores_editar(id_proveedor):
+    form = ProveedorForm(request.form)
+
     if not form.validate():
         current_app.logger.warning('Edicion de proveedor fallida (validacion) | usuario: %s | id_proveedor: %s | fecha: %s', current_user.username, id_proveedor, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         for campo, errores in form.errors.items():
@@ -177,49 +170,24 @@ def proveedores_editar(id_proveedor):
         flash('Error al actualizar proveedor.', 'error')
         return redirect(url_for('proveedores.index_proveedores',
                                 modal='editar', id=id_proveedor))
-=======
-    nombre   = request.form.get('nombre',   '').strip()
-    rfc      = request.form.get('rfc',      '').strip().upper() or None
-    contacto = request.form.get('contacto', '').strip() or None
-    telefono = request.form.get('telefono', '').strip() or None
-    email    = request.form.get('email',    '').strip() or None
-    direccion= request.form.get('direccion','').strip() or None
 
-    if not nombre:
-        flash('El nombre del proveedor es obligatorio.', 'danger')
-        return redirect(url_for('proveedores.index_proveedores',
-                                modal='editar', id=id_proveedor))
-
-    if rfc:
-        duplicado = Proveedor.query.filter(
-            Proveedor.rfc == rfc,
-            Proveedor.id_proveedor != id_proveedor
-        ).first()
-        if duplicado:
-            flash(f'Ya existe otro proveedor con el RFC {rfc}.', 'danger')
-            return redirect(url_for('proveedores.index_proveedores',
-                                    modal='editar', id=id_proveedor))
->>>>>>> Stashed changes
-
-    prov.nombre        = nombre
-    prov.rfc           = rfc
-    prov.contacto      = contacto
-    prov.telefono      = telefono
-    prov.email         = email
-    prov.direccion     = direccion
-    prov.actualizado_en= datetime.datetime.now()
-    db.session.commit()
-    flash(f'Proveedor "{prov.nombre}" actualizado correctamente.', 'success')
     return redirect(url_for('proveedores.index_proveedores'))
 
+
+# ─── Confirmar toggle ──────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/confirmar-toggle/<int:id_proveedor>', methods=['GET'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def proveedores_confirmar_toggle(id_proveedor):
     prov = Proveedor.query.get_or_404(id_proveedor)
     return render_template('proveedores/proveedores_confirmar_toggle.html', prov=prov)
 
+
+# ─── Toggle estatus (activo ↔ inactivo) ───────────────────────────────────────
 @proveedores.route('/proveedores/toggle/<int:id_proveedor>', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def proveedores_toggle(id_proveedor):
-<<<<<<< Updated upstream
     try:
         result = db.session.execute(
             text("CALL sp_toggle_proveedor(:id, :ejecutado_por)"),
@@ -247,11 +215,3 @@ def proveedores_toggle(id_proveedor):
         flash('Error al cambiar estatus.', 'error')
 
     return redirect(url_for('proveedores.index_proveedores'))
-=======
-    prov = Proveedor.query.get_or_404(id_proveedor)
-    prov.estatus        = 'inactivo' if prov.estatus == 'activo' else 'activo'
-    prov.actualizado_en = datetime.datetime.now()
-    db.session.commit()
-    accion = 'activado' if prov.estatus == 'activo' else 'desactivado'
-    flash(f'Proveedor "{prov.nombre}" {accion}.', 'success')
->>>>>>> Stashed changes
