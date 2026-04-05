@@ -161,7 +161,51 @@
   .det-items-table thead th { padding: 9px 16px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown); text-align: left; }
   .det-items-table tbody tr { border-top: 1px solid var(--tan); }
   .det-items-table tbody td { padding: 10px 16px; font-size: 13px; }
+
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  .loading-spinner {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brown-dk);
+  }
+  .toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: #4caf50;
+    color: white;
+    font-weight: 600;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+  }
+  .toast-notification.error {
+    background: #f44336;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
 </style>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner">Procesando...</div>
+</div>
 
 <!-- TOPBAR -->
 <div class="db-topbar anim">
@@ -169,26 +213,26 @@
     <div class="db-page-title">🏷️ Ventas</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Ventas</div>
   </div>
-  <button class="btn btn-primary" onclick="openModal('modal-venta')">🛒 Nueva Venta</button>
+  <button class="btn btn-primary" onclick="abrirModalVenta()">🛒 Nueva Venta</button>
 </div>
 
 <!-- STATS -->
-<div class="v-stats anim anim-1">
+<div class="v-stats anim anim-1" id="statsContainer">
   <div class="v-stat">
     <div class="v-stat-icon green">💵</div>
-    <div><div class="v-stat-val">$4,250</div><div class="v-stat-lbl">Ventas Hoy</div></div>
+    <div><div class="v-stat-val" id="totalHoy">$0</div><div class="v-stat-lbl">Ventas Hoy</div></div>
   </div>
   <div class="v-stat">
     <div class="v-stat-icon brown">🧾</div>
-    <div><div class="v-stat-val">38</div><div class="v-stat-lbl">Tickets Hoy</div></div>
+    <div><div class="v-stat-val" id="ventasHoy">0</div><div class="v-stat-lbl">Tickets Hoy</div></div>
   </div>
   <div class="v-stat">
     <div class="v-stat-icon gold">📦</div>
-    <div><div class="v-stat-val">287</div><div class="v-stat-lbl">Piezas Vendidas</div></div>
+    <div><div class="v-stat-val" id="piezasVendidas">0</div><div class="v-stat-lbl">Piezas Vendidas</div></div>
   </div>
   <div class="v-stat">
-    <div class="v-stat-icon rust">↩️</div>
-    <div><div class="v-stat-val">2</div><div class="v-stat-lbl">Cancelaciones</div></div>
+    <div class="v-stat-icon rust">💰</div>
+    <div><div class="v-stat-val" id="efectivoHoy">$0</div><div class="v-stat-lbl">Efectivo Hoy</div></div>
   </div>
 </div>
 
@@ -198,13 +242,14 @@
     <span class="search-icon">🔍</span>
     <input type="text" placeholder="Buscar por folio o vendedor…" id="searchInput" oninput="filterTable()">
   </div>
-  <input type="date" class="filter-select" title="Filtrar fecha">
-  <select class="filter-select" id="filterPago" onchange="filterTable()">
+  <input type="date" class="filter-select" id="filterFecha" onchange="cargarVentas()">
+  <select class="filter-select" id="filterPago" onchange="cargarVentas()">
     <option value="">Todas las formas de pago</option>
     <option value="efectivo">Efectivo</option>
     <option value="tarjeta">Tarjeta</option>
     <option value="transferencia">Transferencia</option>
   </select>
+  <button class="btn btn-outline btn-sm" onclick="cargarVentas()">🔄 Actualizar</button>
 </div>
 
 <!-- TABLE -->
@@ -222,89 +267,15 @@
         <th>Acciones</th>
       </tr>
     </thead>
-    <tbody>
-      <tr data-pago="efectivo">
-        <td><span class="folio-chip">V-0201</span></td>
-        <td>Hoy 11:42</td>
-        <td><span class="items-pill">🍞×3 🥐×2</span></td>
-        <td><span class="money">$122.00</span></td>
-        <td><span class="badge badge-efectivo">💵 Efectivo</span></td>
-        <td>$28.00</td>
-        <td>Laura R.</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
-        </div></td>
-      </tr>
-      <tr data-pago="tarjeta">
-        <td><span class="folio-chip">V-0200</span></td>
-        <td>Hoy 11:15</td>
-        <td><span class="items-pill">🍩×5 🍫×2</span></td>
-        <td><span class="money">$155.50</span></td>
-        <td><span class="badge badge-tarjeta">💳 Tarjeta</span></td>
-        <td>—</td>
-        <td>Mariana C.</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
-        </div></td>
-      </tr>
-      <tr data-pago="efectivo">
-        <td><span class="folio-chip">V-0199</span></td>
-        <td>Hoy 10:50</td>
-        <td><span class="items-pill">🥖×6</span></td>
-        <td><span class="money">$108.00</span></td>
-        <td><span class="badge badge-efectivo">💵 Efectivo</span></td>
-        <td>$2.00</td>
-        <td>Laura R.</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
-        </div></td>
-      </tr>
-      <tr data-pago="transferencia">
-        <td><span class="folio-chip">V-0198</span></td>
-        <td>Hoy 10:20</td>
-        <td><span class="items-pill">🥐×4 🍞×4 🍩×2</span></td>
-        <td><span class="money">$288.00</span></td>
-        <td><span class="badge badge-transferencia">🔁 Transferencia</span></td>
-        <td>—</td>
-        <td>Mariana C.</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
-        </div></td>
-      </tr>
-      <tr data-pago="efectivo">
-        <td><span class="folio-chip">V-0197</span></td>
-        <td>Hoy 09:55</td>
-        <td><span class="items-pill">🍞×8</span></td>
-        <td><span class="money">$176.00</span></td>
-        <td><span class="badge badge-efectivo">💵 Efectivo</span></td>
-        <td>$24.00</td>
-        <td>Laura R.</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
-        </div></td>
-      </tr>
-      <tr data-pago="tarjeta">
-        <td><span class="folio-chip">V-0196</span></td>
-        <td>Hoy 09:30</td>
-        <td><span class="items-pill">🥐×2 🍫×3</span></td>
-        <td><span class="money">$131.00</span></td>
-        <td><span class="badge badge-tarjeta">💳 Tarjeta</span></td>
-        <td>—</td>
-        <td>Mariana C.</td>
-        <td><div class="actions-cell">
-          <button class="btn btn-outline btn-sm btn-icon" onclick="openTicket()">🧾</button>
-        </div></td>
+    <tbody id="ventasTableBody">
+      <tr>
+        <td colspan="8" style="text-align:center">Cargando ventas...</td>
       </tr>
     </tbody>
   </table>
   <div class="table-footer">
-    <p>Mostrando <span id="visibleCount">6</span> de 38 ventas hoy</p>
-    <div class="pagination">
-      <div class="page-btn active">1</div>
-      <div class="page-btn">2</div>
-      <div class="page-btn">3</div>
-      <div class="page-btn">›</div>
-    </div>
+    <p>Mostrando <span id="visibleCount">0</span> ventas</p>
+    <div class="pagination" id="pagination"></div>
   </div>
 </div>
 
@@ -315,52 +286,16 @@
   <div class="modal modal-xl">
     <div class="modal-header">
       <h2>🛒 Nueva Venta</h2>
-      <button class="modal-close" onclick="closeModal('modal-venta')">✕</button>
+      <button class="modal-close" onclick="cerrarModal('modal-venta')">✕</button>
     </div>
     <div class="modal-body">
       <div class="pos-layout">
-
         <!-- CATÁLOGO -->
         <div class="pos-catalog">
           <div class="pos-cat-title">Selecciona productos</div>
-          <input type="text" class="pos-search" placeholder="Buscar producto…" oninput="filtrarProductos(this.value)">
+          <input type="text" class="pos-search" id="busquedaProducto" placeholder="Buscar producto…" oninput="filtrarProductos(this.value)">
           <div class="prod-grid" id="prodGrid">
-            <div class="prod-btn" onclick="addToCart('Concha de Vainilla','🍞',22.00,96)">
-              <span class="pb-emoji">🍞</span>
-              <div class="pb-name">Concha de Vainilla</div>
-              <div class="pb-price">$22.00</div>
-              <div class="pb-stock">96 pzas</div>
-            </div>
-            <div class="prod-btn" onclick="addToCart('Cuernito Mantequilla','🥐',28.00,75)">
-              <span class="pb-emoji">🥐</span>
-              <div class="pb-name">Cuernito Mantequilla</div>
-              <div class="pb-price">$28.00</div>
-              <div class="pb-stock">75 pzas</div>
-            </div>
-            <div class="prod-btn" onclick="addToCart('Bolillo Relleno','🥖',18.00,60)">
-              <span class="pb-emoji">🥖</span>
-              <div class="pb-name">Bolillo Relleno</div>
-              <div class="pb-price">$18.00</div>
-              <div class="pb-stock">60 pzas</div>
-            </div>
-            <div class="prod-btn" onclick="addToCart('Dona Glaseada','🍩',20.00,6)">
-              <span class="pb-emoji">🍩</span>
-              <div class="pb-name">Dona Glaseada</div>
-              <div class="pb-price">$20.00</div>
-              <div class="pb-stock" style="color:#c9950a">⚠️ 6 pzas</div>
-            </div>
-            <div class="prod-btn" onclick="addToCart('Pan de Chocolate','🍫',25.00,9)">
-              <span class="pb-emoji">🍫</span>
-              <div class="pb-name">Pan de Chocolate</div>
-              <div class="pb-price">$25.00</div>
-              <div class="pb-stock" style="color:#c9950a">⚠️ 9 pzas</div>
-            </div>
-            <div class="prod-btn agotado">
-              <span class="pb-emoji">🥐</span>
-              <div class="pb-name">Cuernito de Canela</div>
-              <div class="pb-price">$26.00</div>
-              <div class="pb-stock" style="color:var(--rust)">🚫 Agotado</div>
-            </div>
+            <div style="text-align:center; grid-column:span 3;">Cargando productos...</div>
           </div>
         </div>
 
@@ -382,190 +317,652 @@
           <div class="cart-pago">
             <div class="pago-label">Forma de Pago</div>
             <div class="pago-btns">
-              <button class="pago-btn selected" id="pb-efe" onclick="selectPago('efectivo')">💵 Efectivo</button>
-              <button class="pago-btn" id="pb-tar" onclick="selectPago('tarjeta')">💳 Tarjeta</button>
-              <button class="pago-btn" id="pb-tra" onclick="selectPago('transferencia')">🔁 Transfer.</button>
+              <button class="pago-btn selected" id="pb-efe" onclick="seleccionarPago('efectivo')">💵 Efectivo</button>
+              <button class="pago-btn" id="pb-tar" onclick="seleccionarPago('tarjeta')">💳 Tarjeta</button>
+              <button class="pago-btn" id="pb-tra" onclick="seleccionarPago('transferencia')">🔁 Transfer.</button>
             </div>
             <div id="efectivo-section">
               <div class="efectivo-row">
                 <span class="efe-label">Recibido $</span>
-                <input type="number" class="efe-input" id="efe-recibido" placeholder="0.00" min="0" step="0.50" oninput="calcCambio()">
+                <input type="number" class="efe-input" id="efe-recibido" placeholder="0.00" min="0" step="0.50" oninput="calcularCambio()">
               </div>
               <div class="cambio-box" id="cambio-box">
                 <span>Cambio</span><span id="cambio-val">$0.00</span>
               </div>
             </div>
-            <button class="btn-cobrar" id="btn-cobrar" onclick="cobrar()" disabled>
+            <button class="btn-cobrar" id="btn-cobrar" onclick="procesarVenta()" disabled>
               Cobrar $<span id="btn-total">0.00</span>
             </button>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MODAL: TICKET / COMPROBANTE
-══════════════════════════════════════ -->
+<!-- MODAL: TICKET / COMPROBANTE -->
 <div class="modal-overlay" id="modal-ticket">
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
       <h2>🧾 Comprobante de Venta</h2>
-      <button class="modal-close" onclick="closeModal('modal-ticket')">✕</button>
+      <button class="modal-close" onclick="cerrarModal('modal-ticket')">✕</button>
     </div>
-    <div class="modal-body" style="padding:24px">
-      <div class="ticket">
-        <div class="ticket-logo">🥐</div>
-        <div class="ticket-shop">Dulce Migaja</div>
-        <div class="ticket-sub">Panadería Artesanal · León, Gto.</div>
-        <div class="ticket-div"></div>
-        <div class="ticket-meta">Folio: <span>V-0201</span></div>
-        <div class="ticket-meta">Fecha: <span>04/03/2026 11:42</span></div>
-        <div class="ticket-meta">Vendedor: <span>Laura Reyes</span></div>
-        <div class="ticket-div"></div>
-        <div class="ticket-row"><span class="nm">Concha de Vainilla ×3</span><span class="pr">$66.00</span></div>
-        <div class="ticket-row"><span class="nm">Cuernito Mantequilla ×2</span><span class="pr">$56.00</span></div>
-        <div class="ticket-div"></div>
-        <div class="ticket-total"><span>TOTAL</span><span>$122.00</span></div>
-        <div class="ticket-row"><span class="nm" style="color:var(--brown-lt)">Efectivo recibido</span><span class="pr" style="color:var(--brown-lt)">$150.00</span></div>
-        <div class="ticket-cambio"><span>Cambio</span><span>$28.00</span></div>
-        <div class="ticket-div"></div>
-        <div class="ticket-thanks">¡Gracias por su preferencia!<br>Vuelva pronto 🍞</div>
-      </div>
+    <div class="modal-body" style="padding:24px" id="ticketContent">
+      <!-- Contenido dinámico del ticket -->
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-ticket')">Cerrar</button>
-      <button class="btn btn-primary">🖨️ Imprimir</button>
+      <button class="btn btn-outline" onclick="cerrarModal('modal-ticket')">Cerrar</button>
+      <button class="btn btn-primary" onclick="imprimirTicket()">🖨️ Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETALLE VENTA -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-header">
+      <h2>📋 Detalle de Venta</h2>
+      <button class="modal-close" onclick="cerrarModal('modal-detalle')">✕</button>
+    </div>
+    <div class="modal-body" id="detalleContent">
+      <!-- Contenido dinámico -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cerrarModal('modal-detalle')">Cerrar</button>
+      <button class="btn btn-danger" onclick="cancelarVentaActual()" id="btnCancelarVenta">❌ Cancelar Venta</button>
     </div>
   </div>
 </div>
 
 <script>
-  function openModal(id)  { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-  });
+let cart = {};
+let pagoTipo = 'efectivo';
+let productosCatalogo = [];
+let ventaActualId = null;
+let ventaActualFolio = null;
+let currentPage = 1;
+let itemsPerPage = 10;
+let totalVentas = 0;
 
-  function openTicket() { openModal('modal-ticket'); }
+// ============================================================
+// FUNCIONES DE INICIALIZACIÓN
+// ============================================================
 
-  // ── CARRITO ──
-  let cart = {};
-  let pagoTipo = 'efectivo';
-
-  function addToCart(nombre, emoji, precio, stock) {
-    if (!cart[nombre]) cart[nombre] = { emoji, precio, qty: 0, stock };
-    if (cart[nombre].qty < stock) {
-      cart[nombre].qty++;
-      renderCart();
+async function cargarEstadisticas() {
+    try {
+        const response = await fetch('/ventas/api/estadisticas');
+        const data = await response.json();
+        
+        if (data.success) {
+            const stats = data.estadisticas;
+            document.getElementById('totalHoy').textContent = '$' + stats.total_hoy.toFixed(2);
+            document.getElementById('ventasHoy').textContent = stats.ventas_hoy;
+            document.getElementById('piezasVendidas').textContent = stats.total_piezas;
+            document.getElementById('efectivoHoy').textContent = '$' + stats.efectivo_hoy.toFixed(2);
+        }
+    } catch (error) {
+        console.error('Error cargando estadísticas:', error);
     }
-  }
+}
 
-  function changeQty(nombre, delta) {
-    if (!cart[nombre]) return;
-    cart[nombre].qty += delta;
-    if (cart[nombre].qty <= 0) delete cart[nombre];
-    renderCart();
-  }
+async function cargarCatalogo() {
+    try {
+        const response = await fetch('/ventas/api/catalogo');
+        const data = await response.json();
+        
+        if (data.success) {
+            productosCatalogo = data.productos;
+            renderCatalogo();
+        } else {
+            mostrarNotificacion('Error cargando productos: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error cargando catálogo:', error);
+        mostrarNotificacion('Error cargando productos', 'error');
+    }
+}
 
-  function removeItem(nombre) { delete cart[nombre]; renderCart(); }
+function renderCatalogo() {
+    const grid = document.getElementById('prodGrid');
+    if (!productosCatalogo.length) {
+        grid.innerHTML = '<div style="text-align:center; grid-column:span 3;">No hay productos disponibles</div>';
+        return;
+    }
+    
+    grid.innerHTML = productosCatalogo.map(prod => `
+        <div class="prod-btn ${prod.estado_stock === 'agotado' ? 'agotado' : ''}" 
+             onclick="${prod.estado_stock !== 'agotado' ? `agregarAlCarrito(${JSON.stringify(prod).replace(/"/g, '&quot;')})` : ''}">
+            <span class="pb-emoji">${getProductoEmoji(prod.nombre)}</span>
+            <div class="pb-name">${escapeHtml(prod.nombre)}</div>
+            <div class="pb-price">$${prod.precio_venta.toFixed(2)}</div>
+            <div class="pb-stock" style="${prod.estado_stock === 'bajo' ? 'color:#c9950a' : ''}">
+                ${prod.estado_stock === 'agotado' ? '🚫 Agotado' : `${prod.stock_actual} pzas`}
+            </div>
+        </div>
+    `).join('');
+}
 
-  function renderCart() {
+function getProductoEmoji(nombre) {
+    const emojis = {
+        'concha': '🍞',
+        'cuernito': '🥐',
+        'bolillo': '🥖',
+        'dona': '🍩',
+        'chocolate': '🍫',
+        'pan': '🍞'
+    };
+    const lower = nombre.toLowerCase();
+    for (let [key, emoji] of Object.entries(emojis)) {
+        if (lower.includes(key)) return emoji;
+    }
+    return '🥖';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function cargarVentas(page = 1) {
+    currentPage = page;
+    const offset = (page - 1) * itemsPerPage;
+    const fecha = document.getElementById('filterFecha').value;
+    const pago = document.getElementById('filterPago').value;
+    const busqueda = document.getElementById('searchInput').value;
+    
+    try {
+        const params = new URLSearchParams({
+            offset: offset,
+            limit: itemsPerPage,
+            estado: 'completada'
+        });
+        if (fecha) params.append('fecha_inicio', fecha);
+        if (pago) params.append('metodo_pago', pago);
+        
+        const response = await fetch(`/ventas/api/ventas?${params}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            totalVentas = data.total;
+            renderVentasTable(data.ventas);
+            renderPagination();
+        }
+    } catch (error) {
+        console.error('Error cargando ventas:', error);
+    }
+}
+
+function renderVentasTable(ventas) {
+    const tbody = document.getElementById('ventasTableBody');
+    
+    if (!ventas.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">No hay ventas registradas</td></tr>';
+        document.getElementById('visibleCount').textContent = '0';
+        return;
+    }
+    
+    tbody.innerHTML = ventas.map(venta => `
+        <tr>
+            <td><span class="folio-chip">${escapeHtml(venta.folio_venta)}</span></td>
+            <td>${formatearFecha(venta.fecha_venta)}</td>
+            <td><span class="items-pill">${venta.num_productos} productos</span></td>
+            <td><span class="money">$${venta.total.toFixed(2)}</span></td>
+            <td>${getBadgePago(venta.metodo_pago)}</td>
+            <td>${venta.cambio > 0 ? '$' + venta.cambio.toFixed(2) : '—'}</td>
+            <td>${escapeHtml(venta.vendedor_nombre)}</td>
+            <td>
+                <div class="actions-cell">
+                    <button class="btn btn-outline btn-sm btn-icon" onclick="verDetalleVenta('${venta.folio_venta}')">📋</button>
+                    <button class="btn btn-outline btn-sm btn-icon" onclick="verTicket('${venta.folio_venta}')">🧾</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    
+    document.getElementById('visibleCount').textContent = ventas.length;
+}
+
+function formatearFecha(fechaStr) {
+    if (!fechaStr) return '';
+    const fecha = new Date(fechaStr);
+    const hoy = new Date();
+    const ayer = new Date(hoy);
+    ayer.setDate(ayer.getDate() - 1);
+    
+    if (fecha.toDateString() === hoy.toDateString()) {
+        return `Hoy ${fecha.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'})}`;
+    } else if (fecha.toDateString() === ayer.toDateString()) {
+        return `Ayer ${fecha.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'})}`;
+    }
+    return fecha.toLocaleDateString('es-MX') + ' ' + fecha.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+}
+
+function getBadgePago(metodo) {
+    const badges = {
+        'efectivo': '<span class="badge badge-efectivo">💵 Efectivo</span>',
+        'tarjeta': '<span class="badge badge-tarjeta">💳 Tarjeta</span>',
+        'transferencia': '<span class="badge badge-transferencia">🔁 Transferencia</span>'
+    };
+    return badges[metodo] || '<span class="badge">' + metodo + '</span>';
+}
+
+function renderPagination() {
+    const totalPages = Math.ceil(totalVentas / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+        html += `<div class="page-btn ${i === currentPage ? 'active' : ''}" onclick="cargarVentas(${i})">${i}</div>`;
+    }
+    if (totalPages > 5) {
+        html += `<div class="page-btn">...</div>`;
+        html += `<div class="page-btn" onclick="cargarVentas(${totalPages})">${totalPages}</div>`;
+    }
+    pagination.innerHTML = html;
+}
+
+// ============================================================
+// FUNCIONES DEL CARRITO
+// ============================================================
+
+function agregarAlCarrito(producto) {
+    if (!cart[producto.id_producto]) {
+        cart[producto.id_producto] = {
+            id: producto.id_producto,
+            nombre: producto.nombre,
+            precio: producto.precio_venta,
+            qty: 0,
+            stock: producto.stock_actual
+        };
+    }
+    
+    if (cart[producto.id_producto].qty < cart[producto.id_producto].stock) {
+        cart[producto.id_producto].qty++;
+        renderCarrito();
+    } else {
+        mostrarNotificacion(`Stock insuficiente de ${producto.nombre}`, 'error');
+    }
+}
+
+function cambiarCantidad(id, delta) {
+    if (!cart[id]) return;
+    cart[id].qty += delta;
+    if (cart[id].qty <= 0) {
+        delete cart[id];
+    }
+    renderCarrito();
+}
+
+function eliminarItem(id) {
+    delete cart[id];
+    renderCarrito();
+}
+
+function renderCarrito() {
     const container = document.getElementById('cartItems');
-    const empty     = document.getElementById('cartEmpty');
-    const items = Object.entries(cart);
-
+    const empty = document.getElementById('cartEmpty');
+    const items = Object.values(cart);
+    
     if (items.length === 0) {
-      empty.style.display = 'flex';
-      container.innerHTML = '';
-      container.appendChild(empty);
-      updateTotals(0);
-      return;
+        empty.style.display = 'flex';
+        container.innerHTML = '';
+        container.appendChild(empty);
+        actualizarTotales(0);
+        return;
     }
-
+    
     empty.style.display = 'none';
     let total = 0;
     container.innerHTML = '';
-    items.forEach(([nombre, item]) => {
-      const sub = item.precio * item.qty;
-      total += sub;
-      const div = document.createElement('div');
-      div.className = 'cart-item';
-      div.innerHTML = `
-        <div>
-          <div class="ci-name">${item.emoji} ${nombre}</div>
-          <div class="ci-price">$${item.precio.toFixed(2)} c/u</div>
-        </div>
-        <div class="qty-ctrl">
-          <button class="qty-btn" onclick="changeQty('${nombre}',-1)">−</button>
-          <span class="qty-val">${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty('${nombre}',1)">＋</button>
-        </div>
-        <span class="ci-sub">$${sub.toFixed(2)}</span>
-        <button class="ci-del" onclick="removeItem('${nombre}')">✕</button>
-      `;
-      container.appendChild(div);
+    
+    items.forEach(item => {
+        const subtotal = item.precio * item.qty;
+        total += subtotal;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+            <div>
+                <div class="ci-name">${escapeHtml(item.nombre)}</div>
+                <div class="ci-price">$${item.precio.toFixed(2)} c/u</div>
+            </div>
+            <div class="qty-ctrl">
+                <button class="qty-btn" onclick="cambiarCantidad(${item.id}, -1)">−</button>
+                <span class="qty-val">${item.qty}</span>
+                <button class="qty-btn" onclick="cambiarCantidad(${item.id}, 1)">＋</button>
+            </div>
+            <span class="ci-sub">$${subtotal.toFixed(2)}</span>
+            <button class="ci-del" onclick="eliminarItem(${item.id})">✕</button>
+        `;
+        container.appendChild(div);
     });
-    updateTotals(total);
-  }
+    actualizarTotales(total);
+}
 
-  function updateTotals(total) {
-    document.getElementById('ct-sub').textContent   = '$' + total.toFixed(2);
+function actualizarTotales(total) {
+    document.getElementById('ct-sub').textContent = '$' + total.toFixed(2);
     document.getElementById('ct-total').textContent = '$' + total.toFixed(2);
     document.getElementById('btn-total').textContent = total.toFixed(2);
     const btn = document.getElementById('btn-cobrar');
     btn.disabled = total === 0;
-    calcCambio();
-  }
+    calcularCambio();
+}
 
-  function selectPago(tipo) {
+function seleccionarPago(tipo) {
     pagoTipo = tipo;
-    ['efe','tar','tra'].forEach(k => document.getElementById('pb-' + k).classList.remove('selected'));
-    const map = { efectivo:'pb-efe', tarjeta:'pb-tar', transferencia:'pb-tra' };
+    ['efe', 'tar', 'tra'].forEach(k => {
+        document.getElementById('pb-' + k).classList.remove('selected');
+    });
+    const map = { efectivo: 'pb-efe', tarjeta: 'pb-tar', transferencia: 'pb-tra' };
     document.getElementById(map[tipo]).classList.add('selected');
     document.getElementById('efectivo-section').style.display = tipo === 'efectivo' ? 'block' : 'none';
-  }
+}
 
-  function calcCambio() {
-    const totalEl  = document.getElementById('ct-total');
-    const total    = parseFloat(totalEl.textContent.replace('$','')) || 0;
+function calcularCambio() {
+    const totalEl = document.getElementById('ct-total');
+    const total = parseFloat(totalEl.textContent.replace('$', '')) || 0;
     const recibido = parseFloat(document.getElementById('efe-recibido').value) || 0;
-    const cambio   = recibido - total;
-    const box      = document.getElementById('cambio-box');
+    const cambio = recibido - total;
     document.getElementById('cambio-val').textContent = '$' + Math.max(cambio, 0).toFixed(2);
+    const box = document.getElementById('cambio-box');
     box.style.background = cambio < 0 ? '#fce8df' : '#e2eede';
-    box.style.color       = cambio < 0 ? '#9c3a1a' : '#3a6034';
-  }
+}
 
-  function cobrar() {
-    closeModal('modal-venta');
+async function procesarVenta() {
+    const items = Object.values(cart);
+    if (items.length === 0) {
+        mostrarNotificacion('Agrega productos al carrito', 'error');
+        return;
+    }
+    
+    let montoRecibido = null;
+    if (pagoTipo === 'efectivo') {
+        montoRecibido = parseFloat(document.getElementById('efe-recibido').value);
+        const total = parseFloat(document.getElementById('ct-total').textContent.replace('$', ''));
+        if (isNaN(montoRecibido) || montoRecibido < total) {
+            mostrarNotificacion('El monto recibido es insuficiente', 'error');
+            return;
+        }
+    }
+    
+    mostrarLoading(true);
+    
+    try {
+        const response = await fetch('/ventas/api/ventas/crear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                items: items.map(item => ({
+                    id_producto: item.id,
+                    cantidad: item.qty,
+                    precio_unitario: item.precio,
+                    descuento_pct: 0
+                })),
+                metodo_pago: pagoTipo,
+                monto_recibido: montoRecibido,
+                requiere_ticket: true
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarNotificacion(`Venta ${data.folio} registrada exitosamente`, 'success');
+            cart = {};
+            renderCarrito();
+            document.getElementById('efe-recibido').value = '';
+            cerrarModal('modal-venta');
+            mostrarTicket(data.ticket, data.folio, data.cambio);
+            cargarVentas();
+            cargarEstadisticas();
+        } else {
+            mostrarNotificacion('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error procesando venta:', error);
+        mostrarNotificacion('Error al procesar la venta', 'error');
+    } finally {
+        mostrarLoading(false);
+    }
+}
+
+// ============================================================
+// FUNCIONES DE VISUALIZACIÓN
+// ============================================================
+
+async function verDetalleVenta(folio) {
+    ventaActualFolio = folio;
+    mostrarLoading(true);
+    
+    try {
+        const response = await fetch(`/ventas/api/ventas/${folio}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            ventaActualId = data.venta.id_venta;
+            const detallesHtml = `
+                <div class="det-grid">
+                    <div class="det-item"><label>Folio</label><span>${escapeHtml(data.venta.folio_venta)}</span></div>
+                    <div class="det-item"><label>Fecha</label><span>${formatearFecha(data.venta.fecha_venta)}</span></div>
+                    <div class="det-item"><label>Total</label><span>$${data.venta.total.toFixed(2)}</span></div>
+                    <div class="det-item"><label>Pago</label><span>${data.venta.metodo_pago}</span></div>
+                    ${data.venta.cambio > 0 ? `<div class="det-item"><label>Cambio</label><span>$${data.venta.cambio.toFixed(2)}</span></div>` : ''}
+                    <div class="det-item"><label>Vendedor</label><span>${escapeHtml(data.venta.vendedor_nombre)}</span></div>
+                    <div class="det-item"><label>Estado</label><span>${data.venta.estado}</span></div>
+                </div>
+                <table class="det-items-table">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Descuento</th><th>Subtotal</th></tr></thead>
+                    <tbody>
+                        ${data.detalles.map(det => `
+                            <tr>
+                                <td>${escapeHtml(det.producto_nombre)}</td>
+                                <td>${det.cantidad}</td>
+                                <td>$${det.precio_unitario.toFixed(2)}</td>
+                                <td>${det.descuento_pct > 0 ? det.descuento_pct + '%' : '-'}</td>
+                                <td>$${det.subtotal.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('detalleContent').innerHTML = detallesHtml;
+            
+            const btnCancelar = document.getElementById('btnCancelarVenta');
+            if (data.venta.estado === 'completada') {
+                btnCancelar.style.display = 'flex';
+            } else {
+                btnCancelar.style.display = 'none';
+            }
+            
+            abrirModal('modal-detalle');
+        } else {
+            mostrarNotificacion('Error al cargar detalle', 'error');
+        }
+    } catch (error) {
+        console.error('Error cargando detalle:', error);
+        mostrarNotificacion('Error al cargar detalle', 'error');
+    } finally {
+        mostrarLoading(false);
+    }
+}
+
+async function verTicket(folio) {
+    mostrarLoading(true);
+    
+    try {
+        const response = await fetch(`/ventas/api/ventas/${folio}`);
+        const data = await response.json();
+        
+        if (data.success && data.ticket) {
+            mostrarTicket(data.ticket.contenido_json, data.venta.folio_venta, data.venta.cambio);
+        } else {
+            mostrarNotificacion('No hay ticket disponible', 'error');
+        }
+    } catch (error) {
+        console.error('Error cargando ticket:', error);
+        mostrarNotificacion('Error al cargar ticket', 'error');
+    } finally {
+        mostrarLoading(false);
+    }
+}
+
+function mostrarTicket(ticketJson, folio, cambio) {
+    let ticket;
+    if (typeof ticketJson === 'string') {
+        ticket = JSON.parse(ticketJson);
+    } else {
+        ticket = ticketJson;
+    }
+    
+    const itemsHtml = (ticket.items || []).map(item => `
+        <div class="ticket-row">
+            <span class="nm">${escapeHtml(item.nombre)} ×${item.cantidad}</span>
+            <span class="pr">$${item.subtotal.toFixed(2)}</span>
+        </div>
+    `).join('');
+    
+    const cambioHtml = ticket.metodo_pago === 'efectivo' && ticket.cambio > 0 ? `
+        <div class="ticket-row"><span class="nm" style="color:var(--brown-lt)">Efectivo recibido</span><span class="pr" style="color:var(--brown-lt)">$${ticket.monto_recibido?.toFixed(2) || '0.00'}</span></div>
+        <div class="ticket-cambio"><span>Cambio</span><span>$${ticket.cambio.toFixed(2)}</span></div>
+    ` : '';
+    
+    const html = `
+        <div class="ticket">
+            <div class="ticket-logo">🥐</div>
+            <div class="ticket-shop">Dulce Migaja</div>
+            <div class="ticket-sub">Panadería Artesanal · León, Gto.</div>
+            <div class="ticket-div"></div>
+            <div class="ticket-meta">Folio: <span>${escapeHtml(folio)}</span></div>
+            <div class="ticket-meta">Fecha: <span>${ticket.fecha || ''}</span></div>
+            <div class="ticket-div"></div>
+            ${itemsHtml}
+            <div class="ticket-div"></div>
+            <div class="ticket-total"><span>TOTAL</span><span>$${ticket.total.toFixed(2)}</span></div>
+            ${cambioHtml}
+            <div class="ticket-div"></div>
+            <div class="ticket-thanks">¡Gracias por su preferencia!<br>Vuelva pronto 🍞</div>
+        </div>
+    `;
+    
+    document.getElementById('ticketContent').innerHTML = html;
+    abrirModal('modal-ticket');
+}
+
+function imprimirTicket() {
+    const ticketContent = document.getElementById('ticketContent').innerHTML;
+    const ventana = window.open('', '_blank');
+    ventana.document.write(`
+        <html>
+        <head><title>Ticket de Venta</title>
+        <style>
+            body { font-family: 'Courier New', monospace; padding: 20px; }
+            .ticket { max-width: 300px; margin: 0 auto; }
+        </style>
+        </head>
+        <body>${ticketContent}</body>
+        </html>
+    `);
+    ventana.document.close();
+    ventana.print();
+    
+    if (ventaActualFolio) {
+        fetch(`/ventas/api/ticket/${ventaActualFolio}/imprimir`, { method: 'POST' });
+    }
+}
+
+async function cancelarVentaActual() {
+    if (!ventaActualId) return;
+    
+    if (!confirm('¿Estás seguro de cancelar esta venta? Se restaurará el inventario.')) return;
+    
+    mostrarLoading(true);
+    
+    try {
+        const response = await fetch(`/ventas/api/ventas/${ventaActualId}/cancelar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarNotificacion('Venta cancelada exitosamente', 'success');
+            cerrarModal('modal-detalle');
+            cargarVentas();
+            cargarEstadisticas();
+        } else {
+            mostrarNotificacion('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error cancelando venta:', error);
+        mostrarNotificacion('Error al cancelar la venta', 'error');
+    } finally {
+        mostrarLoading(false);
+    }
+}
+
+// ============================================================
+// FUNCIONES UTILITARIAS
+// ============================================================
+
+function abrirModal(id) {
+    document.getElementById(id).classList.add('open');
+}
+
+function cerrarModal(id) {
+    document.getElementById(id).classList.remove('open');
+}
+
+function abrirModalVenta() {
     cart = {};
-    openModal('modal-ticket');
-  }
+    renderCarrito();
+    document.getElementById('efe-recibido').value = '';
+    seleccionarPago('efectivo');
+    abrirModal('modal-venta');
+}
 
-  function filtrarProductos(q) {
-    document.querySelectorAll('.prod-btn').forEach(btn => {
-      const name = btn.querySelector('.pb-name').textContent.toLowerCase();
-      btn.style.display = name.includes(q.toLowerCase()) ? '' : 'none';
-    });
-  }
+function mostrarLoading(show) {
+    document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+}
 
-  function filterTable() {
-    const q    = document.getElementById('searchInput').value.toLowerCase();
-    const pago = document.getElementById('filterPago').value;
-    const rows = document.querySelectorAll('#ventasTable tbody tr');
-    let visible = 0;
-    rows.forEach(row => {
-      const text    = row.textContent.toLowerCase();
-      const rowPago = row.dataset.pago;
-      const show = (!q || text.includes(q)) && (!pago || rowPago === pago);
-      row.style.display = show ? '' : 'none';
-      if (show) visible++;
+function mostrarNotificacion(mensaje, tipo = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${tipo}`;
+    toast.textContent = mensaje;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function filtrarProductos(query) {
+    const grid = document.getElementById('prodGrid');
+    const productos = grid.querySelectorAll('.prod-btn');
+    productos.forEach(prod => {
+        const nombre = prod.querySelector('.pb-name')?.textContent.toLowerCase() || '';
+        prod.style.display = nombre.includes(query.toLowerCase()) ? '' : 'none';
     });
-    document.getElementById('visibleCount').textContent = visible;
-  }
+}
+
+function filterTable() {
+    cargarVentas(1);
+}
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+    cargarEstadisticas();
+    cargarCatalogo();
+    cargarVentas();
+    
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.addEventListener('click', e => {
+            if (e.target === el) el.classList.remove('open');
+        });
+    });
+});
 </script>
 
 <div style="height:40px"></div>

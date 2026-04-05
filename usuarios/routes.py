@@ -2,7 +2,8 @@
 import uuid
 import re
 
-from flask import render_template, request, redirect, url_for, flash
+import datetime
+from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from sqlalchemy import text
@@ -29,6 +30,7 @@ def _usuario_form(FormClass):
 @login_required
 @roles_required('admin')
 def usuarios():
+    current_app.logger.info('Vista de panel de usuarios accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     lista = db.session.execute(
         text("SELECT * FROM vw_usuarios ORDER BY nombre_completo")
     ).mappings().all()
@@ -54,6 +56,7 @@ def crear_usuario():
     form = _usuario_form(CrearUsuarioForm)
     if not form.validate():
         first_err = next(iter(next(iter(form.errors.values()))))
+        current_app.logger.warning('Intento de creacion de usuario fallido (error de validacion) | creador: %s | error: %s | fecha: %s', current_user.username, first_err, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(first_err, 'error')
         return redirect(url_for('registrar_usuario.usuarios'))
 
@@ -77,16 +80,20 @@ def crear_usuario():
             }
         )
         db.session.commit()
+        current_app.logger.info('Usuario creado exitosamente | creador: %s | nuevo_usuario: %s | id_rol: %s | fecha: %s', current_user.username, username, id_rol, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Usuario "{nombre}" creado exitosamente.', 'success')
     except Exception as e:
         db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg  = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         if 'ya esta en uso' in msg or 'ya está en uso' in msg:
+            current_app.logger.warning('Creacion de usuario fallida (ya en uso) | creador: %s | username_pedido: %s | fecha: %s', current_user.username, username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash(f'El usuario "{username}" ya está en uso. Elige otro.', 'error')
         elif 'no es valido' in msg or 'no es válido' in msg:
+            current_app.logger.warning('Creacion de usuario fallida (rol invalido) | creador: %s | rol_pedido: %s | fecha: %s', current_user.username, id_rol, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('El rol seleccionado no es válido.', 'error')
         else:
+            current_app.logger.error('Error general al crear usuario | creador: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Error al crear el usuario. Intenta de nuevo.', 'error')
 
     return redirect(url_for('registrar_usuario.usuarios'))
@@ -99,6 +106,7 @@ def editar_usuario(id_usuario):
     form = _usuario_form(EditarUsuarioForm)
     if not form.validate():
         first_err = next(iter(next(iter(form.errors.values()))))
+        current_app.logger.warning('Intento de edicion de usuario fallido (error de validacion) | editor: %s | error: %s | fecha: %s', current_user.username, first_err, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(first_err, 'error')
         return redirect(url_for('registrar_usuario.usuarios'))
 
@@ -123,18 +131,23 @@ def editar_usuario(id_usuario):
             }
         )
         db.session.commit()
+        current_app.logger.info('Usuario actualizado exitosamente | editor: %s | usuario_editado_id: %s | username: %s | fecha: %s', current_user.username, id_usuario, username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Usuario "{nombre}" actualizado correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg  = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         if 'ya esta en uso' in msg or 'ya está en uso' in msg:
+            current_app.logger.warning('Edicion de usuario fallida (username ya en uso) | editor: %s | username_pedido: %s | fecha: %s', current_user.username, username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash(f'El usuario "{username}" ya está en uso. Elige otro.', 'error')
         elif 'no existe' in msg:
+            current_app.logger.warning('Edicion de usuario fallida (usuario no existe) | editor: %s | id_pedido: %s | fecha: %s', current_user.username, id_usuario, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('El usuario no existe.', 'error')
         elif 'no es valido' in msg or 'no es válido' in msg:
+            current_app.logger.warning('Edicion de usuario fallida (rol invalido) | editor: %s | rol_pedido: %s | fecha: %s', current_user.username, id_rol, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('El rol seleccionado no es válido.', 'error')
         else:
+            current_app.logger.error('Error general al editar usuario | editor: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Error al actualizar el usuario. Intenta de nuevo.', 'error')
 
     return redirect(url_for('registrar_usuario.usuarios'))
@@ -147,6 +160,7 @@ def cambiar_estatus_usuario(id_usuario):
     nuevo_estatus = request.form.get('estatus', '')
 
     if nuevo_estatus not in ('activo', 'inactivo'):
+        current_app.logger.warning('Cambio de estatus fallido (estatus invalido) | usuario: %s | valor_recibido: %s | fecha: %s', current_user.username, nuevo_estatus, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Estatus no válido.', 'error')
         return redirect(url_for('registrar_usuario.usuarios'))
 
@@ -161,15 +175,19 @@ def cambiar_estatus_usuario(id_usuario):
         )
         db.session.commit()
         accion = 'activado' if nuevo_estatus == 'activo' else 'desactivado'
+        current_app.logger.info('Estatus de usuario cambiado | ejecutor: %s | id_afectado: %s | nuevo_estatus: %s | fecha: %s', current_user.username, id_usuario, nuevo_estatus, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Usuario {accion} correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
         msg = str(e.orig) if hasattr(e, 'orig') else str(e)
         if 'propia cuenta' in msg:
+            current_app.logger.warning('Cambio de estatus fallido (propia cuenta) | usuario: %s | id_afectado: %s | fecha: %s', current_user.username, id_usuario, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('No puedes desactivar tu propia cuenta.', 'error')
         elif 'no existe' in msg:
+            current_app.logger.warning('Cambio de estatus fallido (no existe) | usuario: %s | id_afectado: %s | fecha: %s', current_user.username, id_usuario, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('El usuario no existe.', 'error')
         else:
+            current_app.logger.error('Error general al cambiar estatus | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Error al cambiar el estatus. Intenta de nuevo.', 'error')
 
     return redirect(url_for('registrar_usuario.usuarios'))
@@ -187,14 +205,17 @@ def cambiar_password():
 
         from werkzeug.security import check_password_hash
         if not check_password_hash(usuario.password_hash, actual):
+            current_app.logger.warning('Cambio de contraseña fallido (actual incorrecta) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('La contraseña actual es incorrecta.', 'error')
             return redirect(url_for('registrar_usuario.cambiar_password'))
 
         if not _PWD_RE.match(nueva):
+            current_app.logger.warning('Cambio de contraseña fallido (requisitos no cumplidos) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('La nueva contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).', 'error')
             return redirect(url_for('registrar_usuario.cambiar_password'))
 
         if nueva != confirmar:
+            current_app.logger.warning('Cambio de contraseña fallido (no coinciden las nuevas) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Las contraseñas no coinciden.', 'error')
             return redirect(url_for('registrar_usuario.cambiar_password'))
 
@@ -203,9 +224,11 @@ def cambiar_password():
                 "CALL sp_cambiar_password(:id, :pwd_hash)",
                 {'id': current_user.id_usuario, 'pwd_hash': generate_password_hash(nueva)}
             )
+            current_app.logger.info('Contraseña actualizada correctamente | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Contraseña actualizada correctamente.', 'success')
         except Exception as e:
             msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+            current_app.logger.error('Error general al cambiar contraseña | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash(f'Error al cambiar la contraseña: {msg}', 'error')
         return redirect(url_for('registrar_usuario.cambiar_password'))
 
@@ -223,6 +246,7 @@ def mi_perfil():
         telefono = request.form.get('telefono', '').strip()
 
         if not nombre or not username:
+            current_app.logger.warning('Actualizacion de perfil fallida (campos vacios) | usuario actual: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Nombre y usuario son obligatorios.', 'error')
             return redirect(url_for('registrar_usuario.mi_perfil'))
 
@@ -236,12 +260,15 @@ def mi_perfil():
                     'telefono': telefono or None,
                 }
             )
+            current_app.logger.info('Perfil actualizado correctamente | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Perfil actualizado correctamente.', 'success')
         except Exception as e:
             msg = str(e.orig) if hasattr(e, 'orig') else str(e)
             if 'ya esta en uso' in msg:
+                current_app.logger.warning('Actualizacion de perfil fallida (username en uso) | usuario: %s | pedido: %s | fecha: %s', current_user.username, username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 flash(f'El usuario "{username}" ya está en uso. Elige otro.', 'error')
             else:
+                current_app.logger.error('Error al actualizar perfil | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 flash('Error al actualizar el perfil. Intenta de nuevo.', 'error')
         return redirect(url_for('registrar_usuario.mi_perfil'))
 
@@ -249,5 +276,8 @@ def mi_perfil():
 
 
 @registrar_usuario_bp.route("/mis-pedido")
+@login_required
+@roles_required('cliente')
 def mis_pedidos():
+    current_app.logger.info('Acceso a listado de pedidos de cliente | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return render_template("usuarios/mispedidos.html")

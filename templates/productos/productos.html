@@ -1,155 +1,9 @@
 {% extends "layout.html" %}
 
 {% block container %}
-<style>
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .anim   { animation: fadeUp .35s ease both; }
-  .anim-1 { animation-delay: .05s; }
-  .anim-2 { animation-delay: .10s; }
-  .anim-3 { animation-delay: .15s; }
-
-  .db-topbar { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
-  .db-page-title { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--brown-dk); display:flex; align-items:center; gap:10px; }
-  .db-breadcrumb { font-size:12px; color:var(--brown-lt); margin-top:5px; display:flex; align-items:center; gap:5px; }
-  .db-breadcrumb span { color:var(--tan); }
-
-  @keyframes alertEntrada { from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)} }
-  @keyframes alertSalida  {
-    0%  {opacity:1;max-height:80px;margin-bottom:12px;padding:11px 14px}
-    80% {opacity:0;max-height:80px;margin-bottom:12px;padding:11px 14px}
-    100%{opacity:0;max-height:0;margin-bottom:0;padding:0}
-  }
-  .alert { padding:11px 14px 11px 16px; border-radius:8px; margin-bottom:12px; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:space-between; gap:12px; overflow:hidden; animation:alertEntrada .3s ease both,alertSalida .6s ease 5s forwards; }
-  .alert-success { background:#e2eede; color:#3a6034; border:1px solid #b2d4aa; }
-  .alert-danger  { background:#fce8df; color:#9c3a1a; border:1px solid #f5c6b0; }
-  .alert-warning { background:#fff3cd; color:#856404; border:1px solid #ffe69c; }
-
-  /* ── STATS ── */
-  .p-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:22px; }
-  .p-stat  { background:var(--white); border:1px solid var(--tan); border-radius:12px; padding:16px 18px; box-shadow:0 2px 8px var(--shadow); display:flex; align-items:center; gap:12px; transition:transform .2s; }
-  .p-stat:hover { transform:translateY(-2px); }
-  .p-stat-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
-  .p-stat-icon.brown { background:#f3e8d8; }
-  .p-stat-icon.green { background:#e2eede; }
-  .p-stat-icon.rust  { background:#fce8df; }
-  .p-stat-val { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--brown-dk); line-height:1; }
-  .p-stat-lbl { font-size:11px; color:var(--brown-lt); margin-top:3px; font-weight:600; }
-
-  /* ── TOOLBAR ── */
-  .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
-  .search-wrap { position:relative; flex:1; min-width:200px; }
-  .search-wrap input { width:100%; padding:9px 14px 9px 38px; border:1.5px solid var(--tan); border-radius:8px; font-family:'Lato',sans-serif; font-size:13.5px; background:var(--white); color:var(--text); outline:none; transition:border .2s; box-sizing:border-box; }
-  .search-wrap input:focus { border-color:var(--brown); }
-  .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--brown-lt); font-size:14px; }
-  .filter-select { padding:9px 12px; border:1.5px solid var(--tan); border-radius:8px; font-family:'Lato',sans-serif; font-size:13px; background:var(--white); color:var(--text); outline:none; cursor:pointer; }
-
-  /* ── TABLE ── */
-  .table-card { background:var(--white); border:1px solid var(--tan); border-radius:14px; box-shadow:0 2px 10px var(--shadow); overflow:hidden; }
-  table { width:100%; border-collapse:collapse; }
-  thead { background:var(--warm-bg); }
-  thead th { padding:11px 16px; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--brown); text-align:left; white-space:nowrap; }
-  tbody tr { border-top:1px solid var(--tan); transition:background .15s; }
-  tbody tr:hover { background:#fdf8f2; }
-  tbody td { padding:13px 16px; font-size:13px; color:var(--text); vertical-align:middle; }
-
-  .prod-cell { display:flex; align-items:center; gap:10px; }
-  .prod-emoji { font-size:22px; flex-shrink:0; }
-  .prod-name  { font-weight:700; color:var(--brown-dk); font-size:13.5px; }
-  .prod-desc  { font-size:11px; color:var(--brown-lt); margin-top:2px; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-  .precio-chip { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:var(--brown-dk); }
-
-  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
-  .badge-active   { background:#e2eede; color:#3a6034; }
-  .badge-inactive { background:#fce8df; color:#9c3a1a; }
-
-  .actions-cell { display:flex; gap:6px; }
-
-  /* ── PAGINADOR ── */
-  .paginador {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    border-top: 1px solid var(--tan);
-    background: var(--warm-bg);
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .pag-info {
-    font-size: 12px;
-    color: var(--brown-lt);
-    font-weight: 600;
-  }
-  .pag-info strong { color: var(--brown-dk); }
-  .pag-controles {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .pag-btn {
-    min-width: 34px;
-    height: 34px;
-    padding: 0 10px;
-    border-radius: 8px;
-    border: 1.5px solid var(--tan);
-    background: var(--white);
-    color: var(--brown-dk);
-    font-family: 'Lato', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background .15s, border-color .15s, color .15s;
-  }
-  .pag-btn:hover:not(.disabled):not(.activo) {
-    background: var(--warm-bg);
-    border-color: var(--brown);
-    color: var(--brown);
-  }
-  .pag-btn.activo {
-    background: var(--brown-dk);
-    border-color: var(--brown-dk);
-    color: var(--cream);
-    cursor: default;
-  }
-  .pag-btn.disabled {
-    opacity: .35;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-  .pag-puntos {
-    font-size: 13px;
-    color: var(--brown-lt);
-    padding: 0 4px;
-  }
-
-  /* ── MODAL ── */
-  .modal-overlay { position:fixed; inset:0; z-index:500; background:rgba(59,42,26,.45); backdrop-filter:blur(3px); display:none; align-items:center; justify-content:center; padding:24px; }
-  .modal-overlay.open { display:flex; }
-  .modal { background:var(--white); border-radius:16px; width:100%; max-width:560px; box-shadow:0 20px 60px rgba(59,42,26,.3); overflow:hidden; animation:fadeUp .25s ease; }
-  .modal-header { display:flex; align-items:center; justify-content:space-between; padding:20px 26px; background:var(--brown-dk); }
-  .modal-header h2 { font-family:'Playfair Display',serif; font-size:17px; color:var(--cream); display:flex; align-items:center; gap:10px; }
-  .modal-close-link { width:28px; height:28px; border-radius:6px; background:rgba(255,255,255,.15); color:var(--cream); font-size:16px; display:flex; align-items:center; justify-content:center; text-decoration:none; transition:background .2s; }
-  .modal-close-link:hover { background:rgba(255,255,255,.25); }
-  .modal-body   { padding:26px; max-height:76vh; overflow-y:auto; }
-  .modal-footer { display:flex; justify-content:flex-end; gap:10px; padding:16px 26px; border-top:1px solid var(--tan); background:var(--warm-bg); }
-
-  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .form-group { display:flex; flex-direction:column; gap:5px; }
-  .form-group.full { grid-column:1/-1; }
-  .form-label { font-size:11px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--brown); }
-  .form-input, .form-textarea { padding:9px 13px; border:1.5px solid var(--tan); border-radius:8px; font-family:'Lato',sans-serif; font-size:13.5px; color:var(--text); background:var(--cream); outline:none; transition:border .2s; width:100%; box-sizing:border-box; }
-  .form-input:focus, .form-textarea:focus { border-color:var(--brown); background:var(--white); }
-  .form-hint { font-size:11px; color:var(--brown-lt); }
-  .form-textarea { resize:vertical; min-height:70px; }
-</style>
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/productos.css') }}">
+{% endblock %}
 
 {# ══ TOPBAR ══ #}
 <div class="db-topbar anim">
@@ -159,13 +13,6 @@
   </div>
   <a href="?modal=nuevo" class="btn btn-primary">＋ Nuevo Producto</a>
 </div>
-
-{# ══ FLASH ══ #}
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-  {% endfor %}
-{% endwith %}
 
 {# ══ STATS ══ #}
 <div class="p-stats anim anim-1">
@@ -255,11 +102,11 @@
           <div class="actions-cell">
             <a href="?modal=editar&id={{ p.id_producto }}&pagina={{ pagina }}&buscar={{ buscar }}&estatus={{ estatus_sel }}"
                class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar">✏️</a>
-            <a href="{{ url_for('productos_bp.productos_confirmar_toggle', id_producto=p.id_producto) }}"
-               class="btn btn-outline btn-sm btn-icon"
-               data-tooltip="{{ 'Desactivar' if p.estatus=='activo' else 'Activar' }}">
+            <button class="btn btn-outline btn-sm btn-icon"
+                    data-tooltip="{{ 'Desactivar' if p.estatus=='activo' else 'Activar' }}"
+                    onclick="abrirToggleProd({{ p.id_producto }}, '{{ p.nombre|replace("'","\\'")|replace('"','\\"') }}', '{{ p.estatus }}')">
               {{ '🚫' if p.estatus=='activo' else '✅' }}
-            </a>
+            </button>
           </div>
         </td>
       </tr>
@@ -453,50 +300,31 @@
 </div>
 
 
-<script>
-var inputBuscar = document.getElementById('buscador')
-               || document.querySelector('input[name="buscar"]');
-var debounceTimer;
+{# ═══════════════ MODAL: ACTIVAR / DESACTIVAR PRODUCTO ═══════════════ #}
+<div class="modal-overlay" id="modal-toggle-prod">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header" id="toggle-prod-header" style="background:var(--rust);">
+      <h2 id="toggle-prod-title">🚫 Desactivar Producto</h2>
+      <button type="button"
+              onclick="cerrarToggleProd()"
+              style="background:rgba(255,255,255,.15);border:none;cursor:pointer;color:var(--cream);font-size:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <form id="form-toggle-prod" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="padding:28px 26px 10px;text-align:center;">
+        <div id="toggle-prod-icon" style="font-size:42px;margin-bottom:12px;"></div>
+        <p id="toggle-prod-msg" style="font-size:14px;color:var(--brown-dk);line-height:1.7;margin:0;"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="cerrarToggleProd()">Cancelar</button>
+        <button type="submit" id="toggle-prod-btn" class="btn btn-danger"></button>
+      </div>
+    </form>
+  </div>
+</div>
 
-function debounceSubmit() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(enviarBusqueda, 700);
-}
+{% endblock %}
 
-function enviarBusqueda() {
-  clearTimeout(debounceTimer);
-  if (inputBuscar) {
-    sessionStorage.setItem('buscarPos', inputBuscar.selectionStart);
-    sessionStorage.setItem('buscarVal', inputBuscar.value);
-  }
-  document.getElementById('form-filtro').submit();
-}
-
-if (inputBuscar) {
-  inputBuscar.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      enviarBusqueda();
-    }
-    if (e.key === 'Escape') {
-      clearTimeout(debounceTimer);
-      inputBuscar.value = '';
-      enviarBusqueda();
-    }
-  });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  var val = sessionStorage.getItem('buscarVal');
-  var pos = parseInt(sessionStorage.getItem('buscarPos') || '0');
-  if (val !== null && inputBuscar && inputBuscar.value === val) {
-    inputBuscar.focus();
-    try { inputBuscar.setSelectionRange(pos, pos); } catch(e) {}
-    sessionStorage.removeItem('buscarPos');
-    sessionStorage.removeItem('buscarVal');
-  }
-});
-</script>
-
-<div style="height:40px"></div>
-{% endblock %}ñ
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/productos.js') }}"></script>
+{% endblock %}

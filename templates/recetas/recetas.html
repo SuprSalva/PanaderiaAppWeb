@@ -151,12 +151,6 @@
   <a href="?modal=nueva" class="btn btn-primary">＋ Nueva Receta</a>
 </div>
 
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-  {% endfor %}
-{% endwith %}
-
 <div class="r-stats anim anim-1">
   <div class="r-stat"><div class="r-stat-icon brown">📋</div><div><div class="r-stat-val">{{ total_recetas }}</div><div class="r-stat-lbl">Recetas Registradas</div></div></div>
   <div class="r-stat"><div class="r-stat-icon green">✅</div><div><div class="r-stat-val">{{ total_activas }}</div><div class="r-stat-lbl">Activas</div></div></div>

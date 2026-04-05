@@ -1,280 +1,9 @@
 {% extends "layout.html" %}
 {% block container %}
 
-<style>
-  :root {
-    --brown:    #7c4a2d;
-    --brown-dk: #5a3320;
-    --brown-lt: #a0714f;
-    --tan:      #d4b896;
-    --cream:    #fdf6ee;
-    --warm-bg:  #faf3ea;
-    --white:    #ffffff;
-    --text:     #3d2b1f;
-    --rust:     #c0392b;
-    --gold:     #e67e22;
-    --green:    #27ae60;
-  }
-
-  /* ── ALERTAS FLASH ── */
-@keyframes alertEntrada {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes alertSalida {
-  0%   { opacity: 1; max-height: 80px; margin-bottom: 12px; padding: 11px 14px; }
-  80%  { opacity: 0; max-height: 80px; margin-bottom: 12px; padding: 11px 14px; }
-  100% { opacity: 0; max-height: 0;   margin-bottom: 0;     padding: 0; }
-}
-.alert {
-  padding: 11px 14px 11px 16px; border-radius: 8px; margin-bottom: 12px;
-  font-size: 13px; font-weight: 600;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; overflow: hidden;
-  animation: alertEntrada .3s ease both, alertSalida .6s ease 5s forwards;
-}
-.alert-success { background: #e2eede; color: #3a6034; border: 1px solid #b2d4aa; }
-.alert-danger  { background: #fce8df; color: #9c3a1a; border: 1px solid #f5c6b0; }
-.alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffe69c; }
-
-  /* ── TOPBAR ── */
-  .db-topbar {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 22px;
-  }
-  .db-page-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px; font-weight: 700; color: var(--brown-dk);
-  }
-  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 2px; }
-  .db-breadcrumb span { margin: 0 5px; }
-
-  /* ── BOTONES ── */
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 9px 18px; border-radius: 9px; font-size: 13.5px;
-    font-weight: 600; cursor: pointer; border: none;
-    transition: all .2s; text-decoration: none; font-family: inherit;
-  }
-  .btn-primary   { background: var(--brown); color: #fff; }
-  .btn-primary:hover { background: var(--brown-dk); }
-  .btn-outline   { background: transparent; color: var(--brown); border: 1.5px solid var(--tan); }
-  .btn-outline:hover { background: var(--warm-bg); border-color: var(--brown); }
-  .btn-danger    { background: var(--rust); color: #fff; }
-  .btn-danger:hover { background: #a93226; }
-  .btn-success   { background: #27ae60; color: #fff; }
-  .btn-success:hover { background: #1e8449; }
-
-  /* ── STATS ── */
-  .mp-stats {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
-    margin-bottom: 22px;
-  }
-  .mp-stat {
-    background: var(--white); border: 1px solid var(--tan); border-radius: 14px;
-    padding: 16px 18px; display: flex; gap: 14px; align-items: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
-  }
-  .mp-stat-icon {
-    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 20px;
-  }
-  .mp-stat-icon.brown { background: #f3e8d8; }
-  .mp-stat-icon.green { background: #d5f5e3; }
-  .mp-stat-icon.gold  { background: #fef9e7; }
-  .mp-stat-icon.rust  { background: #fde8e6; }
-  .mp-stat-val { font-size: 26px; font-weight: 800; color: var(--brown-dk); line-height: 1; }
-  .mp-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; }
-
-  /* ── TOOLBAR ── */
-  .toolbar {
-    display: flex; gap: 10px; align-items: center;
-    margin-bottom: 16px; flex-wrap: wrap;
-  }
-  .search-wrap { position: relative; flex: 1; min-width: 200px; }
-  .search-wrap input {
-    width: 100%; padding: 9px 12px 9px 36px;
-    border: 1.5px solid var(--tan); border-radius: 10px;
-    font-size: 13.5px; color: var(--text); background: var(--white);
-    outline: none; transition: border .2s; font-family: inherit;
-  }
-  .search-wrap input:focus { border-color: var(--brown); }
-  .search-icon {
-    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
-    font-size: 14px; pointer-events: none;
-  }
-  .filter-select {
-    padding: 9px 12px; border: 1.5px solid var(--tan); border-radius: 10px;
-    font-size: 13px; color: var(--text); background: var(--white);
-    cursor: pointer; outline: none; font-family: inherit;
-  }
-  .filter-select:focus { border-color: var(--brown); }
-
-  /* ── TABLA ── */
-  .table-card {
-    background: var(--white); border-radius: 16px; border: 1px solid var(--tan);
-    overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  }
-  table { width: 100%; border-collapse: collapse; }
-  thead tr { background: var(--warm-bg); }
-  th {
-    padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700;
-    letter-spacing: .8px; text-transform: uppercase; color: var(--brown-lt);
-    border-bottom: 1px solid var(--tan);
-  }
-  td {
-    padding: 13px 16px; font-size: 13.5px; color: var(--text);
-    border-bottom: 1px solid #f0e6da; vertical-align: middle;
-  }
-  tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--warm-bg); }
-
-  /* ── CELDAS ── */
-  .mp-cell { display: flex; gap: 10px; align-items: center; }
-  .mp-icon-box {
-    width: 34px; height: 34px; border-radius: 9px; background: var(--warm-bg);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
-  }
-  .mp-name { font-weight: 700; color: var(--brown-dk); font-size: 13.5px; }
-  .mp-cat  { font-size: 11px; color: var(--brown-lt); margin-top: 1px; }
-
-  .unidad-chip {
-    background: #f3e8d8; color: var(--brown); font-size: 11.5px;
-    font-weight: 600; padding: 3px 9px; border-radius: 20px;
-  }
-
-  .stock-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 130px; }
-  .bar-track  { height: 5px; border-radius: 3px; background: #ecdecf; }
-  .bar-fill   { height: 5px; border-radius: 3px; transition: width .4s; }
-  .bar-ok       { background: var(--green); }
-  .bar-low      { background: var(--gold); }
-  .bar-critical { background: var(--rust); }
-  .stock-val  { font-size: 12px; color: var(--text); }
-
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .badge-active   { background: #e2eede; color: #3a6034; }
-  .badge-inactive { background: #fce8df; color: #9c3a1a; }
-  .badge-low      { background: #fef9e7; color: #a04000; }
-  .badge-critical { background: #fde8e6; color: #922b21; }
-
-  .actions-cell { display: flex; gap: 6px; }
-  .btn-icon {
-    width: 30px; height: 30px; border-radius: 8px;
-    border: 1.5px solid var(--tan); background: var(--white);
-    cursor: pointer; font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .2s; text-decoration: none;
-  }
-  .btn-icon:hover       { background: var(--warm-bg); border-color: var(--brown); }
-  .btn-icon.del:hover   { background: #fde8e6; border-color: var(--rust); }
-  .btn-icon.react:hover { background: #e2f4ea; border-color: var(--green); }
-
-  /* ── EMPTY STATE ── */
-  .empty-state { padding: 60px 20px; text-align: center; color: var(--brown-lt); }
-  .empty-state .e-icon { font-size: 46px; margin-bottom: 12px; }
-  .empty-state p { font-size: 14px; }
-
-  /* ── PAGINADOR (idéntico a productos) ── */
-  .paginador {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 18px; border-top: 1px solid var(--tan);
-    background: var(--warm-bg); flex-wrap: wrap; gap: 10px;
-  }
-  .pag-info { font-size: 12px; color: var(--brown-lt); font-weight: 600; }
-  .pag-info strong { color: var(--brown-dk); }
-  .pag-controles { display: flex; align-items: center; gap: 4px; }
-  .pag-btn {
-    min-width: 34px; height: 34px; padding: 0 10px; border-radius: 8px;
-    border: 1.5px solid var(--tan); background: var(--white);
-    color: var(--brown-dk); font-family: 'Lato', sans-serif;
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    text-decoration: none; display: flex; align-items: center; justify-content: center;
-    transition: background .15s, border-color .15s, color .15s;
-  }
-  .pag-btn:hover:not(.disabled):not(.activo) {
-    background: var(--warm-bg); border-color: var(--brown); color: var(--brown);
-  }
-  .pag-btn.activo {
-    background: var(--brown-dk); border-color: var(--brown-dk);
-    color: var(--cream); cursor: default;
-  }
-  .pag-btn.disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
-  .pag-puntos { font-size: 13px; color: var(--brown-lt); padding: 0 4px; }
-
-  /* ── MODAL ── */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 500;
-    background: rgba(59,42,26,.45); backdrop-filter: blur(3px);
-    display: none; align-items: center; justify-content: center; padding: 24px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--white); border-radius: 16px;
-    width: 100%; max-width: 560px;
-    box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden;
-    animation: fadeUp .25s ease;
-  }
-  .modal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 26px; background: var(--brown-dk);
-  }
-  .modal-header.danger { background: var(--rust); }
-  .modal-header h2 {
-    font-family: 'Playfair Display', serif; font-size: 17px;
-    color: var(--cream); display: flex; align-items: center; gap: 10px;
-  }
-  .modal-close-link, .modal-close {
-    width: 28px; height: 28px; border-radius: 6px;
-    background: rgba(255,255,255,.15); border: none; cursor: pointer;
-    color: var(--cream); font-size: 15px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    text-decoration: none; transition: background .2s;
-  }
-  .modal-close-link:hover, .modal-close:hover { background: rgba(255,255,255,.3); color: #fff; }
-  .modal-body   { padding: 24px 26px; max-height: 70vh; overflow-y: auto; }
-  .modal-footer {
-    display: flex; justify-content: flex-end; gap: 10px;
-    padding: 14px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg);
-  }
-
-  /* ── FORM ── */
-  .form-grid     { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .form-group    { display: flex; flex-direction: column; gap: 5px; }
-  .form-group.full { grid-column: 1 / -1; }
-  .form-label    {
-    font-size: 11px; font-weight: 700; letter-spacing: .8px;
-    text-transform: uppercase; color: var(--brown);
-  }
-  .form-input, .form-select, .form-textarea {
-    padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px;
-    font-family: inherit; font-size: 13.5px; color: var(--text);
-    background: var(--cream); outline: none; transition: border .2s;
-  }
-  .form-input:focus, .form-select:focus { border-color: var(--brown); background: var(--white); }
-  .form-hint  { font-size: 11px; color: var(--brown-lt); }
-  .form-divider {
-    grid-column: 1 / -1; font-size: 10px; font-weight: 700;
-    letter-spacing: 1.5px; text-transform: uppercase; color: var(--brown-lt);
-    padding: 6px 0 2px; border-bottom: 1px solid var(--tan);
-  }
-
-  /* ── DELETE BODY ── */
-  .delete-body    { padding: 30px 26px; text-align: center; }
-  .delete-icon    { font-size: 46px; margin-bottom: 12px; }
-  .delete-body h3 {
-    font-family: 'Playfair Display', serif; font-size: 19px;
-    color: var(--brown-dk); margin-bottom: 8px;
-  }
-  .delete-body p  { font-size: 13px; color: var(--brown-lt); line-height: 1.6; }
-
-  /* ── ANIMACIONES ── */
-  .anim   { opacity: 0; transform: translateY(12px); animation: fadeUp .4s ease forwards; }
-  .anim-1 { animation-delay: .05s; }
-  .anim-2 { animation-delay: .10s; }
-  .anim-3 { animation-delay: .15s; }
-  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-</style>
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/materiasPrimas.css') }}">
+{% endblock %}
 
 
 {# ══ TOPBAR ══ #}
@@ -283,34 +12,39 @@
     <div class="db-page-title">🌾 Materias Primas</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Inventarios <span>›</span> Materias Primas</div>
   </div>
-  <a href="{{ url_for('materias_primas.index_materias_primas', modal='nueva') }}"
-     class="btn btn-primary">➕ Nueva Materia Prima</a>
+  <a href="{{ url_for('materias_primas.index_materias_primas', modal='nueva') }}" class="btn btn-primary">➕ Nueva
+    Materia Prima</a>
 </div>
-
-{# ══ FLASH ══ #}
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div class="alert alert-{{ cat }}"><span>{{ msg }}</span></div>
-  {% endfor %}
-{% endwith %}
 
 {# ══ STATS ══ #}
 <div class="mp-stats anim anim-1">
   <div class="mp-stat">
     <div class="mp-stat-icon brown">🌾</div>
-    <div><div class="mp-stat-val">{{ total }}</div><div class="mp-stat-lbl">Total Registradas</div></div>
+    <div>
+      <div class="mp-stat-val">{{ total }}</div>
+      <div class="mp-stat-lbl">Total Registradas</div>
+    </div>
   </div>
   <div class="mp-stat">
     <div class="mp-stat-icon green">✅</div>
-    <div><div class="mp-stat-val">{{ stat_normal }}</div><div class="mp-stat-lbl">En Stock Normal</div></div>
+    <div>
+      <div class="mp-stat-val">{{ stat_normal }}</div>
+      <div class="mp-stat-lbl">En Stock Normal</div>
+    </div>
   </div>
   <div class="mp-stat">
     <div class="mp-stat-icon gold">⚠️</div>
-    <div><div class="mp-stat-val">{{ stat_bajo }}</div><div class="mp-stat-lbl">Stock Bajo</div></div>
+    <div>
+      <div class="mp-stat-val">{{ stat_bajo }}</div>
+      <div class="mp-stat-lbl">Stock Bajo</div>
+    </div>
   </div>
   <div class="mp-stat">
     <div class="mp-stat-icon rust">🚨</div>
-    <div><div class="mp-stat-val">{{ stat_critico }}</div><div class="mp-stat-lbl">Stock Crítico</div></div>
+    <div>
+      <div class="mp-stat-val">{{ stat_critico }}</div>
+      <div class="mp-stat-lbl">Stock Crítico</div>
+    </div>
   </div>
 </div>
 
@@ -320,14 +54,12 @@
   <div class="toolbar anim anim-2">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" name="buscar" id="buscador"
-             placeholder="Buscar por nombre o categoría…"
-             value="{{ buscar }}" autocomplete="off"
-             oninput="debounceSubmit()">
+      <input type="text" name="buscar" id="buscador" placeholder="Buscar por nombre o categoría…" value="{{ buscar }}"
+        autocomplete="off" oninput="debounceSubmit()">
     </div>
     <select name="estatus" class="filter-select" onchange="this.form.submit()">
-      <option value="todos"    {% if estatus_sel=='todos'    %}selected{% endif %}>Todos los estatus</option>
-      <option value="activo"   {% if estatus_sel=='activo'   %}selected{% endif %}>Activo</option>
+      <option value="todos" {% if estatus_sel=='todos' %}selected{% endif %}>Todos los estatus</option>
+      <option value="activo" {% if estatus_sel=='activo' %}selected{% endif %}>Activo</option>
       <option value="inactivo" {% if estatus_sel=='inactivo' %}selected{% endif %}>Inactivo</option>
     </select>
   </div>
@@ -335,10 +67,10 @@
 
 {# ══ TABLA ══ #}
 {% set cat_icon = {
-  'Cereales y derivados': '🌾', 'Harinas': '🌾',
-  'Lácteos y grasas': '🧈', 'Endulzantes': '🍬',
-  'Proteínas': '🥚',  'Fermentantes': '🫧',
-  'Saborizantes': '🍋', 'Condimentos': '🧂'
+'Cereales y derivados': '🌾', 'Harinas': '🌾',
+'Lácteos y grasas': '🧈', 'Endulzantes': '🍬',
+'Proteínas': '🥚', 'Fermentantes': '🫧',
+'Saborizantes': '🍋', 'Condimentos': '🧂'
 } %}
 
 <div class="table-card anim anim-3">
@@ -356,20 +88,12 @@
     </thead>
     <tbody>
       {% for m in materias %}
-        {% set stock   = m.stock_actual | float %}
-        {% set minimo  = m.stock_minimo  | float %}
-        {% if stock <= 0 %}
-          {% set nivel_mp  = 'critical' %}
-          {% set bar_class = 'bar-critical' %}
-          {% set pct       = 0 %}
-        {% elif stock <= minimo %}
-          {% set nivel_mp  = 'low' %}
-          {% set bar_class = 'bar-low' %}
-          {% set pct       = [(stock / (minimo * 3) * 100) | int, 100] | min %}
-        {% else %}
-          {% set nivel_mp  = 'ok' %}
-          {% set bar_class = 'bar-ok' %}
-          {% set pct       = [(stock / (minimo * 3) * 100) | int if minimo > 0 else 100, 100] | min %}
+      {% set stock = m.stock_actual | float %}
+      {% set minimo = m.stock_minimo | float %}
+      {% if stock <= 0 %} {% set nivel_mp='critical' %} {% set bar_class='bar-critical' %} {% set pct=0 %} {% elif stock
+        <=minimo %} {% set nivel_mp='low' %} {% set bar_class='bar-low' %} {% set pct=[(stock / (minimo * 3) * 100) |
+        int, 100] | min %} {% else %} {% set nivel_mp='ok' %} {% set bar_class='bar-ok' %} {% set pct=[(stock / (minimo
+        * 3) * 100) | int if minimo> 0 else 100, 100] | min %}
         {% endif %}
 
         <tr>
@@ -391,7 +115,7 @@
               </div>
               <span class="stock-val">
                 {{ '{:,.0f}'.format(stock) }} {{ m.unidad_base }}
-                {% if nivel_mp == 'low'      %}<span class="badge badge-low">Stock Bajo</span>
+                {% if nivel_mp == 'low' %}<span class="badge badge-low">Stock Bajo</span>
                 {% elif nivel_mp == 'critical' %}<span class="badge badge-critical">Crítico</span>
                 {% endif %}
               </span>
@@ -402,27 +126,27 @@
           </td>
           <td>
             {% if m.estatus == 'activo' %}
-              <span class="badge badge-active">Activo</span>
+            <span class="badge badge-active">Activo</span>
             {% else %}
-              <span class="badge badge-inactive">Inactivo</span>
+            <span class="badge badge-inactive">Inactivo</span>
             {% endif %}
           </td>
           <td>
             <div class="actions-cell">
               <a href="{{ url_for('materias_primas.index_materias_primas', modal='editar', id=m.id_materia, buscar=buscar, estatus=estatus_sel) }}"
-                 class="btn-icon" title="Editar">✏️</a>
+                class="btn-icon" title="Editar">✏️</a>
 
               {% if m.estatus == 'activo' %}
-                <a href="{{ url_for('materias_primas.index_materias_primas', modal='toggle', id=m.id_materia, buscar=buscar, estatus=estatus_sel) }}"
-                   class="btn-icon del" title="Desactivar">🚫</a>
+              <a href="{{ url_for('materias_primas.index_materias_primas', modal='toggle', id=m.id_materia, buscar=buscar, estatus=estatus_sel) }}"
+                class="btn-icon del" title="Desactivar">🚫</a>
               {% else %}
-                <a href="{{ url_for('materias_primas.index_materias_primas', modal='toggle', id=m.id_materia, buscar=buscar, estatus=estatus_sel) }}"
-                   class="btn-icon react" title="Reactivar">✅</a>
+              <a href="{{ url_for('materias_primas.index_materias_primas', modal='toggle', id=m.id_materia, buscar=buscar, estatus=estatus_sel) }}"
+                class="btn-icon react" title="Reactivar">✅</a>
               {% endif %}
             </div>
           </td>
         </tr>
-      {% else %}
+        {% else %}
         <tr>
           <td colspan="7">
             <div class="empty-state">
@@ -431,7 +155,7 @@
             </div>
           </td>
         </tr>
-      {% endfor %}
+        {% endfor %}
     </tbody>
   </table>
 
@@ -449,33 +173,33 @@
     </div>
     <div class="pag-controles">
       {% if paginacion.has_prev %}
-        <a href="{{ url_for('materias_primas.index_materias_primas', pagina=paginacion.prev_num, buscar=buscar, estatus=estatus_sel) }}"
-           class="pag-btn">‹</a>
+      <a href="{{ url_for('materias_primas.index_materias_primas', pagina=paginacion.prev_num, buscar=buscar, estatus=estatus_sel) }}"
+        class="pag-btn">‹</a>
       {% else %}
-        <span class="pag-btn disabled">‹</span>
+      <span class="pag-btn disabled">‹</span>
       {% endif %}
 
       {% set p_actual = paginacion.page %}
-      {% set p_total  = paginacion.pages %}
+      {% set p_total = paginacion.pages %}
       {% for num in range(1, p_total + 1) %}
-        {% if num == 1 or num == p_total or (num >= p_actual - 2 and num <= p_actual + 2) %}
-          {% if loop.index > 1 and num > 2 and range(1, p_total + 1)|list|select("equalto", num - 1)|list|length == 0 %}
-            <span class="pag-puntos">…</span>
-          {% endif %}
-          <a href="{{ url_for('materias_primas.index_materias_primas', pagina=num, buscar=buscar, estatus=estatus_sel) }}"
-             class="pag-btn {% if num == p_actual %}activo{% endif %}">{{ num }}</a>
-          {% if num < p_total - 1 and not (num + 1 >= p_actual - 2 and num + 1 <= p_actual + 2) and num + 1 != p_total %}
-            <span class="pag-puntos">…</span>
-          {% endif %}
+      {% if num == 1 or num == p_total or (num >= p_actual - 2 and num <= p_actual + 2) %} {% if loop.index> 1 and num >
+        2 and range(1, p_total + 1)|list|select("equalto", num - 1)|list|length == 0 %}
+        <span class="pag-puntos">…</span>
         {% endif %}
-      {% endfor %}
+        <a href="{{ url_for('materias_primas.index_materias_primas', pagina=num, buscar=buscar, estatus=estatus_sel) }}"
+          class="pag-btn {% if num == p_actual %}activo{% endif %}">{{ num }}</a>
+        {% if num < p_total - 1 and not (num + 1>= p_actual - 2 and num + 1 <= p_actual + 2) and num + 1 !=p_total %}
+            <span class="pag-puntos">…</span>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
 
-      {% if paginacion.has_next %}
-        <a href="{{ url_for('materias_primas.index_materias_primas', pagina=paginacion.next_num, buscar=buscar, estatus=estatus_sel) }}"
-           class="pag-btn">›</a>
-      {% else %}
-        <span class="pag-btn disabled">›</span>
-      {% endif %}
+            {% if paginacion.has_next %}
+            <a href="{{ url_for('materias_primas.index_materias_primas', pagina=paginacion.next_num, buscar=buscar, estatus=estatus_sel) }}"
+              class="pag-btn">›</a>
+            {% else %}
+            <span class="pag-btn disabled">›</span>
+            {% endif %}
     </div>
   </div>
   {% elif paginacion.total > 0 %}
@@ -491,14 +215,14 @@
 
 
 {# ══════════════════════════════════════════
-   MODAL — NUEVA MATERIA PRIMA
+MODAL — NUEVA MATERIA PRIMA
 ══════════════════════════════════════════ #}
 <div class="modal-overlay {% if request.args.get('modal')=='nueva' %}open{% endif %}" id="modal-nueva">
   <div class="modal">
     <div class="modal-header">
       <h2>➕ Nueva Materia Prima</h2>
       <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-         class="modal-close-link">✕</a>
+        class="modal-close-link">✕</a>
     </div>
     <form method="POST" action="{{ url_for('materias_primas.materias_primas_nueva') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -507,8 +231,8 @@
 
           <div class="form-group full">
             <label class="form-label">Nombre *</label>
-            <input type="text" name="nombre" class="form-input"
-                   placeholder="Ej. Harina de Trigo" required maxlength="120">
+            <input type="text" name="nombre" class="form-input" placeholder="Ej. Harina de Trigo" required
+              maxlength="120">
           </div>
 
           <div class="form-group">
@@ -552,15 +276,15 @@
 
           <div class="form-group">
             <label class="form-label">Stock Mínimo</label>
-            <input type="number" name="stock_minimo" class="form-input"
-                   placeholder="Ej. 5000" min="0" step="0.01" value="0">
+            <input type="number" name="stock_minimo" class="form-input" placeholder="Ej. 5000" min="0" step="0.01"
+              value="0">
             <span class="form-hint">Cantidad que dispara la alerta</span>
           </div>
 
           <div class="form-group">
             <label class="form-label">Stock Inicial</label>
-            <input type="number" name="stock_inicial" class="form-input"
-                   placeholder="Ej. 40000" min="0" step="0.01" value="0">
+            <input type="number" name="stock_inicial" class="form-input" placeholder="Ej. 40000" min="0" step="0.01"
+              value="0">
             <span class="form-hint">Existencia de apertura</span>
           </div>
 
@@ -568,7 +292,7 @@
       </div>
       <div class="modal-footer">
         <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-           class="btn btn-outline">Cancelar</a>
+          class="btn btn-outline">Cancelar</a>
         <button type="submit" class="btn btn-primary">💾 Guardar</button>
       </div>
     </form>
@@ -577,41 +301,42 @@
 
 
 {# ══════════════════════════════════════════
-   MODAL — EDITAR MATERIA PRIMA
+MODAL — EDITAR MATERIA PRIMA
 ══════════════════════════════════════════ #}
-{% set edit_id   = request.args.get('id', 0) | int %}
-{% set mat_edit  = namespace(obj=None) %}
+{% set edit_id = request.args.get('id', 0) | int %}
+{% set mat_edit = namespace(obj=None) %}
 {% for m in materias %}
-  {% if m.id_materia == edit_id %}{% set mat_edit.obj = m %}{% endif %}
+{% if m.id_materia == edit_id %}{% set mat_edit.obj = m %}{% endif %}
 {% endfor %}
 
 <div class="modal-overlay {% if request.args.get('modal')=='editar' and mat_edit.obj %}open{% endif %}"
-     id="modal-editar">
+  id="modal-editar">
   <div class="modal">
     <div class="modal-header">
       <h2>✏️ Editar Materia Prima</h2>
       <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-         class="modal-close-link">✕</a>
+        class="modal-close-link">✕</a>
     </div>
     {% if mat_edit.obj %}
     <form method="POST"
-          action="{{ url_for('materias_primas.materias_primas_editar', id_materia=mat_edit.obj.id_materia) }}">
+      action="{{ url_for('materias_primas.materias_primas_editar', id_materia=mat_edit.obj.id_materia) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <div class="form-grid">
 
           <div class="form-group full">
             <label class="form-label">Nombre *</label>
-            <input type="text" name="nombre" class="form-input"
-                   value="{{ mat_edit.obj.nombre }}" required maxlength="120">
+            <input type="text" name="nombre" class="form-input" value="{{ mat_edit.obj.nombre }}" required
+              maxlength="120">
           </div>
 
           <div class="form-group">
             <label class="form-label">Categoría</label>
             <select name="categoria" class="form-select">
               <option value="">— Seleccionar —</option>
-              {% for cat in ['Cereales y derivados','Harinas','Lácteos y grasas','Endulzantes','Proteínas','Fermentantes','Saborizantes','Condimentos','Otros'] %}
-                <option {% if mat_edit.obj.categoria == cat %}selected{% endif %}>{{ cat }}</option>
+              {% for cat in ['Cereales y derivados','Harinas','Lácteos y
+              grasas','Endulzantes','Proteínas','Fermentantes','Saborizantes','Condimentos','Otros'] %}
+              <option {% if mat_edit.obj.categoria==cat %}selected{% endif %}>{{ cat }}</option>
               {% endfor %}
             </select>
           </div>
@@ -619,7 +344,7 @@
           <div class="form-group">
             <label class="form-label">Estatus</label>
             <select name="estatus" class="form-select">
-              <option value="activo"   {% if mat_edit.obj.estatus=='activo'   %}selected{% endif %}>Activo</option>
+              <option value="activo" {% if mat_edit.obj.estatus=='activo' %}selected{% endif %}>Activo</option>
               <option value="inactivo" {% if mat_edit.obj.estatus=='inactivo' %}selected{% endif %}>Inactivo</option>
             </select>
           </div>
@@ -629,8 +354,9 @@
           <div class="form-group">
             <label class="form-label">Unidad Base *</label>
             <select name="unidad_base" class="form-select" required>
-              {% for u, lbl in [('g','gramos (g)'),('ml','mililitros (ml)'),('pza','piezas (pza)'),('l','litros (l)'),('kg','kilogramos (kg)')] %}
-                <option value="{{ u }}" {% if mat_edit.obj.unidad_base == u %}selected{% endif %}>{{ lbl }}</option>
+              {% for u, lbl in [('g','gramos (g)'),('ml','mililitros (ml)'),('pza','piezas (pza)'),('l','litros
+              (l)'),('kg','kilogramos (kg)')] %}
+              <option value="{{ u }}" {% if mat_edit.obj.unidad_base==u %}selected{% endif %}>{{ lbl }}</option>
               {% endfor %}
             </select>
           </div>
@@ -638,7 +364,7 @@
           <div class="form-group">
             <label class="form-label">Stock Mínimo</label>
             <input type="number" name="stock_minimo" class="form-input"
-                   value="{{ mat_edit.obj.stock_minimo | float | int }}" min="0" step="0.01">
+              value="{{ mat_edit.obj.stock_minimo | float | int }}" min="0" step="0.01">
             <span class="form-hint">Cantidad que dispara la alerta</span>
           </div>
 
@@ -646,7 +372,7 @@
       </div>
       <div class="modal-footer">
         <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-           class="btn btn-outline">Cancelar</a>
+          class="btn btn-outline">Cancelar</a>
         <button type="submit" class="btn btn-primary">💾 Actualizar</button>
       </div>
     </form>
@@ -656,23 +382,23 @@
 
 
 {# ══════════════════════════════════════════
-   MODAL — CONFIRMAR TOGGLE (BAJA / REACTIVAR)
+MODAL — CONFIRMAR TOGGLE (BAJA / REACTIVAR)
 ══════════════════════════════════════════ #}
-{% set toggle_id  = request.args.get('id', 0) | int %}
+{% set toggle_id = request.args.get('id', 0) | int %}
 {% set mat_toggle = namespace(obj=None) %}
 {% for m in materias %}
-  {% if m.id_materia == toggle_id %}{% set mat_toggle.obj = m %}{% endif %}
+{% if m.id_materia == toggle_id %}{% set mat_toggle.obj = m %}{% endif %}
 {% endfor %}
 
 <div class="modal-overlay {% if request.args.get('modal')=='toggle' and mat_toggle.obj %}open{% endif %}"
-     id="modal-toggle">
+  id="modal-toggle">
   <div class="modal" style="max-width:420px">
     {% if mat_toggle.obj %}
     <div class="modal-header {% if mat_toggle.obj.estatus=='activo' %}danger{% endif %}"
-         style="{% if mat_toggle.obj.estatus=='inactivo' %}background:#27ae60{% endif %}">
+      style="{% if mat_toggle.obj.estatus=='inactivo' %}background:#27ae60{% endif %}">
       <h2>{% if mat_toggle.obj.estatus=='activo' %}🚫 Desactivar{% else %}✅ Reactivar{% endif %}</h2>
       <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-         class="modal-close-link">✕</a>
+        class="modal-close-link">✕</a>
     </div>
     <div class="delete-body">
       <div class="delete-icon">
@@ -685,21 +411,21 @@
       <p>
         <strong>{{ mat_toggle.obj.nombre }}</strong>
         {% if mat_toggle.obj.estatus=='activo' %}
-          no estará disponible para nuevas recetas ni compras.<br>Los movimientos históricos se conservan.
+        no estará disponible para nuevas recetas ni compras.<br>Los movimientos históricos se conservan.
         {% else %}
-          volverá a estar disponible para recetas y compras.
+        volverá a estar disponible para recetas y compras.
         {% endif %}
       </p>
     </div>
     <div class="modal-footer">
       <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-         class="btn btn-outline">Cancelar</a>
+        class="btn btn-outline">Cancelar</a>
       <form method="POST"
-            action="{{ url_for('materias_primas.materias_primas_toggle', id_materia=mat_toggle.obj.id_materia) }}"
-            style="display:inline">
+        action="{{ url_for('materias_primas.materias_primas_toggle', id_materia=mat_toggle.obj.id_materia) }}"
+        style="display:inline">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit"
-                class="btn {% if mat_toggle.obj.estatus=='activo' %}btn-danger{% else %}btn-success{% endif %}">
+          class="btn {% if mat_toggle.obj.estatus=='activo' %}btn-danger{% else %}btn-success{% endif %}">
           {% if mat_toggle.obj.estatus=='activo' %}🚫 Desactivar{% else %}✅ Reactivar{% endif %}
         </button>
       </form>
@@ -709,12 +435,8 @@
 </div>
 
 
-<script>
-let _debounce = null;
-function debounceSubmit() {
-  clearTimeout(_debounce);
-  _debounce = setTimeout(() => document.getElementById('form-filtro').submit(), 500);
-}
-</script>
+{% endblock %}
 
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/materiasPrimas.js') }}"></script>
 {% endblock %}

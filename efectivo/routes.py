@@ -1,7 +1,7 @@
 import datetime
 from collections import defaultdict
 
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from sqlalchemy import text
 
@@ -34,6 +34,7 @@ def _gen_folio():
 @login_required
 @roles_required('admin', 'empleado')
 def index_salida_efectivo():
+    current_app.logger.info('Vista de panel de salidas de efectivo accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     lista = db.session.execute(
         text("SELECT * FROM vw_salidas_efectivo ORDER BY creado_en DESC")
     ).mappings().all()
@@ -92,6 +93,7 @@ def crear_salida():
     if not form.validate():
         # El JS valida antes de enviar; si llega aquí es sin JS — mostramos el primer error
         primer_error = next(iter(form.errors.values()))[0]
+        current_app.logger.warning('Intento de registrar salida de efectivo fallido (validacion) | usuario: %s | error: %s | fecha: %s', current_user.username, primer_error, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'⚠️ {primer_error}', 'error')
         return redirect(url_for('efectivo.index_salida_efectivo'))
 
@@ -111,11 +113,13 @@ def crear_salida():
             }
         )
         db.session.execute(text("COMMIT"))
+        current_app.logger.info('Salida de efectivo registrada exitosamente | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Salida {folio} registrada correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
+        current_app.logger.error('Error al registrar salida de efectivo | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al registrar: {msg}', 'error')
 
     return redirect(url_for('efectivo.index_salida_efectivo'))
@@ -128,6 +132,7 @@ def crear_salida():
 def aprobar_salida(id_salida):
     decision = request.form.get('decision', '')
     if decision not in ('aprobada', 'rechazada'):
+        current_app.logger.warning('Resolucion de salida de efectivo fallida (decision invalida) | admin: %s | decision_enviada: %s | fecha: %s', current_user.username, decision, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Decisión no válida.', 'error')
         return redirect(url_for('efectivo.index_salida_efectivo'))
 
@@ -138,11 +143,13 @@ def aprobar_salida(id_salida):
         )
         db.session.execute(text("COMMIT"))
         accion = 'aprobada' if decision == 'aprobada' else 'rechazada'
+        current_app.logger.info('Resolucion de salida de efectivo aplicada | admin: %s | decision: %s | id_salida: %s | fecha: %s', current_user.username, decision, id_salida, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Salida {accion} correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
+        current_app.logger.error('Error al resolver salida de efectivo | admin: %s | id_salida: %s | error: %s | fecha: %s', current_user.username, id_salida, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error: {msg}', 'error')
 
     return redirect(url_for('efectivo.index_salida_efectivo'))

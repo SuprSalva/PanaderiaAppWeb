@@ -275,12 +275,6 @@
       <div class="card-greeting">Nuevo Usuario</div>
       <div class="card-sub">Completa los datos para crear el acceso</div>
 
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}
-          <div class="flash-error">⚠️ {{ message }}</div>
-        {% endfor %}
-      {% endwith %}
-
       <form method="POST" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
@@ -333,7 +327,7 @@
           {% if form.password.errors %}
             {% for e in form.password.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
           {% else %}
-            <div class="field-hint">Mayúscula, número y carácter especial (@$!%*?&)</div>
+            <div class="field-hint">Mayúscula, número y carácter especial (@$!%*?&_)</div>
           {% endif %}
         </div>
 

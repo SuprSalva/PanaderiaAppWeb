@@ -3,11 +3,11 @@ import re as _re
 from wtforms import (
     Form, StringField, PasswordField, SelectField,
     TextAreaField, DecimalField, IntegerField, HiddenField,
-    FieldList, FormField, validators
+    FieldList, FormField, validators, BooleanField
 )
 from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length
 
-_USR_PWD_RE = _re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$')
+_USR_PWD_RE = _re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,}$')
 
 
 class LoginForm(Form):
@@ -60,7 +60,7 @@ class RegistroClienteForm(Form):
 
     def validate_password(self, field):
         if field.data and not _USR_PWD_RE.match(field.data):
-            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).')
 
     def validate_confirmar(self, field):
         if self.password.data and field.data != self.password.data:
@@ -78,7 +78,7 @@ class CrearUsuarioForm(Form):
 
     def validate_password(self, field):
         if field.data and not _USR_PWD_RE.match(field.data):
-            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).')
 
     def validate_confirmar(self, field):
         if self.password.data and field.data != self.password.data:
@@ -96,7 +96,7 @@ class EditarUsuarioForm(Form):
 
     def validate_password(self, field):
         if field.data and not _USR_PWD_RE.match(field.data):
-            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&).')
+            raise ValidationError('La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).')
 
     def validate_confirmar(self, field):
         if self.password.data and field.data != self.password.data:
@@ -315,3 +315,192 @@ class CostoUtilidadFiltroForm(Form):
         Optional(),
         NumberRange(min=0, message='Debe ser mayor o igual a 0.'),
     ], places=2)
+class ItemVentaForm(Form):
+    """Formulario para cada producto en una venta"""
+    id_producto = HiddenField('ID Producto', [DataRequired(message='Producto requerido')])
+    nombre = HiddenField('Nombre')
+    cantidad = DecimalField('Cantidad', 
+                           [DataRequired(message='Cantidad requerida'),
+                            NumberRange(min=0.01, message='La cantidad debe ser mayor a 0')],
+                           places=2)
+    precio_unitario = DecimalField('Precio Unitario',
+                                   [DataRequired(message='Precio requerido'),
+                                    NumberRange(min=0, message='El precio no puede ser negativo')],
+                                   places=2)
+    descuento_pct = DecimalField('Descuento %',
+                                 [NumberRange(min=0, max=100, message='El descuento debe estar entre 0 y 100')],
+                                 places=2, default=0)
+
+
+class VentaForm(Form):
+    """Formulario principal para registrar una venta"""
+    metodo_pago = SelectField('Método de Pago',
+                             choices=[
+                                 ('efectivo', '💵 Efectivo'),
+                                 ('tarjeta', '💳 Tarjeta'),
+                                 ('transferencia', '🔁 Transferencia'),
+                                 ('otro', '📦 Otro')
+                             ],
+                             validators=[DataRequired(message='Selecciona un método de pago')])
+    
+    monto_recibido = DecimalField('Monto Recibido (Efectivo)',
+                                  [NumberRange(min=0, message='El monto no puede ser negativo')],
+                                  places=2, default=0)
+    
+    requiere_ticket = BooleanField('Imprimir Ticket', default=True)
+    
+    observaciones = TextAreaField('Observaciones',
+                                  [Length(max=500, message='Máximo 500 caracteres')])
+    
+    items = FieldList(FormField(ItemVentaForm), min_entries=1, 
+                      validators=[DataRequired(message='Agrega al menos un producto')])
+
+
+class FiltroVentasForm(Form):
+    """Formulario para filtrar el listado de ventas"""
+    fecha_inicio = StringField('Fecha Inicio', [Optional()])
+    fecha_fin = StringField('Fecha Fin', [Optional()])
+    metodo_pago = SelectField('Método de Pago',
+                             choices=[
+                                 ('', 'Todos'),
+                                 ('efectivo', 'Efectivo'),
+                                 ('tarjeta', 'Tarjeta'),
+                                 ('transferencia', 'Transferencia'),
+                                 ('otro', 'Otro')
+                             ],
+                             validators=[Optional()])
+    
+    estado = SelectField('Estado',
+                        choices=[
+                            ('', 'Todos'),
+                            ('completada', 'Completada'),
+                            ('cancelada', 'Cancelada'),
+                            ('abierta', 'Abierta')
+                        ],
+                        validators=[Optional()])
+    
+    vendedor_id = SelectField('Vendedor', coerce=int, validators=[Optional()])
+    
+    def __init__(self, *args, **kwargs):
+        super(FiltroVentasForm, self).__init__(*args, **kwargs)
+        # Las opciones de vendedor se cargarán dinámicamente desde la base de datos
+
+
+class CancelarVentaForm(Form):
+    """Formulario para cancelar una venta"""
+    motivo_cancelacion = TextAreaField('Motivo de Cancelación',
+                                       [Length(max=500, message='Máximo 500 caracteres')])
+    
+    confirmar = BooleanField('Confirmar cancelación',
+                            validators=[DataRequired(message='Debes confirmar la cancelación')])
+
+
+class CorteVentaForm(Form):
+    """Formulario para realizar corte de ventas"""
+    fecha_corte = StringField('Fecha de Corte',
+                              [DataRequired(message='La fecha es obligatoria')])
+    
+    efectivo_sistema = DecimalField('Efectivo según sistema',
+                                    [DataRequired(message='Campo requerido')],
+                                    places=2)
+    
+    efectivo_contado = DecimalField('Efectivo contado',
+                                    [DataRequired(message='Campo requerido')],
+                                    places=2)
+    
+    tarjeta_sistema = DecimalField('Tarjeta según sistema',
+                                   [DataRequired(message='Campo requerido')],
+                                   places=2)
+    
+    tarjeta_contado = DecimalField('Tarjeta contado',
+                                   [DataRequired(message='Campo requerido')],
+                                   places=2)
+    
+    transferencia_sistema = DecimalField('Transferencia según sistema',
+                                         [DataRequired(message='Campo requerido')],
+                                         places=2)
+    
+    transferencia_contado = DecimalField('Transferencia contado',
+                                         [DataRequired(message='Campo requerido')],
+                                         places=2)
+    
+    observaciones = TextAreaField('Observaciones del corte',
+                                  [Length(max=500, message='Máximo 500 caracteres')])
+    
+    def validate_efectivo_contado(self, field):
+        if self.efectivo_sistema.data and field.data:
+            diferencia = abs(field.data - self.efectivo_sistema.data)
+            if diferencia > 5:  # Tolerancia de $5
+                raise ValidationError(f'Diferencia de ${diferencia:.2f} en efectivo. Verifica el conteo.')
+    
+    def validate_tarjeta_contado(self, field):
+        if self.tarjeta_sistema.data and field.data:
+            diferencia = abs(field.data - self.tarjeta_sistema.data)
+            if diferencia > 5:
+                raise ValidationError(f'Diferencia de ${diferencia:.2f} en tarjeta. Verifica el conteo.')
+    
+    def validate_transferencia_contado(self, field):
+        if self.transferencia_sistema.data and field.data:
+            diferencia = abs(field.data - self.transferencia_sistema.data)
+            if diferencia > 5:
+                raise ValidationError(f'Diferencia de ${diferencia:.2f} en transferencias. Verifica el conteo.')
+
+
+class BusquedaProductoVentaForm(Form):
+    """Formulario para buscar productos en el POS"""
+    busqueda = StringField('Buscar producto',
+                          [Length(max=100, message='Máximo 100 caracteres')])
+    
+    categoria = SelectField('Categoría',
+                           choices=[
+                               ('', 'Todas'),
+                               ('pan_dulce', 'Pan Dulce'),
+                               ('pan_salado', 'Pan Salado'),
+                               ('reposteria', 'Repostería'),
+                               ('especial', 'Especialidades')
+                           ],
+                           validators=[Optional()])
+
+
+class TicketForm(Form):
+    """Formulario para reimprimir ticket"""
+    folio_venta = StringField('Folio de Venta',
+                             [DataRequired(message='El folio es obligatorio'),
+                              Length(min=5, max=20, message='Folio inválido')])
+    
+    tipo_ticket = SelectField('Tipo de Ticket',
+                             choices=[
+                                 ('original', 'Original'),
+                                 ('copia', 'Copia'),
+                                 ('factura', 'Factura (CFDI)')
+                             ],
+                             default='original')
+
+
+class DevolucionForm(Form):
+    """Formulario para devolución de productos"""
+    folio_venta_original = StringField('Folio de Venta Original',
+                                       [DataRequired(message='El folio original es obligatorio')])
+    
+    productos = FieldList(FormField(ItemVentaForm), min_entries=1,
+                         validators=[DataRequired(message='Selecciona al menos un producto a devolver')])
+    
+    motivo_devolucion = SelectField('Motivo de Devolución',
+                                   choices=[
+                                       ('producto_defectuoso', 'Producto defectuoso'),
+                                       ('cliente_arrepentimiento', 'Cliente se arrepintió'),
+                                       ('error_venta', 'Error en la venta'),
+                                       ('otro', 'Otro')
+                                   ],
+                                   validators=[DataRequired(message='Selecciona un motivo')])
+    
+    observaciones = TextAreaField('Observaciones',
+                                  [Length(max=500, message='Máximo 500 caracteres')])
+    
+    metodo_reembolso = SelectField('Método de Reembolso',
+                                  choices=[
+                                      ('mismo_metodo', 'Mismo método de pago'),
+                                      ('efectivo', 'Efectivo'),
+                                      ('credito_tienda', 'Crédito en tienda')
+                                  ],
+                                  validators=[DataRequired(message='Selecciona método de reembolso')])

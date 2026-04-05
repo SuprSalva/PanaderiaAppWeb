@@ -1,4 +1,4 @@
-  const PWD_RE = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+  const PWD_RE = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,}$/;
   const nueva     = document.getElementById('pwd-nueva');
   const confirmar = document.getElementById('pwd-confirmar');
   const matchMsg  = document.getElementById('pwd-match-msg');

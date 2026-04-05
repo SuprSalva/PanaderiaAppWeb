@@ -5,9 +5,10 @@ from markupsafe import Markup
 
 from flask import (
     render_template, request, redirect, url_for,
-    flash, jsonify, abort
+    flash, jsonify, abort, current_app
 )
 from flask_login import login_required, current_user
+from auth import roles_required
 from sqlalchemy import text
 from models import db
 from pedidos import pedidos_bp
@@ -15,7 +16,10 @@ from forms import PedidoCajaForm
 
 
 @pedidos_bp.route('/nuevo', methods=['GET'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def catalogo():
+    current_app.logger.info('Vista de catalogo de pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn = db.session.connection()
     cur  = conn.connection.cursor()
     cur.execute("CALL sp_catalogo_pedido()")
@@ -47,32 +51,38 @@ def catalogo():
 
 
 @pedidos_bp.route('/nuevo', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def crear_pedido():
     form = PedidoCajaForm(request.form)
     cajas_raw = request.form.get('cajas_json', '').strip()
 
     if not cajas_raw:
-        flash('No se recibieron cajas en el pedido.', 'danger')
+        current_app.logger.warning('Intento de crear pedido fallido (sin cajas) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('No se recibieron cajas en el pedido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
     try:
         cajas_data = json.loads(cajas_raw)
     except (ValueError, TypeError):
-        flash('Error al leer los datos del pedido.', 'danger')
+        current_app.logger.warning('Intento de crear pedido fallido (json invalido) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Error al leer los datos del pedido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
     if not isinstance(cajas_data, list) or len(cajas_data) == 0:
-        flash('Agrega al menos una caja al pedido.', 'danger')
+        current_app.logger.warning('Intento de crear pedido fallido (sin cajas decodificadas) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Agrega al menos una caja al pedido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
     fecha_str = request.form.get('fecha_recogida', '').strip()
     if not fecha_str:
-        flash('Indica la fecha y hora de recolección.', 'danger')
+        current_app.logger.warning('Intento de crear pedido fallido (sin fecha) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Indica la fecha y hora de recolección.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
     errores = _validar_cajas(cajas_data)
     if errores:
         for e in errores:
-            flash(e, 'danger')
+            flash(e, 'error')
         return redirect(url_for('pedidos.catalogo'))
 
     try:
@@ -98,11 +108,13 @@ def crear_pedido():
 
         if row[2]:
             db.session.rollback()
-            flash(f'Error: {row[2]}', 'danger')
+            current_app.logger.error('Error db al crear pedido | usuario: %s | error: %s | fecha: %s', current_user.username, row[2], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f'Error: {row[2]}', 'error')
             return redirect(url_for('pedidos.catalogo'))
 
         db.session.commit()
         n = len(cajas_data)
+        current_app.logger.info('Pedido creado exitosamente | usuario: %s | folio: %s | piezas: %s | fecha: %s', current_user.username, row[1], n, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(
             f'¡Pedido {row[1]} enviado con {n} caja{"s" if n > 1 else ""}! '
             'Te avisaremos cuando esté listo.',
@@ -110,9 +122,10 @@ def crear_pedido():
         )
         return redirect(url_for('pedidos.mis_pedidos'))
 
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'danger')
+        current_app.logger.error('Error general al crear pedido | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
 
@@ -177,7 +190,10 @@ def _validar_cajas(cajas_data: list) -> list[str]:
 
 
 @pedidos_bp.route('/mis-pedidos')
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def mis_pedidos():
+    current_app.logger.info('Vista de mis pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn = db.session.connection()
     cur  = conn.connection.cursor()
     cur.execute("CALL sp_mis_pedidos_cliente(%s)", (current_user.id_usuario,))
@@ -202,7 +218,10 @@ def mis_pedidos():
 
 
 @pedidos_bp.route('/pedidos')
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def lista():
+    current_app.logger.info('Vista de lista general de pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     estado = request.args.get('estado') or None
     fecha  = request.args.get('fecha')  or None
     buscar = request.args.get('q')      or None
@@ -232,6 +251,8 @@ def lista():
 
 
 @pedidos_bp.route('/<folio>')
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def detalle(folio):
     conn = db.session.connection()
     cur  = conn.connection.cursor()
@@ -273,6 +294,8 @@ def detalle(folio):
 
 
 @pedidos_bp.route('/<folio>/estado', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def cambiar_estado(folio):
     nuevo_estado = request.form.get('estado', '').strip()
     nota         = request.form.get('nota', '').strip() or None
@@ -296,7 +319,8 @@ def cambiar_estado(folio):
 
         if row[0]:
             db.session.rollback()
-            flash(f'No se pudo cambiar el estado: {row[0]}', 'danger')
+            current_app.logger.warning('Cambio de estado fallido (rechazado por db) | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, row[0], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f'No se pudo cambiar el estado: {row[0]}', 'error')
             return redirect(url_for('pedidos.detalle', folio=folio))
 
         db.session.commit()
@@ -307,16 +331,20 @@ def cambiar_estado(folio):
             'listo':         'listo para recoger 🎉',
             'entregado':     'entregado 📦',
         }
+        current_app.logger.info('Estado de pedido cambiado | usuario: %s | folio: %s | nuevo_estado: %s | fecha: %s', current_user.username, folio, nuevo_estado, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Pedido {folio} marcado como {LABELS.get(nuevo_estado, nuevo_estado)}.', 'success')
 
-    except Exception:
+    except Exception as e:
         db.session.rollback()
+        current_app.logger.error('Error al cambiar estado de pedido | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Error al cambiar el estado. Intenta de nuevo.', 'danger')
 
     return redirect(url_for('pedidos.detalle', folio=folio))
 
 
 @pedidos_bp.route('/notificaciones/leer', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def marcar_leidas():
     try:
         db.session.execute(
@@ -331,6 +359,8 @@ def marcar_leidas():
 
 
 @pedidos_bp.route('/api/badge')
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
 def badge_notifs():
     row = db.session.execute(
         text("CALL sp_badge_notifs(:u)"),
@@ -345,7 +375,9 @@ def badge_notifs():
 
 @pedidos_bp.route('/produccion-pedidos')
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def cola_produccion():
+    current_app.logger.info('Vista de cola de produccion accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     estado  = request.args.get('estado', '') or None   # ← esta es la única línea de estado
     fecha   = request.args.get('fecha',  '') or None
     pagina  = request.args.get('pagina', 1, type=int)
@@ -415,6 +447,7 @@ def cola_produccion():
 
 @pedidos_bp.route('/api/<folio>/insumos')
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_insumos_pedido(folio):
     try:
         conn = db.session.connection()
@@ -493,6 +526,7 @@ def api_insumos_pedido(folio):
 
 @pedidos_bp.route('/api/<folio>/faltantes-compra')
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_faltantes_compra(folio):
     try:
         conn = db.session.connection()
@@ -554,6 +588,7 @@ def api_faltantes_compra(folio):
 # ── Aprobar pedido ──────────────────────────────────────────
 @pedidos_bp.route('/<folio>/aprobar', methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def aprobar_pedido(folio):
     nota = request.form.get('nota', '').strip() or 'Pedido aprobado.'
     try:
@@ -567,22 +602,27 @@ def aprobar_pedido(folio):
         db.session.commit()
 
         if int(row['ok'] or 0) == 1:
-            flash(f'Pedido {folio} aprobado ✅', 'success')
+            current_app.logger.info('Pedido aprobado exitosamente | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f'Pedido {folio} aprobado', 'success')
         else:
-            flash(f'No se pudo aprobar: {row["err"] or "Error desconocido"}', 'danger')
+            current_app.logger.warning('Aprobacion de pedido rechazada | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, row["err"], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f'No se pudo aprobar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        current_app.logger.error('Error al aprobar pedido | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Error: {exc}', 'error')
     return redirect(request.referrer or url_for('pedidos.cola_produccion'))
 
 
 # ── Rechazar pedido ─────────────────────────────────────────
 @pedidos_bp.route('/<folio>/rechazar', methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def rechazar_pedido(folio):
     motivo = request.form.get('motivo', '').strip()
     if not motivo:
-        flash('Debes indicar el motivo del rechazo.', 'danger')
+        current_app.logger.warning('Intento de rechazar pedido fallido (sin motivo) | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Debes indicar el motivo del rechazo.', 'warning')
         return redirect(request.referrer or url_for('pedidos.cola_produccion'))
     try:
         conn = db.session.connection()
@@ -595,16 +635,20 @@ def rechazar_pedido(folio):
         db.session.commit()
 
         if int(row['ok'] or 0) == 1:
+            current_app.logger.info('Pedido rechazado exitosamente | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash(f'Pedido {folio} rechazado.', 'success')
         else:
-            flash(f'No se pudo rechazar: {row["err"] or "Error desconocido"}', 'danger')
+            current_app.logger.warning('Rechazo de pedido invalido por db | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, row["err"], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f'No se pudo rechazar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        current_app.logger.error('Error al rechazar pedido | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Error: {exc}', 'error')
     return redirect(request.referrer or url_for('pedidos.cola_produccion'))
 
 @pedidos_bp.route('/<folio>/iniciar-produccion', methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def iniciar_produccion(folio):
     try:
         conn = db.session.connection()
@@ -620,23 +664,28 @@ def iniciar_produccion(folio):
 
         if int(row['ok'] or 0) == 1:
             if row['estado'] == 'en_produccion':
-                flash(f'✅ Pedido {folio} iniciado. Insumos descontados.', 'success')
+                current_app.logger.info('Produccion de pedido iniciada | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                flash(f'Pedido {folio} iniciado. Insumos descontados.', 'success')
             else:
+                current_app.logger.warning('Intento de iniciar produccion parado (insumos insuficientes) | usuario: %s | folio: %s | faltantes: %s | fecha: %s', current_user.username, folio, row["faltantes"], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 flash(
-                    f'⚠️ Insumos insuficientes. Pedido marcado como "Pendiente de Insumos". '
+                    f'Insumos insuficientes. Pedido marcado como "Pendiente de Insumos". '
                     f'Faltantes: {row["faltantes"]}',
                     'warning'
                 )
         else:
-            flash(f'No se pudo iniciar: {row["err"] or "Error desconocido"}', 'danger')
+            current_app.logger.warning('Intento de iniciar produccion denegado por db | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, row["err"], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f'No se pudo iniciar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        current_app.logger.error('Error al iniciar produccion | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Error: {exc}', 'error')
     return redirect(url_for('pedidos.cola_produccion', folio=folio))
 
 
 @pedidos_bp.route('/<folio>/terminar-produccion', methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def terminar_produccion(folio):
     try:
         conn = db.session.connection()
@@ -649,16 +698,20 @@ def terminar_produccion(folio):
         db.session.commit()
 
         if int(row['ok'] or 0) == 1:
-            flash(f'🎉 Pedido {folio} listo. El cliente fue notificado.', 'success')
+            current_app.logger.info('Produccion terminada | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f'Pedido {folio} listo. El cliente fue notificado.', 'success')
         else:
-            flash(f'No se pudo terminar: {row["err"] or "Error desconocido"}', 'danger')
+            current_app.logger.warning('Terminar produccion invalido por db | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, row["err"], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f'No se pudo terminar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        flash(f'Error: {exc}', 'danger')
+        current_app.logger.error('Error al terminar produccion | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Error: {exc}', 'error')
     return redirect(url_for('pedidos.cola_produccion', folio=folio))
 
 @pedidos_bp.route('/api/<folio>/detalle')
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_detalle_pedido(folio):
     try:
         conn = db.session.connection()

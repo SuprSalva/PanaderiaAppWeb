@@ -202,15 +202,6 @@
 {% block container %}
 <div class="cola-wrap">
 
-  <!-- FLASH -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for cat, msg in messages %}
-    <div class="flash flash-{{ cat }}">
-      {{ '✅' if cat=='success' else ('⚠️' if cat=='warning' else '❌') }} {{ msg }}
-    </div>
-    {% endfor %}
-  {% endwith %}
-
   <!-- HEADER -->
   <div class="page-header">
     <h1 class="page-title">🧑‍🍳 Cola de Producción</h1>

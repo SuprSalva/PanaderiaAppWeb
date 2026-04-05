@@ -207,7 +207,7 @@
       </nav>
 
       <div class="sidebar-toggle">
-x        <button class="toggle-btn" onclick="toggleSidebar()" id="toggleBtn">
+        <button class="toggle-btn" onclick="toggleSidebar()" id="toggleBtn">
           <span id="toggleIcon">◀</span>
           <span class="toggle-btn-label">Contraer</span>
         </button>
@@ -294,8 +294,234 @@ x        <button class="toggle-btn" onclick="toggleSidebar()" id="toggleBtn">
     </div>
   </div>
 
-  <script src="{{ url_for('static', filename='js/layout.js') }}"></script>
+  {# ══════════════════════════════════════════════
+     SISTEMA DE TOASTS — único punto de notificaciones
+     Usar en Python: flash('Mensaje', 'success')
+     Categorías: success | error | warning | info
+     Sin categoría → se trata como info
+  ══════════════════════════════════════════════ #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div id="dm-toast-container" aria-live="polite" aria-atomic="false"></div>
 
+      {# Pasamos los mensajes a JS para no mezclar lógica en Jinja #}
+      <script>
+        window.__DM_TOASTS__ = [
+          {% for category, message in messages %}
+            { category: {{ category | tojson }}, message: {{ message | tojson }} }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ];
+      </script>
+    {% endif %}
+  {% endwith %}
+
+  <style>
+    /* ── Contenedor ── */
+    #dm-toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 340px;
+      pointer-events: none;
+    }
+
+    /* ── Toast base ── */
+    .dm-toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 14px 14px 18px 16px;
+      border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(59, 42, 26, .18);
+      font-family: 'Lato', sans-serif;
+      font-size: 13.5px;
+      line-height: 1.45;
+      pointer-events: all;
+      position: relative;
+      overflow: hidden;
+      animation: dm-toast-in .32s cubic-bezier(.21, 1.02, .73, 1) forwards;
+    }
+
+    /* ── Variantes de color ── */
+    .dm-toast.success {
+      background: #f0faf0;
+      border: 1px solid #b7dfb7;
+      color: #1e5c1e;
+    }
+    .dm-toast.error {
+      background: #fff4f2;
+      border: 1px solid #f5c0b0;
+      color: #8b1a0a;
+    }
+    .dm-toast.warning {
+      background: #fffbee;
+      border: 1px solid #f0d98a;
+      color: #6b4800;
+    }
+    .dm-toast.info {
+      background: #f0f6ff;
+      border: 1px solid #b0ccf5;
+      color: #1a3d6e;
+    }
+
+    /* ── Icono ── */
+    .dm-toast-icon {
+      font-size: 17px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Texto ── */
+    .dm-toast-body {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    /* ── Botón cerrar ── */
+    .dm-toast-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: .45;
+      font-size: 15px;
+      line-height: 1;
+      padding: 0 2px;
+      flex-shrink: 0;
+      color: inherit;
+      transition: opacity .15s;
+    }
+    .dm-toast-close:hover { opacity: .9; }
+
+    /* ── Barra de progreso ── */
+    .dm-toast-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      width: 100%;
+      border-radius: 0 0 0 12px;
+      transition: width linear;
+    }
+    .dm-toast.success .dm-toast-bar { background: #4caf50; }
+    .dm-toast.error   .dm-toast-bar { background: #e53935; }
+    .dm-toast.warning .dm-toast-bar { background: #f9a825; }
+    .dm-toast.info    .dm-toast-bar { background: #1e88e5; }
+
+    /* ── Animaciones ── */
+    @keyframes dm-toast-in {
+      from { opacity: 0; transform: translateX(40px) scale(.96); }
+      to   { opacity: 1; transform: translateX(0)   scale(1);    }
+    }
+    @keyframes dm-toast-out {
+      from { opacity: 1; transform: translateX(0)   scale(1);    max-height: 120px; margin-bottom: 0; }
+      to   { opacity: 0; transform: translateX(40px) scale(.96); max-height: 0;     margin-bottom: -10px; }
+    }
+    .dm-toast.dm-toast-leaving {
+      animation: dm-toast-out .35s cubic-bezier(.06, .71, .55, 1) forwards;
+    }
+  </style>
+
+  <script>
+    (function () {
+      const DURATION = 5000; // ms — tiempo de vida del toast
+
+      const ICONS = {
+        success: '✅',
+        error:   '❌',
+        warning: '⚠️',
+        info:    'ℹ️',
+      };
+
+      function resolveCategory(cat) {
+        // Flask usa 'message' como categoría por defecto → tratar como info
+        if (['success', 'error', 'warning', 'info'].includes(cat)) return cat;
+        return 'info';
+      }
+
+      function removeToast(toast) {
+        if (toast.dataset.leaving) return;
+        toast.dataset.leaving = '1';
+        toast.classList.add('dm-toast-leaving');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+      }
+
+      function createToast(category, message) {
+        const cat  = resolveCategory(category);
+        const icon = ICONS[cat];
+
+        const toast = document.createElement('div');
+        toast.className = 'dm-toast ' + cat;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+          <span class="dm-toast-icon">${icon}</span>
+          <span class="dm-toast-body">${message}</span>
+          <button class="dm-toast-close" aria-label="Cerrar notificación">✕</button>
+          <span class="dm-toast-bar"></span>
+        `;
+
+        // Botón cerrar
+        toast.querySelector('.dm-toast-close').addEventListener('click', () => removeToast(toast));
+
+        const container = document.getElementById('dm-toast-container');
+        container.appendChild(toast);
+
+        // Barra de progreso: arranca en 100% → 0% en DURATION ms
+        const bar = toast.querySelector('.dm-toast-bar');
+        // Forzar reflow para que la transición arranque desde 100%
+        bar.getBoundingClientRect();
+        bar.style.transitionDuration = DURATION + 'ms';
+        bar.style.width = '0%';
+
+        // Timer principal
+        let timer = setTimeout(() => removeToast(toast), DURATION);
+
+        // Pausar al hacer hover
+        toast.addEventListener('mouseenter', () => {
+          clearTimeout(timer);
+          bar.style.transitionDuration = '0ms'; // congela la barra
+        });
+
+        toast.addEventListener('mouseleave', () => {
+          // Al salir, queda 1.5 s antes de cerrar
+          const remain = 1500;
+          bar.style.transitionDuration = remain + 'ms';
+          bar.style.width = '0%';
+          timer = setTimeout(() => removeToast(toast), remain);
+        });
+      }
+
+      // Renderizar los toasts que Jinja pasó
+      document.addEventListener('DOMContentLoaded', function () {
+        const toasts = window.__DM_TOASTS__ || [];
+        // Pequeño escalonado visual (60 ms entre cada uno)
+        toasts.forEach(function (t, i) {
+          setTimeout(function () {
+            createToast(t.category, t.message);
+          }, i * 120);
+        });
+      });
+
+      // API pública para mostrar toasts desde JS en cualquier módulo:
+      // DM.toast('Operación exitosa', 'success')
+      window.DM = window.DM || {};
+      window.DM.toast = function (message, category) {
+        // Si el contenedor aún no existe, crearlo
+        if (!document.getElementById('dm-toast-container')) {
+          const c = document.createElement('div');
+          c.id = 'dm-toast-container';
+          c.setAttribute('aria-live', 'polite');
+          document.body.appendChild(c);
+        }
+        createToast(category || 'info', message);
+      };
+    })();
+  </script>
+
+  <script src="{{ url_for('static', filename='js/layout.js') }}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 
