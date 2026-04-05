@@ -1,6 +1,6 @@
 import uuid as _uuid
 import datetime
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, current_app
 from models import db, MateriaPrima
 from . import materias_primas_bp
 from flask_login import login_required, current_user
@@ -13,6 +13,7 @@ POR_PAGINA = 10
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def index_materias_primas():
+    current_app.logger.info('Vista de inventario de materias primas accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     buscar  = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
     pagina  = request.args.get('pagina', 1, type=int)
@@ -73,14 +74,17 @@ def materias_primas_nueva():
     estatus     = request.form.get('estatus', 'activo')
 
     if not nombre:
+        current_app.logger.warning('Creacion de materia prima fallida (sin nombre) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('El nombre es obligatorio.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
     if not unidad_base:
+        current_app.logger.warning('Creacion de materia prima fallida (sin unidad) | usuario: %s | materia: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('La unidad base es obligatoria.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
     if MateriaPrima.query.filter(
             db.func.lower(MateriaPrima.nombre) == nombre.lower()).first():
+        current_app.logger.warning('Creacion de materia prima fallida (duplicada) | usuario: %s | materia: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Ya existe una materia prima llamada "{nombre}".', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
@@ -88,6 +92,7 @@ def materias_primas_nueva():
         stock_min_f = float(stock_min) if stock_min else 0.0
         stock_ini_f = float(stock_ini) if stock_ini else 0.0
     except ValueError:
+        current_app.logger.warning('Creacion de materia prima fallida (stock no numerico) | usuario: %s | materia: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Los valores de stock deben ser numéricos.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
@@ -107,9 +112,11 @@ def materias_primas_nueva():
     try:
         db.session.add(nueva)
         db.session.commit()
+        current_app.logger.info('Materia prima creada exitosamente | usuario: %s | materia: %s | fecha: %s', current_user.username, nueva.nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Materia prima "{nueva.nombre}" creada correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error('Error al guardar materia prima | usuario: %s | materia: %s | error: %s | fecha: %s', current_user.username, nueva.nombre, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al guardar: {str(e)}', 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
@@ -128,10 +135,12 @@ def materias_primas_editar(id_materia):
     estatus     = request.form.get('estatus', '')
 
     if not nombre:
+        current_app.logger.warning('Edicion de materia prima fallida (sin nombre) | usuario: %s | id: %s | fecha: %s', current_user.username, id_materia, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('El nombre es obligatorio.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
     if not unidad_base:
+        current_app.logger.warning('Edicion de materia prima fallida (sin unidad) | usuario: %s | id: %s | fecha: %s', current_user.username, id_materia, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('La unidad base es obligatoria.', 'error')
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
@@ -141,6 +150,7 @@ def materias_primas_editar(id_materia):
         MateriaPrima.id_materia != id_materia
     ).first()
     if dup:
+        current_app.logger.warning('Edicion de materia prima fallida (nombre duplicado) | usuario: %s | nombre_pedido: %s | id: %s | fecha: %s', current_user.username, nombre, id_materia, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Ya existe otra materia prima llamada "{nombre}".', 'error')
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
@@ -160,9 +170,11 @@ def materias_primas_editar(id_materia):
 
     try:
         db.session.commit()
+        current_app.logger.info('Materia prima actualizada exitosamente | usuario: %s | materia: %s | fecha: %s', current_user.username, materia.nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Materia prima "{materia.nombre}" actualizada correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error('Error al actualizar materia prima | usuario: %s | id: %s | error: %s | fecha: %s', current_user.username, id_materia, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al actualizar: {str(e)}', 'error')
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
@@ -181,9 +193,11 @@ def materias_primas_toggle(id_materia):
     try:
         db.session.commit()
         accion = 'activada' if materia.estatus == 'activo' else 'desactivada'
+        current_app.logger.info('Estatus de materia prima cambiado | usuario: %s | materia: %s | estatus: %s | fecha: %s', current_user.username, materia.nombre, materia.estatus, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Materia prima "{materia.nombre}" {accion}.', 'success')
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error('Error al cambiar estatus de materia prima | usuario: %s | materia: %s | error: %s | fecha: %s', current_user.username, materia.nombre, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error: {str(e)}', 'error')
 
     return redirect(url_for('materias_primas.index_materias_primas'))

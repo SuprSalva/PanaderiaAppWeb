@@ -2,7 +2,7 @@ import uuid
 import datetime
 from decimal import Decimal
 
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from sqlalchemy import text
 
@@ -40,6 +40,7 @@ def _generar_folio_salida():
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def index_compras():
+    current_app.logger.info('Vista de panel de compras accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     lista = db.session.execute(
         text("SELECT * FROM vw_compras ORDER BY creado_en DESC")
     ).mappings().all()
@@ -108,6 +109,7 @@ def crear_compra():
 
     ids_materia = [m for m in ids_materia if m]
     if not ids_materia:
+        current_app.logger.warning('Intento de creacion de pedido fallido (sin insumos) | creador: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Debes agregar al menos un insumo.', 'error')
         return redirect(url_for('compras.index_compras'))
 
@@ -150,11 +152,13 @@ def crear_compra():
             )
             db.session.execute(text("COMMIT"))
 
+        current_app.logger.info('Pedido de compra creado exitosamente | creador: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Pedido {folio} creado en estatus Ordenado.', 'success')
     except Exception as e:
         db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
+        current_app.logger.error('Error al crear pedido | creador: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al crear el pedido: {msg}', 'error')
 
     return redirect(url_for('compras.index_compras'))
@@ -167,6 +171,7 @@ def crear_compra():
 def cancelar_compra(id_compra):
     motivo = request.form.get('motivo_cancelacion', '').strip()
     if not motivo:
+        current_app.logger.warning('Cancelacion de pedido fallida (sin motivo) | usuario: %s | id_compra: %s | fecha: %s', current_user.username, id_compra, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Debes indicar el motivo de cancelación.', 'error')
         return redirect(url_for('compras.index_compras'))
     try:
@@ -174,10 +179,12 @@ def cancelar_compra(id_compra):
             "CALL sp_cancelar_compra(:id, :motivo, :usr)",
             {'id': id_compra, 'motivo': motivo, 'usr': current_user.id_usuario}
         )
+        current_app.logger.info('Pedido cancelado correctamente | usuario: %s | id_compra: %s | fecha: %s', current_user.username, id_compra, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Pedido cancelado correctamente.', 'success')
     except Exception as e:
         orig = getattr(e, 'orig', None)
         msg = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
+        current_app.logger.error('Error al cancelar pedido | usuario: %s | id_compra: %s | error: %s | fecha: %s', current_user.username, id_compra, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al cancelar: {msg}', 'error')
     return redirect(url_for('compras.index_compras'))
 
@@ -193,10 +200,12 @@ def finalizar_compra(id_compra):
             "CALL sp_finalizar_compra(:id, :usr, :folio)",
             {'id': id_compra, 'usr': current_user.id_usuario, 'folio': folio_salida}
         )
+        current_app.logger.info('Pedido mercancia finalizada (comprada) | usuario: %s | id_compra: %s | folio_salida: %s | fecha: %s', current_user.username, id_compra, folio_salida, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Mercancía aceptada: inventario actualizado. Salida de efectivo registrada y en espera de autorización del administrador.', 'success')
     except Exception as e:
         orig = getattr(e, 'orig', None)
         msg = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
+        current_app.logger.error('Error al finalizar pedido | usuario: %s | id_compra: %s | error: %s | fecha: %s', current_user.username, id_compra, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al finalizar: {msg}', 'error')
     return redirect(url_for('compras.index_compras'))
 
@@ -225,6 +234,7 @@ def editar_compra(id_compra):
 
     ids_materia = [m for m in ids_materia if m]
     if not ids_materia:
+        current_app.logger.warning('Edicion de pedido fallida (sin insumos) | usuario: %s | id_compra: %s | fecha: %s', current_user.username, id_compra, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Debes agregar al menos un insumo.', 'error')
         return redirect(url_for('compras.index_compras'))
 
@@ -261,11 +271,13 @@ def editar_compra(id_compra):
             )
             db.session.execute(text("COMMIT"))
 
+        current_app.logger.info('Pedido editado correctamente | usuario: %s | id_compra: %s | fecha: %s', current_user.username, id_compra, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Pedido actualizado correctamente.', 'success')
     except Exception as e:
         db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
+        current_app.logger.error('Error al editar pedido | usuario: %s | id_compra: %s | error: %s | fecha: %s', current_user.username, id_compra, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al editar: {msg}', 'error')
 
     return redirect(url_for('compras.index_compras'))
@@ -280,6 +292,7 @@ def corregir_precio_compra(id_compra):
     ids_detalle = request.form.getlist('id_detalle[]')
 
     if not ids_detalle or not costos or len(ids_detalle) != len(costos):
+        current_app.logger.warning('Correccion de precio fallida (datos incompletos) | usuario: %s | id_compra: %s | fecha: %s', current_user.username, id_compra, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Datos de corrección incompletos.', 'error')
         return redirect(url_for('compras.index_compras'))
 
@@ -299,11 +312,13 @@ def corregir_precio_compra(id_compra):
             {'id': id_compra, 'folio': folio_salida, 'usr': current_user.id_usuario}
         )
         db.session.execute(text("COMMIT"))
+        current_app.logger.info('Precio de compra corregido exitosamente | usuario: %s | id_compra: %s | nueva_salida: %s | fecha: %s', current_user.username, id_compra, folio_salida, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Precio corregido. Nueva salida de efectivo enviada para autorización.', 'success')
     except Exception as e:
         db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
+        current_app.logger.error('Error al corregir precio de compra | usuario: %s | id_compra: %s | error: %s | fecha: %s', current_user.username, id_compra, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al corregir: {msg}', 'error')
 
     return redirect(url_for('compras.index_compras'))
@@ -322,12 +337,14 @@ def crear_unidad():
     uso           = data.get('uso', 'compra')
 
     if not id_materia or not nombre or not simbolo or not factor:
+        current_app.logger.warning('Intento de crear unidad de compra fallido (campos vacios) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'error': 'Todos los campos son obligatorios.'}), 400
     try:
         factor = float(factor)
         if factor <= 0:
             raise ValueError()
     except (ValueError, TypeError):
+        current_app.logger.warning('Intento de crear unidad de compra fallido (factor invalido) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'error': 'El factor debe ser un número mayor a 0.'}), 400
     if uso not in ('compra', 'ambos'):
         uso = 'compra'
@@ -340,6 +357,7 @@ def crear_unidad():
         )
         db.session.execute(text("COMMIT"))
         id_unidad = db.session.execute(text("SELECT @id_out")).scalar()
+        current_app.logger.info('Nueva unidad de compra creada | usuario: %s | id_materia: %s | unidad: %s | fecha: %s', current_user.username, id_materia, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     except Exception as e:
         db.session.rollback()
         orig = getattr(e, 'orig', None)
@@ -347,6 +365,7 @@ def crear_unidad():
             msg = orig.args[1]   # solo el texto, sin el código numérico
         else:
             msg = str(e)
+        current_app.logger.error('Error al crear unidad de compra | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'error': msg}), 400
 
     return jsonify({
@@ -362,6 +381,7 @@ def crear_unidad():
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def detalle_compra(id_compra):
+    current_app.logger.info('Acceso a detalle explicito de compra | usuario: %s | id_compra: %s | fecha: %s', current_user.username, id_compra, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     compra = Compra.query.get_or_404(id_compra)
     detalles = (
         db.session.query(DetalleCompra, MateriaPrima, UnidadPresentacion)

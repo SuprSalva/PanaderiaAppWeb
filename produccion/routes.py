@@ -1,6 +1,6 @@
-# produccion/routes.py  — v2 (recipe-based, flujo 3 pasos)
+import datetime
 from functools import wraps
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from flask_login import login_required, current_user
 from auth import roles_required
 from sqlalchemy import text
@@ -25,6 +25,7 @@ def _call_sp(call_sql, select_sql, params):
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def index_produccion():
+    current_app.logger.info('Vista de panel de produccion accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     estado    = request.args.get('estado', '')
     fecha_ini = request.args.get('fecha_ini', '')
     fecha_fin = request.args.get('fecha_fin', '')
@@ -114,6 +115,7 @@ def produccion_nueva():
     creado_por     = current_user.id_usuario
 
     if not id_receta or not cantidad_lotes:
+        current_app.logger.warning('Creacion de orden_produccion fallida (datos invalidos) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Selecciona una receta y una cantidad válida.', 'error')
         return redirect(url_for('produccion.index_produccion'))
 
@@ -127,11 +129,14 @@ def produccion_nueva():
              'operario': operario_id, 'obs': observaciones, 'creado': creado_por}
         )
         if out['ok']:
+            current_app.logger.info('Orden de produccion creada | usuario: %s | receta: %s | lotes: %s | fecha: %s', current_user.username, id_receta, cantidad_lotes, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash(f"{out['mensaje']}", 'success')
             return redirect(url_for('produccion.detalle_orden', id_produccion=out['id_produccion']))
+        current_app.logger.warning('Creacion de orden de produccion denegada por db | usuario: %s | mensaje: %s | fecha: %s', current_user.username, out['mensaje'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f"{out['mensaje']}", 'error')
     except Exception as exc:
         db.session.rollback()
+        current_app.logger.error('Error al crear orden de produccion | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error inesperado: {exc}', 'error')
     return redirect(url_for('produccion.index_produccion'))
 
@@ -143,6 +148,7 @@ def produccion_nueva():
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def detalle_orden(id_produccion):
+    current_app.logger.info('Vista de detalle de orden de produccion accesada | usuario: %s | id_produccion: %s | fecha: %s', current_user.username, id_produccion, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     try:
         conn = db.session.connection()
         conn.execute(
@@ -237,10 +243,15 @@ def iniciar_orden(id_produccion):
             "SELECT @ok AS ok, @msg AS mensaje",
             {'id': id_produccion, 'usr': current_user.id_usuario}
         )
-        flash(f"{out['mensaje']}",
-              'success' if out['ok'] else 'error')
+        if out['ok']:
+            current_app.logger.info('Orden de produccion iniciada (en_proceso) | usuario: %s | id_produccion: %s | fecha: %s', current_user.username, id_produccion, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f"{out['mensaje']}", 'success')
+        else:
+            current_app.logger.warning('Intento de iniciar orden fallido segun db | usuario: %s | id_produccion: %s | mensaje: %s | fecha: %s', current_user.username, id_produccion, out['mensaje'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f"{out['mensaje']}", 'error')
     except Exception as exc:
         db.session.rollback()
+        current_app.logger.error('Error al iniciar orden de produccion | usuario: %s | id_produccion: %s | error: %s | fecha: %s', current_user.username, id_produccion, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al iniciar: {exc}', 'error')
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 
@@ -259,10 +270,15 @@ def finalizar_orden(id_produccion):
             "SELECT @ok AS ok, @msg AS mensaje",
             {'id': id_produccion, 'usr': current_user.id_usuario, 'pzs': piezas_reales}
         )
-        flash(f"{out['mensaje']}",
-              'success' if out['ok'] else 'error')
+        if out['ok']:
+            current_app.logger.info('Orden de produccion finalizada exitosamente | usuario: %s | id_produccion: %s | fecha: %s', current_user.username, id_produccion, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f"{out['mensaje']}", 'success')
+        else:
+            current_app.logger.warning('Intento de finalizar orden fallido segun db | usuario: %s | id_produccion: %s | mensaje: %s | fecha: %s', current_user.username, id_produccion, out['mensaje'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f"{out['mensaje']}", 'error')
     except Exception as exc:
         db.session.rollback()
+        current_app.logger.error('Error al finalizar orden de produccion | usuario: %s | id_produccion: %s | error: %s | fecha: %s', current_user.username, id_produccion, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al finalizar: {exc}', 'error')
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 
@@ -281,10 +297,15 @@ def cancelar_orden(id_produccion):
             "SELECT @ok AS ok, @msg AS mensaje",
             {'id': id_produccion, 'usr': current_user.id_usuario, 'mot': motivo}
         )
-        flash(f"{out['mensaje']}",
-              'success' if out['ok'] else 'error')
+        if out['ok']:
+            current_app.logger.info('Orden de produccion cancelada exitosamente | usuario: %s | id_produccion: %s | motivo: %s | fecha: %s', current_user.username, id_produccion, motivo, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f"{out['mensaje']}", 'success')
+        else:
+            current_app.logger.warning('Intento de cancelar orden fallido segun db | usuario: %s | id_produccion: %s | mensaje: %s | fecha: %s', current_user.username, id_produccion, out['mensaje'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            flash(f"{out['mensaje']}", 'error')
     except Exception as exc:
         db.session.rollback()
+        current_app.logger.error('Error al cancelar orden de produccion | usuario: %s | id_produccion: %s | error: %s | fecha: %s', current_user.username, id_produccion, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al cancelar: {exc}', 'error')
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 

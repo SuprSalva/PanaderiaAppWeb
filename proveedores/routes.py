@@ -1,5 +1,6 @@
 import uuid as _uuid
-from flask import render_template, request, redirect, url_for, flash, session
+import datetime
+from flask import render_template, request, redirect, url_for, flash, session, current_app
 from flask_login import login_required, current_user
 from auth import roles_required
 from sqlalchemy import text
@@ -30,6 +31,7 @@ def _msg_error_sp(exc):
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def index_proveedores():
+    current_app.logger.info('Vista de catalogo de proveedores accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     buscar  = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
     pagina  = request.args.get('pagina', 1, type=int)
@@ -79,6 +81,7 @@ def proveedores_nuevo():
     form = ProveedorForm(request.form)
 
     if not form.validate():
+        current_app.logger.warning('Creacion de proveedor fallida (validacion) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         for campo, errores in form.errors.items():
             for err in errores:
                 flash(err, 'error')
@@ -102,11 +105,18 @@ def proveedores_nuevo():
             }
         )
         db.session.commit()
+        current_app.logger.info('Proveedor creado exitosamente | usuario: %s | proveedor: %s | fecha: %s', current_user.username, form.nombre.data.strip(), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Proveedor "{form.nombre.data.strip()}" registrado correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
         db.session.rollback()
+        current_app.logger.error('Error db al crear proveedor | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(_msg_error_sp(e), 'danger')
+        return redirect(url_for('proveedores.index_proveedores', modal='nuevo'))
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error('Error general al crear proveedor | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Error al crear proveedor.', 'danger')
         return redirect(url_for('proveedores.index_proveedores', modal='nuevo'))
 
     return redirect(url_for('proveedores.index_proveedores'))
@@ -120,6 +130,7 @@ def proveedores_editar(id_proveedor):
     form = ProveedorForm(request.form)
 
     if not form.validate():
+        current_app.logger.warning('Edicion de proveedor fallida (validacion) | usuario: %s | id_proveedor: %s | fecha: %s', current_user.username, id_proveedor, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         for campo, errores in form.errors.items():
             for err in errores:
                 flash(err, 'danger')
@@ -144,11 +155,19 @@ def proveedores_editar(id_proveedor):
             }
         )
         db.session.commit()
+        current_app.logger.info('Proveedor editado exitosamente | usuario: %s | proveedor: %s | fecha: %s', current_user.username, form.nombre.data.strip(), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Proveedor "{form.nombre.data.strip()}" actualizado correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
         db.session.rollback()
+        current_app.logger.error('Error db al editar proveedor | usuario: %s | id_proveedor: %s | error: %s | fecha: %s', current_user.username, id_proveedor, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(_msg_error_sp(e), 'error')
+        return redirect(url_for('proveedores.index_proveedores',
+                                modal='editar', id=id_proveedor))
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error('Error general al editar proveedor | usuario: %s | id_proveedor: %s | error: %s | fecha: %s', current_user.username, id_proveedor, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Error al actualizar proveedor.', 'error')
         return redirect(url_for('proveedores.index_proveedores',
                                 modal='editar', id=id_proveedor))
 
@@ -183,10 +202,16 @@ def proveedores_toggle(id_proveedor):
         nuevo_estatus = row.nuevo_estatus if row else 'actualizado'
         nombre_prov   = row.nombre        if row else ''
         accion        = 'activado' if nuevo_estatus == 'activo' else 'desactivado'
+        current_app.logger.info('Estatus de proveedor cambiado | usuario: %s | proveedor: %s | estatus: %s | fecha: %s', current_user.username, nombre_prov, nuevo_estatus, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Proveedor "{nombre_prov}" {accion} correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
         db.session.rollback()
+        current_app.logger.error('Error db al cambiar estatus de proveedor | usuario: %s | id_proveedor: %s | error: %s | fecha: %s', current_user.username, id_proveedor, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(_msg_error_sp(e), 'error')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error('Error general al cambiar estatus de proveedor | usuario: %s | id_proveedor: %s | error: %s | fecha: %s', current_user.username, id_proveedor, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Error al cambiar estatus.', 'error')
 
     return redirect(url_for('proveedores.index_proveedores'))

@@ -1,6 +1,6 @@
 import uuid as _uuid
 import datetime
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, current_app
 from models import db, Receta, DetalleReceta, MateriaPrima, Producto, UnidadPresentacion
 from flask_login import login_required, current_user
 from auth import roles_required
@@ -91,6 +91,7 @@ def _form_con_productos(form_data=None):
 @login_required
 @roles_required('admin', 'panadero')
 def index_recetas():
+    current_app.logger.info('Vista de recetario accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     buscar  = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
     pagina  = request.args.get('pagina', 1, type=int)
@@ -145,12 +146,14 @@ def recetas_nueva():
     insumos = _recopilar_insumos()
 
     if not form.validate():
+        current_app.logger.warning('Creacion de receta fallida (validacion) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         for errors in form.errors.values():
             for err in errors:
                 flash(err, 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
 
     if not insumos:
+        current_app.logger.warning('Creacion de receta fallida (sin insumos) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Agrega al menos un insumo a la receta.', 'warning')
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
 
@@ -179,8 +182,15 @@ def recetas_nueva():
             orden                  = orden,
         ))
 
-    db.session.commit()
-    flash(f'Receta "{nueva.nombre}" creada correctamente.', 'success')
+    try:
+        db.session.commit()
+        current_app.logger.info('Receta creada exitosamente | usuario: %s | receta: %s | fecha: %s', current_user.username, nueva.nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Receta "{nueva.nombre}" creada correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error('Error al crear receta | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Error al crear receta: {str(e)}', 'error')
+
     return redirect(url_for('recetas_bp.index_recetas'))
 
 @recetas_bp.route('/recetas/editar/<int:id_receta>', methods=['POST'])
@@ -192,12 +202,14 @@ def recetas_editar(id_receta):
     insumos = _recopilar_insumos()
 
     if not form.validate():
+        current_app.logger.warning('Edicion de receta fallida (validacion) | usuario: %s | id_receta: %s | fecha: %s', current_user.username, id_receta, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         for errors in form.errors.values():
             for err in errors:
                 flash(err, 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
 
     if not insumos:
+        current_app.logger.warning('Edicion de receta fallida (sin insumos) | usuario: %s | id_receta: %s | fecha: %s', current_user.username, id_receta, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('La receta debe tener al menos un insumo.', 'warning')
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
 
@@ -220,8 +232,15 @@ def recetas_editar(id_receta):
             orden                  = orden,
         ))
 
-    db.session.commit()
-    flash(f'Receta "{receta.nombre}" actualizada correctamente.', 'success')
+    try:
+        db.session.commit()
+        current_app.logger.info('Receta editada exitosamente | usuario: %s | receta: %s | fecha: %s', current_user.username, receta.nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Receta "{receta.nombre}" actualizada correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error('Error al editar receta | usuario: %s | id_receta: %s | error: %s | fecha: %s', current_user.username, id_receta, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Error al actualizar receta: {str(e)}', 'error')
+
     return redirect(url_for('recetas_bp.index_recetas'))
 
 @recetas_bp.route('/recetas/confirmar-toggle/<int:id_receta>', methods=['GET'])
@@ -238,7 +257,14 @@ def recetas_toggle(id_receta):
     receta = Receta.query.get_or_404(id_receta)
     receta.estatus        = 'inactivo' if receta.estatus == 'activo' else 'activo'
     receta.actualizado_en = datetime.datetime.now()
-    db.session.commit()
-    accion = 'activada' if receta.estatus == 'activo' else 'desactivada'
-    flash(f'Receta "{receta.nombre}" {accion}.', 'success')
+    try:
+        db.session.commit()
+        accion = 'activada' if receta.estatus == 'activo' else 'desactivada'
+        current_app.logger.info('Estatus de receta cambiado | usuario: %s | receta: %s | estatus: %s | fecha: %s', current_user.username, receta.nombre, receta.estatus, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Receta "{receta.nombre}" {accion}.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error('Error al cambiar estatus de receta | usuario: %s | id_receta: %s | error: %s | fecha: %s', current_user.username, id_receta, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash(f'Error al cambiar estatus: {str(e)}', 'error')
+
     return redirect(url_for('recetas_bp.index_recetas'))
