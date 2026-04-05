@@ -27,3 +27,17 @@ function abrirToggleProv(id, nombre, estatus) {
 function cerrarToggleProv() {
   document.getElementById('modal-toggle-prov').classList.remove('open');
 }
+
+function aplicarFiltroEstadistica(estatus) {
+  const selectEstatus = document.querySelector('select[name="estatus"]');
+  if (selectEstatus) {
+    selectEstatus.value = estatus;
+  }
+  const form = document.getElementById('form-filtro');
+  if (form) {
+    // Resetear a la página 1 al filtrar
+    const inputPagina = form.querySelector('input[name="pagina"]');
+    if (inputPagina) inputPagina.value = '1';
+    form.submit();
+  }
+}

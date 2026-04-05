@@ -14,18 +14,18 @@
 </div>
 
 <div class="prov-stats anim anim-1">
-  <div class="prov-stat">
+  <button class="prov-stat" onclick="aplicarFiltroEstadistica('todos')">
     <div class="prov-stat-icon brown">🏭</div>
     <div><div class="prov-stat-val">{{ total_proveedores }}</div><div class="prov-stat-lbl">Proveedores Registrados</div></div>
-  </div>
-  <div class="prov-stat">
+  </button>
+  <button class="prov-stat" onclick="aplicarFiltroEstadistica('activo')">
     <div class="prov-stat-icon green">✅</div>
     <div><div class="prov-stat-val">{{ total_activos }}</div><div class="prov-stat-lbl">Activos</div></div>
-  </div>
-  <div class="prov-stat">
+  </button>
+  <button class="prov-stat" onclick="aplicarFiltroEstadistica('inactivo')">
     <div class="prov-stat-icon rust">🚫</div>
     <div><div class="prov-stat-val">{{ total_inactivos }}</div><div class="prov-stat-lbl">Inactivos</div></div>
-  </div>
+  </button>
 </div>
 
 <form method="GET" action="{{ url_for('proveedores.index_proveedores') }}" id="form-filtro">
@@ -374,5 +374,8 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/proveedores.js') }}"></script>
+<script src="{{ url_for('static', filename='js/proveedores.js') }}">
+
+  
+</script>
 {% endblock %}
