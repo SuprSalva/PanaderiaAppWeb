@@ -80,6 +80,12 @@ CREATE PROCEDURE sp_agregar_detalle_compra(
     IN p_costo_unitario         DECIMAL(12,4)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
     -- Solo se puede modificar un pedido en estatus ordenado
     IF NOT EXISTS (
         SELECT 1 FROM compras
@@ -88,6 +94,8 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Solo se pueden agregar detalles a pedidos en estatus ordenado.';
     END IF;
+
+    START TRANSACTION;
 
     INSERT INTO detalle_compras (
         id_compra, id_materia, id_unidad_presentacion,
@@ -108,6 +116,8 @@ BEGIN
         WHERE id_compra = p_id_compra
     )
     WHERE id_compra = p_id_compra;
+
+    COMMIT;
 END$$
 
 DELIMITER ;
@@ -180,6 +190,12 @@ BEGIN
     DECLARE v_fecha        DATE;
     DECLARE v_folio        VARCHAR(20);
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
     SELECT estatus, total, id_proveedor, fecha_compra, folio
     INTO   v_estatus, v_total, v_id_proveedor, v_fecha, v_folio
     FROM   compras WHERE id_compra = p_id_compra;
@@ -193,6 +209,8 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Solo se pueden finalizar pedidos en estatus ordenado.';
     END IF;
+
+    START TRANSACTION;
 
     -- 1. Actualizar stock
     UPDATE materias_primas mp
@@ -223,6 +241,8 @@ BEGIN
         NOW(),
         NOW()
     );
+
+    COMMIT;
 END$$
 
 DELIMITER ;
@@ -240,6 +260,13 @@ CREATE PROCEDURE sp_limpiar_detalles_compra(
 )
 BEGIN
     DECLARE v_estatus VARCHAR(20);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
     SELECT estatus INTO v_estatus FROM compras WHERE id_compra = p_id_compra;
     IF v_estatus IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Pedido no encontrado.';
@@ -247,8 +274,13 @@ BEGIN
     IF v_estatus != 'ordenado' THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Solo se pueden editar pedidos en estatus Ordenado.';
     END IF;
+
+    START TRANSACTION;
+
     DELETE FROM detalle_compras WHERE id_compra = p_id_compra;
     UPDATE compras SET total = 0 WHERE id_compra = p_id_compra;
+
+    COMMIT;
 END$$
 
 DELIMITER ;
@@ -316,6 +348,12 @@ BEGIN
     DECLARE v_fecha        DATE;
     DECLARE v_nuevo_total  DECIMAL(12,2);
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
     -- Verificar que la compra existe y está finalizada
     SELECT folio, id_proveedor, fecha_compra
     INTO   v_folio, v_id_proveedor, v_fecha
@@ -337,6 +375,8 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Solo se puede corregir el precio de compras con pago rechazado.';
     END IF;
+
+    START TRANSACTION;
 
     -- Recalcular total con los nuevos costos ya actualizados desde Python
     UPDATE compras
@@ -368,6 +408,8 @@ BEGIN
         NOW(),
         NOW()
     );
+
+    COMMIT;
 END$$
 
 DELIMITER ;
