@@ -240,10 +240,26 @@
         </div>
 
         <div class="topbar-actions">
-          <button class="topbar-btn" title="Notificaciones">
-            🔔
-            <span class="notif-dot"></span>
-          </button>
+          <div class="topbar-notif-wrapper" style="position: relative;">
+            <button class="topbar-btn" id="btnNotificaciones" title="Notificaciones" onclick="toggleNotifDropdown()">
+              🔔
+              <span class="notif-dot" id="notifBadge" style="display: none;"></span>
+              <span class="notif-count" id="notifCount" style="display: none;">0</span>
+            </button>
+            
+            <div class="notif-dropdown" id="notifDropdown" style="display: none;">
+              <div class="notif-dropdown-header">
+                <span>Notificaciones</span>
+              </div>
+              <div class="notif-dropdown-list" id="notifDropdownList">
+                <div class="notif-loading">Cargando notificaciones...</div>
+              </div>
+              <div class="notif-dropdown-footer">
+                <a href="{{ url_for('pedidos.mis_pedidos') }}#notificaciones">Ver todas</a>
+              </div>
+            </div>
+          </div>
+          
           <button class="topbar-btn" id="btnFullscreen" title="Pantalla completa" onclick="toggleFullscreen()">
             <span id="iconFullscreen">⛶</span>
           </button>
@@ -293,27 +309,6 @@
       </main>
     </div>
   </div>
-
-  {# ══════════════════════════════════════════════
-     SISTEMA DE TOASTS — único punto de notificaciones
-     Usar en Python: flash('Mensaje', 'success')
-     Categorías: success | error | warning | info
-     Sin categoría → se trata como info
-  ══════════════════════════════════════════════ #}
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div id="dm-toast-container" aria-live="polite" aria-atomic="false"></div>
-
-      {# Pasamos los mensajes a JS para no mezclar lógica en Jinja #}
-      <script>
-        window.__DM_TOASTS__ = [
-          {% for category, message in messages %}
-            { category: {{ category | tojson }}, message: {{ message | tojson }} }{% if not loop.last %},{% endif %}
-          {% endfor %}
-        ];
-      </script>
-    {% endif %}
-  {% endwith %}
 
   <style>
     /* ── Contenedor ── */
@@ -520,6 +515,537 @@
       };
     })();
   </script>
+
+  <!-- Botón flotante de mermas -->
+<button class="merma-float-btn" id="btnMerma" onclick="abrirModalMerma()" title="Registrar Merma">
+    <span>⚠️</span>
+</button>
+
+<!-- Modal de Mermas -->
+<div class="modal-overlay" id="modal-merma">
+    <div class="modal" style="max-width: 550px;">
+        <div class="modal-header" style="background: #8B4513;">
+            <h2>⚠️ Registrar Merma</h2>
+            <button class="modal-close" onclick="cerrarModalMerma()">✕</button>
+        </div>
+        <div class="modal-body" style="padding: 24px;">
+            <form id="formMerma">
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--brown-lt); margin-bottom: 6px;">Materia Prima *</label>
+                    <select id="merma_materia" class="form-control" required style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif;">
+                        <option value="">Selecciona una materia prima...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--brown-lt); margin-bottom: 6px;">Cantidad *</label>
+                    <input type="number" id="merma_cantidad" class="form-control" step="0.01" min="0.01" required style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--tan); border-radius: 8px;">
+                    <small id="merma_unidad" style="display: block; margin-top: 4px; font-size: 11px; color: var(--brown-lt);"></small>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--brown-lt); margin-bottom: 6px;">Causa *</label>
+                    <select id="merma_causa" class="form-control" required style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--tan); border-radius: 8px;">
+                        <option value="">Selecciona una causa...</option>
+                        <option value="caducidad">📅 Caducidad</option>
+                        <option value="quemado_horneado">🔥 Quemado / Horneado defectuoso</option>
+                        <option value="caida_accidente">💥 Caída / Accidente</option>
+                        <option value="error_produccion">⚠️ Error en producción</option>
+                        <option value="rotura_empaque">📦 Rotura de empaque</option>
+                        <option value="contaminacion">🧫 Contaminación</option>
+                        <option value="otro">📝 Otro</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: var(--brown-lt); margin-bottom: 6px;">Descripción (opcional)</label>
+                    <textarea id="merma_descripcion" class="form-control" rows="3" style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif;"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="cerrarModalMerma()">Cancelar</button>
+            <button class="btn btn-primary" onclick="registrarMerma()" style="background: #8B4513;">⚠️ Registrar Merma</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Historial de Mermas -->
+<div class="modal-overlay" id="modal-historial-mermas">
+    <div class="modal modal-xl" style="max-width: 900px;">
+        <div class="modal-header" style="background: #8B4513;">
+            <h2>📋 Historial de Mermas</h2>
+            <button class="modal-close" onclick="cerrarModalHistorialMermas()">✕</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <input type="date" id="historial_fecha_inicio" class="filter-select" placeholder="Fecha inicio">
+                <input type="date" id="historial_fecha_fin" class="filter-select" placeholder="Fecha fin">
+                <select id="historial_causa" class="filter-select">
+                    <option value="">Todas las causas</option>
+                    <option value="caducidad">Caducidad</option>
+                    <option value="quemado_horneado">Quemado / Horneado</option>
+                    <option value="caida_accidente">Caída / Accidente</option>
+                    <option value="error_produccion">Error producción</option>
+                    <option value="rotura_empaque">Rotura empaque</option>
+                    <option value="contaminacion">Contaminación</option>
+                    <option value="otro">Otro</option>
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="cargarHistorialMermas()">🔍 Buscar</button>
+            </div>
+            <div id="historialMermasContent" style="max-height: 500px; overflow-y: auto;">
+                <table class="det-items-table" style="width: 100%;">
+                    <thead>
+                        <tr><th>Fecha</th><th>Materia Prima</th><th>Cantidad</th><th>Causa</th><th>Registrado por</th></tr>
+                    </thead>
+                    <tbody id="historialMermasBody">
+                        <tr><td colspan="5" style="text-align:center">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="cerrarModalHistorialMermas()">Cerrar</button>
+            <button class="btn btn-outline" onclick="cargarHistorialMermas()">🔄 Actualizar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Botón flotante de mermas */
+    .merma-float-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #8B4513;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .merma-float-btn span {
+        font-size: 24px;
+    }
+    
+    .merma-float-btn:hover {
+        transform: scale(1.1);
+        background: #6B3410;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    
+    /* Estilos para formulario */
+    .form-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--brown-lt);
+        margin-bottom: 6px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1.5px solid var(--tan);
+        border-radius: 8px;
+        font-family: 'Lato', sans-serif;
+        font-size: 13px;
+        transition: all 0.2s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #8B4513;
+        box-shadow: 0 0 0 3px rgba(139,69,19,0.1);
+    }
+    
+    select.form-control {
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    // ============================================================
+    // FUNCIONES PARA MERMAS
+    // ============================================================
+    
+    function abrirModalMerma() {
+        cargarMateriasPrimas();
+        document.getElementById('modal-merma').classList.add('open');
+        document.getElementById('formMerma').reset();
+        document.getElementById('merma_unidad').textContent = '';
+    }
+    
+    function cerrarModalMerma() {
+        document.getElementById('modal-merma').classList.remove('open');
+    }
+    
+    function abrirModalHistorialMermas() {
+        document.getElementById('modal-historial-mermas').classList.add('open');
+        cargarHistorialMermas();
+    }
+    
+    function cerrarModalHistorialMermas() {
+        document.getElementById('modal-historial-mermas').classList.remove('open');
+    }
+    
+    async function cargarMateriasPrimas() {
+        try {
+            const response = await fetch('/api/mermas/materias');
+            const data = await response.json();
+            
+            if (data.success) {
+                const select = document.getElementById('merma_materia');
+                select.innerHTML = '<option value="">Selecciona una materia prima...</option>';
+                
+                data.materias.forEach(materia => {
+                    const option = document.createElement('option');
+                    option.value = materia.id_materia;
+                    option.textContent = `${materia.nombre} (Stock: ${materia.stock_actual} ${materia.unidad_base})`;
+                    option.dataset.unidad = materia.unidad_base;
+                    option.dataset.stock = materia.stock_actual;
+                    select.appendChild(option);
+                });
+                
+                select.onchange = function() {
+                    const selected = select.options[select.selectedIndex];
+                    const unidad = selected.dataset.unidad || '';
+                    document.getElementById('merma_unidad').textContent = `Unidad: ${unidad}`;
+                };
+            }
+        } catch (error) {
+            console.error('Error cargando materias primas:', error);
+            DM.toast('Error cargando materias primas', 'error');
+        }
+    }
+    
+    async function registrarMerma() {
+        const id_materia = document.getElementById('merma_materia').value;
+        const cantidad = document.getElementById('merma_cantidad').value;
+        const causa = document.getElementById('merma_causa').value;
+        const descripcion = document.getElementById('merma_descripcion').value;
+        
+        if (!id_materia) {
+            if (typeof DM !== 'undefined' && DM.toast) {
+                DM.toast('Selecciona una materia prima', 'warning');
+            } else {
+                alert('Selecciona una materia prima');
+            }
+            return;
+        }
+        
+        if (!cantidad || parseFloat(cantidad) <= 0) {
+            if (typeof DM !== 'undefined' && DM.toast) {
+                DM.toast('Ingresa una cantidad válida', 'warning');
+            } else {
+                alert('Ingresa una cantidad válida');
+            }
+            return;
+        }
+        
+        if (!causa) {
+            if (typeof DM !== 'undefined' && DM.toast) {
+                DM.toast('Selecciona una causa', 'warning');
+            } else {
+                alert('Selecciona una causa');
+            }
+            return;
+        }
+        
+        // Mostrar loading
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Registrando...';
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/mermas/registrar', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    id_materia: parseInt(id_materia),
+                    cantidad: parseFloat(cantidad),
+                    causa: causa,
+                    descripcion: descripcion
+                })
+            });
+            
+            // Verificar si la respuesta es JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Respuesta no JSON:', text.substring(0, 500));
+                throw new Error('El servidor devolvió una respuesta no válida');
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                if (typeof DM !== 'undefined' && DM.toast) {
+                    DM.toast('Merma registrada exitosamente', 'success');
+                } else {
+                    alert('Merma registrada exitosamente');
+                }
+                cerrarModalMerma();
+                // Limpiar formulario
+                document.getElementById('formMerma').reset();
+                document.getElementById('merma_unidad').textContent = '';
+                // Recargar historial si está abierto
+                if (typeof cargarHistorialMermas === 'function') {
+                    cargarHistorialMermas();
+                }
+            } else {
+                if (typeof DM !== 'undefined' && DM.toast) {
+                    DM.toast('Error: ' + data.error, 'error');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            }
+        } catch (error) {
+            console.error('Error registrando merma:', error);
+            if (typeof DM !== 'undefined' && DM.toast) {
+                DM.toast('Error al registrar la merma: ' + error.message, 'error');
+            } else {
+                alert('Error al registrar la merma: ' + error.message);
+            }
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    let historialOffset = 0;
+    let historialLimit = 20;
+    let historialTotal = 0;
+    
+    async function cargarHistorialMermas(page = 1) {
+      const offset = (page - 1) * historialLimit;
+      const fechaInicio = document.getElementById('historial_fecha_inicio').value;
+      const fechaFin = document.getElementById('historial_fecha_fin').value;
+      const causa = document.getElementById('historial_causa').value;
+      
+      try {
+          const params = new URLSearchParams({
+              offset: offset,
+              limit: historialLimit
+          });
+          if (fechaInicio) params.append('fecha_inicio', fechaInicio);
+          if (fechaFin) params.append('fecha_fin', fechaFin);
+          if (causa && causa !== '') params.append('causa', causa);
+          
+          const response = await fetch(`/api/mermas/listar?${params}`);
+          
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+              historialTotal = data.total;
+              renderHistorialMermas(data.mermas);
+          } else {
+              console.error('Error del servidor:', data.error);
+              document.getElementById('historialMermasBody').innerHTML = `<tr><td colspan="5" style="text-align:center">Error: ${data.error}</td></tr>`;
+          }
+      } catch (error) {
+          console.error('Error cargando historial:', error);
+          document.getElementById('historialMermasBody').innerHTML = '<tr><td colspan="5" style="text-align:center">Error al cargar datos: ' + error.message + '</td></tr>';
+      }
+    }
+    
+    function renderHistorialMermas(mermas) {
+        const tbody = document.getElementById('historialMermasBody');
+        
+        if (!mermas || mermas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No hay mermas registradas</td></tr>';
+            return;
+        }
+        
+        const causasMap = {
+            'caducidad': '📅 Caducidad',
+            'quemado_horneado': '🔥 Quemado/Horneado',
+            'caida_accidente': '💥 Caída/Accidente',
+            'error_produccion': '⚠️ Error producción',
+            'rotura_empaque': '📦 Rotura empaque',
+            'contaminacion': '🧫 Contaminación',
+            'otro': '📝 Otro'
+        };
+        
+        tbody.innerHTML = mermas.map(m => `
+            <tr>
+                <td>${formatearFechaHistorial(m.fecha_merma)}</td>
+                <td>${escapeHtml(m.materia_nombre)}</td>
+                <td>${m.cantidad} ${m.unidad}</td>
+                <td>${causasMap[m.causa] || m.causa}</td>
+                <td>${escapeHtml(m.registrado_por_nombre)}</td>
+            </tr>
+        `).join('');
+    }
+
+    function formatearFechaHistorial(fechaStr) {
+        if (!fechaStr) return '';
+        try {
+            const fecha = new Date(fechaStr);
+            return fecha.toLocaleDateString('es-MX') + ' ' + fecha.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+        } catch(e) {
+            return fechaStr;
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ============================================================
+    // SISTEMA DE NOTIFICACIONES GLOBAL
+    // ============================================================
+
+    let notifDropdownOpen = false;
+
+    // Cargar conteo de notificaciones no leídas
+    async function cargarBadgeNotificaciones() {
+        try {
+            const response = await fetch('/api/badge');
+            const data = await response.json();
+            const count = data.count || 0;
+            
+            const badge = document.getElementById('notifCount');
+            const dot = document.getElementById('notifBadge');
+            
+            if (count > 0) {
+                if (badge) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.style.display = 'flex';
+                }
+                if (dot) dot.style.display = 'none';
+            } else {
+                if (badge) badge.style.display = 'none';
+                if (dot) dot.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error cargando badge:', error);
+        }
+    }
+
+    // Cargar lista de notificaciones para el dropdown
+    async function cargarNotificacionesDropdown() {
+        const listContainer = document.getElementById('notifDropdownList');
+        if (!listContainer) return;
+        
+        listContainer.innerHTML = '<div class="notif-loading">Cargando notificaciones...</div>';
+        
+        try {
+            const response = await fetch('/api/notificaciones');
+            const data = await response.json();
+            
+            if (data.ok && data.notificaciones && data.notificaciones.length > 0) {
+                const notificaciones = data.notificaciones;
+                listContainer.innerHTML = notificaciones.map(notif => `
+                    <div class="notif-item-dropdown ${notif.leida ? '' : 'unread'}">
+                        <div class="notif-icon-dropdown">
+                            ${getNotifIcon(notif.tipo)}
+                        </div>
+                        <div class="notif-content-dropdown">
+                            <div class="notif-message-dropdown">${escapeHtml(notif.mensaje)}</div>
+                            <div class="notif-meta-dropdown">
+                                <span class="notif-folio-dropdown">${escapeHtml(notif.folio)}</span>
+                                <span>${formatearFechaNotif(notif.creado_en)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                listContainer.innerHTML = '<div class="notif-empty">🔔 No tienes notificaciones recientes</div>';
+            }
+        } catch (error) {
+            console.error('Error cargando notificaciones:', error);
+            listContainer.innerHTML = '<div class="notif-empty">Error al cargar notificaciones</div>';
+        }
+    }
+
+    function getNotifIcon(tipo) {
+        const icons = {
+            'aprobado': '✅',
+            'rechazado': '❌',
+            'listo': '🎉',
+            'entregado': '📦',
+            'en_produccion': '⚙️'
+        };
+        return icons[tipo] || '🔔';
+    }
+
+    function formatearFechaNotif(fechaStr) {
+        if (!fechaStr) return '';
+        const fecha = new Date(fechaStr);
+        const ahora = new Date();
+        const diffMs = ahora - fecha;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffHoras = Math.floor(diffMs / 3600000);
+        const diffDias = Math.floor(diffMs / 86400000);
+        
+        if (diffMin < 1) return 'Justo ahora';
+        if (diffMin < 60) return `Hace ${diffMin} min`;
+        if (diffHoras < 24) return `Hace ${diffHoras} h`;
+        if (diffDias === 1) return 'Ayer';
+        if (diffDias < 7) return `Hace ${diffDias} días`;
+        return fecha.toLocaleDateString('es-MX');
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function toggleNotifDropdown() {
+        const dropdown = document.getElementById('notifDropdown');
+        if (!dropdown) return;
+        
+        if (notifDropdownOpen) {
+            dropdown.style.display = 'none';
+            notifDropdownOpen = false;
+        } else {
+            cargarNotificacionesDropdown();
+            dropdown.style.display = 'block';
+            notifDropdownOpen = true;
+        }
+    }
+
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener('click', function(event) {
+        const wrapper = document.querySelector('.topbar-notif-wrapper');
+        const dropdown = document.getElementById('notifDropdown');
+        
+        if (wrapper && dropdown && !wrapper.contains(event.target)) {
+            dropdown.style.display = 'none';
+            notifDropdownOpen = false;
+        }
+    });
+
+    // Cargar badge al iniciar
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarBadgeNotificaciones();
+        // Recargar badge cada 30 segundos
+        setInterval(cargarBadgeNotificaciones, 30000);
+    });
+</script>
 
   <script src="{{ url_for('static', filename='js/layout.js') }}"></script>
   {% block extra_scripts %}{% endblock %}

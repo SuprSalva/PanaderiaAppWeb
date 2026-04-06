@@ -263,11 +263,7 @@ class ProveedorForm(Form):
     ])
     rfc = StringField('RFC', [
         Optional(),
-        validators.Length(max=13, message='El RFC no puede exceder 13 caracteres.'),
-        validators.Regexp(
-            r'^$|^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$',
-            message='RFC inválido. Formato esperado: 3-4 letras, 6 dígitos, 3 alfanuméricos.',
-        ),
+        validators.Length(min=0, max=13, message='El RFC debe tener máximo 13 caracteres.'),
     ])
     contacto = StringField('Persona de Contacto', [
         Optional(),
