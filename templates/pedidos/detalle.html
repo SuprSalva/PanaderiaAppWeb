@@ -115,7 +115,7 @@
         </div>
         <div class="info-item">
           <label>ID Cliente</label>
-          <span>#{{ pedido.id_cliente }}</span>
+          <span>#{{ pedido.telefono }}</span>
         </div>
         <div class="info-item">
           <label>Fecha de Registro</label>
@@ -127,16 +127,16 @@
     <!-- DETALLE DE LA CAJA -->
     {% if caja %}
     <div class="caja-banner">
-      <div class="ico">{{ '🍞' if caja.tipo == 'simple' else ('🌈' if caja.tipo == 'triple' else '🎭') }}</div>
+      <div class="ico">{{ '' if caja.tipo == 'simple' else ('' if caja.tipo == 'triple' else '') }}</div>
       <div>
         <div class="nom">Caja de Pan — {{ caja.tamanio }}</div>
         <div class="meta">
-          <span class="chip">📏 {{ caja.tamanio }}</span>
-          <span class="chip">🔢 {{ caja.capacidad }} piezas</span>
+          <span class="chip"> {{ caja.tamanio }}</span>
+          <span class="chip"> {{ caja.capacidad }} piezas</span>
           <span class="chip tipo-{{ caja.tipo }}">
-            {% if caja.tipo == 'simple' %}🍞 Simple
-            {% elif caja.tipo == 'mixta' %}🎭 Mixta
-            {% else %}🌈 Triple{% endif %}
+            {% if caja.tipo == 'simple' %}Simple
+            {% elif caja.tipo == 'mixta' %}Mixta
+            {% else %}Triple{% endif %}
           </span>
         </div>
       </div>
@@ -145,7 +145,7 @@
 
     <!-- PANES DE LA CAJA -->
     <div class="card">
-      <div class="card-title">🥖 Panes en la Caja</div>
+      <div class="card-title">Panes en la Caja</div>
       <table class="tbl-det">
         <thead>
           <tr>
@@ -218,10 +218,10 @@
       <form method="post" action="{{ url_for('pedidos.cambiar_estado', folio=pedido.folio) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="hidden" name="estado" value="aprobado">
-        <button type="submit" class="btn-accion btn-aprobar">✅ Aprobar Pedido</button>
+        <button type="submit" class="btn-accion btn-aprobar">Aprobar Pedido</button>
       </form>
 
-      <button type="button" class="btn-accion btn-rechazar" onclick="toggleRechazo()">❌ Rechazar Pedido</button>
+      <button type="button" class="btn-accion btn-rechazar" onclick="toggleRechazo()">Rechazar Pedido</button>
       <div class="rechazo-field" id="rechazo-field">
         <form method="post" action="{{ url_for('pedidos.cambiar_estado', folio=pedido.folio) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -237,14 +237,14 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="hidden" name="estado" value="en_produccion">
         <textarea name="nota" class="form-textarea" rows="2" placeholder="Nota de producción (opcional)"></textarea>
-        <button type="submit" class="btn-accion btn-producir">⚙️ Iniciar Producción</button>
+        <button type="submit" class="btn-accion btn-producir">Iniciar Producción</button>
       </form>
 
     {% elif pedido.estado == 'en_produccion' and rol in ['admin','panadero'] %}
       <form method="post" action="{{ url_for('pedidos.cambiar_estado', folio=pedido.folio) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="hidden" name="estado" value="listo">
-        <button type="submit" class="btn-accion btn-listo">🎉 Marcar Caja como Lista</button>
+        <button type="submit" class="btn-accion btn-listo">Marcar Caja como Lista</button>
       </form>
 
     {% elif pedido.estado == 'listo' and rol in ['admin','empleado'] %}
@@ -252,17 +252,17 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="hidden" name="estado" value="entregado">
         <textarea name="nota" class="form-textarea" rows="2" placeholder="¿Quién recibió la caja?"></textarea>
-        <button type="submit" class="btn-accion btn-entregar">📦 Confirmar Entrega</button>
+        <button type="submit" class="btn-accion btn-entregar">Confirmar Entrega</button>
       </form>
 
     {% else %}
       <div style="text-align:center; padding:20px; color:var(--brown-lt); font-size:13px; border-top:1px dashed var(--tan);">
         {% if pedido.estado == 'entregado' %}
-          🏁 La caja ya fue entregada exitosamente.
+          La caja ya fue entregada exitosamente.
         {% elif pedido.estado == 'rechazado' %}
-          🚫 Pedido cancelado/rechazado.
+          Pedido cancelado/rechazado.
         {% else %}
-          ⏳ Esperando acción de otro departamento.
+          Esperando acción de otro departamento.
         {% endif %}
       </div>
     {% endif %}

@@ -97,7 +97,7 @@
   </div>
   <a href="{{ url_for('pedidos.catalogo') }}" class="btn btn-primary"
      style="background:var(--brown-dk); color:var(--cream); padding:10px 18px; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px;">
-    📦 Pedir Caja
+    Pedir Caja
   </a>
 </div>
 
@@ -125,32 +125,32 @@
 
       <div style="margin-bottom:10px;">
         <span class="badge-estado badge-{{ p.estado }}">
-          {% if p.estado == 'pendiente'      %}⏳ Pendiente
-          {% elif p.estado == 'aprobado'     %}✅ Aprobado
-          {% elif p.estado == 'en_produccion'%}⚙️ En Producción
-          {% elif p.estado == 'listo'        %}🎉 Lista para recoger
-          {% elif p.estado == 'entregado'    %}📦 Entregada
-          {% elif p.estado == 'rechazado'    %}❌ Rechazado
+          {% if p.estado == 'pendiente'      %}Pendiente
+          {% elif p.estado == 'aprobado'     %}Aprobado
+          {% elif p.estado == 'en_produccion'%}En Producción
+          {% elif p.estado == 'listo'        %}Lista para recoger
+          {% elif p.estado == 'entregado'    %}Entregada
+          {% elif p.estado == 'rechazado'    %}Rechazado
           {% endif %}
         </span>
       </div>
 
       <!-- Info de la caja -->
       <div class="caja-block">
-        <div class="ico">{{ '🍞' if p.tipo_caja == 'simple' else '🎭' }}</div>
+        <div class="ico">{{ '' if p.tipo_caja == 'simple' else '' }}</div>
         <div>
           <div class="nom">{{ p.nombre_caja if p.nombre_caja else 'Caja de Pan' }}</div>
           <div class="chips">
             {% if p.tamanio_nombre %}
-            <span class="chip">📏 {{ p.tamanio_nombre }}</span>
+            <span class="chip"> {{ p.tamanio_nombre }}</span>
             {% endif %}
             {% if p.tipo_caja %}
             <span class="chip {{ p.tipo_caja }}">
-              {{ '🍞 Simple' if p.tipo_caja == 'simple' else '🎭 Mixta' }}
+              {{ ' Simple' if p.tipo_caja == 'simple' else ' Mixta' }}
             </span>
             {% endif %}
             {% if p.capacidad %}
-            <span class="chip">🔢 {{ p.capacidad }} pzas</span>
+            <span class="chip"> {{ p.capacidad }} pzas</span>
             {% endif %}
           </div>
         </div>
@@ -160,7 +160,7 @@
       {% if p.panes_resumen %}
       <ul class="panes-list">
         {% for pan in p.panes_resumen.split(',') %}
-        <li><span>🥐 {{ pan.strip() }}</span></li>
+        <li><span>{{ pan.strip() }}</span></li>
         {% endfor %}
       </ul>
       {% endif %}
@@ -181,7 +181,7 @@
 
       {% if p.estado == 'listo' %}
       <div style="margin-top:12px; background:#eef6ff; border:1px solid #bcdbff; border-radius:10px; padding:10px; font-size:12px; color:#1e40af; font-weight:700; text-align:center;">
-        ✨ ¡Tu caja ya está lista para recoger!
+        ¡Tu caja ya está lista para recoger!
       </div>
       {% endif %}
 

@@ -272,14 +272,14 @@
           </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
-          {% if urgente %}<span class="pc-urgente">🔥 Urgente</span>{% endif %}
+          {% if urgente %}<span class="pc-urgente">Urgente</span>{% endif %}
           <span class="pill pill-{{ est }}">
-            {% if est=='pendiente'         %}📋
-            {% elif est=='aprobado'         %}✅
-            {% elif est=='pendiente_insumos'%}🛒
-            {% elif est=='en_produccion'    %}⚙️
-            {% elif est=='listo'            %}🎉
-            {% else                         %}❌{% endif %}
+            {% if est=='pendiente'         %}
+            {% elif est=='aprobado'         %}
+            {% elif est=='pendiente_insumos'%}
+            {% elif est=='en_produccion'    %}
+            {% elif est=='listo'            %}
+            {% else                         %}{% endif %}
             {{ est | replace('_',' ') | title }}
           </span>
         </div>
@@ -306,18 +306,18 @@
 
       <div class="pc-footer">
         <button class="btn btn-outline btn-xs"
-                onclick="abrirDetalle('{{ p.folio }}')">👁 Detalle</button>
+                onclick="abrirDetalle('{{ p.folio }}')">Detalle</button>
 
         {% if est not in ('rechazado',) %}
         <button class="btn btn-outline btn-xs"
-                onclick="abrirInsumos('{{ p.folio }}')">🌾 Insumos</button>
+                onclick="abrirInsumos('{{ p.folio }}')">Insumos</button>
         {% endif %}
 
         {% if est == 'pendiente' %}
           <button class="btn btn-success btn-xs"
-                  onclick="abrirAprobar('{{ p.folio }}')">✅ Aprobar</button>
+                  onclick="abrirAprobar('{{ p.folio }}')">Aprobar</button>
           <button class="btn btn-danger btn-xs"
-                  onclick="abrirRechazar('{{ p.folio }}')">❌ Rechazar</button>
+                  onclick="abrirRechazar('{{ p.folio }}')">Rechazar</button>
 
         {% elif est == 'aprobado' %}
           <form method="POST" action="/{{ p.folio }}/iniciar-produccion"
@@ -326,21 +326,21 @@
             <button class="btn btn-blue btn-xs">▶ Iniciar</button>
           </form>
           <button class="btn btn-danger btn-xs"
-                  onclick="abrirRechazar('{{ p.folio }}')">❌ Rechazar</button>
+                  onclick="abrirRechazar('{{ p.folio }}')">Rechazar</button>
 
         {% elif est == 'pendiente_insumos' %}
-          <a href="/compras" class="btn btn-purple btn-xs">🛒 Compras</a>
+          <a href="/compras" class="btn btn-purple btn-xs">Compras</a>
           <form method="POST" action="/{{ p.folio }}/iniciar-produccion"
                 onsubmit="return confirm('¿Reintentar inicio de producción?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-outline btn-xs">🔄 Reintentar</button>
+            <button class="btn btn-outline btn-xs">Reintentar</button>
           </form>
 
         {% elif est == 'en_produccion' %}
           <form method="POST" action="/{{ p.folio }}/terminar-produccion"
                 onsubmit="return confirm('¿Marcar el pedido {{ p.folio }} como LISTO?\nEl cliente recibirá una notificación.')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-success btn-xs">🎉 Marcar Listo</button>
+            <button class="btn btn-success btn-xs">Marcar Listo</button>
           </form>
 
         {% elif est == 'listo' %}
@@ -348,7 +348,7 @@
                 onsubmit="return confirm('¿Confirmar entrega del pedido {{ p.folio }}?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="estado" value="entregado">
-            <button class="btn btn-outline btn-xs">📦 Entregado</button>
+            <button class="btn btn-outline btn-xs">Entregado</button>
           </form>
         {% endif %}
       </div>

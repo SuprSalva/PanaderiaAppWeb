@@ -148,7 +148,7 @@
     <div class="db-page-title">📋 Recetas</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Recetas</div>
   </div>
-  <a href="?modal=nueva" class="btn btn-primary">＋ Nueva Receta</a>
+  <a href="?modal=nueva" class="btn btn-primary">Nueva Receta</a>
 </div>
 
 <div class="r-stats anim anim-1">
@@ -179,11 +179,11 @@
   {% for r in recetas %}
   <div class="receta-card" {% if r.estatus=='inactivo' %}style="opacity:.65"{% endif %}>
     <div class="rc-header">
-      <div class="rc-emoji">🍞</div>
+      <div class="rc-emoji"></div>
       <div>
         <div class="rc-title">{{ r.nombre }}</div>
-        {% if r.producto %}<div class="rc-producto">🏷️ {{ r.producto.nombre }}</div>{% endif %}
-        <div class="rc-rendimiento">🔢 {{ r.rendimiento }} {{ r.unidad_rendimiento }} por lote</div>
+        {% if r.producto %}<div class="rc-producto"> {{ r.producto.nombre }}</div>{% endif %}
+        <div class="rc-rendimiento">  {{ r.rendimiento }} {{ r.unidad_rendimiento }} por lote</div>
         <span class="badge {% if r.estatus=='activo' %}badge-active{% else %}badge-inactive{% endif %}" style="margin-top:6px;display:inline-block;">
           {{ 'Activa' if r.estatus=='activo' else 'Inactiva' }}
         </span>
@@ -291,10 +291,11 @@
 </div>
 {% endif %}
 
+{# ── MODAL NUEVA ── #}
 <div class="modal-overlay {% if request.args.get('modal')=='nueva' %}open{% endif %}">
   <div class="modal modal-xl">
     <div class="modal-header">
-      <h2>➕ Nueva Receta</h2>
+      <h2>Nueva Receta</h2>
       <a href="{{ url_for('recetas_bp.index_recetas', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
          class="modal-close-link">✕</a>
     </div>
@@ -351,7 +352,6 @@
         </div>
 
         <div class="info-box">
-          <span>💡</span>
           <span>Selecciona el insumo, elige la <strong>unidad</strong> e ingresa la <strong>cantidad</strong>. El sistema convierte automáticamente a unidad base.</span>
         </div>
 
@@ -362,7 +362,7 @@
           {% for i in range(2) %}
           <div class="ins-row">
             <div class="insumo-wrap">
-              <span class="insumo-buscar-icon">🔍</span>
+              <span class="insumo-buscar-icon"></span>
               <span class="insumo-arrow">▾</span>
               <input type="text" class="insumo-buscar" placeholder="— Seleccionar insumo —"
                      autocomplete="off" oninput="buscarInsumo(this)"
@@ -432,24 +432,21 @@
       <div class="modal-footer">
         <a href="{{ url_for('recetas_bp.index_recetas', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
            class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">💾 Guardar Receta</button>
+        <button type="submit" class="btn btn-primary">Guardar Receta</button>
       </div>
     </form>
   </div>
 </div>
 
-{% set edit_id = request.args.get('id', 0)|int %}
-{% set receta_edit = namespace(obj=None) %}
-{% for r in recetas %}{% if r.id_receta == edit_id %}{% set receta_edit.obj = r %}{% endif %}{% endfor %}
-
-<div class="modal-overlay {% if request.args.get('modal')=='editar' and receta_edit.obj %}open{% endif %}">
+{# ── MODAL EDITAR — receta_editar viene directo del backend, no de la lista paginada ── #}
+<div class="modal-overlay {% if request.args.get('modal')=='editar' and receta_editar %}open{% endif %}">
   <div class="modal modal-xl">
     <div class="modal-header">
-      <h2>✏️ Editar Receta</h2>
+      <h2>Editar Receta</h2>
       <a href="{{ url_for('recetas_bp.index_recetas', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
          class="modal-close-link">✕</a>
     </div>
-    {% if receta_edit.obj %}{% set re = receta_edit.obj %}
+    {% if receta_editar %}{% set re = receta_editar %}
     <form method="POST" action="{{ url_for('recetas_bp.recetas_editar', id_receta=re.id_receta) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
@@ -504,9 +501,9 @@
         </div>
         <div id="insumos-edit">
           {% for d in re.detalles %}
-          <div class="ins-row">
+          {# data-id-up guarda el id de unidad de presentación para que JS lo lea ANTES de que cargarUnidades reemplace el select #}
+          <div class="ins-row" data-id-up="{{ d.id_unidad_presentacion if d.id_unidad_presentacion else '' }}">
             <div class="insumo-wrap">
-              <span class="insumo-buscar-icon">🔍</span>
               <span class="insumo-arrow">▾</span>
               <input type="text" class="insumo-buscar"
                      value="{{ d.materia.nombre }} ({{ d.materia.unidad_base }})"
@@ -527,17 +524,13 @@
                 {% endfor %}
               </div>
             </div>
+            {# El select empieza vacío; cargarUnidades lo puebla y selecciona la opción correcta via data-id-up #}
             <select name="id_unidad_presentacion[]" class="det-select sel-unidad" onchange="actualizarHint(this)">
               <option value="">— unidad base —</option>
-              {% if d.unidad_presentacion %}
-                <option value="{{ d.id_unidad_presentacion }}" selected>
-                  {{ d.unidad_presentacion.nombre }} ({{ d.unidad_presentacion.simbolo }})
-                </option>
-              {% endif %}
             </select>
             <input type="number" name="cantidad_presentacion[]" class="det-input inp-cantidad"
                    placeholder="0" min="0" step="0.001"
-                   value="{{ d.cantidad_presentacion if d.cantidad_presentacion else '' }}"
+                   value="{{ d.cantidad_presentacion if d.cantidad_presentacion else d.cantidad_requerida }}"
                    oninput="actualizarHint(this.closest('.ins-row').querySelector('.sel-unidad'))">
             <button type="button" class="btn-remove" onclick="quitarFila(this)">✕</button>
           </div>
@@ -551,25 +544,22 @@
       <div class="modal-footer">
         <a href="{{ url_for('recetas_bp.index_recetas', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
            class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
       </div>
     </form>
     {% endif %}
   </div>
 </div>
 
-{% set exp_id = request.args.get('id', 0)|int %}
-{% set receta_exp = namespace(obj=None) %}
-{% for r in recetas %}{% if r.id_receta == exp_id %}{% set receta_exp.obj = r %}{% endif %}{% endfor %}
-
-<div class="modal-overlay {% if request.args.get('modal')=='detalle' and receta_exp.obj %}open{% endif %}">
+{# ── MODAL DETALLE — receta_detalle viene directo del backend ── #}
+<div class="modal-overlay {% if request.args.get('modal')=='detalle' and receta_detalle %}open{% endif %}">
   <div class="modal modal-xl">
     <div class="modal-header">
-      <h2>🔍 Detalle{% if receta_exp.obj %} — <span style="opacity:.75;font-size:14px;">{{ receta_exp.obj.nombre }}</span>{% endif %}</h2>
+      <h2>🔍 Detalle{% if receta_detalle %} — <span style="opacity:.75;font-size:14px;">{{ receta_detalle.nombre }}</span>{% endif %}</h2>
       <a href="{{ url_for('recetas_bp.index_recetas', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
          class="modal-close-link">✕</a>
     </div>
-    {% if receta_exp.obj %}{% set re = receta_exp.obj %}
+    {% if receta_detalle %}{% set re = receta_detalle %}
     <div class="modal-body">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
         {% if re.producto %}
@@ -591,7 +581,7 @@
       </div>
       <table class="detalle-table">
         <thead>
-          <tr><th>Insumo</th><th>Cantidad en Receta</th><th>Equivale a (base)</th><th>Stock Actual</th><th>Estado</th></tr>
+          <tr><th>Insumo</th><th>Cantidad en Receta</th><th>Stock Actual</th><th>Estado</th></tr>
         </thead>
         <tbody>
           {% for d in re.detalles %}
@@ -606,15 +596,10 @@
                 {{ d.cantidad_requerida }} {{ d.materia.unidad_base }}
               {% endif %}
             </td>
-            <td style="color:var(--brown-lt);font-size:12px;">
-              {% if d.cantidad_presentacion and d.unidad_presentacion %}
-                {{ d.cantidad_requerida }} {{ d.materia.unidad_base }}
-              {% else %}—{% endif %}
-            </td>
             <td>{{ d.materia.stock_actual }} {{ d.materia.unidad_base }}</td>
             <td>
-              {% if stock >= cant %}<span class="stock-ok">✅ Suficiente</span>
-              {% else %}<span class="stock-mal">⚠️ Insuficiente</span>{% endif %}
+              {% if stock >= cant %}<span class="stock-ok">Suficiente</span>
+              {% else %}<span class="stock-mal">Insuficiente</span>{% endif %}
             </td>
           </tr>
           {% else %}
@@ -627,15 +612,15 @@
       <a href="{{ url_for('recetas_bp.index_recetas', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
          class="btn btn-outline">Cerrar</a>
       <a href="?modal=editar&id={{ re.id_receta }}&pagina={{ pagina }}&buscar={{ buscar }}&estatus={{ estatus_sel }}"
-         class="btn btn-primary">✏️ Editar Receta</a>
+         class="btn btn-primary"> Editar Receta</a>
     </div>
     {% endif %}
   </div>
 </div>
 
 <script>
-const URL_UNIDADES = "{{ url_for('recetas_bp.recetas_unidades', id_materia=0) }}".replace('/0','/')
-var inputBuscar = document.getElementById('buscador') 
+const URL_UNIDADES = "{{ url_for('recetas_bp.recetas_unidades', id_materia=0) }}".replace('/0','/');
+var inputBuscar = document.getElementById('buscador')
                || document.querySelector('input[name="buscar"]');
 var debounceTimer;
 
@@ -657,8 +642,9 @@ async function cargarUnidades(idMateria, selUnidad, unidadBase, idUnidadSel) {
     const data = await res.json();
     let html = `<option value="">— ${data.unidad_base} (base) —</option>`;
     data.unidades.forEach(function(u) {
-      const sel = (u.id === idUnidadSel) ? 'selected' : '';
-      html += `<option value="${u.id}" data-factor="${u.factor}" data-simbolo="${u.simbolo}" ${sel}>${u.nombre} (${u.simbolo})</option>`;
+      // Comparar como enteros para evitar fallos de tipo string vs number
+      const selected = (idUnidadSel && parseInt(u.id) === parseInt(idUnidadSel)) ? 'selected' : '';
+      html += `<option value="${u.id}" data-factor="${u.factor}" data-simbolo="${u.simbolo}" ${selected}>${u.nombre} (${u.simbolo})</option>`;
     });
     selUnidad.innerHTML = html;
     actualizarHint(selUnidad);
@@ -708,70 +694,84 @@ function seleccionarOpcion(op) {
 function abrirLista(input) {
   var lista = input.closest('.insumo-wrap').querySelector('.insumo-lista');
   document.querySelectorAll('.insumo-lista.abierta').forEach(function(l){ if(l!==lista) l.classList.remove('abierta'); });
-  lista.classList.add('abierta'); input.classList.add('abierto');
+  lista.classList.add('abierta');
+  input.classList.add('abierto');
   lista.querySelectorAll('.insumo-opcion').forEach(function(op){ op.classList.remove('oculto'); });
   lista.querySelector('.insumo-sin-res').style.display = 'none';
 }
 
 function buscarInsumo(input) {
-  var q=input.value.toLowerCase().trim(), wrap=input.closest('.insumo-wrap');
-  var lista=wrap.querySelector('.insumo-lista'), hay=false;
-  if (!q) wrap.querySelector('.insumo-val').value='';
-  lista.querySelectorAll('.insumo-opcion').forEach(function(op){
-    var ok=op.dataset.txt.toLowerCase().includes(q);
-    op.classList.toggle('oculto',!ok); if(ok) hay=true;
+  var q = input.value.toLowerCase().trim();
+  var wrap = input.closest('.insumo-wrap');
+  var lista = wrap.querySelector('.insumo-lista'), hay = false;
+  if (!q) wrap.querySelector('.insumo-val').value = '';
+  lista.querySelectorAll('.insumo-opcion').forEach(function(op) {
+    var ok = op.dataset.txt.toLowerCase().includes(q);
+    op.classList.toggle('oculto', !ok);
+    if (ok) hay = true;
   });
-  lista.querySelector('.insumo-sin-res').style.display=hay?'none':'block';
+  lista.querySelector('.insumo-sin-res').style.display = hay ? 'none' : 'block';
   lista.classList.add('abierta');
 }
 
 function cerrarListaDelay(input) {
-  setTimeout(function(){
-    var wrap=input.closest('.insumo-wrap'), lista=wrap.querySelector('.insumo-lista'), val=wrap.querySelector('.insumo-val');
-    lista.classList.remove('abierta'); input.classList.remove('abierto');
-    if(!val.value) input.value='';
-  },150);
+  setTimeout(function() {
+    var wrap  = input.closest('.insumo-wrap');
+    var lista = wrap.querySelector('.insumo-lista');
+    var val   = wrap.querySelector('.insumo-val');
+    lista.classList.remove('abierta');
+    input.classList.remove('abierto');
+    if (!val.value) input.value = '';
+  }, 150);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  var val = sessionStorage.getItem('buscarVal');
-  var pos = parseInt(sessionStorage.getItem('buscarPos') || '0');
-  
-  if (val !== null && inputBuscar && inputBuscar.value === val) {
-    inputBuscar.focus();
-    try { inputBuscar.setSelectionRange(pos, pos); } catch(e) {}
-    sessionStorage.removeItem('buscarPos');
-    sessionStorage.removeItem('buscarVal');
-  }
-});
-
 function agregarFila(contenedorId) {
-  var tpl=document.getElementById('tpl-fila');
-  if(!tpl) return;
-  var cont=document.getElementById(contenedorId);
-  var clone=tpl.content.cloneNode(true);
-  clone.querySelectorAll('input[type=text],input[type=number]').forEach(function(i){i.value='';});
-  clone.querySelectorAll('input[type=hidden]').forEach(function(i){i.value='';i.dataset.unidadBase='';});
-  clone.querySelectorAll('select').forEach(function(s){s.innerHTML='<option value="">— unidad base —</option>';});
+  var tpl  = document.getElementById('tpl-fila');
+  if (!tpl) return;
+  var cont  = document.getElementById(contenedorId);
+  var clone = tpl.content.cloneNode(true);
+  clone.querySelectorAll('input[type=text],input[type=number]').forEach(function(i){ i.value = ''; });
+  clone.querySelectorAll('input[type=hidden]').forEach(function(i){ i.value = ''; i.dataset.unidadBase = ''; });
+  clone.querySelectorAll('select').forEach(function(s){ s.innerHTML = '<option value="">— unidad base —</option>'; });
   cont.appendChild(clone);
 }
 
 function quitarFila(btn) {
-  var fila=btn.closest('.ins-row'), cont=fila.parentElement;
-  if(cont.querySelectorAll('.ins-row').length>1){
-    var hint=fila.nextElementSibling;
-    if(hint&&hint.classList.contains('hint-row')) hint.remove();
+  var fila = btn.closest('.ins-row');
+  var cont = fila.parentElement;
+  if (cont.querySelectorAll('.ins-row').length > 1) {
+    var hint = fila.nextElementSibling;
+    if (hint && hint.classList.contains('hint-row')) hint.remove();
     fila.remove();
   }
 }
 
-document.addEventListener('DOMContentLoaded',function(){
-  document.querySelectorAll('#insumos-edit .ins-row').forEach(function(fila){
-    var val=fila.querySelector('.insumo-val'), sel=fila.querySelector('.sel-unidad');
-    if(!val||!sel) return;
-    var idMateria=parseInt(val.value), idUP=parseInt(sel.value)||null;
-    if(idMateria) cargarUnidades(idMateria,sel,val.dataset.unidadBase||'',idUP);
+document.addEventListener('DOMContentLoaded', function() {
+
+  var bVal = sessionStorage.getItem('buscarVal');
+  var bPos = parseInt(sessionStorage.getItem('buscarPos') || '0');
+  if (bVal !== null && inputBuscar && inputBuscar.value === bVal) {
+    inputBuscar.focus();
+    try { inputBuscar.setSelectionRange(bPos, bPos); } catch(e) {}
+    sessionStorage.removeItem('buscarPos');
+    sessionStorage.removeItem('buscarVal');
+  }
+
+  document.querySelectorAll('#insumos-edit .ins-row').forEach(function(fila) {
+    var valEl     = fila.querySelector('.insumo-val');
+    var selUnidad = fila.querySelector('.sel-unidad');
+    if (!valEl || !selUnidad) return;
+
+    var idMateria = parseInt(valEl.value) || 0;
+    var rawIdUP   = fila.dataset.idUp;
+    var idUP      = (rawIdUP && rawIdUP !== '' && rawIdUP !== 'None')
+                    ? parseInt(rawIdUP) : null;
+
+    if (idMateria) {
+      cargarUnidades(idMateria, selUnidad, valEl.dataset.unidadBase || '', idUP);
+    }
   });
+
 });
 </script>
 

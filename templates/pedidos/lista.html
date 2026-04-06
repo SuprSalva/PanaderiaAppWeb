@@ -92,19 +92,18 @@
   </div>
 </div>
 
-<!-- KPIs -->
 <div class="stat-cards anim">
   <a href="{{ url_for('pedidos.lista') }}" class="stat-card {% if not filtro_estado %}active{% endif %}">
     <div class="num">{{ conteos.values()|sum }}</div>
-    <div class="lbl">📋 Todos</div>
+    <div class="lbl">Todos</div>
   </a>
   {% set estados = [
-    ('pendiente',     '⏳ Pendientes'),
-    ('aprobado',      '✅ Aprobados'),
-    ('en_produccion', '⚙️ En Prod.'),
-    ('listo',         '🎉 Listos'),
-    ('entregado',     '📦 Entregados'),
-    ('rechazado',     '❌ Rechazados'),
+    ('pendiente',     'Pendientes'),
+    ('aprobado',      'Aprobados'),
+    ('en_produccion', 'En Prod.'),
+    ('listo',         'Listos'),
+    ('entregado',     'Entregados'),
+    ('rechazado',     'Rechazados'),
   ] %}
   {% for clave, label in estados %}
   <a href="{{ url_for('pedidos.lista', estado=clave) }}"
@@ -168,13 +167,9 @@
         <td class="cliente-name">{{ p.cliente_nombre }}</td>
         <td>
           <div class="caja-info">
-            <span class="chip-tamanio">
-              📏 {{ p.tamanio_nombre if p.tamanio_nombre else '—' }}
-              {% if p.capacidad %}({{ p.capacidad }} pzas){% endif %}
-            </span>
             {% if p.tipo_caja %}
             <span class="chip-tipo {{ p.tipo_caja }}">
-              {{ '🍞 Simple' if p.tipo_caja == 'simple' else '🎭 Mixta' }}
+              {{ 'Simple' if p.tipo_caja == 'simple' else 'Mixta' }}
             </span>
             {% endif %}
           </div>
@@ -188,12 +183,12 @@
         </td>
         <td>
           <span class="badge-estado badge-{{ p.estado }}">
-            {% if p.estado == 'pendiente'      %}⏳ Pendiente
-            {% elif p.estado == 'aprobado'     %}✅ Aprobado
-            {% elif p.estado == 'en_produccion'%}⚙️ En Producción
-            {% elif p.estado == 'listo'        %}🎉 Listo
-            {% elif p.estado == 'entregado'    %}📦 Entregado
-            {% elif p.estado == 'rechazado'    %}❌ Rechazado
+            {% if p.estado == 'pendiente'      %}Pendiente
+            {% elif p.estado == 'aprobado'     %}Aprobado
+            {% elif p.estado == 'en_produccion'%}En Producción
+            {% elif p.estado == 'listo'        %}Listo
+            {% elif p.estado == 'entregado'    %}Entregado
+            {% elif p.estado == 'rechazado'    %}Rechazado
             {% endif %}
           </span>
         </td>
@@ -213,7 +208,7 @@
               <input type="hidden" name="nota" value="Pedido marcado como entregado desde la lista.">
               
               <button type="submit" class="btn-entregar" title="Marcar pedido como entregado">
-                📦 Entregar
+                Entregar
               </button>
             </form>
             {% endif %}
@@ -255,7 +250,7 @@
   <div style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.3);">
     <div style="padding:16px 22px 14px;border-bottom:1px solid var(--tan);display:flex;align-items:center;justify-content:space-between;">
       <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--brown-dk);">
-        ✅ Aprobar — <span id="ap-lista-folio" style="font-family:monospace;"></span>
+         Aprobar — <span id="ap-lista-folio" style="font-family:monospace;"></span>
       </div>
       <button onclick="cerrarModalLista('mAprobar')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
@@ -263,7 +258,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
         <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:9px;padding:10px 14px;font-size:12px;color:#1d4ed8;">
-          ✅ Al aprobar, el cliente será notificado. Los insumos se descuentan al iniciar producción.
+          Al aprobar, el cliente será notificado. Los insumos se descuentan al iniciar producción.
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;">
           <label style="font-size:11px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:.4px;">Nota para el cliente (opcional)</label>
@@ -273,7 +268,7 @@
       </div>
       <div style="padding:14px 22px 20px;border-top:1px solid var(--tan);display:flex;justify-content:flex-end;gap:9px;">
         <button type="button" class="btn btn-outline" onclick="cerrarModalLista('mAprobar')">Cancelar</button>
-        <button type="submit" class="btn" style="background:#10b981;color:#fff;">✅ Confirmar Aprobación</button>
+        <button type="submit" class="btn" style="background:#10b981;color:#fff;"> Confirmar Aprobación</button>
       </div>
     </form>
   </div>
@@ -284,7 +279,7 @@
   <div style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.3);">
     <div style="padding:16px 22px 14px;border-bottom:1px solid var(--tan);display:flex;align-items:center;justify-content:space-between;">
       <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--brown-dk);">
-        ❌ Rechazar — <span id="rch-lista-folio" style="font-family:monospace;"></span>
+        Rechazar — <span id="rch-lista-folio" style="font-family:monospace;"></span>
       </div>
       <button onclick="cerrarModalLista('mRechazar')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
@@ -292,7 +287,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
         <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:9px;padding:10px 14px;font-size:12px;color:#991b1b;">
-          ⚠️ El cliente recibirá una notificación con el motivo del rechazo.
+          El cliente recibirá una notificación con el motivo del rechazo.
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;">
           <label style="font-size:11px;font-weight:700;color:var(--brown);text-transform:uppercase;letter-spacing:.4px;">Motivo del rechazo *</label>
@@ -302,7 +297,7 @@
       </div>
       <div style="padding:14px 22px 20px;border-top:1px solid var(--tan);display:flex;justify-content:flex-end;gap:9px;">
         <button type="button" class="btn btn-outline" onclick="cerrarModalLista('mRechazar')">Cancelar</button>
-        <button type="submit" class="btn" style="background:#ef4444;color:#fff;">❌ Confirmar Rechazo</button>
+        <button type="submit" class="btn" style="background:#ef4444;color:#fff;"> Confirmar Rechazo</button>
       </div>
     </form>
   </div>
@@ -372,7 +367,6 @@ function abrirDetalle(folio) {
         + '<div class="det-info-item"><div class="i-lbl">Estado</div><div class="i-val"><span class="badge-estado badge-' + p.estado + '">' + (estadoLabels[p.estado] || p.estado) + '</span></div></div>'
         + '<div class="det-info-item"><div class="i-lbl">Total Estimado</div><div class="i-val" style="color:var(--rust);">$' + p.total_estimado.toFixed(2) + '</div></div>'
         + '<div class="det-info-item"><div class="i-lbl">Tipo de Caja</div><div class="i-val">' + p.tipo_caja + '</div></div>'
-        + '<div class="det-info-item"><div class="i-lbl">Tamaño</div><div class="i-val">' + p.tamanio_nombre + '</div></div>'
         + '</div>'
         + (itemsRows ? '<table class="det-items-tbl"><thead><tr><th>Pan</th><th style="text-align:right">Piezas</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>' + itemsRows + '</tbody></table>' : '')
         + (p.motivo_rechazo ? '<div style="padding:10px 14px;background:#fff5f2;border:1px solid var(--rust);border-radius:8px;font-size:12px;color:var(--rust);"><strong>Motivo de rechazo:</strong> ' + p.motivo_rechazo + '</div>' : '')

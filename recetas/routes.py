@@ -95,6 +95,8 @@ def index_recetas():
     buscar  = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
     pagina  = request.args.get('pagina', 1, type=int)
+    modal   = request.args.get('modal', '')
+    obj_id  = request.args.get('id', 0, type=int)
     if pagina < 1:
         pagina = 1
 
@@ -122,6 +124,9 @@ def index_recetas():
 
     form_nueva, productos = _form_con_productos()
 
+    receta_editar  = Receta.query.get(obj_id) if obj_id and modal == 'editar'  else None
+    receta_detalle = Receta.query.get(obj_id) if obj_id and modal == 'detalle' else None
+
     return render_template(
         'recetas/recetas.html',
         recetas=lista,
@@ -136,6 +141,8 @@ def index_recetas():
         materias=materias,
         productos=productos,
         form_nueva=form_nueva,
+        receta_editar=receta_editar,
+        receta_detalle=receta_detalle,
     )
 
 @recetas_bp.route('/recetas/nueva', methods=['POST'])

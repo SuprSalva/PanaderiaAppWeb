@@ -3,6 +3,28 @@
 
 {% block extra_head %}
 <style>
+  .placeholder-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5e6d3, #fcd9b8);
+  border-radius: 12px;
+  height: 120px;
+  text-align: center;
+}
+
+.placeholder-content {
+  font-size: 24px;
+  color: #a67c52;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.placeholder-content span {
+  font-size: 12px;
+  opacity: 0.8;
+}
   .ol-page { display: flex; flex-direction: column; gap: 20px; }
 
   .ol-hero {
@@ -169,7 +191,7 @@
 
   <div class="ol-hero">
     <div class="ol-hero-text">
-      <h1>📦 Pedir Cajas de Pan</h1>
+      <h1>Pedir Cajas de Pan</h1>
       <p>Arma cada caja paso a paso y agrégala a tu pedido. Puedes pedir todas las que quieras.</p>
     </div>
     <a href="{{ url_for('pedidos.mis_pedidos') }}"
@@ -186,7 +208,7 @@
   </div>
 
   <div class="section-card" id="paso1">
-    <div class="section-title">📏 Paso 1 — ¿Qué tamaño de charola quieres?</div>
+    <div class="section-title"> Paso 1 — ¿Qué tamaño de charola quieres?</div>
     <div class="size-grid">
       {% set size_icons = ['🧺', '📦', '🎁'] %}
       {% for t in tamanios %}
@@ -202,24 +224,21 @@
   </div>
 
   <div class="section-card hidden" id="paso2">
-    <div class="section-title">🎨 Paso 2 — ¿Cómo quieres tu caja?</div>
+    <div class="section-title">Paso 2 — ¿Cómo quieres tu caja?</div>
     <div class="tipo-grid" id="tipoGrid">
       <div class="tipo-card" id="tcard-simple" onclick="elegirTipo('simple')">
-        <div class="tipo-ico">🍞</div>
         <div>
           <div class="tipo-nom">Caja Simple</div>
           <div class="tipo-desc">Un solo tipo de pan en toda la charola.</div>
         </div>
       </div>
       <div class="tipo-card" id="tcard-mixta" onclick="elegirTipo('mixta')">
-        <div class="tipo-ico">🎭</div>
         <div>
           <div class="tipo-nom">Caja Mixta</div>
           <div class="tipo-desc">Dos tipos de pan, la mitad de cada uno.</div>
         </div>
       </div>
       <div class="tipo-card hidden" id="tcard-triple" onclick="elegirTipo('triple')">
-        <div class="tipo-ico">🌈</div>
         <div>
           <div class="tipo-nom">Caja Triple</div>
           <div class="tipo-desc">Tres tipos distintos, 4 piezas de cada uno.</div>
@@ -229,7 +248,7 @@
   </div>
 
   <div class="section-card hidden" id="paso3">
-    <div class="section-title" id="paso3-titulo">🥖 Paso 3 — Elige tu pan</div>
+    <div class="section-title" id="paso3-titulo">Paso 3 — Elige tu pan</div>
 
     <div class="piezas-bar" id="piezasBar" style="margin-bottom:16px;">
       <span id="piezasTexto">—</span>
@@ -247,7 +266,12 @@
       {% set emojis = ['🍞','🥐','🍩','🥨','🧁','🫓','🥖','🍰','🎂','🍮','🥮','🍪'] %}
       {% for p in productos %}
       <div class="prod-card" id="card-{{ p.id_producto }}" data-name="{{ p.nombre | lower }}">
-        <div class="prod-card-img">{{ emojis[loop.index0 % emojis|length] }}</div>
+        <div class="prod-card-img placeholder-img">
+          <div class="placeholder-content">
+            🥐
+            <span>Imagen próximamente</span>
+          </div>
+        </div>
         <div class="prod-card-body">
           <div class="prod-card-name">{{ p.nombre }}</div>
           <div class="prod-card-desc">{{ p.descripcion or 'Pan recién horneado' }}</div>
@@ -263,7 +287,7 @@
 
     <button type="button" class="btn-agregar-carrito" id="btnAgregarCarrito"
             onclick="agregarAlCarrito()" disabled>
-      🛒 Agregar caja al pedido
+      Agregar caja al pedido
     </button>
   </div>
 
@@ -393,11 +417,11 @@
     const n   = numSlots();
     const pzs = piezasPorSlot();
     const titulos = {
-      1: `🥖 Paso 3 — Elige el pan (${tamanio.capacidad} piezas)`,
-      2: `🎭 Paso 3 — Elige ${n} tipos de pan (${pzs} piezas cada uno)`,
-      3: `🌈 Paso 3 — Elige ${n} tipos de pan (${pzs} piezas cada uno)`
+      1: `Paso 3 — Elige el pan (${tamanio.capacidad} piezas)`,
+      2: `Paso 3 — Elige ${n} tipos de pan (${pzs} piezas cada uno)`,
+      3: `Paso 3 — Elige ${n} tipos de pan (${pzs} piezas cada uno)`
     };
-    document.getElementById('paso3-titulo').textContent = titulos[n] || '🥖 Elige tu pan';
+    document.getElementById('paso3-titulo').textContent = titulos[n] || 'Elige tu pan';
     document.getElementById('paso3').classList.remove('hidden');
     renderSlots();
     actualizarPiezasBar();
@@ -497,9 +521,9 @@
     });
 
     const btn = document.getElementById('btnAgregarCarrito');
-    btn.textContent = '¡Caja agregada! 🎉';
+    btn.textContent = '¡Caja agregada!';
     btn.style.background = '#3a6034';
-    setTimeout(() => { btn.textContent = '🛒 Agregar caja al pedido'; btn.style.background = ''; }, 1200);
+    setTimeout(() => { btn.textContent = 'Agregar caja al pedido'; btn.style.background = ''; }, 1200);
 
     actualizarCarritoEnPagina();
     setTimeout(() => { resetearPasos(); abrirDrawer(); }, 1350);
@@ -562,7 +586,7 @@
       }))
     );
 
-    const icos = { simple: '🍞', mixta: '🎭', triple: '🌈' };
+    const icos = { simple: '', mixta: '', triple: '' };
     let total = 0, resHTML = '';
 
     if (carrito.length === 0) {
