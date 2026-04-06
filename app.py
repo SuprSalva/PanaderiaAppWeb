@@ -5,6 +5,7 @@ import logging
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from auth import roles_required
 from config import DevelopmentConfig
 from sqlalchemy import text
 from models import db, Usuario, Rol
@@ -60,6 +61,30 @@ db.init_app(app)
 login_manager.init_app(app)
 migrate = Migrate(app, db)
 
+def _redirect_por_rol(usuario):
+    clave = usuario.rol.clave_rol if usuario.rol else ''
+    destinos = {
+        'admin':    'dashboard',
+        'empleado': 'dashboard_ventas',
+        'panadero': 'pedidos.cola_produccion',
+        'cliente':  'pedidos.mis_pedidos',
+    }
+    endpoint = destinos.get(clave, 'dashboard')
+    return redirect(url_for(endpoint))
+
+@app.context_processor
+def inject_url_volver():
+    if not current_user.is_authenticated or not current_user.rol:
+        return dict(url_volver=url_for('login'))
+    destinos = {
+        'admin':    'dashboard',
+        'empleado': 'dashboard_ventas',
+        'panadero': 'pedidos.cola_produccion',
+        'cliente':  'pedidos.mis_pedidos',
+    }
+    endpoint = destinos.get(current_user.rol.clave_rol, 'dashboard')
+    return dict(url_volver=url_for(endpoint))
+
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -87,7 +112,7 @@ def login():
             usuario.ultimo_login = datetime.datetime.now()
             db.session.commit()
 
-            return redirect(url_for('dashboard'))
+            return _redirect_por_rol(usuario)
         else:
             app.logger.warning('Intento de acceso fallido (credenciales incorrectas) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Usuario o contraseña incorrectos.', 'error')
@@ -211,11 +236,13 @@ def registrar_usuario():
 
 @app.route("/dashboard")
 @login_required
+@roles_required('admin')
 def dashboard():
     return render_template("dashboard.html")
 
 @app.route("/dashboardVentas")
 @login_required
+@roles_required('admin', 'empleado')
 def dashboard_ventas():
     return render_template("dashboardVentas.html")
 

@@ -1,6 +1,7 @@
 from . import ventas
 from flask import render_template, request, jsonify
 from flask_login import login_required, current_user
+from auth import roles_required
 from sqlalchemy import text
 from models import db
 from decimal import Decimal
@@ -20,6 +21,7 @@ class DecimalEncoder(json.JSONEncoder):
 @ventas.route("/")
 @ventas.route("/ventas")
 @login_required
+@roles_required('admin', 'empleado')
 def index_ventas():
     return render_template("ventas/ventas.html")
 
@@ -30,6 +32,7 @@ def index_ventas():
 
 @ventas.route("/api/estadisticas")
 @login_required
+@roles_required('admin', 'empleado')
 def api_estadisticas():
     """Estadísticas de ventas (solo pedidos entregados)"""
     try:
@@ -84,6 +87,7 @@ def api_estadisticas():
 
 @ventas.route("/api/ventas", methods=['GET'])
 @login_required
+@roles_required('admin', 'empleado')
 def api_lista_ventas():
     """Lista de pedidos entregados (son las ventas)"""
     fecha_inicio = request.args.get('fecha_inicio')
@@ -177,6 +181,7 @@ def api_lista_ventas():
 
 @ventas.route("/api/ventas/<int:id_pedido>")
 @login_required
+@roles_required('admin', 'empleado')
 def api_detalle_venta(id_pedido):
     """Detalle completo de un pedido entregado"""
     try:
@@ -267,6 +272,7 @@ def api_detalle_venta(id_pedido):
     
 @ventas.route("/corte-ventas")
 @login_required
+@roles_required('admin', 'empleado')
 def corte_ventas():
     """Vista de corte de ventas (pendiente de implementar)"""
     return render_template("ventas/corteVentas.html")

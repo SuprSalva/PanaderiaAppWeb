@@ -17,7 +17,7 @@ from forms import PedidoCajaForm
 
 @pedidos_bp.route('/nuevo', methods=['GET'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def catalogo():
     current_app.logger.info('Vista de catalogo de pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn = db.session.connection()
@@ -52,7 +52,7 @@ def catalogo():
 
 @pedidos_bp.route('/nuevo', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def crear_pedido():
     form = PedidoCajaForm(request.form)
     cajas_raw = request.form.get('cajas_json', '').strip()
@@ -191,7 +191,7 @@ def _validar_cajas(cajas_data: list) -> list[str]:
 
 @pedidos_bp.route('/mis-pedidos')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def mis_pedidos():
     current_app.logger.info('Vista de mis pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn = db.session.connection()
@@ -219,7 +219,7 @@ def mis_pedidos():
 
 @pedidos_bp.route('/pedidos')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def lista():
     current_app.logger.info('Vista de lista general de pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     estado = request.args.get('estado') or None
@@ -252,7 +252,7 @@ def lista():
 
 @pedidos_bp.route('/<folio>')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def detalle(folio):
     conn = db.session.connection()
     cur  = conn.connection.cursor()
@@ -295,7 +295,7 @@ def detalle(folio):
 
 @pedidos_bp.route('/<folio>/estado', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def cambiar_estado(folio):
     nuevo_estado = request.form.get('estado', '').strip()
     nota         = request.form.get('nota', '').strip() or None
@@ -344,7 +344,7 @@ def cambiar_estado(folio):
 
 @pedidos_bp.route('/notificaciones/leer', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def marcar_leidas():
     try:
         db.session.execute(

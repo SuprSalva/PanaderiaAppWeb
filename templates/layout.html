@@ -23,9 +23,13 @@
 <body>
   <div class="app-shell">
     {% if request.endpoint not in ['login', 'entrar', 'registrar_usuario', 'login_cliente', 'registrar_cliente'] %}
+
+    {# ── Alias de rol para usar en todo el menú ── #}
+    {% set rol = current_user.rol.clave_rol if current_user.is_authenticated and current_user.rol else '' %}
+
     <aside class="sidebar" id="sidebar">
 
-      <a href="{{ url_for('dashboard') }}" class="sidebar-logo">
+      <a href="{{ url_for('dashboard') if rol != 'cliente' else url_for('pedidos.mis_pedidos') }}" class="sidebar-logo">
         <div class="logo-icon">🥐</div>
         <div class="logo-text">
           <div class="logo-name">Dulce Migaja</div>
@@ -35,15 +39,25 @@
 
       <nav class="sidebar-nav" id="sidebarNav">
 
+        {# ══════════════════════════════════════
+           SECCIÓN: PRINCIPAL
+           Dashboard       → admin
+           Dashboard Ventas → admin, empleado
+        ══════════════════════════════════════ #}
+        {% if rol in ['admin', 'empleado'] %}
         <div class="nav-section" id="section-principal">
           <div class="nav-section-label">Principal</div>
 
+          {% if rol == 'admin' %}
           <a href="{{ url_for('dashboard') }}"
-            class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}" data-label="Dashboard">
+            class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}"
+            data-label="Dashboard">
             <span class="nav-icon">📊</span>
             <span class="nav-label">Dashboard</span>
             <span class="nav-tooltip">Dashboard</span>
           </a>
+          {% endif %}
+
           <a href="{{ url_for('dashboard_ventas') }}"
             class="nav-item {% if request.endpoint == 'dashboard_ventas' %}active{% endif %}"
             data-label="Dashboard Ventas">
@@ -52,17 +66,32 @@
             <span class="nav-tooltip">Dashboard Ventas</span>
           </a>
         </div>
+        {% endif %}
 
+        {# ══════════════════════════════════════
+           SECCIÓN: ADMINISTRACIÓN
+           Pedidos         → admin, empleado, panadero
+           Usuarios        → admin
+           Proveedores     → admin, empleado
+           Materias Primas → admin, empleado, panadero
+           Compras         → admin, empleado, panadero
+           Productos       → admin, empleado
+        ══════════════════════════════════════ #}
+        {% if rol in ['admin', 'empleado', 'panadero'] %}
         <div class="nav-section" id="section-admin">
           <div class="nav-section-label">Administración</div>
 
+          {# Pedidos: admin, empleado, panadero #}
           <a href="{{ url_for('pedidos.lista') }}"
-            class="nav-item {% if request.endpoint == 'pedidos.lista' %}active{% endif %}" data-label="Pedidos">
+            class="nav-item {% if request.endpoint == 'pedidos.lista' %}active{% endif %}"
+            data-label="Pedidos">
             <span class="nav-icon">📋</span>
             <span class="nav-label">Pedidos</span>
             <span class="nav-tooltip">Pedidos</span>
           </a>
 
+          {# Usuarios: solo admin #}
+          {% if rol == 'admin' %}
           <a href="{{ url_for('registrar_usuario.usuarios') }}"
             class="nav-item {% if request.endpoint in ['registrar_usuario.usuarios', 'registrar_usuario'] %}active{% endif %}"
             data-label="Usuarios">
@@ -70,7 +99,10 @@
             <span class="nav-label">Usuarios</span>
             <span class="nav-tooltip">Usuarios</span>
           </a>
+          {% endif %}
 
+          {# Proveedores: admin, empleado #}
+          {% if rol in ['admin', 'empleado'] %}
           <a href="{{ url_for('proveedores.index_proveedores') }}"
             class="nav-item {% if request.endpoint == 'proveedores.index_proveedores' %}active{% endif %}"
             data-label="Proveedores">
@@ -78,7 +110,9 @@
             <span class="nav-label">Proveedores</span>
             <span class="nav-tooltip">Proveedores</span>
           </a>
+          {% endif %}
 
+          {# Materias Primas: admin, empleado, panadero #}
           <a href="{{ url_for('materias_primas.index_materias_primas') }}"
             class="nav-item {% if request.endpoint == 'materias_primas.index_materias_primas' %}active{% endif %}"
             data-label="Materias Primas">
@@ -87,13 +121,17 @@
             <span class="nav-tooltip">Materias Primas</span>
           </a>
 
+          {# Compras: admin, empleado, panadero #}
           <a href="{{ url_for('compras.index_compras') }}"
-            class="nav-item {% if request.endpoint == 'compras.index_compras' %}active{% endif %}" data-label="Compras">
+            class="nav-item {% if request.endpoint == 'compras.index_compras' %}active{% endif %}"
+            data-label="Compras">
             <span class="nav-icon">🛒</span>
             <span class="nav-label">Compras</span>
             <span class="nav-tooltip">Compras</span>
           </a>
 
+          {# Productos: admin, empleado #}
+          {% if rol in ['admin', 'empleado'] %}
           <a href="{{ url_for('productos_bp.index_productos') }}"
             class="nav-item {% if request.endpoint == 'productos_bp.index_productos' %}active{% endif %}"
             data-label="Productos">
@@ -101,8 +139,17 @@
             <span class="nav-label">Productos</span>
             <span class="nav-tooltip">Productos</span>
           </a>
-        </div>
+          {% endif %}
 
+        </div>
+        {% endif %}
+
+        {# ══════════════════════════════════════
+           SECCIÓN: PRODUCCIÓN
+           Recetas          → admin, empleado, panadero
+           Cola Producción  → admin, empleado, panadero
+        ══════════════════════════════════════ #}
+        {% if rol in ['admin', 'empleado', 'panadero'] %}
         <div class="nav-section" id="section-produccion">
           <div class="nav-section-label">Producción</div>
 
@@ -114,36 +161,33 @@
             <span class="nav-tooltip">Recetas</span>
           </a>
 
-          <a href="{{ url_for('produccion.index_produccion') }}"
-            class="nav-item {% if request.endpoint == 'produccion.index_produccion' %}active{% endif %}"
-            data-label="Producción">
-            <span class="nav-icon">⚙️</span>
-            <span class="nav-label">Producción</span>
-            <span class="nav-tooltip">Producción</span>
-          </a>
-
-          <a href="{{ url_for('pedidos.cola_produccion') }}" class="nav-item ...">
+          <a href="{{ url_for('pedidos.cola_produccion') }}"
+            class="nav-item {% if request.endpoint == 'pedidos.cola_produccion' %}active{% endif %}"
+            data-label="Cola Producción">
             <span class="nav-icon">🧑‍🍳</span>
             <span class="nav-label">Cola Producción</span>
+            <span class="nav-tooltip">Cola Producción</span>
           </a>
 
-          <a href="{{ url_for('produccion.index_produccion_solicitud') }}"
-            class="nav-item {% if request.endpoint == 'produccion.index_produccion_solicitud' %}active{% endif %}"
-            data-label="Solicitudes Producción">
-            <span class="nav-icon">📬</span>
-            <span class="nav-label">Solicitudes</span>
-            <span class="nav-tooltip">Solicitudes Prod.</span>
-            {% if pendientes_solicitudes is defined and pendientes_solicitudes > 0 %}
-            <span class="nav-badge">{{ pendientes_solicitudes }}</span>
-            {% endif %}
-          </a>
         </div>
+        {% endif %}
 
+        {# ══════════════════════════════════════
+           SECCIÓN: VENTAS
+           Ventas           → admin, empleado
+           Corte Diario     → admin, empleado
+           Salida Efectivo  → admin, empleado
+           Venta en Línea   → cliente
+           Mis Pedidos      → cliente
+        ══════════════════════════════════════ #}
+        {% if rol in ['admin', 'empleado', 'cliente'] %}
         <div class="nav-section" id="section-ventas">
           <div class="nav-section-label">Ventas</div>
 
+          {% if rol in ['admin', 'empleado'] %}
           <a href="{{ url_for('ventas.index_ventas') }}"
-            class="nav-item {% if request.endpoint == 'ventas.index_ventas' %}active{% endif %}" data-label="Ventas">
+            class="nav-item {% if request.endpoint == 'ventas.index_ventas' %}active{% endif %}"
+            data-label="Ventas">
             <span class="nav-icon">🏷️</span>
             <span class="nav-label">Ventas</span>
             <span class="nav-tooltip">Ventas</span>
@@ -164,7 +208,9 @@
             <span class="nav-label">Salida de Efectivo</span>
             <span class="nav-tooltip">Salida de Efectivo</span>
           </a>
+          {% endif %}
 
+          {% if rol == 'cliente' %}
           <a href="{{ url_for('pedidos.catalogo') }}"
             class="nav-item {% if request.endpoint in ['ventas.ventas_online', 'ventas.checkout'] %}active{% endif %}"
             data-label="Venta en Línea">
@@ -180,8 +226,17 @@
             <span class="nav-label">Mis Pedidos</span>
             <span class="nav-tooltip">Mis Pedidos</span>
           </a>
-        </div>
+          {% endif %}
 
+        </div>
+        {% endif %}
+
+        {# ══════════════════════════════════════
+           SECCIÓN: REPORTES
+           Costo y Utilidad → admin
+           Utilidad Diaria  → admin
+        ══════════════════════════════════════ #}
+        {% if rol == 'admin' %}
         <div class="nav-section" id="section-reportes">
           <div class="nav-section-label">Reportes</div>
 
@@ -201,6 +256,7 @@
             <span class="nav-tooltip">Utilidad Diaria</span>
           </a>
         </div>
+        {% endif %}
 
         <div id="nav-no-results">Sin resultados para tu búsqueda.</div>
 
