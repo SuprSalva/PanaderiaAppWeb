@@ -310,116 +310,6 @@
     </div>
   </div>
 
-  <style>
-    /* ── Contenedor ── */
-    #dm-toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 99999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 340px;
-      pointer-events: none;
-    }
-
-    /* ── Toast base ── */
-    .dm-toast {
-      display: flex;
-      align-items: flex-start;
-      gap: 11px;
-      padding: 14px 14px 18px 16px;
-      border-radius: 12px;
-      box-shadow: 0 6px 24px rgba(59, 42, 26, .18);
-      font-family: 'Lato', sans-serif;
-      font-size: 13.5px;
-      line-height: 1.45;
-      pointer-events: all;
-      position: relative;
-      overflow: hidden;
-      animation: dm-toast-in .32s cubic-bezier(.21, 1.02, .73, 1) forwards;
-    }
-
-    /* ── Variantes de color ── */
-    .dm-toast.success {
-      background: #f0faf0;
-      border: 1px solid #b7dfb7;
-      color: #1e5c1e;
-    }
-    .dm-toast.error {
-      background: #fff4f2;
-      border: 1px solid #f5c0b0;
-      color: #8b1a0a;
-    }
-    .dm-toast.warning {
-      background: #fffbee;
-      border: 1px solid #f0d98a;
-      color: #6b4800;
-    }
-    .dm-toast.info {
-      background: #f0f6ff;
-      border: 1px solid #b0ccf5;
-      color: #1a3d6e;
-    }
-
-    /* ── Icono ── */
-    .dm-toast-icon {
-      font-size: 17px;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    /* ── Texto ── */
-    .dm-toast-body {
-      flex: 1;
-      font-weight: 500;
-    }
-
-    /* ── Botón cerrar ── */
-    .dm-toast-close {
-      background: none;
-      border: none;
-      cursor: pointer;
-      opacity: .45;
-      font-size: 15px;
-      line-height: 1;
-      padding: 0 2px;
-      flex-shrink: 0;
-      color: inherit;
-      transition: opacity .15s;
-    }
-    .dm-toast-close:hover { opacity: .9; }
-
-    /* ── Barra de progreso ── */
-    .dm-toast-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 3px;
-      width: 100%;
-      border-radius: 0 0 0 12px;
-      transition: width linear;
-    }
-    .dm-toast.success .dm-toast-bar { background: #4caf50; }
-    .dm-toast.error   .dm-toast-bar { background: #e53935; }
-    .dm-toast.warning .dm-toast-bar { background: #f9a825; }
-    .dm-toast.info    .dm-toast-bar { background: #1e88e5; }
-
-    /* ── Animaciones ── */
-    @keyframes dm-toast-in {
-      from { opacity: 0; transform: translateX(40px) scale(.96); }
-      to   { opacity: 1; transform: translateX(0)   scale(1);    }
-    }
-    @keyframes dm-toast-out {
-      from { opacity: 1; transform: translateX(0)   scale(1);    max-height: 120px; margin-bottom: 0; }
-      to   { opacity: 0; transform: translateX(40px) scale(.96); max-height: 0;     margin-bottom: -10px; }
-    }
-    .dm-toast.dm-toast-leaving {
-      animation: dm-toast-out .35s cubic-bezier(.06, .71, .55, 1) forwards;
-    }
-  </style>
-
   <script>
     (function () {
       const DURATION = 5000; // ms — tiempo de vida del toast
@@ -518,7 +408,11 @@
 
   <!-- Botón flotante de mermas -->
 <button class="merma-float-btn" id="btnMerma" onclick="abrirModalMerma()" title="Registrar Merma">
-    <span>⚠️</span>
+    <span>🗑️</span>
+</button>
+
+<button class="merma-his-float-btn" id="btnMerma" onclick="abrirModalHistorialMermas()" title="Historial de Merma">
+    <span>📋</span>
 </button>
 
 <!-- Modal de Mermas -->
@@ -611,76 +505,15 @@
     </div>
 </div>
 
-<style>
-    /* Botón flotante de mermas */
-    .merma-float-btn {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: #8B4513;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        z-index: 1000;
-    }
-    
-    .merma-float-btn span {
-        font-size: 24px;
-    }
-    
-    .merma-float-btn:hover {
-        transform: scale(1.1);
-        background: #6B3410;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-    }
-    
-    /* Estilos para formulario */
-    .form-group label {
-        display: block;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        color: var(--brown-lt);
-        margin-bottom: 6px;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1.5px solid var(--tan);
-        border-radius: 8px;
-        font-family: 'Lato', sans-serif;
-        font-size: 13px;
-        transition: all 0.2s;
-    }
-    
-    .form-control:focus {
-        outline: none;
-        border-color: #8B4513;
-        box-shadow: 0 0 0 3px rgba(139,69,19,0.1);
-    }
-    
-    select.form-control {
-        cursor: pointer;
-    }
-</style>
-
 <script>
     // ============================================================
     // FUNCIONES PARA MERMAS
     // ============================================================
-    
+ 
     function abrirModalMerma() {
         cargarMateriasPrimas();
-        document.getElementById('modal-merma').classList.add('open');
+        const modal = document.getElementById('modal-merma');
+        modal.classList.add('open');
         document.getElementById('formMerma').reset();
         document.getElementById('merma_unidad').textContent = '';
     }
@@ -688,12 +521,13 @@
     function cerrarModalMerma() {
         document.getElementById('modal-merma').classList.remove('open');
     }
-    
+
     function abrirModalHistorialMermas() {
-        document.getElementById('modal-historial-mermas').classList.add('open');
+        const modal = document.getElementById('modal-historial-mermas');
+        modal.classList.add('open');
         cargarHistorialMermas();
     }
-    
+
     function cerrarModalHistorialMermas() {
         document.getElementById('modal-historial-mermas').classList.remove('open');
     }
