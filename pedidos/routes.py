@@ -264,7 +264,7 @@ def detalle(folio):
         abort(404)
 
     cols_ped = ['id_pedido', 'folio', 'estado', 'fecha_recogida', 'total_estimado',
-                'motivo_rechazo', 'creado_en', 'id_cliente', 'cliente_nombre',
+                'motivo_rechazo', 'creado_en', 'id_cliente', 'cliente_nombre', 'telefono',
                 'atendido_por_nombre', 'tipo_caja', 'tamanio_nombre', 'capacidad']
     Pedido   = namedtuple('Pedido', cols_ped)
     pedido   = Pedido(*row_pedido)
