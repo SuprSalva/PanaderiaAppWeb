@@ -224,7 +224,6 @@
         <th>Fecha / Hora</th>
         <th>Productos</th>
         <th>Total</th>
-        <th>Pago</th>
         <th>Vendedor</th>
         <th>Acciones</th>
       </tr>
@@ -365,11 +364,10 @@ function renderVentasTable(ventas) {
             <td>${formatearFecha(venta.fecha_venta)}</td>
             <td><span class="items-pill" title="${escapeHtml(venta.productos_resumen)}">${escapeHtml(resumirProductos(venta.productos_resumen, 40))}</span></td>
             <td><span class="money">$${venta.total.toFixed(2)}</span></td>
-            <td><span class="badge badge-transferencia">🔁 Transferencia</span></td>
             <td>${escapeHtml(venta.vendedor_nombre)}</td>
             <td>
                 <div class="actions-cell">
-                    <button class="btn btn-outline btn-sm btn-icon" onclick="verDetalleVenta(${venta.id_venta})">📋</button>
+                    <button class="btn btn-outline btn-sm btn-icon" onclick="verDetalleVenta(${venta.id_venta})">🧾</button>
                 </div>
             </td>
         </tr>
@@ -419,7 +417,6 @@ async function verDetalleVenta(idPedido) {
                     <div class="det-item"><label>Folio</label><span>${escapeHtml(venta.folio_venta)}</span></div>
                     <div class="det-item"><label>Fecha de venta</label><span>${formatearFecha(venta.fecha_venta)}</span></div>
                     <div class="det-item"><label>Total</label><span>$${venta.total.toFixed(2)}</span></div>
-                    <div class="det-item"><label>Método de pago</label><span>Transferencia</span></div>
                     <div class="det-item"><label>Atendido por</label><span>${escapeHtml(venta.vendedor_nombre)}</span></div>
                     ${venta.fecha_recogida ? `<div class="det-item"><label>Fecha de recogida</label><span>${formatearFecha(venta.fecha_recogida)}</span></div>` : ''}
                     ${venta.notas_cliente ? `<div class="det-item"><label>Notas del cliente</label><span>${escapeHtml(venta.notas_cliente)}</span></div>` : ''}
@@ -515,11 +512,6 @@ function imprimirDetalle() {
             <div class="ticket-total">
                 <span>TOTAL</span>
                 <span>$${venta.total.toFixed(2)}</span>
-            </div>
-            
-            <div class="ticket-row">
-                <span>Método de pago:</span>
-                <span>Transferencia</span>
             </div>
             
             <div class="ticket-divider"></div>
