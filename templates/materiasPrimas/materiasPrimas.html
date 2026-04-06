@@ -5,57 +5,54 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/materiasPrimas.css') }}">
 {% endblock %}
 
-
-{# ══ TOPBAR ══ #}
 <div class="db-topbar anim">
   <div>
     <div class="db-page-title">🌾 Materias Primas</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Inventarios <span>›</span> Materias Primas</div>
   </div>
-  <a href="{{ url_for('materias_primas.index_materias_primas', modal='nueva') }}" class="btn btn-primary">➕ Nueva
-    Materia Prima</a>
+  <a href="{{ url_for('materias_primas.index_materias_primas', modal='nueva') }}" class="btn btn-primary">＋ Nueva Materia Prima</a>
 </div>
 
-{# ══ STATS ══ #}
+{# ESTADÍSTICAS FUNCIONALES #}
 <div class="mp-stats anim anim-1">
-  <div class="mp-stat">
+  <button class="mp-stat" onclick="filtrarPorNivelStock('todos')">
     <div class="mp-stat-icon brown">🌾</div>
     <div>
       <div class="mp-stat-val">{{ total }}</div>
       <div class="mp-stat-lbl">Total Registradas</div>
     </div>
-  </div>
-  <div class="mp-stat">
+  </button>
+  <button class="mp-stat" onclick="filtrarPorNivelStock('normal')">
     <div class="mp-stat-icon green">✅</div>
     <div>
       <div class="mp-stat-val">{{ stat_normal }}</div>
-      <div class="mp-stat-lbl">En Stock Normal</div>
+      <div class="mp-stat-lbl">Con Stock</div>
     </div>
-  </div>
-  <div class="mp-stat">
+  </button>
+  <button class="mp-stat" onclick="filtrarPorNivelStock('bajo')">
     <div class="mp-stat-icon gold">⚠️</div>
     <div>
       <div class="mp-stat-val">{{ stat_bajo }}</div>
       <div class="mp-stat-lbl">Stock Bajo</div>
     </div>
-  </div>
-  <div class="mp-stat">
+  </button>
+  <button class="mp-stat" onclick="filtrarPorNivelStock('critico')">
     <div class="mp-stat-icon rust">🚨</div>
     <div>
       <div class="mp-stat-val">{{ stat_critico }}</div>
-      <div class="mp-stat-lbl">Stock Crítico</div>
+      <div class="mp-stat-lbl">Sin Stock</div>
     </div>
-  </div>
+  </button>
 </div>
 
-{# ══ TOOLBAR (GET → respeta paginación) ══ #}
+{# FORMULARIO DE FILTROS #}
 <form method="GET" action="{{ url_for('materias_primas.index_materias_primas') }}" id="form-filtro">
   <input type="hidden" name="pagina" value="1">
+  <input type="hidden" name="nivel_stock" id="nivel_stock" value="{{ nivel_stock_sel|default('') }}">
   <div class="toolbar anim anim-2">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" name="buscar" id="buscador" placeholder="Buscar por nombre o categoría…" value="{{ buscar }}"
-        autocomplete="off" oninput="debounceSubmit()">
+      <input type="text" name="buscar" placeholder="Buscar por nombre o categoría…" value="{{ buscar }}" autocomplete="off" oninput="debounceSubmit()">
     </div>
     <select name="estatus" class="filter-select" onchange="this.form.submit()">
       <option value="todos" {% if estatus_sel=='todos' %}selected{% endif %}>Todos los estatus</option>
@@ -65,375 +62,167 @@
   </div>
 </form>
 
-{# ══ TABLA ══ #}
-{% set cat_icon = {
-'Cereales y derivados': '🌾', 'Harinas': '🌾',
-'Lácteos y grasas': '🧈', 'Endulzantes': '🍬',
-'Proteínas': '🥚', 'Fermentantes': '🫧',
-'Saborizantes': '🍋', 'Condimentos': '🧂'
-} %}
-
+{# TABLA DE MATERIAS PRIMAS #}
 <div class="table-card anim anim-3">
   <table>
     <thead>
-      <tr>
-        <th>#</th>
-        <th>Materia Prima</th>
-        <th>Unidad Base</th>
-        <th>Stock Actual</th>
-        <th>Stock Mínimo</th>
-        <th>Estatus</th>
-        <th>Acciones</th>
-      </tr>
+      <tr><th>#</th><th>Materia Prima</th><th>Unidad Base</th><th>Stock Actual</th><th>Stock Mínimo</th><th>Estatus</th><th>Acciones</th></tr>
     </thead>
     <tbody>
       {% for m in materias %}
-      {% set stock = m.stock_actual | float %}
-      {% set minimo = m.stock_minimo | float %}
-      {% if stock <= 0 %} {% set nivel_mp='critical' %} {% set bar_class='bar-critical' %} {% set pct=0 %} {% elif stock
-        <=minimo %} {% set nivel_mp='low' %} {% set bar_class='bar-low' %} {% set pct=[(stock / (minimo * 3) * 100) |
-        int, 100] | min %} {% else %} {% set nivel_mp='ok' %} {% set bar_class='bar-ok' %} {% set pct=[(stock / (minimo
-        * 3) * 100) | int if minimo> 0 else 100, 100] | min %}
-        {% endif %}
-
-        <tr>
-          <td>{{ (paginacion.page - 1) * 10 + loop.index }}</td>
-          <td>
-            <div class="mp-cell">
-              <div class="mp-icon-box">{{ cat_icon.get(m.categoria, '📦') }}</div>
-              <div>
-                <div class="mp-name">{{ m.nombre }}</div>
-                <div class="mp-cat">{{ m.categoria or 'Sin categoría' }}</div>
-              </div>
+      {% set stock = m.stock_actual|float %}
+      {% set minimo = m.stock_minimo|float %}
+      {# Cálculo del nivel y porcentaje de la barra #}
+      {% if stock <= 0 %}
+        {% set nivel = 'critico' %}
+        {% set bar_class = 'bar-critical' %}
+        {% set pct = 0 %}
+      {% elif stock <= minimo %}
+        {% set nivel = 'bajo' %}
+        {% set bar_class = 'bar-low' %}
+        {% set pct = (stock / minimo * 100)|round|int if minimo > 0 else 0 %}
+      {% else %}
+        {% set nivel = 'normal' %}
+        {% set bar_class = 'bar-ok' %}
+        {% set referencia = minimo * 2 if minimo > 0 else stock %}
+        {% set pct = (stock / referencia * 100)|round|int %}
+        {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+      {% endif %}
+      <tr>
+        <td>{{ (paginacion.page - 1) * 10 + loop.index }}</td>
+        <td>
+          <div class="mp-cell">
+            <div class="mp-icon-box">🌾</div>
+            <div>
+              <div class="mp-name">{{ m.nombre }}</div>
+              <div class="mp-cat">{{ m.categoria or 'Sin categoría' }}</div>
             </div>
-          </td>
-          <td><span class="unidad-chip">{{ m.unidad_base }}</span></td>
-          <td>
-            <div class="stock-wrap">
-              <div class="bar-track">
-                <div class="bar-fill {{ bar_class }}" style="width:{{ pct }}%"></div>
-              </div>
-              <span class="stock-val">
-                {{ '{:,.0f}'.format(stock) }} {{ m.unidad_base }}
-                {% if nivel_mp == 'low' %}<span class="badge badge-low">Stock Bajo</span>
-                {% elif nivel_mp == 'critical' %}<span class="badge badge-critical">Crítico</span>
-                {% endif %}
-              </span>
-            </div>
-          </td>
-          <td>
-            <span class="stock-val">{{ '{:,.0f}'.format(minimo) }} {{ m.unidad_base }}</span>
-          </td>
-          <td>
-            {% if m.estatus == 'activo' %}
-            <span class="badge badge-active">Activo</span>
-            {% else %}
-            <span class="badge badge-inactive">Inactivo</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="actions-cell">
-              <a href="{{ url_for('materias_primas.index_materias_primas', modal='editar', id=m.id_materia, buscar=buscar, estatus=estatus_sel) }}"
-                class="btn-icon" title="Editar">✏️</a>
-
-              {% if m.estatus == 'activo' %}
-              <a href="{{ url_for('materias_primas.index_materias_primas', modal='toggle', id=m.id_materia, buscar=buscar, estatus=estatus_sel) }}"
-                class="btn-icon del" title="Desactivar">🚫</a>
-              {% else %}
-              <a href="{{ url_for('materias_primas.index_materias_primas', modal='toggle', id=m.id_materia, buscar=buscar, estatus=estatus_sel) }}"
-                class="btn-icon react" title="Reactivar">✅</a>
-              {% endif %}
-            </div>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="7">
-            <div class="empty-state">
-              <div class="e-icon">🌾</div>
-              <p>No se encontraron materias primas con los filtros aplicados.</p>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
+          </div>
+        </td>
+        <td><span class="unidad-chip">{{ m.unidad_base }}</span></td>
+        <td>
+          <div class="stock-wrap">
+            <div class="bar-track"><div class="bar-fill {{ bar_class }}" style="width: {{ pct }}%;"></div></div>
+            <span class="stock-val">
+              {{ '{:,.0f}'.format(stock) }} {{ m.unidad_base }}
+              {% if nivel == 'bajo' %}<span class="badge badge-low">Stock Bajo</span>
+              {% elif nivel == 'critico' %}<span class="badge badge-critical">Sin Stock</span>{% endif %}
+            </span>
+          </div>
+        </td>
+        <td><span class="stock-val">{{ '{:,.0f}'.format(minimo) }} {{ m.unidad_base }}</span></td>
+        <td>{% if m.estatus == 'activo' %}<span class="badge badge-active">Activo</span>{% else %}<span class="badge badge-inactive">Inactivo</span>{% endif %}</td>
+        <td class="actions-cell">
+          <a href="{{ url_for('materias_primas.index_materias_primas', modal='editar', id=m.id_materia, buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn-icon" title="Editar">✏️</a>
+          {% if m.estatus == 'activo' %}
+            <a href="{{ url_for('materias_primas.index_materias_primas', modal='toggle', id=m.id_materia, buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn-icon del" title="Desactivar">🚫</a>
+          {% else %}
+            <a href="{{ url_for('materias_primas.index_materias_primas', modal='toggle', id=m.id_materia, buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn-icon react" title="Reactivar">✅</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="empty-table">No hay materias primas para mostrar.</td></tr>
+      {% endfor %}
     </tbody>
   </table>
 
-  {# ══ PAGINADOR ══ #}
+  {# PAGINACIÓN #}
   {% if paginacion.pages > 1 %}
   <div class="paginador">
-    <div class="pag-info">
-      Mostrando
-      <strong>{{ (paginacion.page - 1) * 10 + 1 }}</strong>
-      –
-      <strong>{{ [paginacion.page * 10, paginacion.total] | min }}</strong>
-      de
-      <strong>{{ paginacion.total }}</strong>
-      materia{{ 's' if paginacion.total != 1 else '' }} prima{{ 's' if paginacion.total != 1 else '' }}
-    </div>
+    <div class="pag-info">Mostrando <strong>{{ (paginacion.page - 1) * 10 + 1 }}</strong> – <strong>{{ [paginacion.page * 10, paginacion.total]|min }}</strong> de <strong>{{ paginacion.total }}</strong> materia{{ 's' if paginacion.total != 1 else '' }} prima{{ 's' if paginacion.total != 1 else '' }}</div>
     <div class="pag-controles">
-      {% if paginacion.has_prev %}
-      <a href="{{ url_for('materias_primas.index_materias_primas', pagina=paginacion.prev_num, buscar=buscar, estatus=estatus_sel) }}"
-        class="pag-btn">‹</a>
-      {% else %}
-      <span class="pag-btn disabled">‹</span>
-      {% endif %}
-
-      {% set p_actual = paginacion.page %}
-      {% set p_total = paginacion.pages %}
-      {% for num in range(1, p_total + 1) %}
-      {% if num == 1 or num == p_total or (num >= p_actual - 2 and num <= p_actual + 2) %} {% if loop.index> 1 and num >
-        2 and range(1, p_total + 1)|list|select("equalto", num - 1)|list|length == 0 %}
-        <span class="pag-puntos">…</span>
+      {% if paginacion.has_prev %}<a href="{{ url_for('materias_primas.index_materias_primas', pagina=paginacion.prev_num, buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="pag-btn">‹</a>{% else %}<span class="pag-btn disabled">‹</span>{% endif %}
+      {% for num in range(1, paginacion.pages + 1) %}
+        {% if num == 1 or num == paginacion.pages or (num >= paginacion.page - 2 and num <= paginacion.page + 2) %}
+          {% if loop.index > 1 and num > 2 and num - 1 not in [paginacion.page - 2, paginacion.page - 1, paginacion.page, paginacion.page + 1, paginacion.page + 2] and num - 1 != 1 %}<span class="pag-puntos">…</span>{% endif %}
+          <a href="{{ url_for('materias_primas.index_materias_primas', pagina=num, buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="pag-btn {% if num == paginacion.page %}activo{% endif %}">{{ num }}</a>
+          {% if num < paginacion.pages - 1 and num + 1 not in [paginacion.page - 2, paginacion.page - 1, paginacion.page, paginacion.page + 1, paginacion.page + 2] and num + 1 != paginacion.pages %}<span class="pag-puntos">…</span>{% endif %}
         {% endif %}
-        <a href="{{ url_for('materias_primas.index_materias_primas', pagina=num, buscar=buscar, estatus=estatus_sel) }}"
-          class="pag-btn {% if num == p_actual %}activo{% endif %}">{{ num }}</a>
-        {% if num < p_total - 1 and not (num + 1>= p_actual - 2 and num + 1 <= p_actual + 2) and num + 1 !=p_total %}
-            <span class="pag-puntos">…</span>
-            {% endif %}
-            {% endif %}
-            {% endfor %}
-
-            {% if paginacion.has_next %}
-            <a href="{{ url_for('materias_primas.index_materias_primas', pagina=paginacion.next_num, buscar=buscar, estatus=estatus_sel) }}"
-              class="pag-btn">›</a>
-            {% else %}
-            <span class="pag-btn disabled">›</span>
-            {% endif %}
-    </div>
-  </div>
-  {% elif paginacion.total > 0 %}
-  <div class="paginador">
-    <div class="pag-info">
-      <strong>{{ paginacion.total }}</strong>
-      materia{{ 's' if paginacion.total != 1 else '' }} prima{{ 's' if paginacion.total != 1 else '' }} en total
+      {% endfor %}
+      {% if paginacion.has_next %}<a href="{{ url_for('materias_primas.index_materias_primas', pagina=paginacion.next_num, buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="pag-btn">›</a>{% else %}<span class="pag-btn disabled">›</span>{% endif %}
     </div>
   </div>
   {% endif %}
+</div>
 
-</div>{# fin .table-card #}
-
-
-{# ══════════════════════════════════════════
-MODAL — NUEVA MATERIA PRIMA
-══════════════════════════════════════════ #}
+<!-- Modal: Nueva Materia Prima -->
 <div class="modal-overlay {% if request.args.get('modal')=='nueva' %}open{% endif %}" id="modal-nueva">
   <div class="modal">
     <div class="modal-header">
       <h2>➕ Nueva Materia Prima</h2>
-      <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-        class="modal-close-link">✕</a>
+      <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="modal-close-link">✕</a>
     </div>
     <form method="POST" action="{{ url_for('materias_primas.materias_primas_nueva') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <div class="form-grid">
-
-          <div class="form-group full">
-            <label class="form-label">Nombre *</label>
-            <input type="text" name="nombre" class="form-input" placeholder="Ej. Harina de Trigo" required
-              maxlength="120">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Categoría</label>
-            <select name="categoria" class="form-select">
-              <option value="">— Seleccionar —</option>
-              <option>Cereales y derivados</option>
-              <option>Harinas</option>
-              <option>Lácteos y grasas</option>
-              <option>Endulzantes</option>
-              <option>Proteínas</option>
-              <option>Fermentantes</option>
-              <option>Saborizantes</option>
-              <option>Condimentos</option>
-              <option>Otros</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Estatus</label>
-            <select name="estatus" class="form-select">
-              <option value="activo">Activo</option>
-              <option value="inactivo">Inactivo</option>
-            </select>
-          </div>
-
+          <div class="form-group full"><label class="form-label">Nombre *</label><input type="text" name="nombre" class="form-input" placeholder="Ej. Harina de Trigo" required maxlength="120"></div>
+          <div class="form-group"><label class="form-label">Categoría</label><select name="categoria" class="form-select"><option value="">— Seleccionar —</option><option>Cereales y derivados</option><option>Harinas</option><option>Lácteos y grasas</option><option>Endulzantes</option><option>Proteínas</option><option>Fermentantes</option><option>Saborizantes</option><option>Condimentos</option><option>Otros</option></select></div>
+          <div class="form-group"><label class="form-label">Estatus</label><select name="estatus" class="form-select"><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></div>
           <div class="form-divider">Unidad y Stock</div>
-
-          <div class="form-group">
-            <label class="form-label">Unidad Base *</label>
-            <select name="unidad_base" class="form-select" required>
-              <option value="">— Seleccionar —</option>
-              <option value="g">gramos (g)</option>
-              <option value="ml">mililitros (ml)</option>
-              <option value="pza">piezas (pza)</option>
-              <option value="l">litros (l)</option>
-              <option value="kg">kilogramos (kg)</option>
-            </select>
-            <span class="form-hint">Unidad interna de almacenamiento</span>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Stock Mínimo</label>
-            <input type="number" name="stock_minimo" class="form-input" placeholder="Ej. 5000" min="0" step="0.01"
-              value="0">
-            <span class="form-hint">Cantidad que dispara la alerta</span>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Stock Inicial</label>
-            <input type="number" name="stock_inicial" class="form-input" placeholder="Ej. 40000" min="0" step="0.01"
-              value="0">
-            <span class="form-hint">Existencia de apertura</span>
-          </div>
-
+          <div class="form-group"><label class="form-label">Unidad Base *</label><select name="unidad_base" class="form-select" required><option value="">— Seleccionar —</option><option value="g">gramos (g)</option><option value="ml">mililitros (ml)</option><option value="pza">piezas (pza)</option><option value="l">litros (l)</option><option value="kg">kilogramos (kg)</option></select><span class="form-hint">Unidad interna de almacenamiento</span></div>
+          <div class="form-group"><label class="form-label">Stock Mínimo</label><input type="number" name="stock_minimo" class="form-input" placeholder="Ej. 5000" min="0" step="0.01" value="0"><span class="form-hint">Cantidad que dispara la alerta</span></div>
+          <div class="form-group"><label class="form-label">Stock Inicial</label><input type="number" name="stock_inicial" class="form-input" placeholder="Ej. 40000" min="0" step="0.01" value="0"><span class="form-hint">Existencia de apertura</span></div>
         </div>
       </div>
-      <div class="modal-footer">
-        <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-          class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">💾 Guardar</button>
-      </div>
+      <div class="modal-footer"><a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn btn-outline">Cancelar</a><button type="submit" class="btn btn-primary">💾 Guardar</button></div>
     </form>
   </div>
 </div>
 
-
-{# ══════════════════════════════════════════
-MODAL — EDITAR MATERIA PRIMA
-══════════════════════════════════════════ #}
+<!-- Modal: Editar Materia Prima -->
 {% set edit_id = request.args.get('id', 0) | int %}
 {% set mat_edit = namespace(obj=None) %}
-{% for m in materias %}
-{% if m.id_materia == edit_id %}{% set mat_edit.obj = m %}{% endif %}
-{% endfor %}
-
-<div class="modal-overlay {% if request.args.get('modal')=='editar' and mat_edit.obj %}open{% endif %}"
-  id="modal-editar">
+{% for m in materias %}{% if m.id_materia == edit_id %}{% set mat_edit.obj = m %}{% endif %}{% endfor %}
+<div class="modal-overlay {% if request.args.get('modal')=='editar' and mat_edit.obj %}open{% endif %}" id="modal-editar">
   <div class="modal">
-    <div class="modal-header">
-      <h2>✏️ Editar Materia Prima</h2>
-      <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-        class="modal-close-link">✕</a>
-    </div>
+    <div class="modal-header"><h2>✏️ Editar Materia Prima</h2><a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="modal-close-link">✕</a></div>
     {% if mat_edit.obj %}
-    <form method="POST"
-      action="{{ url_for('materias_primas.materias_primas_editar', id_materia=mat_edit.obj.id_materia) }}">
+    <form method="POST" action="{{ url_for('materias_primas.materias_primas_editar', id_materia=mat_edit.obj.id_materia) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <div class="form-grid">
-
-          <div class="form-group full">
-            <label class="form-label">Nombre *</label>
-            <input type="text" name="nombre" class="form-input" value="{{ mat_edit.obj.nombre }}" required
-              maxlength="120">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Categoría</label>
-            <select name="categoria" class="form-select">
-              <option value="">— Seleccionar —</option>
-              {% for cat in ['Cereales y derivados','Harinas','Lácteos y
-              grasas','Endulzantes','Proteínas','Fermentantes','Saborizantes','Condimentos','Otros'] %}
-              <option {% if mat_edit.obj.categoria==cat %}selected{% endif %}>{{ cat }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Estatus</label>
-            <select name="estatus" class="form-select">
-              <option value="activo" {% if mat_edit.obj.estatus=='activo' %}selected{% endif %}>Activo</option>
-              <option value="inactivo" {% if mat_edit.obj.estatus=='inactivo' %}selected{% endif %}>Inactivo</option>
-            </select>
-          </div>
-
+          <div class="form-group full"><label class="form-label">Nombre *</label><input type="text" name="nombre" class="form-input" value="{{ mat_edit.obj.nombre }}" required maxlength="120"></div>
+          <div class="form-group"><label class="form-label">Categoría</label><select name="categoria" class="form-select"><option value="">— Seleccionar —</option>{% for cat in ['Cereales y derivados','Harinas','Lácteos y grasas','Endulzantes','Proteínas','Fermentantes','Saborizantes','Condimentos','Otros'] %}<option {% if mat_edit.obj.categoria==cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}</select></div>
+          <div class="form-group"><label class="form-label">Estatus</label><select name="estatus" class="form-select"><option value="activo" {% if mat_edit.obj.estatus=='activo' %}selected{% endif %}>Activo</option><option value="inactivo" {% if mat_edit.obj.estatus=='inactivo' %}selected{% endif %}>Inactivo</option></select></div>
           <div class="form-divider">Unidad y Stock</div>
-
-          <div class="form-group">
-            <label class="form-label">Unidad Base *</label>
-            <select name="unidad_base" class="form-select" required>
-              {% for u, lbl in [('g','gramos (g)'),('ml','mililitros (ml)'),('pza','piezas (pza)'),('l','litros
-              (l)'),('kg','kilogramos (kg)')] %}
-              <option value="{{ u }}" {% if mat_edit.obj.unidad_base==u %}selected{% endif %}>{{ lbl }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Stock Mínimo</label>
-            <input type="number" name="stock_minimo" class="form-input"
-              value="{{ mat_edit.obj.stock_minimo | float | int }}" min="0" step="0.01">
-            <span class="form-hint">Cantidad que dispara la alerta</span>
-          </div>
-
+          <div class="form-group"><label class="form-label">Unidad Base *</label><select name="unidad_base" class="form-select" required>{% for u, lbl in [('g','gramos (g)'),('ml','mililitros (ml)'),('pza','piezas (pza)'),('l','litros (l)'),('kg','kilogramos (kg)')] %}<option value="{{ u }}" {% if mat_edit.obj.unidad_base==u %}selected{% endif %}>{{ lbl }}</option>{% endfor %}</select></div>
+          <div class="form-group"><label class="form-label">Stock Mínimo</label><input type="number" name="stock_minimo" class="form-input" value="{{ mat_edit.obj.stock_minimo | float | int }}" min="0" step="0.01"><span class="form-hint">Cantidad que dispara la alerta</span></div>
         </div>
       </div>
-      <div class="modal-footer">
-        <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-          class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">💾 Actualizar</button>
-      </div>
+      <div class="modal-footer"><a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn btn-outline">Cancelar</a><button type="submit" class="btn btn-primary">💾 Actualizar</button></div>
     </form>
     {% endif %}
   </div>
 </div>
 
-
-{# ══════════════════════════════════════════
-MODAL — CONFIRMAR TOGGLE (BAJA / REACTIVAR)
-══════════════════════════════════════════ #}
+<!-- Modal: Confirmar toggle (activar/desactivar) -->
 {% set toggle_id = request.args.get('id', 0) | int %}
 {% set mat_toggle = namespace(obj=None) %}
-{% for m in materias %}
-{% if m.id_materia == toggle_id %}{% set mat_toggle.obj = m %}{% endif %}
-{% endfor %}
-
-<div class="modal-overlay {% if request.args.get('modal')=='toggle' and mat_toggle.obj %}open{% endif %}"
-  id="modal-toggle">
+{% for m in materias %}{% if m.id_materia == toggle_id %}{% set mat_toggle.obj = m %}{% endif %}{% endfor %}
+<div class="modal-overlay {% if request.args.get('modal')=='toggle' and mat_toggle.obj %}open{% endif %}" id="modal-toggle">
   <div class="modal" style="max-width:420px">
     {% if mat_toggle.obj %}
-    <div class="modal-header {% if mat_toggle.obj.estatus=='activo' %}danger{% endif %}"
-      style="{% if mat_toggle.obj.estatus=='inactivo' %}background:#27ae60{% endif %}">
+    <div class="modal-header {% if mat_toggle.obj.estatus=='activo' %}danger{% endif %}" style="{% if mat_toggle.obj.estatus=='inactivo' %}background:#27ae60{% endif %}">
       <h2>{% if mat_toggle.obj.estatus=='activo' %}🚫 Desactivar{% else %}✅ Reactivar{% endif %}</h2>
-      <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-        class="modal-close-link">✕</a>
+      <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="modal-close-link">✕</a>
     </div>
     <div class="delete-body">
-      <div class="delete-icon">
-        {% if mat_toggle.obj.estatus=='activo' %}🚫{% else %}✅{% endif %}
-      </div>
-      <h3>
-        {% if mat_toggle.obj.estatus=='activo' %}¿Desactivar esta materia prima?
-        {% else %}¿Reactivar esta materia prima?{% endif %}
-      </h3>
-      <p>
-        <strong>{{ mat_toggle.obj.nombre }}</strong>
-        {% if mat_toggle.obj.estatus=='activo' %}
-        no estará disponible para nuevas recetas ni compras.<br>Los movimientos históricos se conservan.
-        {% else %}
-        volverá a estar disponible para recetas y compras.
-        {% endif %}
-      </p>
+      <div class="delete-icon">{% if mat_toggle.obj.estatus=='activo' %}🚫{% else %}✅{% endif %}</div>
+      <h3>{% if mat_toggle.obj.estatus=='activo' %}¿Desactivar esta materia prima?{% else %}¿Reactivar esta materia prima?{% endif %}</h3>
+      <p><strong>{{ mat_toggle.obj.nombre }}</strong> {% if mat_toggle.obj.estatus=='activo' %}no estará disponible para nuevas recetas ni compras.<br>Los movimientos históricos se conservan.{% else %}volverá a estar disponible para recetas y compras.{% endif %}</p>
     </div>
     <div class="modal-footer">
-      <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel) }}"
-        class="btn btn-outline">Cancelar</a>
-      <form method="POST"
-        action="{{ url_for('materias_primas.materias_primas_toggle', id_materia=mat_toggle.obj.id_materia) }}"
-        style="display:inline">
+      <a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn btn-outline">Cancelar</a>
+      <form method="POST" action="{{ url_for('materias_primas.materias_primas_toggle', id_materia=mat_toggle.obj.id_materia) }}" style="display:inline">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit"
-          class="btn {% if mat_toggle.obj.estatus=='activo' %}btn-danger{% else %}btn-success{% endif %}">
-          {% if mat_toggle.obj.estatus=='activo' %}🚫 Desactivar{% else %}✅ Reactivar{% endif %}
-        </button>
+        <button type="submit" class="btn {% if mat_toggle.obj.estatus=='activo' %}btn-danger{% else %}btn-success{% endif %}">{% if mat_toggle.obj.estatus=='activo' %}🚫 Desactivar{% else %}✅ Reactivar{% endif %}</button>
       </form>
     </div>
     {% endif %}
   </div>
 </div>
-
 
 {% endblock %}
 
