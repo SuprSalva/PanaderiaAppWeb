@@ -1,6 +1,7 @@
 from . import ventas
 from flask import render_template, request, jsonify, session
 from flask_login import login_required, current_user
+from auth import roles_required
 from sqlalchemy import text
 from models import db
 import json
@@ -19,21 +20,25 @@ class DecimalEncoder(json.JSONEncoder):
 @ventas.route("/")
 @ventas.route("/ventas")
 @login_required
+@roles_required('admin', 'empleado')
 def index_ventas():
     return render_template("ventas/ventas.html")
 
 @ventas.route("/corte-ventas")
 @login_required
+@roles_required('admin', 'empleado')
 def corte_ventas():
     return render_template("ventas/corteVentas.html")
 
 @ventas.route("/ventas-online")
 @login_required
+@roles_required('admin', 'empleado')
 def ventas_online():
     return render_template("ventas/ventas-online.html")
 
 @ventas.route("/checkout")
 @login_required
+@roles_required('admin', 'empleado')
 def checkout():
     return render_template("ventas/checkout.html")
 
@@ -43,6 +48,7 @@ def checkout():
 
 @ventas.route("/api/catalogo")
 @login_required
+@roles_required('admin', 'empleado')
 def api_catalogo():
     """Obtener catálogo de productos con stock actual"""
     busqueda = request.args.get('busqueda', '')
@@ -82,6 +88,7 @@ def api_catalogo():
 
 @ventas.route("/api/estadisticas")
 @login_required
+@roles_required('admin', 'empleado')
 def api_estadisticas():
     """Obtener estadísticas rápidas de ventas"""
     try:
@@ -126,6 +133,7 @@ def api_estadisticas():
 
 @ventas.route("/api/ventas", methods=['GET'])
 @login_required
+@roles_required('admin', 'empleado')
 def api_lista_ventas():
     """Lista paginada de ventas con filtros"""
     fecha_inicio = request.args.get('fecha_inicio')
@@ -214,6 +222,7 @@ def api_lista_ventas():
 
 @ventas.route("/api/ventas/crear", methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado')
 def api_crear_venta():
     """Crear una nueva venta usando el stored procedure"""
     data = request.get_json()
@@ -327,6 +336,7 @@ def api_crear_venta():
 
 @ventas.route("/api/ventas/<folio>")
 @login_required
+@roles_required('admin', 'empleado')
 def api_detalle_venta(folio):
     """Obtener detalle completo de una venta por folio"""
     try:
@@ -423,6 +433,7 @@ def api_detalle_venta(folio):
 
 @ventas.route("/api/ventas/<int:id_venta>/cancelar", methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado')
 def api_cancelar_venta(id_venta):
     """Cancelar una venta y restaurar inventario"""
     try:
@@ -489,6 +500,7 @@ def api_cancelar_venta(id_venta):
 
 @ventas.route("/api/ticket/<folio>/imprimir", methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado')
 def api_marcar_ticket_impreso(folio):
     """Marcar un ticket como impreso"""
     try:

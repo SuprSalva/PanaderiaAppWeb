@@ -195,6 +195,7 @@ def cambiar_estatus_usuario(id_usuario):
 
 @registrar_usuario_bp.route("/cambiar-password", methods=['GET', 'POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def cambiar_password():
     if request.method == 'POST':
         actual    = request.form.get('password_actual', '')
@@ -237,6 +238,7 @@ def cambiar_password():
 
 @registrar_usuario_bp.route("/mi-perfil", methods=['GET', 'POST'])
 @login_required
+@roles_required('cliente')
 def mi_perfil():
     usuario = db.session.get(Usuario, current_user.id_usuario)
 
