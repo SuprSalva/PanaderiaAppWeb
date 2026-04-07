@@ -24,6 +24,7 @@ function abrirToggleProv(id, nombre, estatus) {
     '/proveedores/toggle/' + id;
   document.getElementById('modal-toggle-prov').classList.add('open');
 }
+
 function cerrarToggleProv() {
   document.getElementById('modal-toggle-prov').classList.remove('open');
 }

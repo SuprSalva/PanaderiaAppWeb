@@ -785,3 +785,46 @@ def api_detalle_pedido(folio):
 
     except Exception as exc:
         return jsonify({'ok': False, 'mensaje': str(exc)}), 500
+    
+
+@pedidos_bp.route('/api/notificaciones', methods=['GET'])
+@login_required
+def api_notificaciones():
+    """Obtener notificaciones del usuario actual"""
+    try:
+        result = db.session.execute(
+            text("""
+                SELECT id_notif, id_pedido, folio, tipo, mensaje, leida, creado_en
+                FROM notificaciones_pedidos
+                WHERE id_usuario = :usuario_id
+                ORDER BY creado_en DESC
+                LIMIT 10
+            """),
+            {'usuario_id': current_user.id_usuario}
+        )
+        
+        notificaciones = []
+        for row in result:
+            notificaciones.append({
+                'id_notif': row.id_notif,
+                'id_pedido': row.id_pedido,
+                'folio': row.folio,
+                'tipo': row.tipo,
+                'mensaje': row.mensaje,
+                'leida': bool(row.leida),
+                'creado_en': row.creado_en.strftime('%Y-%m-%d %H:%M:%S') if row.creado_en else None
+            })
+        
+        db.session.commit()
+        
+        return jsonify({
+            'ok': True,
+            'notificaciones': notificaciones
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en api_notificaciones: {str(e)}")
+        return jsonify({
+            'ok': False,
+            'error': str(e)
+        }), 500

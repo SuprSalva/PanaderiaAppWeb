@@ -100,7 +100,7 @@ def api_lista_ventas():
         query = """
             SELECT 
                 p.id_pedido,
-                CONCAT( p.folio) AS folio_venta,
+                CONCAT('PED-', p.folio) AS folio_venta,
                 p.actualizado_en AS fecha_venta,
                 p.total_estimado AS total,
                 'transferencia' AS metodo_pago,
@@ -190,7 +190,7 @@ def api_detalle_venta(id_pedido):
             text("""
                 SELECT 
                     p.id_pedido,
-                    CONCAT(p.folio) AS folio_venta,
+                    CONCAT('PED-', p.folio) AS folio_venta,
                     p.actualizado_en AS fecha_venta,
                     p.total_estimado AS total,
                     'transferencia' AS metodo_pago,

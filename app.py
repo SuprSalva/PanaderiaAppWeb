@@ -2,9 +2,10 @@ import uuid
 import datetime
 import logging
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from auth import roles_required
 from config import DevelopmentConfig
 from sqlalchemy import text
 from models import db, Usuario, Rol
@@ -60,6 +61,30 @@ db.init_app(app)
 login_manager.init_app(app)
 migrate = Migrate(app, db)
 
+def _redirect_por_rol(usuario):
+    clave = usuario.rol.clave_rol if usuario.rol else ''
+    destinos = {
+        'admin':    'dashboard',
+        'empleado': 'dashboard_ventas',
+        'panadero': 'pedidos.cola_produccion',
+        'cliente':  'pedidos.mis_pedidos',
+    }
+    endpoint = destinos.get(clave, 'dashboard')
+    return redirect(url_for(endpoint))
+
+@app.context_processor
+def inject_url_volver():
+    if not current_user.is_authenticated or not current_user.rol:
+        return dict(url_volver=url_for('login'))
+    destinos = {
+        'admin':    'dashboard',
+        'empleado': 'dashboard_ventas',
+        'panadero': 'pedidos.cola_produccion',
+        'cliente':  'pedidos.mis_pedidos',
+    }
+    endpoint = destinos.get(current_user.rol.clave_rol, 'dashboard')
+    return dict(url_volver=url_for(endpoint))
+
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -87,7 +112,7 @@ def login():
             usuario.ultimo_login = datetime.datetime.now()
             db.session.commit()
 
-            return redirect(url_for('dashboard'))
+            return _redirect_por_rol(usuario)
         else:
             app.logger.warning('Intento de acceso fallido (credenciales incorrectas) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Usuario o contraseña incorrectos.', 'error')
@@ -211,11 +236,13 @@ def registrar_usuario():
 
 @app.route("/dashboard")
 @login_required
+@roles_required('admin')
 def dashboard():
     return render_template("dashboard.html")
 
 @app.route("/dashboardVentas")
 @login_required
+@roles_required('admin', 'empleado')
 def dashboard_ventas():
     return render_template("dashboardVentas.html")
 
@@ -238,8 +265,306 @@ def debug_usuario_bd():
         rol_usuario = current_user.rol.clave_rol if current_user.rol else 'sin rol'
     return f"Rol app: {rol_usuario} | Usuario BD: {usuario_bd}"
 
+# ============================================================
+# API PARA MERMAS
+# ============================================================
+
+@app.route("/api/mermas/materias", methods=['GET'])
+@login_required
+def api_mermas_materias():
+    """Obtener lista de materias primas para mermas"""
+    busqueda = request.args.get('busqueda', '')
+    
+    try:
+        result = db.session.execute(
+            text("CALL sp_mermas_materias_primas(:busqueda)"),
+            {'busqueda': busqueda}
+        )
+        
+        materias = []
+        for row in result:
+            materias.append({
+                'id_materia': row.id_materia,
+                'nombre': row.nombre,
+                'unidad_base': row.unidad_base,
+                'stock_actual': float(row.stock_actual) if row.stock_actual else 0,
+                'stock_minimo': float(row.stock_minimo) if row.stock_minimo else 0
+            })
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'materias': materias
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en api_mermas_materias: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route("/api/mermas/registrar", methods=['POST'])
+@login_required
+def api_registrar_merma():
+    """Registrar una nueva merma"""
+    try:
+        data = request.get_json()
+        
+        # Log para depuración
+        app.logger.info(f"Recibiendo solicitud de merma: {data}")
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'Datos inválidos'}), 400
+        
+        id_materia = data.get('id_materia')
+        cantidad = data.get('cantidad')
+        causa = data.get('causa')
+        descripcion = data.get('descripcion', '')
+        
+        # Validaciones
+        if not id_materia:
+            return jsonify({'success': False, 'error': 'Selecciona una materia prima'}), 400
+        
+        try:
+            cantidad = float(cantidad)
+            if cantidad <= 0:
+                return jsonify({'success': False, 'error': 'La cantidad debe ser mayor a cero'}), 400
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'Cantidad inválida'}), 400
+        
+        if not causa:
+            return jsonify({'success': False, 'error': 'Selecciona una causa'}), 400
+        
+        # Validar causa
+        causas_validas = ['caducidad', 'quemado_horneado', 'caida_accidente', 'error_produccion', 'rotura_empaque', 'contaminacion', 'otro']
+        if causa not in causas_validas:
+            return jsonify({'success': False, 'error': 'Causa inválida'}), 400
+        
+        # Obtener datos de la materia prima
+        materia = db.session.execute(
+            text("SELECT nombre, unidad_base, stock_actual FROM materias_primas WHERE id_materia = :id_materia AND estatus = 'activo'"),
+            {'id_materia': id_materia}
+        ).fetchone()
+        
+        if not materia:
+            return jsonify({'success': False, 'error': 'Materia prima no encontrada o inactiva'}), 400
+        
+        # Validar stock suficiente
+        stock_actual = float(materia.stock_actual)
+        if stock_actual < cantidad:
+            return jsonify({
+                'success': False, 
+                'error': f'Stock insuficiente. Disponible: {stock_actual} {materia.unidad_base}'
+            }), 400
+        
+        # Insertar registro de merma
+        db.session.execute(
+            text("""
+                INSERT INTO mermas (
+                    tipo_objeto, id_referencia, cantidad, unidad, 
+                    causa, descripcion, registrado_por, fecha_merma, creado_en
+                ) VALUES (
+                    'materia_prima', :id_materia, :cantidad, :unidad,
+                    :causa, :descripcion, :registrado_por, NOW(), NOW()
+                )
+            """),
+            {
+                'id_materia': id_materia,
+                'cantidad': cantidad,
+                'unidad': materia.unidad_base,
+                'causa': causa,
+                'descripcion': descripcion,
+                'registrado_por': current_user.id_usuario
+            }
+        )
+        
+        # Descontar del inventario
+        db.session.execute(
+            text("""
+                UPDATE materias_primas 
+                SET stock_actual = stock_actual - :cantidad,
+                    actualizado_en = NOW()
+                WHERE id_materia = :id_materia
+            """),
+            {'cantidad': cantidad, 'id_materia': id_materia}
+        )
+        
+        # Registrar en logs
+        db.session.execute(
+            text("""
+                INSERT INTO logs_sistema (tipo, nivel, id_usuario, modulo, accion, descripcion, creado_en)
+                VALUES ('ajuste_inv', 'WARNING', :usuario_id, 'mermas', 'registrar_merma',
+                        :desc_log, NOW())
+            """),
+            {
+                'usuario_id': current_user.id_usuario,
+                'desc_log': f'Merma registrada: {materia.nombre} - Cantidad: {cantidad} {materia.unidad_base} - Causa: {causa}'
+            }
+        )
+        
+        db.session.commit()
+        
+        app.logger.info(f'Merma registrada | usuario: {current_user.username} | materia: {id_materia} | cantidad: {cantidad}')
+        
+        return jsonify({
+            'success': True,
+            'message': 'Merma registrada exitosamente'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error en api_registrar_merma: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route("/api/mermas/listar", methods=['GET'])
+@login_required
+def api_listar_mermas():
+    """Listar mermas registradas"""
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+    causa = request.args.get('causa')
+    offset = int(request.args.get('offset', 0))
+    limit = int(request.args.get('limit', 20))
+    
+    try:
+        # Consulta base - simplificada sin COUNT(*) OVER para evitar problemas
+        query = """
+            SELECT 
+                m.id_merma,
+                mp.nombre AS materia_nombre,
+                m.cantidad,
+                m.unidad,
+                m.causa,
+                m.descripcion,
+                m.fecha_merma,
+                u.nombre_completo AS registrado_por_nombre
+            FROM mermas m
+            JOIN materias_primas mp ON mp.id_materia = m.id_referencia
+            JOIN usuarios u ON u.id_usuario = m.registrado_por
+            WHERE m.tipo_objeto = 'materia_prima'
+        """
+        
+        params = {}
+        
+        if fecha_inicio and fecha_inicio != '':
+            query += " AND DATE(m.fecha_merma) >= :fecha_inicio"
+            params['fecha_inicio'] = fecha_inicio
+        
+        if fecha_fin and fecha_fin != '':
+            query += " AND DATE(m.fecha_merma) <= :fecha_fin"
+            params['fecha_fin'] = fecha_fin
+        
+        if causa and causa != '':
+            query += " AND m.causa = :causa"
+            params['causa'] = causa
+        
+        query += " ORDER BY m.fecha_merma DESC LIMIT :limit OFFSET :offset"
+        params['limit'] = limit
+        params['offset'] = offset
+        
+        result = db.session.execute(text(query), params)
+        
+        mermas = []
+        for row in result:
+            mermas.append({
+                'id_merma': row.id_merma,
+                'materia_nombre': row.materia_nombre,
+                'cantidad': float(row.cantidad) if row.cantidad else 0,
+                'unidad': row.unidad,
+                'causa': row.causa,
+                'descripcion': row.descripcion or '',
+                'fecha_merma': row.fecha_merma.strftime('%Y-%m-%d %H:%M:%S') if row.fecha_merma else None,
+                'registrado_por_nombre': row.registrado_por_nombre
+            })
+        
+        # Consulta separada para el total
+        count_query = """
+            SELECT COUNT(*) as total
+            FROM mermas m
+            JOIN materias_primas mp ON mp.id_materia = m.id_referencia
+            WHERE m.tipo_objeto = 'materia_prima'
+        """
+        count_params = {}
+        
+        if fecha_inicio and fecha_inicio != '':
+            count_query += " AND DATE(m.fecha_merma) >= :fecha_inicio"
+            count_params['fecha_inicio'] = fecha_inicio
+        
+        if fecha_fin and fecha_fin != '':
+            count_query += " AND DATE(m.fecha_merma) <= :fecha_fin"
+            count_params['fecha_fin'] = fecha_fin
+        
+        if causa and causa != '':
+            count_query += " AND m.causa = :causa"
+            count_params['causa'] = causa
+        
+        total_result = db.session.execute(text(count_query), count_params)
+        total_filas = total_result.fetchone().total
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'mermas': mermas,
+            'total': total_filas,
+            'offset': offset,
+            'limit': limit
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en api_listar_mermas: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
+@app.route("/api/mermas/estadisticas", methods=['GET'])
+@login_required
+def api_estadisticas_mermas():
+    """Obtener estadísticas de mermas"""
+    try:
+        # Total hoy
+        result_hoy = db.session.execute(
+            text("SELECT COALESCE(SUM(cantidad), 0) AS total FROM mermas WHERE tipo_objeto = 'materia_prima' AND DATE(fecha_merma) = CURDATE()")
+        )
+        total_hoy = result_hoy.fetchone().total
+        
+        # Total semana
+        result_semana = db.session.execute(
+            text("SELECT COALESCE(SUM(cantidad), 0) AS total FROM mermas WHERE tipo_objeto = 'materia_prima' AND YEARWEEK(fecha_merma, 1) = YEARWEEK(CURDATE(), 1)")
+        )
+        total_semana = result_semana.fetchone().total
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'total_hoy': float(total_hoy) if total_hoy else 0,
+            'total_semana': float(total_semana) if total_semana else 0
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en api_estadisticas_mermas: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+     
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.logger.info('Aplicacion iniciada correctamente')
     app.run(debug=True)
+
+
+
