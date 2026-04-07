@@ -594,6 +594,7 @@
     })();
   </script>
 
+{% if request.endpoint not in ['login', 'entrar', 'registrar_usuario', 'login_cliente', 'registrar_cliente', 'pedidos.catalogo', 'pedidos.mis_pedidos'] %}
   <!-- Botón flotante de mermas -->
 <button class="merma-float-btn" id="btnMerma" onclick="abrirModalMerma()" title="Registrar Merma">
     <span>🗑️</span>
@@ -692,6 +693,8 @@
         </div>
     </div>
 </div>
+
+{% endif %}
 
 <script>
     // ============================================================
