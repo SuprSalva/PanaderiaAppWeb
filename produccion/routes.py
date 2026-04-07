@@ -17,10 +17,6 @@ def _call_sp(call_sql, select_sql, params):
     return dict(row)
 
 
-# ══════════════════════════════════════════════════════════════
-# LISTA PRINCIPAL
-# GET /produccion
-# ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion')
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -46,14 +42,12 @@ def index_produccion():
     db.session.execute(text("SELECT 1"))
     lotes = [dict(r) for r in rows]
 
-    # Conteos por estado
     conteos = {}
     for e in ('pendiente', 'en_proceso', 'finalizado', 'cancelado'):
         conteos[e] = db.session.execute(
             text("SELECT COUNT(*) FROM produccion WHERE estado = :e"), {'e': e}
         ).scalar() or 0
 
-    # Recetas activas con producto asociado + demanda de pedidos
     recetas = db.session.execute(text("""
         SELECT r.id_receta, r.nombre AS nombre_receta, r.rendimiento,
                r.unidad_rendimiento,
@@ -101,9 +95,6 @@ def index_produccion():
     )
 
 
-# ══════════════════════════════════════════════════════════════
-# CREAR ORDEN  POST /produccion/nueva
-# ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/nueva', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -141,9 +132,6 @@ def produccion_nueva():
     return redirect(url_for('produccion.index_produccion'))
 
 
-# ══════════════════════════════════════════════════════════════
-# DETALLE  GET /produccion/<id>
-# ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/<int:id_produccion>')
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -187,7 +175,6 @@ def detalle_orden(id_produccion):
             WHERE p.id_produccion = :id
         """), {'id': id_produccion}).mappings().one_or_none()
 
-        # Insumos reales (post-finalización)
         insumos_reales = conn.execute(text("""
             SELECT dp.id_materia, mp.nombre AS nombre_materia,
                    mp.unidad_base, mp.categoria,
@@ -198,7 +185,6 @@ def detalle_orden(id_produccion):
             WHERE dp.id_produccion = :id ORDER BY mp.nombre
         """), {'id': id_produccion}).mappings().all()
 
-        # Insumos teóricos (pre-finalización)
         insumos_teoricos = conn.execute(text("""
             SELECT dr.id_materia, mp.nombre AS nombre_materia,
                    mp.unidad_base, mp.categoria,
@@ -229,10 +215,6 @@ def detalle_orden(id_produccion):
         flash(f'Error: {exc}', 'error')
         return redirect(url_for('produccion.index_produccion'))
 
-
-# ══════════════════════════════════════════════════════════════
-# INICIAR  POST /produccion/<id>/iniciar  (pendiente→en_proceso)
-# ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/<int:id_produccion>/iniciar', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -256,9 +238,6 @@ def iniciar_orden(id_produccion):
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 
 
-# ══════════════════════════════════════════════════════════════
-# FINALIZAR  POST /produccion/<id>/finalizar (en_proceso→finalizado)
-# ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/<int:id_produccion>/finalizar', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -283,9 +262,6 @@ def finalizar_orden(id_produccion):
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 
 
-# ══════════════════════════════════════════════════════════════
-# CANCELAR  POST /produccion/<id>/cancelar
-# ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/<int:id_produccion>/cancelar', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -310,10 +286,6 @@ def cancelar_orden(id_produccion):
     return redirect(url_for('produccion.detalle_orden', id_produccion=id_produccion))
 
 
-# ══════════════════════════════════════════════════════════════
-# API — Verificar insumos antes de crear o finalizar
-# GET /produccion/api/verificar?id_receta=X&cantidad=Y
-# ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion/api/verificar')
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -373,9 +345,6 @@ def api_verificar():
         return jsonify({'ok': False, 'mensaje': str(exc)}), 500
 
 
-# ══════════════════════════════════════════════════════════════
-# Ruta legacy — solicitudes (mantener compatibilidad sidebar)
-# ══════════════════════════════════════════════════════════════
 @produccion.route('/produccion-solicitud')
 @login_required
 @roles_required('admin', 'empleado', 'panadero')

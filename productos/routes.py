@@ -61,6 +61,13 @@ def productos_nuevo():
                 flash(err, 'error')
         return redirect(url_for('productos_bp.index_productos', modal='nuevo'))
 
+    existe = Producto.query.filter(
+        db.func.lower(Producto.nombre) == form.nombre.data.strip().lower()
+    ).first()
+    if existe:
+        flash(f'Ya existe un producto con el nombre "{form.nombre.data.strip()}".', 'error')
+        return redirect(url_for('productos_bp.index_productos', modal='nuevo'))
+
     nuevo = Producto(
         uuid_producto  = str(_uuid.uuid4()),
         nombre         = form.nombre.data.strip(),
@@ -77,7 +84,6 @@ def productos_nuevo():
     inv = InventarioPT(
         id_producto  = nuevo.id_producto,
         stock_actual = 0,
-        stock_minimo = 0,
     )
     try:
         db.session.add(inv)
@@ -105,13 +111,18 @@ def productos_editar(id_producto):
                 flash(err, 'error')
         return redirect(url_for('productos_bp.index_productos', modal='editar', id=id_producto))
 
+    existe = Producto.query.filter(
+        db.func.lower(Producto.nombre) == form.nombre.data.strip().lower(),
+        Producto.id_producto != id_producto
+    ).first()
+    if existe:
+        flash(f'Ya existe un producto con el nombre "{form.nombre.data.strip()}".', 'error')
+        return redirect(url_for('productos_bp.index_productos', modal='editar', id=id_producto))
+
     producto.nombre         = form.nombre.data.strip()
     producto.descripcion    = (form.descripcion.data or '').strip() or None
     producto.precio_venta   = float(form.precio_venta.data)
     producto.actualizado_en = datetime.datetime.now()
-
-    if producto.inventario:
-        producto.inventario.stock_minimo = float(form.stock_minimo.data or 0)
 
     try:
         db.session.commit()

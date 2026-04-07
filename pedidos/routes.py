@@ -17,7 +17,7 @@ from forms import PedidoCajaForm
 
 @pedidos_bp.route('/nuevo', methods=['GET'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def catalogo():
     current_app.logger.info('Vista de catalogo de pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn = db.session.connection()
@@ -52,7 +52,7 @@ def catalogo():
 
 @pedidos_bp.route('/nuevo', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def crear_pedido():
     form = PedidoCajaForm(request.form)
     cajas_raw = request.form.get('cajas_json', '').strip()
@@ -191,7 +191,7 @@ def _validar_cajas(cajas_data: list) -> list[str]:
 
 @pedidos_bp.route('/mis-pedidos')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def mis_pedidos():
     current_app.logger.info('Vista de mis pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     conn = db.session.connection()
@@ -219,7 +219,7 @@ def mis_pedidos():
 
 @pedidos_bp.route('/pedidos')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def lista():
     current_app.logger.info('Vista de lista general de pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     estado = request.args.get('estado') or None
@@ -252,7 +252,7 @@ def lista():
 
 @pedidos_bp.route('/<folio>')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def detalle(folio):
     conn = db.session.connection()
     cur  = conn.connection.cursor()
@@ -295,7 +295,7 @@ def detalle(folio):
 
 @pedidos_bp.route('/<folio>/estado', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def cambiar_estado(folio):
     nuevo_estado = request.form.get('estado', '').strip()
     nota         = request.form.get('nota', '').strip() or None
@@ -344,7 +344,7 @@ def cambiar_estado(folio):
 
 @pedidos_bp.route('/notificaciones/leer', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def marcar_leidas():
     try:
         db.session.execute(
@@ -360,7 +360,7 @@ def marcar_leidas():
 
 @pedidos_bp.route('/api/badge')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def badge_notifs():
     row = db.session.execute(
         text("CALL sp_badge_notifs(:u)"),
@@ -375,7 +375,7 @@ def badge_notifs():
 
 @pedidos_bp.route('/produccion-pedidos')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def cola_produccion():
     current_app.logger.info('Vista de cola de produccion accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     estado  = request.args.get('estado', '') or None   # ← esta es la única línea de estado
@@ -447,7 +447,7 @@ def cola_produccion():
 
 @pedidos_bp.route('/api/<folio>/insumos')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def api_insumos_pedido(folio):
     try:
         conn = db.session.connection()
@@ -526,7 +526,7 @@ def api_insumos_pedido(folio):
 
 @pedidos_bp.route('/api/<folio>/faltantes-compra')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def api_faltantes_compra(folio):
     try:
         conn = db.session.connection()
@@ -588,7 +588,7 @@ def api_faltantes_compra(folio):
 # ── Aprobar pedido ──────────────────────────────────────────
 @pedidos_bp.route('/<folio>/aprobar', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def aprobar_pedido(folio):
     nota = request.form.get('nota', '').strip() or 'Pedido aprobado.'
     try:
@@ -617,7 +617,7 @@ def aprobar_pedido(folio):
 # ── Rechazar pedido ─────────────────────────────────────────
 @pedidos_bp.route('/<folio>/rechazar', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def rechazar_pedido(folio):
     motivo = request.form.get('motivo', '').strip()
     if not motivo:
@@ -648,7 +648,7 @@ def rechazar_pedido(folio):
 
 @pedidos_bp.route('/<folio>/iniciar-produccion', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def iniciar_produccion(folio):
     try:
         conn = db.session.connection()
@@ -685,7 +685,7 @@ def iniciar_produccion(folio):
 
 @pedidos_bp.route('/<folio>/terminar-produccion', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def terminar_produccion(folio):
     try:
         conn = db.session.connection()
@@ -711,7 +711,7 @@ def terminar_produccion(folio):
 
 @pedidos_bp.route('/api/<folio>/detalle')
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado', 'panadero', 'cliente')
 def api_detalle_pedido(folio):
     try:
         conn = db.session.connection()

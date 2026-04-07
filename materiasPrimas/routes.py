@@ -13,10 +13,10 @@ POR_PAGINA = 10
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def index_materias_primas():
-    current_app.logger.info('Vista de inventario de materias primas accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    buscar  = request.args.get('buscar', '').strip()
+    buscar = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
-    pagina  = request.args.get('pagina', 1, type=int)
+    nivel_stock = request.args.get('nivel_stock', '') 
+    pagina = request.args.get('pagina', 1, type=int)
     if pagina < 1:
         pagina = 1
 
@@ -31,34 +31,39 @@ def index_materias_primas():
     if estatus in ('activo', 'inactivo'):
         query = query.filter_by(estatus=estatus)
 
-    paginacion      = query.order_by(MateriaPrima.nombre).paginate(
-                          page=pagina, per_page=POR_PAGINA, error_out=False)
-    lista           = paginacion.items
+    if nivel_stock == 'normal':
+        query = query.filter(MateriaPrima.stock_actual > MateriaPrima.stock_minimo)
+    elif nivel_stock == 'bajo':
+        query = query.filter(
+            MateriaPrima.stock_actual > 0,
+            MateriaPrima.stock_actual <= MateriaPrima.stock_minimo
+        )
+    elif nivel_stock == 'critico':
+        query = query.filter(MateriaPrima.stock_actual <= 0)
 
-    total           = MateriaPrima.query.count()
-    total_activos   = MateriaPrima.query.filter_by(estatus='activo').count()
-    total_inactivos = MateriaPrima.query.filter_by(estatus='inactivo').count()
+    paginacion = query.order_by(MateriaPrima.nombre).paginate(page=pagina, per_page=POR_PAGINA, error_out=False)
+    lista = paginacion.items
 
-    # ── contadores de nivel de stock (sobre todos, no solo la página) ──
-    todas   = MateriaPrima.query.all()
-    normal  = sum(1 for m in todas if float(m.stock_actual) > float(m.stock_minimo))
-    bajo    = sum(1 for m in todas
-                  if 0 < float(m.stock_actual) <= float(m.stock_minimo))
+    todas = MateriaPrima.query.all()
+    normal = sum(1 for m in todas if float(m.stock_actual) > float(m.stock_minimo))
+    bajo = sum(1 for m in todas if 0 < float(m.stock_actual) <= float(m.stock_minimo))
     critico = sum(1 for m in todas if float(m.stock_actual) <= 0)
+    total = len(todas)
 
     return render_template(
         'materiasPrimas/materiasPrimas.html',
-        materias        = lista,
-        paginacion      = paginacion,
-        pagina          = pagina,
-        total           = total,
-        total_activos   = total_activos,
-        total_inactivos = total_inactivos,
-        stat_normal     = normal,
-        stat_bajo       = bajo,
-        stat_critico    = critico,
-        buscar          = buscar,
-        estatus_sel     = estatus,
+        materias=lista,
+        paginacion=paginacion,
+        pagina=pagina,
+        total=total,
+        total_activos=MateriaPrima.query.filter_by(estatus='activo').count(),
+        total_inactivos=MateriaPrima.query.filter_by(estatus='inactivo').count(),
+        stat_normal=normal,
+        stat_bajo=bajo,
+        stat_critico=critico,
+        buscar=buscar,
+        estatus_sel=estatus,
+        nivel_stock_sel=nivel_stock 
     )
 
 

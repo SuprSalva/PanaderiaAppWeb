@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/salidaEfectivo.css') }}">
 {% endblock %}
 
-<!-- TOPBAR -->
 <div class="db-topbar anim">
   <div>
     <div class="db-page-title">💸 Salida de Efectivo</div>
@@ -15,7 +14,6 @@
   <button class="btn btn-primary" onclick="abrirNuevaSalida()">＋ Registrar Salida</button>
 </div>
 
-<!-- STATS -->
 <div class="e-stats anim anim-1">
   <div class="e-stat">
     <div class="e-stat-icon rust">💸</div>
@@ -48,7 +46,6 @@
 </div>
 
 
-<!-- MAIN GRID: categorías + balance mes -->
 {% set cat_meta = {
 'compra_insumos': ('🛒', '#f3e8d8', 'var(--brown)', 'Compra de Insumos'),
 'servicios_utilities': ('⚡', '#fef3d0', '#c9950a', 'Servicios / Utilities'),
@@ -58,7 +55,6 @@
 
 <div class="main-grid anim anim-2">
 
-  <!-- POR CATEGORÍA (hoy) -->
   <div class="panel-card">
     <div class="panel-header">
       <div class="panel-title">📂 Egresos por Categoría (hoy)</div>
@@ -92,7 +88,6 @@
     </div>
   </div>
 
-  <!-- BALANCE MENSUAL -->
   <div class="panel-card">
     <div class="panel-header">
       <div class="panel-title">📊 Balance Mensual</div>
@@ -151,7 +146,6 @@
 
   </div>
 
-  <!-- TOOLBAR + TABLE -->
   <div class="toolbar anim anim-3">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
@@ -206,20 +200,20 @@
           </td>
           <td>
             <span class="cat-chip">
-              {% if s.categoria == 'compra_insumos' %}🛒 Insumos
-              {% elif s.categoria == 'servicios_utilities' %}⚡ Servicios
-              {% elif s.categoria == 'mantenimiento' %}🔧 Mantenimiento
-              {% else %}📦 Otros{% endif %}
+              {% if s.categoria == 'compra_insumos' %}Insumos
+              {% elif s.categoria == 'servicios_utilities' %}Servicios
+              {% elif s.categoria == 'mantenimiento' %}Mantenimiento
+              {% else %}Otros{% endif %}
             </span>
           </td>
           <td><span class="monto-neg">−${{ "%.2f"|format(s.monto) }}</span></td>
           <td>
             {% if s.estado == 'aprobada' %}
-            <span class="badge badge-aprobada">✅ Aprobada</span>
+            <span class="badge badge-aprobada">Aprobada</span>
             {% elif s.estado == 'pendiente' %}
-            <span class="badge badge-pendiente">⏳ Pendiente</span>
+            <span class="badge badge-pendiente">Pendiente</span>
             {% else %}
-            <span class="badge badge-rechazada">🚫 Rechazada</span>
+            <span class="badge badge-rechazada">Rechazada</span>
             {% endif %}
           </td>
           <td>{{ s.nombre_registrador }}</td>
@@ -250,10 +244,6 @@
     </div>
   </div>
 
-
-  <!-- ══════════════════════════════════════
-     MODAL: REGISTRAR SALIDA
-══════════════════════════════════════ -->
   <div class="modal-overlay" id="modal-add">
     <div class="modal">
       <div class="modal-header">
@@ -326,10 +316,6 @@
     </div>
   </div>
 
-
-  <!-- ══════════════════════════════════════
-     MODAL: APROBACIÓN
-══════════════════════════════════════ -->
   <div class="modal-overlay" id="modal-aprobacion">
     <div class="modal" style="max-width:440px">
       <div class="modal-header">
@@ -364,10 +350,6 @@
     </div>
   </div>
 
-
-  <!-- ══════════════════════════════════════
-     MODAL: DETALLE
-══════════════════════════════════════ -->
   <div class="modal-overlay" id="modal-detalle">
     <div class="modal modal-xl">
       <div class="modal-header">

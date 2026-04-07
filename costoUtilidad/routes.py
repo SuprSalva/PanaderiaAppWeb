@@ -1,4 +1,3 @@
-# costoUtilidad/routes.py
 from . import costoUtilidad
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import login_required
@@ -7,10 +6,8 @@ from functools import wraps
 from auth import roles_required
 import forms
 
-# ─── Helper: ejecutar SP ────────────────────────────────────────────────────
  
 def _call_sp(sp_name, params=()):
-    """Llama a un SP y devuelve lista de dicts."""
     conn = db.engine.raw_connection()
     try:
         cursor = conn.cursor()
@@ -24,13 +21,11 @@ def _call_sp(sp_name, params=()):
  
  
 def _call_sp_one(sp_name, params=()):
-    """Llama a un SP y devuelve el primer resultado (dict) o None."""
     rows = _call_sp(sp_name, params)
     return rows[0] if rows else None
  
  
 def _parse_decimal(valor):
-    """Convierte un string a float o None si está vacío/inválido."""
     try:
         v = str(valor).strip()
         return float(v) if v else None
@@ -38,7 +33,6 @@ def _parse_decimal(valor):
         return None
  
  
-# ─── Ruta principal: Costo y Utilidad por Producto ──────────────────────────
  
 @costoUtilidad.route('/costo-utilidad', methods=['GET'])
 @login_required
@@ -48,7 +42,6 @@ def index_costo_utilidad():
     buscar = request.args.get('buscar', '').strip()
     orden  = request.args.get('orden', 'nombre_asc')
  
-    # Rango de utilidad
     util_min = _parse_decimal(request.args.get('utilidad_min', ''))
     util_max = _parse_decimal(request.args.get('utilidad_max', ''))
  
@@ -92,9 +85,7 @@ def index_costo_utilidad():
         util_max=util_max,
     )
  
- 
-# ─── API: detalle de insumos para un producto/receta ────────────────────────
- 
+  
 @costoUtilidad.route('/costo-utilidad/api/detalle/<int:id_receta>', methods=['GET'])
 @login_required
 @roles_required('admin')
@@ -105,9 +96,7 @@ def api_detalle_costo(id_receta):
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)}), 500
  
- 
-# ─── Ruta: Utilidad Diaria ──────────────────────────────────────────────────
- 
+  
 @costoUtilidad.route('/utilidad-diaria', methods=['GET'])
 @login_required
 @roles_required('admin')

@@ -21,9 +21,6 @@
   {% endfor %}
 {% endwith %}
 
-{# ── KPI CARDS ──────────────────────────────────────────────────────────── #}
-{# Orden del diseño del documento:                                           #}
-{# Margen Prom. | Costo Prom./pza | Precio Prom./pza | Margen bajo (<20%)   #}
 <div class="cu-stats anim anim-1">
 
   <div class="cu-stat">
@@ -75,7 +72,6 @@
 
 </div>
 
-{# ── TOOLBAR ── #}
 <form method="GET" action="{{ url_for('costoUtilidad.index_costo_utilidad') }}" id="form-filtro">
   <div class="toolbar anim anim-2">
 
@@ -90,7 +86,6 @@
       ) }}
     </div>
 
-    {# Rango de utilidad #}
     <div class="range-wrap">
       <span class="range-lbl">Utilidad $</span>
       {{ form.utilidad_min(
@@ -108,14 +103,12 @@
       ) }}
     </div>
 
-    {# Ordenamiento #}
     {{ form.orden(
          id='filtro-orden',
          class_='filter-select',
          onchange='this.form.submit()'
     ) }}
 
-    {# Botón limpiar (solo si hay filtros activos) #}
     {% if buscar or util_min is not none or util_max is not none %}
     <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}" class="btn-limpiar">
       ✕ Limpiar
@@ -125,7 +118,6 @@
   </div>
 </form>
 
-{# Indicador de filtro de utilidad activo #}
 {% if util_min is not none or util_max is not none %}
 <div class="filtro-activo anim">
   🔎 Utilidad filtrada:
@@ -140,10 +132,8 @@
 </div>
 {% endif %}
 
-{# ── LAYOUT: tabla + panel desglose ── #}
 <div class="cu-layout anim anim-3">
 
-  {# ── TABLA ── #}
   <div class="table-card">
     <div class="tc-header">
       <div class="tc-title">📋 Productos — Costo vs. Precio</div>
@@ -213,7 +203,6 @@
       </tbody>
     </table>
 
-    {# ── PAGINADOR ── #}
     <div class="paginador">
       <div class="pag-info">
         Mostrando
@@ -240,28 +229,23 @@
     {% endif %}
   </div>
 
-  {# ── PANEL DESGLOSE ── #}
   <div class="desglose-card" id="desglose-panel">
     <div class="des-header">
       <div class="des-title" id="des-titulo">Desglose de Costos</div>
     </div>
 
-    {# Placeholder inicial #}
     <div class="des-placeholder" id="des-placeholder">
       <span>👈</span>
       <p>Selecciona un producto de la tabla para ver el desglose por insumo y simular precios.</p>
     </div>
 
-    {# Spinner de carga #}
     <div class="des-spinner" id="des-spinner">
       <div class="spinner"></div>
       <span>Cargando…</span>
     </div>
 
-    {# Contenido del desglose #}
     <div id="des-content" style="display:none">
 
-      {# KPIs — grid 2×2 #}
       <div class="des-kpis">
         <div class="des-kpi">
           <div class="des-kpi-lbl">Costo / pieza</div>
@@ -281,39 +265,6 @@
         </div>
       </div>
 
-      {# Desglose por insumo #}
-      <div class="des-section-lbl">Costo por Insumo</div>
-      <div class="des-insumos-wrap" id="des-insumos"></div>
-
-      {# Totales #}
-      <div class="des-breakdown">
-        <div class="cb-row">
-          <span class="cb-label">Materiales / lote</span>
-          <span class="money" id="des-mat-lote" style="font-size:13px">—</span>
-        </div>
-        <div class="cb-row cb-total-row">
-          <span class="cb-label">Costo unitario / pieza</span>
-          <span class="money" id="des-unit" style="font-size:14px">—</span>
-        </div>
-      </div>
-
-      {# Simulador de precio #}
-      <div class="des-sim">
-        <div class="sim-title">🧮 Simular Precio de Venta</div>
-        <div class="sim-row">
-          <label for="sim-precio">Nuevo precio ($)</label>
-          <input type="number" class="sim-input" id="sim-precio"
-                 min="0" step="0.01" placeholder="0.00" oninput="simular()">
-        </div>
-        <div class="sim-row">
-          <label>Utilidad simulada</label>
-          <span class="sim-result" id="sim-util">—</span>
-        </div>
-        <div class="sim-row">
-          <label>Margen simulado</label>
-          <span class="sim-result" id="sim-margen">—</span>
-        </div>
-      </div>
 
     </div>{# /des-content #}
   </div>{# /desglose-card #}

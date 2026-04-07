@@ -13,23 +13,19 @@ from . import proveedores
 POR_PAGINA = 10
 
 
-# ─── utilidad interna ──────────────────────────────────────────────────────────
 def _usuario_actual():
-    """Retorna el id_usuario de la sesión activa, o None si no hay sesión."""
     return session.get('id_usuario')
 
 
 def _msg_error_sp(exc):
-    """Extrae el mensaje del SIGNAL SQLSTATE lanzado por un SP de MySQL."""
     if exc.orig and len(exc.orig.args) > 1:
         return exc.orig.args[1]
     return 'Ocurrió un error al procesar la operación.'
 
 
-# ─── Listado ───────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores', methods=['GET'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def index_proveedores():
     current_app.logger.info('Vista de catalogo de proveedores accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     buscar  = request.args.get('buscar', '').strip()
@@ -73,10 +69,9 @@ def index_proveedores():
     )
 
 
-# ─── Crear ─────────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/nuevo', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def proveedores_nuevo():
     form = ProveedorForm(request.form)
 
@@ -92,7 +87,7 @@ def proveedores_nuevo():
     try:
         db.session.execute(
             text("CALL sp_crear_proveedor(:uuid, :nombre, :rfc, :contacto, "
-                 ":telefono, :email, :direccion, :creado_por)"),
+                ":telefono, :email, :direccion, :creado_por)"),
             {
                 'uuid':       str(_uuid.uuid4()),
                 'nombre':     form.nombre.data.strip(),
@@ -122,10 +117,9 @@ def proveedores_nuevo():
     return redirect(url_for('proveedores.index_proveedores'))
 
 
-# ─── Editar ────────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/editar/<int:id_proveedor>', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def proveedores_editar(id_proveedor):
     form = ProveedorForm(request.form)
 
@@ -142,7 +136,7 @@ def proveedores_editar(id_proveedor):
     try:
         db.session.execute(
             text("CALL sp_editar_proveedor(:id, :nombre, :rfc, :contacto, "
-                 ":telefono, :email, :direccion, :ejecutado_por)"),
+                ":telefono, :email, :direccion, :ejecutado_por)"),
             {
                 'id':            id_proveedor,
                 'nombre':        form.nombre.data.strip(),
@@ -174,19 +168,17 @@ def proveedores_editar(id_proveedor):
     return redirect(url_for('proveedores.index_proveedores'))
 
 
-# ─── Confirmar toggle ──────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/confirmar-toggle/<int:id_proveedor>', methods=['GET'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def proveedores_confirmar_toggle(id_proveedor):
     prov = Proveedor.query.get_or_404(id_proveedor)
     return render_template('proveedores/proveedores_confirmar_toggle.html', prov=prov)
 
 
-# ─── Toggle estatus (activo ↔ inactivo) ───────────────────────────────────────
 @proveedores.route('/proveedores/toggle/<int:id_proveedor>', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def proveedores_toggle(id_proveedor):
     try:
         result = db.session.execute(

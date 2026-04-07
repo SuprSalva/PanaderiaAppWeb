@@ -24,12 +24,12 @@
 <div class="confirm-wrap">
   {% if producto.estatus == 'activo' %}
   <div class="confirm-header hdr-danger">
-    <span class="icon">🚫</span>
+    <span class="icon"></span>
     <h2>Desactivar Producto</h2>
   </div>
   {% else %}
   <div class="confirm-header hdr-success">
-    <span class="icon">✅</span>
+    <span class="icon"></span>
     <h2>Activar Producto</h2>
   </div>
   {% endif %}
@@ -52,9 +52,9 @@
             action="{{ url_for('productos_bp.productos_toggle', id_producto=producto.id_producto) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% if producto.estatus == 'activo' %}
-          <button type="submit" class="btn btn-danger">🚫 Sí, desactivar</button>
+          <button type="submit" class="btn btn-danger">Sí, desactivar</button>
         {% else %}
-          <button type="submit" class="btn btn-primary">✅ Sí, activar</button>
+          <button type="submit" class="btn btn-primary">Sí, activar</button>
         {% endif %}
       </form>
     </div>

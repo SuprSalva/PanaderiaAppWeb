@@ -44,13 +44,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function abrirToggleProd(id, nombre, estatus) {
   var act = estatus === 'activo';
   document.getElementById('toggle-prod-title').textContent =
-    act ? '🚫 Desactivar Producto' : '✅ Activar Producto';
+    act ? 'Desactivar Producto' : 'Activar Producto';
   document.getElementById('toggle-prod-icon').textContent  = act ? '🚫' : '✅';
   document.getElementById('toggle-prod-msg').innerHTML     = act
     ? 'El producto <strong>' + nombre + '</strong> quedará inactivo y no podrá usarse en nuevas ventas ni producción.<br>El historial y las recetas asociadas se conservan.'
     : 'El producto <strong>' + nombre + '</strong> volverá a estar disponible para ventas y producción.';
   var btn = document.getElementById('toggle-prod-btn');
-  btn.textContent = act ? '🚫 Sí, desactivar' : '✅ Sí, activar';
+  btn.textContent = act ? 'Sí, desactivar' : 'Sí, activar';
   btn.className   = act ? 'btn btn-danger' : 'btn btn-primary';
   document.getElementById('toggle-prod-header').style.background =
     act ? 'var(--rust)' : '#5a7a52';

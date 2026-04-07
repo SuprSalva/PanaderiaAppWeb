@@ -14,7 +14,6 @@ from . import compras
 
 
 def _compra_form():
-    """Instancia CompraForm con las opciones de proveedores activos."""
     form = CompraForm(request.form)
     form.id_proveedor.choices = (
         [(-1, '— Seleccionar —')] +
@@ -25,7 +24,6 @@ def _compra_form():
 
 
 def _generar_folio(prefijo='C'):
-    """Genera un folio único basado en el count actual."""
     total = db.session.execute(text("SELECT COUNT(*) FROM compras")).scalar() + 1
     return f"{prefijo}-{total:04d}"
 
@@ -35,7 +33,6 @@ def _generar_folio_salida():
     return f"SE-{total:04d}"
 
 
-# ── LISTA DE COMPRAS ────────────────────────────────────────
 @compras.route("/compras")
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -67,7 +64,6 @@ def index_compras():
     )
 
 
-# ── API: unidades de una materia prima ───────────────────────
 @compras.route("/compras/api/unidades/<int:id_materia>")
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -83,7 +79,6 @@ def api_unidades_materia(id_materia):
     } for u in unidades])
 
 
-# ── CREAR PEDIDO (estatus: ordenado) ────────────────────────
 @compras.route("/compras/crear", methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -116,7 +111,6 @@ def crear_compra():
     folio = _generar_folio()
 
     try:
-        # 1. Crear cabecera via SP
         result = db.session.execute(
             text("CALL sp_crear_pedido_compra(:folio,:fact,:prov,:fecha,:obs,:creado, @id_out)"),
             {
@@ -131,7 +125,6 @@ def crear_compra():
         db.session.execute(text("COMMIT"))
         id_compra = db.session.execute(text("SELECT @id_out")).scalar()
 
-        # 2. Insertar detalles via SP
         for i in range(len(ids_materia)):
             if not ids_materia[i]:
                 continue
@@ -164,7 +157,6 @@ def crear_compra():
     return redirect(url_for('compras.index_compras'))
 
 
-# ── CANCELAR PEDIDO ─────────────────────────────────────────
 @compras.route("/compras/cancelar/<int:id_compra>", methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -189,7 +181,6 @@ def cancelar_compra(id_compra):
     return redirect(url_for('compras.index_compras'))
 
 
-# ── FINALIZAR PEDIDO (acepta mercancía → actualiza stock + salida efectivo) ──
 @compras.route("/compras/finalizar/<int:id_compra>", methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -210,13 +201,11 @@ def finalizar_compra(id_compra):
     return redirect(url_for('compras.index_compras'))
 
 
-# ── EDITAR PEDIDO (solo estatus ordenado) ───────────────────
 @compras.route("/compras/editar/<int:id_compra>", methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def editar_compra(id_compra):
     form = _compra_form()
-    # En edición solo validamos fecha (proveedor no se modifica)
     if not form.fecha_compra.data:
         flash('La fecha de compra es obligatoria.', 'error')
         return redirect(url_for('compras.index_compras'))
@@ -239,18 +228,15 @@ def editar_compra(id_compra):
         return redirect(url_for('compras.index_compras'))
 
     try:
-        # 1. Limpiar detalles existentes
         db.session.execute(text("CALL sp_limpiar_detalles_compra(:id)"), {'id': id_compra})
         db.session.execute(text("COMMIT"))
 
-        # 2. Actualizar campos del encabezado
         db.session.execute(
             text("UPDATE compras SET folio_factura=:ff, observaciones=:obs WHERE id_compra=:id"),
             {'ff': folio_factura or None, 'obs': observaciones or None, 'id': id_compra}
         )
         db.session.execute(text("COMMIT"))
 
-        # 3. Re-insertar detalles
         for i in range(len(ids_materia)):
             if not ids_materia[i]:
                 continue
@@ -283,7 +269,6 @@ def editar_compra(id_compra):
     return redirect(url_for('compras.index_compras'))
 
 
-# ── CORREGIR PRECIO (pago rechazado) ───────────────────────
 @compras.route("/compras/corregir-precio/<int:id_compra>", methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -298,7 +283,6 @@ def corregir_precio_compra(id_compra):
 
     folio_salida = _generar_folio_salida()
     try:
-        # 1. Actualizar cada costo unitario
         for id_det, costo in zip(ids_detalle, costos):
             db.session.execute(
                 text("UPDATE detalle_compras SET costo_unitario = :c WHERE id_detalle_compra = :id"),
@@ -306,7 +290,6 @@ def corregir_precio_compra(id_compra):
             )
         db.session.execute(text("COMMIT"))
 
-        # 2. SP recalcula total y genera nueva salida pendiente
         db.session.execute(
             text("CALL sp_corregir_precio_compra(:id, :folio, :usr)"),
             {'id': id_compra, 'folio': folio_salida, 'usr': current_user.id_usuario}
@@ -324,7 +307,6 @@ def corregir_precio_compra(id_compra):
     return redirect(url_for('compras.index_compras'))
 
 
-# ── CREAR UNIDAD DE COMPRA ───────────────────────────────────
 @compras.route("/compras/api/unidades/nueva", methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -362,7 +344,7 @@ def crear_unidad():
         db.session.rollback()
         orig = getattr(e, 'orig', None)
         if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
-            msg = orig.args[1]   # solo el texto, sin el código numérico
+            msg = orig.args[1] 
         else:
             msg = str(e)
         current_app.logger.error('Error al crear unidad de compra | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -376,7 +358,6 @@ def crear_unidad():
     }), 201
 
 
-# ── DETALLE (JSON para modal) ───────────────────────────────
 @compras.route("/compras/detalle/<int:id_compra>")
 @login_required
 @roles_required('admin', 'empleado', 'panadero')

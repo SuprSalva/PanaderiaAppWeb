@@ -39,7 +39,6 @@ class RegistroUsuarioForm(Form):
 
 
 class CompraForm(Form):
-    """Valida el encabezado de un pedido de compra (nueva o edición)."""
     id_proveedor  = SelectField('Proveedor', coerce=int,
                                 validators=[DataRequired(message='Selecciona un proveedor.')])
     fecha_compra  = StringField('Fecha de Compra',
@@ -51,7 +50,6 @@ class CompraForm(Form):
 
 
 class RegistroClienteForm(Form):
-    """Registro público de clientes (el rol siempre es 'cliente')."""
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
     telefono  = StringField('Teléfono', [DataRequired(message='El teléfono es obligatorio.'), Length(max=20, message='El teléfono no puede exceder 20 caracteres.')])
     username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
@@ -68,7 +66,6 @@ class RegistroClienteForm(Form):
 
 
 class CrearUsuarioForm(Form):
-    """Valida el formulario de creación de usuario (password obligatorio)."""
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
     username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
     id_rol    = SelectField('Rol', coerce=int, validators=[NumberRange(min=1, message='Selecciona un rol.')])
@@ -86,7 +83,6 @@ class CrearUsuarioForm(Form):
 
 
 class EditarUsuarioForm(Form):
-    """Valida el formulario de edición de usuario (password opcional)."""
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
     username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
     id_rol    = SelectField('Rol', coerce=int, validators=[NumberRange(min=1, message='Selecciona un rol.')])
@@ -228,7 +224,6 @@ class PedidoCajaForm(Form):
         
 
 class SalidaEfectivoForm(Form):
-    """Valida el registro manual de una salida de efectivo."""
     id_proveedor = SelectField(
         'Proveedor', coerce=int,
         validators=[Optional()],
@@ -263,11 +258,7 @@ class ProveedorForm(Form):
     ])
     rfc = StringField('RFC', [
         Optional(),
-        validators.Length(max=13, message='El RFC no puede exceder 13 caracteres.'),
-        validators.Regexp(
-            r'^$|^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$',
-            message='RFC inválido. Formato esperado: 3-4 letras, 6 dígitos, 3 alfanuméricos.',
-        ),
+        validators.Length(min=0, max=13, message='El RFC debe tener máximo 13 caracteres.'),
     ])
     contacto = StringField('Persona de Contacto', [
         Optional(),
@@ -291,7 +282,6 @@ class ProveedorForm(Form):
     ])
 
 class CostoUtilidadFiltroForm(Form):
-    """Formulario de filtros para el reporte de Costos y Utilidad."""
 
     buscar = StringField('Buscar Producto', [
         Optional(),
@@ -316,7 +306,6 @@ class CostoUtilidadFiltroForm(Form):
         NumberRange(min=0, message='Debe ser mayor o igual a 0.'),
     ], places=2)
 class ItemVentaForm(Form):
-    """Formulario para cada producto en una venta"""
     id_producto = HiddenField('ID Producto', [DataRequired(message='Producto requerido')])
     nombre = HiddenField('Nombre')
     cantidad = DecimalField('Cantidad', 
@@ -333,7 +322,6 @@ class ItemVentaForm(Form):
 
 
 class VentaForm(Form):
-    """Formulario principal para registrar una venta"""
     metodo_pago = SelectField('Método de Pago',
                              choices=[
                                  ('efectivo', '💵 Efectivo'),
@@ -357,7 +345,6 @@ class VentaForm(Form):
 
 
 class FiltroVentasForm(Form):
-    """Formulario para filtrar el listado de ventas"""
     fecha_inicio = StringField('Fecha Inicio', [Optional()])
     fecha_fin = StringField('Fecha Fin', [Optional()])
     metodo_pago = SelectField('Método de Pago',
@@ -383,11 +370,9 @@ class FiltroVentasForm(Form):
     
     def __init__(self, *args, **kwargs):
         super(FiltroVentasForm, self).__init__(*args, **kwargs)
-        # Las opciones de vendedor se cargarán dinámicamente desde la base de datos
 
 
 class CancelarVentaForm(Form):
-    """Formulario para cancelar una venta"""
     motivo_cancelacion = TextAreaField('Motivo de Cancelación',
                                        [Length(max=500, message='Máximo 500 caracteres')])
     
@@ -396,7 +381,6 @@ class CancelarVentaForm(Form):
 
 
 class CorteVentaForm(Form):
-    """Formulario para realizar corte de ventas"""
     fecha_corte = StringField('Fecha de Corte',
                               [DataRequired(message='La fecha es obligatoria')])
     
@@ -447,7 +431,6 @@ class CorteVentaForm(Form):
 
 
 class BusquedaProductoVentaForm(Form):
-    """Formulario para buscar productos en el POS"""
     busqueda = StringField('Buscar producto',
                           [Length(max=100, message='Máximo 100 caracteres')])
     
@@ -463,7 +446,6 @@ class BusquedaProductoVentaForm(Form):
 
 
 class TicketForm(Form):
-    """Formulario para reimprimir ticket"""
     folio_venta = StringField('Folio de Venta',
                              [DataRequired(message='El folio es obligatorio'),
                               Length(min=5, max=20, message='Folio inválido')])
@@ -478,7 +460,6 @@ class TicketForm(Form):
 
 
 class DevolucionForm(Form):
-    """Formulario para devolución de productos"""
     folio_venta_original = StringField('Folio de Venta Original',
                                        [DataRequired(message='El folio original es obligatorio')])
     
