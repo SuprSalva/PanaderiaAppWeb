@@ -1,5 +1,6 @@
 import re as _re
 
+from flask_wtf import FlaskForm
 from wtforms import (
     Form, StringField, PasswordField, SelectField,
     TextAreaField, DecimalField, IntegerField, HiddenField,
@@ -485,3 +486,87 @@ class DevolucionForm(Form):
                                       ('credito_tienda', 'Crédito en tienda')
                                   ],
                                   validators=[DataRequired(message='Selecciona método de reembolso')])
+
+
+class NuevaProduccionDiariaForm(FlaskForm):
+ 
+    nombre = StringField(
+        'Nombre de la producción',
+        validators=[
+            DataRequired(message='El nombre es obligatorio.'),
+            Length(max=120, message='Máximo 120 caracteres.'),
+        ],
+        render_kw={'placeholder': 'Ej. Producción Mañanera del Lunes'}
+    )
+ 
+    operario_id = SelectField(
+        'Panadero asignado',
+        coerce=int,
+        validators=[Optional()],
+        choices=[]         
+    )
+ 
+    observaciones = TextAreaField(
+        'Observaciones',
+        validators=[Optional(), Length(max=1000)],
+        render_kw={'placeholder': 'Notas adicionales, turno, urgencia…',
+                   'rows': 3}
+    )
+ 
+    cajas_json = HiddenField(
+        'Cajas JSON',
+        validators=[DataRequired(message='Debes agregar al menos una línea de cajas.')]
+    )
+ 
+    guardar_plantilla = HiddenField('Guardar plantilla', default='0')
+ 
+    nombre_plantilla = StringField(
+        'Nombre de plantilla',
+        validators=[Optional(), Length(max=120)],
+        render_kw={'placeholder': 'Ej. Surtido clásico mañanero'}
+    )
+ 
+ 
+class FinalizarProduccionDiariaForm(FlaskForm):
+ 
+    piezas_totales = IntegerField(
+        'Piezas producidas reales',
+        validators=[
+            Optional(),
+            NumberRange(min=1, message='Las piezas deben ser al menos 1.')
+        ],
+        render_kw={'placeholder': 'Dejar vacío para usar piezas esperadas'}
+    )
+ 
+ 
+class CancelarProduccionDiariaForm(FlaskForm):
+ 
+    motivo = TextAreaField(
+        'Motivo de cancelación',
+        validators=[
+            DataRequired(message='El motivo es obligatorio.'),
+            Length(max=500)
+        ],
+        render_kw={'placeholder': 'Ej. Cambio de plan, falta de insumos…',
+                   'rows': 3}
+    )
+ 
+ 
+class GuardarPlantillaForm(FlaskForm):
+ 
+    id_pd = HiddenField('ID Producción', validators=[DataRequired()])
+ 
+    nombre = StringField(
+        'Nombre de plantilla',
+        validators=[
+            DataRequired(message='El nombre de la plantilla es obligatorio.'),
+            Length(max=120)
+        ],
+        render_kw={'placeholder': 'Ej. Surtido clásico mañanero'}
+    )
+ 
+    descripcion = TextAreaField(
+        'Descripción',
+        validators=[Optional(), Length(max=500)],
+        render_kw={'placeholder': 'Notas sobre esta plantilla…', 'rows': 2}
+    )

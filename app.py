@@ -16,7 +16,7 @@ import forms
 from compras.routes import compras
 from proveedores.routes import proveedores
 from recetas.routes import recetas_bp
-from produccion.routes import produccion
+from produccionDiaria import produccion_diaria as pd_bp
 from ventas.routes import ventas
 from efectivo.routes import efectivo
 from costoUtilidad.routes import costoUtilidad
@@ -48,7 +48,6 @@ def load_user(user_id):
 app.register_blueprint(compras)
 app.register_blueprint(proveedores)
 app.register_blueprint(recetas_bp)
-app.register_blueprint(produccion)
 app.register_blueprint(ventas, url_prefix='/ventas')
 app.register_blueprint(efectivo)
 app.register_blueprint(costoUtilidad)
@@ -56,6 +55,7 @@ app.register_blueprint(registrar_usuario_bp)
 app.register_blueprint(productos_bp)
 app.register_blueprint(pedidos_bp)  
 app.register_blueprint(materias_primas_bp)
+app.register_blueprint(pd_bp)
 
 db.init_app(app)
 login_manager.init_app(app)

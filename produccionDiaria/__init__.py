@@ -1,7 +1,7 @@
 from flask import Blueprint
 
-produccion=Blueprint(
-    'produccion',
+produccion_diaria=Blueprint(
+    'produccion_diaria',
     __name__,
     template_folder='templates',
     static_folder='static')
