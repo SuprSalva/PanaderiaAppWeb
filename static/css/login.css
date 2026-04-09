@@ -1,4 +1,7 @@
-  .main-content { padding: 0 !important; overflow: hidden !important; }
+  .main-content {
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
 
   .login-page {
     display: flex;
@@ -16,36 +19,63 @@
     pointer-events: none;
     z-index: 0;
   }
+
   .blob-1 {
-    width: 340px; height: 340px;
+    width: 340px;
+    height: 340px;
     background: radial-gradient(circle at 40% 40%, #e8c99a, #c0522a88);
-    top: -80px; right: -60px;
+    top: -80px;
+    right: -60px;
     border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
     animation: morphBlob 8s ease-in-out infinite;
   }
+
   .blob-2 {
-    width: 180px; height: 180px;
+    width: 180px;
+    height: 180px;
     background: radial-gradient(circle, #e07a5288, #c8a97e44);
-    bottom: 60px; left: 80px;
+    bottom: 60px;
+    left: 80px;
     border-radius: 40% 60% 50% 70% / 60% 40% 70% 40%;
     animation: morphBlob 10s ease-in-out infinite reverse;
   }
+
   .blob-3 {
-    width: 120px; height: 120px;
+    width: 120px;
+    height: 120px;
     background: radial-gradient(circle, #9c6f3e44, #e8d5b766);
-    top: 50%; left: 45%;
+    top: 50%;
+    left: 45%;
     border-radius: 50%;
     animation: floatDot 6s ease-in-out infinite;
   }
 
   @keyframes morphBlob {
-    0%, 100% { border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%; }
-    33%       { border-radius: 30% 70% 40% 60% / 70% 30% 60% 40%; }
-    66%       { border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%; }
+
+    0%,
+    100% {
+      border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+    }
+
+    33% {
+      border-radius: 30% 70% 40% 60% / 70% 30% 60% 40%;
+    }
+
+    66% {
+      border-radius: 50% 50% 30% 70% / 40% 60% 50% 50%;
+    }
   }
+
   @keyframes floatDot {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(-20px); }
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
   }
 
   .login-left {
@@ -88,17 +118,21 @@
   }
 
   .brand-logo-placeholder {
-    width: 64px; height: 64px;
+    width: 64px;
+    height: 64px;
     border-radius: 16px;
     background: var(--brown-dk);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 32px;
-    box-shadow: 0 8px 24px rgba(107,68,35,.3);
+    box-shadow: 0 8px 24px rgba(107, 68, 35, .3);
   }
 
   .brand-name {
     font-family: 'Playfair Display', serif;
-    font-size: 26px; font-weight: 700;
+    font-size: 26px;
+    font-weight: 700;
     color: var(--brown-dk);
     line-height: 1.1;
   }
@@ -156,10 +190,13 @@
   }
 
   .feature-pill .pill-icon {
-    width: 28px; height: 28px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--warm-bg);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 14px;
     flex-shrink: 0;
   }
@@ -168,7 +205,7 @@
     background: var(--white);
     border: 1px solid var(--tan);
     border-radius: 20px;
-    box-shadow: 0 12px 40px rgba(107,68,35,.12);
+    box-shadow: 0 12px 40px rgba(107, 68, 35, .12);
     padding: 44px 40px;
     width: 100%;
     max-width: 400px;
@@ -176,8 +213,15 @@
   }
 
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .card-greeting {
@@ -214,7 +258,8 @@
 
   .login-input-wrap .l-icon {
     position: absolute;
-    left: 14px; top: 50%;
+    left: 14px;
+    top: 50%;
     transform: translateY(-50%);
     font-size: 15px;
     color: var(--brown-lt);
@@ -238,10 +283,12 @@
   .login-input-wrap input:focus {
     border-color: var(--brown);
     background: var(--white);
-    box-shadow: 0 0 0 3px rgba(156,111,62,.12);
+    box-shadow: 0 0 0 3px rgba(156, 111, 62, .12);
   }
 
-  .login-input-wrap input::placeholder { color: #c4a882; }
+  .login-input-wrap input::placeholder {
+    color: #c4a882;
+  }
 
   .login-form-group label {
     display: block;
@@ -255,6 +302,10 @@
 
   .btn-login {
     width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     padding: 14px;
     background: var(--brown-dk);
     color: var(--cream);
@@ -266,17 +317,20 @@
     cursor: pointer;
     letter-spacing: .5px;
     transition: background .2s, transform .15s, box-shadow .2s;
-    box-shadow: 0 4px 16px rgba(107,68,35,.35);
+    box-shadow: 0 4px 16px rgba(107, 68, 35, .35);
     margin-top: 10px;
+    white-space: nowrap;
   }
 
   .btn-login:hover {
     background: var(--brown);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(107,68,35,.4);
+    box-shadow: 0 6px 20px rgba(107, 68, 35, .4);
   }
 
-  .btn-login:active { transform: translateY(0); }
+  .btn-login:active {
+    transform: translateY(0);
+  }
 
   .login-footer-link {
     margin-top: 24px;
@@ -294,7 +348,9 @@
     transition: color .2s;
   }
 
-  .login-footer-link a:hover { color: var(--rust); }
+  .login-footer-link a:hover {
+    color: var(--rust);
+  }
 
   .field-error {
     font-size: 11.5px;
@@ -317,6 +373,7 @@
     align-items: center;
     gap: 8px;
   }
+
   .flash-success {
     background: #e2eede;
     border: 1px solid #5a7a52;
