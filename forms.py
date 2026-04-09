@@ -489,37 +489,28 @@ class DevolucionForm(Form):
 
 
 class NuevaProduccionDiariaForm(FlaskForm):
- 
+    """Formulario principal para crear una orden de producción diaria."""
     nombre = StringField(
         'Nombre de la producción',
-        validators=[
-            DataRequired(message='El nombre es obligatorio.'),
-            Length(max=120, message='Máximo 120 caracteres.'),
-        ],
+        validators=[DataRequired(message='El nombre es obligatorio.'),
+                    Length(max=120)],
         render_kw={'placeholder': 'Ej. Producción Mañanera del Lunes'}
     )
- 
     operario_id = SelectField(
-        'Panadero asignado',
-        coerce=int,
-        validators=[Optional()],
-        choices=[]         
+        'Panadero asignado', coerce=int,
+        validators=[Optional()], choices=[]
     )
- 
     observaciones = TextAreaField(
         'Observaciones',
         validators=[Optional(), Length(max=1000)],
-        render_kw={'placeholder': 'Notas adicionales, turno, urgencia…',
-                   'rows': 3}
+        render_kw={'placeholder': 'Notas adicionales, turno, urgencia…', 'rows': 3}
     )
- 
+    # JSON: [{"id_producto":1,"id_receta":17,"cantidad_piezas":24,"nombre":"Pan de choc"}]
     cajas_json = HiddenField(
-        'Cajas JSON',
-        validators=[DataRequired(message='Debes agregar al menos una línea de cajas.')]
+        'Productos JSON',
+        validators=[DataRequired(message='Debes agregar al menos un producto.')]
     )
- 
     guardar_plantilla = HiddenField('Guardar plantilla', default='0')
- 
     nombre_plantilla = StringField(
         'Nombre de plantilla',
         validators=[Optional(), Length(max=120)],
@@ -528,43 +519,25 @@ class NuevaProduccionDiariaForm(FlaskForm):
  
  
 class FinalizarProduccionDiariaForm(FlaskForm):
- 
-    piezas_totales = IntegerField(
-        'Piezas producidas reales',
-        validators=[
-            Optional(),
-            NumberRange(min=1, message='Las piezas deben ser al menos 1.')
-        ],
-        render_kw={'placeholder': 'Dejar vacío para usar piezas esperadas'}
-    )
+    """Solo CSRF — sin campos extra."""
+    pass
  
  
 class CancelarProduccionDiariaForm(FlaskForm):
- 
     motivo = TextAreaField(
         'Motivo de cancelación',
-        validators=[
-            DataRequired(message='El motivo es obligatorio.'),
-            Length(max=500)
-        ],
-        render_kw={'placeholder': 'Ej. Cambio de plan, falta de insumos…',
-                   'rows': 3}
+        validators=[DataRequired(message='El motivo es obligatorio.'), Length(max=500)],
+        render_kw={'placeholder': 'Ej. Cambio de plan, falta de insumos…', 'rows': 3}
     )
  
  
 class GuardarPlantillaForm(FlaskForm):
- 
     id_pd = HiddenField('ID Producción', validators=[DataRequired()])
- 
     nombre = StringField(
         'Nombre de plantilla',
-        validators=[
-            DataRequired(message='El nombre de la plantilla es obligatorio.'),
-            Length(max=120)
-        ],
+        validators=[DataRequired(message='El nombre es obligatorio.'), Length(max=120)],
         render_kw={'placeholder': 'Ej. Surtido clásico mañanero'}
     )
- 
     descripcion = TextAreaField(
         'Descripción',
         validators=[Optional(), Length(max=500)],

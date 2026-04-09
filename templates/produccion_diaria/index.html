@@ -10,293 +10,279 @@
   --st-done:   #10b981; --st-done-bg:   #d1fae5; --st-done-cl:   #065f46;
   --st-cancel: #6b7280; --st-cancel-bg: #f3f4f6; --st-cancel-cl: #374151;
 }
+.btn { display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+       border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;
+       border:none;transition:all .18s;text-decoration:none;font-family:'Lato',sans-serif;}
+.btn-primary { background:var(--brown-dk);color:var(--cream);}
+.btn-primary:hover { background:var(--rust);}
+.btn-success { background:#10b981;color:#fff;}
+.btn-success:hover { background:#059669;}
+.btn-danger  { background:#ef4444;color:#fff;}
+.btn-danger:hover  { background:#dc2626;}
+.btn-blue    { background:#3b82f6;color:#fff;}
+.btn-blue:hover    { background:#2563eb;}
+.btn-outline { background:#fff;color:var(--brown-dk);border:1.5px solid var(--tan);}
+.btn-outline:hover { border-color:var(--brown);background:var(--warm-bg);}
+.btn-sm  { padding:5px 11px;font-size:12px;border-radius:7px;}
+.btn-xs  { padding:4px 9px; font-size:11px;border-radius:6px;}
 
-.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px;
-       border-radius:9px; font-size:13px; font-weight:700; cursor:pointer;
-       border:none; transition:all .18s; text-decoration:none; font-family:'Lato',sans-serif; }
-.btn-primary { background:var(--brown-dk); color:var(--cream); }
-.btn-primary:hover { background:var(--rust); }
-.btn-success { background:#10b981; color:#fff; }
-.btn-success:hover { background:#059669; }
-.btn-danger  { background:#ef4444; color:#fff; }
-.btn-danger:hover  { background:#dc2626; }
-.btn-blue    { background:#3b82f6; color:#fff; }
-.btn-blue:hover    { background:#2563eb; }
-.btn-outline { background:#fff; color:var(--brown-dk); border:1.5px solid var(--tan); }
-.btn-outline:hover { border-color:var(--brown); background:var(--warm-bg); }
-.btn-sm  { padding:5px 11px; font-size:12px; border-radius:7px; }
-.btn-xs  { padding:4px 9px;  font-size:11px; border-radius:6px; }
+.pd-wrap { display:flex;flex-direction:column;gap:20px;}
+.db-topbar { display:flex;align-items:flex-start;justify-content:space-between;
+             gap:12px;flex-wrap:wrap;margin-bottom:24px;}
+.db-page-title { font-family:'Playfair Display',serif;font-size:26px;
+                 font-weight:700;color:var(--brown-dk);display:flex;align-items:center;gap:10px;}
+.db-breadcrumb { font-size:12px;color:var(--brown-lt);margin-top:5px;
+                 display:flex;align-items:center;gap:5px;}
+.db-breadcrumb span { color:var(--tan);}
 
-.pd-wrap { display:flex; flex-direction:column; gap:20px; }
+.stat-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:860px){ .stat-grid { grid-template-columns:repeat(2,1fr);}}
+.stat-card { background:#fff;border:1px solid var(--tan);border-radius:13px;
+             padding:16px 18px;display:flex;align-items:center;gap:13px;
+             cursor:pointer;transition:border-color .15s;}
+.stat-card:hover,.stat-card.active { border-color:var(--brown);background:var(--warm-bg);}
+.stat-icon { width:44px;height:44px;border-radius:11px;display:flex;
+             align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.si-pending  { background:var(--st-pend-bg);}
+.si-process  { background:var(--st-proc-bg);}
+.si-done     { background:var(--st-done-bg);}
+.si-cancel   { background:var(--st-cancel-bg);}
+.stat-num { font-size:26px;font-weight:900;color:var(--brown-dk);line-height:1;}
+.stat-lbl { font-size:11px;color:var(--brown-lt);font-weight:700;
+            text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
 
-.db-topbar { display:flex; align-items:flex-start; justify-content:space-between;
-             gap:12px; flex-wrap:wrap; margin-bottom:24px; }
-.db-page-title { font-family:'Playfair Display',serif; font-size:26px;
-                 font-weight:700; color:var(--brown-dk); display:flex;
-                 align-items:center; gap:10px; }
-.db-breadcrumb { font-size:12px; color:var(--brown-lt); margin-top:5px;
-                 display:flex; align-items:center; gap:5px; }
-.db-breadcrumb span { color:var(--tan); }
-
-.stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
-@media(max-width:860px){ .stat-grid { grid-template-columns:repeat(2,1fr); } }
-.stat-card { background:#fff; border:1px solid var(--tan); border-radius:13px;
-             padding:16px 18px; display:flex; align-items:center; gap:13px;
-             cursor:pointer; transition:border-color .15s; }
-.stat-card:hover,.stat-card.active { border-color:var(--brown); background:var(--warm-bg); }
-.stat-icon { width:44px; height:44px; border-radius:11px; display:flex;
-             align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
-.si-pending  { background:var(--st-pend-bg); }
-.si-process  { background:var(--st-proc-bg); }
-.si-done     { background:var(--st-done-bg); }
-.si-cancel   { background:var(--st-cancel-bg); }
-.stat-num { font-size:26px; font-weight:900; color:var(--brown-dk); line-height:1; }
-.stat-lbl { font-size:11px; color:var(--brown-lt); font-weight:700;
-            text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
-
-.filter-bar { background:#fff; border:1px solid var(--tan); border-radius:12px;
-              padding:12px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.filter-bar label { font-size:12px; font-weight:700; color:var(--brown); white-space:nowrap; }
+.filter-bar { background:#fff;border:1px solid var(--tan);border-radius:12px;
+              padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.filter-bar label { font-size:12px;font-weight:700;color:var(--brown);white-space:nowrap;}
 .filter-bar select,.filter-bar input[type=date]
-             { border:1.5px solid var(--tan); border-radius:8px; padding:6px 10px;
-               font-size:13px; color:var(--text); background:#fff; height:34px; }
+             { border:1.5px solid var(--tan);border-radius:8px;padding:6px 10px;
+               font-size:13px;color:var(--text);background:#fff;height:34px;}
 .filter-bar select:focus,.filter-bar input:focus
-             { outline:none; border-color:var(--brown); }
-.filter-sep { color:var(--tan); font-size:14px; }
+             { outline:none;border-color:var(--brown);}
 
-.table-card { background:#fff; border:1px solid var(--tan); border-radius:13px; overflow:hidden; }
-.table-card table { width:100%; border-collapse:collapse; }
-.table-card th { background:var(--warm-bg); padding:10px 13px; font-size:11px;
-                 text-transform:uppercase; letter-spacing:.5px; color:var(--brown);
-                 font-weight:800; text-align:left; white-space:nowrap; }
-.table-card td { padding:12px 13px; font-size:13px; border-bottom:1px solid var(--tan);
-                 vertical-align:middle; }
-.table-card tr:last-child td { border-bottom:none; }
-.table-card tr:hover td { background:#fdfaf6; }
+.table-card { background:#fff;border:1px solid var(--tan);border-radius:13px;overflow:hidden;}
+.table-card table { width:100%;border-collapse:collapse;}
+.table-card th { background:var(--warm-bg);padding:10px 13px;font-size:11px;
+                 text-transform:uppercase;letter-spacing:.5px;color:var(--brown);
+                 font-weight:800;text-align:left;white-space:nowrap;}
+.table-card td { padding:12px 13px;font-size:13px;border-bottom:1px solid var(--tan);
+                 vertical-align:middle;}
+.table-card tr:last-child td { border-bottom:none;}
+.table-card tr:hover td { background:#fdfaf6;}
 
-.pill { display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
-        border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
-.pill-pendiente  { background:var(--st-pend-bg);   color:var(--st-pend-cl); }
-.pill-en_proceso { background:var(--st-proc-bg);   color:var(--st-proc-cl); }
-.pill-finalizado { background:var(--st-done-bg);   color:var(--st-done-cl); }
-.pill-cancelado  { background:var(--st-cancel-bg); color:var(--st-cancel-cl); }
+.pill { display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+        border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.pill-pendiente  { background:var(--st-pend-bg);   color:var(--st-pend-cl);}
+.pill-en_proceso { background:var(--st-proc-bg);   color:var(--st-proc-cl);}
+.pill-finalizado { background:var(--st-done-bg);   color:var(--st-done-cl);}
+.pill-cancelado  { background:var(--st-cancel-bg); color:var(--st-cancel-cl);}
 
-.folio { font-family:monospace; font-weight:800; font-size:13px; color:var(--brown-dk);
-         background:var(--warm-bg); padding:3px 8px; border-radius:6px; }
-.alerta-badge { display:inline-flex; align-items:center; gap:3px; padding:2px 7px;
-                border-radius:10px; font-size:10px; font-weight:700;
-                background:#fee2e2; color:#991b1b; }
-.act-cell { display:flex; gap:5px; flex-wrap:nowrap; }
+.folio { font-family:monospace;font-weight:800;font-size:13px;color:var(--brown-dk);
+         background:var(--warm-bg);padding:3px 8px;border-radius:6px;}
+.alerta-badge { display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
+                border-radius:10px;font-size:10px;font-weight:700;
+                background:#fee2e2;color:#991b1b;}
+.act-cell { display:flex;gap:5px;flex-wrap:nowrap;}
 
-/* Estilos del paginador */
-.paginador { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-top: 1px solid var(--tan); background: var(--warm-bg); flex-wrap: wrap; gap: 10px; }
-.pag-info { font-size: 12px; color: var(--brown-lt); font-weight: 600; }
-.pag-info strong { color: var(--brown-dk); }
-.pag-controles { display: flex; gap: 4px; }
-.pag-btn { min-width: 32px; height: 32px; padding: 0 8px; border-radius: 7px; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown-dk); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
-.pag-btn:hover:not(.disabled):not(.activo) { background: var(--warm-bg); border-color: var(--brown); }
-.pag-btn.activo { background: var(--brown-dk); border-color: var(--brown-dk); color: var(--cream); }
-.pag-btn.disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
-.pag-puntos { font-size: 13px; color: var(--brown-lt); padding: 0 4px; }
+.paginador { display:flex;justify-content:space-between;align-items:center;
+             padding:14px 18px;border-top:1px solid var(--tan);background:var(--warm-bg);
+             flex-wrap:wrap;gap:10px;}
+.pag-info { font-size:12px;color:var(--brown-lt);font-weight:600;}
+.pag-info strong { color:var(--brown-dk);}
+.pag-controles { display:flex;gap:4px;}
+.pag-btn { min-width:32px;height:32px;padding:0 8px;border-radius:7px;
+           border:1.5px solid var(--tan);background:#fff;color:var(--brown-dk);
+           font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;
+           display:inline-flex;align-items:center;justify-content:center;}
+.pag-btn:hover:not(.disabled):not(.activo) { background:var(--warm-bg);border-color:var(--brown);}
+.pag-btn.activo { background:var(--brown-dk);border-color:var(--brown-dk);color:var(--cream);}
+.pag-btn.disabled { opacity:.35;cursor:not-allowed;pointer-events:none;}
+.pag-puntos { font-size:13px;color:var(--brown-lt);padding:0 4px;}
+.empty { text-align:center;padding:56px 20px;color:var(--brown-lt);}
+.empty .e-icon { font-size:44px;margin-bottom:10px;}
+.empty h3 { font-size:15px;font-weight:700;color:var(--brown);margin-bottom:5px;}
 
-/* Estilos de estado vacío (mantenidos de tu segundo archivo) */
-.empty { text-align:center; padding:56px 20px; color:var(--brown-lt); }
-.empty .e-icon { font-size:44px; margin-bottom:10px; }
-.empty h3 { font-size:15px; font-weight:700; color:var(--brown); margin-bottom:5px; }
+/* Modales */
+.modal-bd { display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+            z-index:1000;align-items:center;justify-content:center;}
+.modal-bd.open { display:flex;}
+.modal { background:#fff;border-radius:16px;width:min(720px,96vw);
+         max-height:92vh;overflow-y:auto;
+         box-shadow:0 20px 60px rgba(0,0,0,.25);animation:fadeUp .22s;}
+.modal-lg { width:min(860px,96vw);}
+@keyframes fadeUp { from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-header { padding:18px 22px 14px;border-bottom:1px solid var(--tan);
+            display:flex;align-items:center;justify-content:space-between;}
+.m-title  { font-family:'Playfair Display',serif;font-size:18px;
+            font-weight:700;color:var(--brown-dk);}
+.m-close  { background:none;border:none;font-size:20px;cursor:pointer;
+            color:var(--brown-lt);border-radius:7px;width:30px;height:30px;
+            display:flex;align-items:center;justify-content:center;}
+.m-close:hover { background:var(--warm-bg);}
+.m-body  { padding:18px 22px;display:flex;flex-direction:column;gap:14px;}
+.m-footer { padding:12px 22px 18px;border-top:1px solid var(--tan);
+            display:flex;justify-content:flex-end;gap:9px;}
+.fg { display:flex;flex-direction:column;gap:4px;}
+.fg label { font-size:11px;font-weight:700;color:var(--brown);
+            text-transform:uppercase;letter-spacing:.4px;}
+.fg input,.fg select,.fg textarea
+  { border:1.5px solid var(--tan);border-radius:9px;padding:8px 12px;
+    font-size:13px;color:var(--text);font-family:'Lato',sans-serif;width:100%;box-sizing:border-box;}
+.fg input:focus,.fg select:focus,.fg textarea:focus
+  { outline:none;border-color:var(--brown);box-shadow:0 0 0 3px rgba(156,111,62,.08);}
+.fg textarea { resize:vertical;}
+.row-2 { display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:600px){ .row-2 { grid-template-columns:1fr;}}
 
-.modal-bd { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45);
-            z-index:1000; align-items:center; justify-content:center; }
-.modal-bd.open { display:flex; }
-.modal { background:#fff; border-radius:16px; width:min(720px,96vw);
-         max-height:92vh; overflow-y:auto;
-         box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s; }
-.modal-lg { width:min(900px,96vw); }
-@keyframes fadeUp { from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1} }
-.m-header { padding:18px 22px 14px; border-bottom:1px solid var(--tan);
-            display:flex; align-items:center; justify-content:space-between; }
-.m-title  { font-family:'Playfair Display',serif; font-size:17px;
-            font-weight:700; color:var(--brown-dk); }
-.m-close  { background:none; border:none; font-size:20px; cursor:pointer;
-            color:var(--brown-lt); border-radius:7px; width:30px; height:30px;
-            display:flex; align-items:center; justify-content:center; }
-.m-close:hover { background:var(--warm-bg); }
-.m-body   { padding:18px 22px; display:flex; flex-direction:column; gap:16px; }
-.m-footer { padding:12px 22px 18px; border-top:1px solid var(--tan);
-            display:flex; justify-content:flex-end; gap:9px; }
+/* Builder de productos */
+.builder-section { background:var(--warm-bg);border:1px solid var(--tan);
+                   border-radius:11px;padding:14px 16px;}
+.builder-title { font-size:12px;font-weight:800;color:var(--brown);
+                 text-transform:uppercase;letter-spacing:.5px;
+                 margin-bottom:10px;display:flex;align-items:center;
+                 justify-content:space-between;gap:8px;}
 
-.fg { display:flex; flex-direction:column; gap:4px; }
-.fg label { font-size:11px; font-weight:700; color:var(--brown);
-            text-transform:uppercase; letter-spacing:.4px; }
-.fg select,.fg input,.fg textarea
-         { border:1.5px solid var(--tan); border-radius:9px; padding:8px 12px;
-           font-size:13px; color:var(--text); font-family:'Lato',sans-serif; width:100%; box-sizing:border-box; }
-.fg select:focus,.fg input:focus,.fg textarea:focus
-         { outline:none; border-color:var(--brown);
-           box-shadow:0 0 0 3px rgba(156,111,62,.08); }
-.fg textarea { resize:vertical; min-height:60px; }
-.fg-hint { font-size:11px; color:var(--brown-lt); }
-.row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-@media(max-width:600px){ .row-2 { grid-template-columns:1fr; } }
+/* Capacidad máxima chip */
+/* Tarjetas de receta */
+.recetas-area { display:none;flex-direction:column;gap:7px;margin-top:10px;}
+.recetas-area.visible { display:flex;}
+.receta-card { background:#fff;border:2px solid var(--tan);border-radius:10px;
+               padding:11px 14px;cursor:pointer;transition:all .15s;
+               display:flex;align-items:center;gap:12px;}
+.receta-card:hover { border-color:var(--brown);background:var(--warm-bg);}
+.receta-card.sel { border-color:var(--brown-dk);background:#fdf6ec;}
 
-.builder-section { background:var(--warm-bg); border:1.5px solid var(--tan);
-                   border-radius:12px; padding:14px 16px; }
-.builder-title { font-size:12px; font-weight:800; color:var(--brown);
-                 text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px;
-                 display:flex; align-items:center; justify-content:space-between; }
-.caja-configurador { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-@media(max-width:580px){ .caja-configurador { grid-template-columns:1fr; } }
-.tipo-btns { display:flex; gap:6px; flex-wrap:wrap; }
-.tipo-btn  { padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700;
-             cursor:pointer; border:1.5px solid var(--tan); background:#fff;
-             color:var(--brown-dk); transition:all .15s; }
-.tipo-btn:hover,.tipo-btn.sel { background:var(--brown-dk); color:var(--cream);
-                                border-color:var(--brown-dk); }
-.slots-area { display:flex; flex-direction:column; gap:8px; }
-.slot { display:flex; align-items:center; gap:8px; background:#fff;
-        border:1px solid var(--tan); border-radius:9px; padding:8px 10px; }
-.slot-label { font-size:11px; color:var(--brown-lt); font-weight:700;
-              white-space:nowrap; min-width:60px; }
-.slot select { flex:1; border:none; outline:none; font-size:13px;
-               color:var(--text); background:transparent; }
+.receta-rend { font-size:22px;font-weight:900;color:var(--brown-dk);
+               min-width:52px;text-align:center;line-height:1;}
+.receta-rend small { font-size:10px;font-weight:700;color:var(--brown-lt);display:block;}
+.receta-info { flex:1;}
+.receta-nombre { font-size:12px;font-weight:700;color:var(--brown-dk);}
+.receta-stock { font-size:11px;margin-top:2px;color:var(--brown-lt);}
+.receta-sel-icon { font-size:18px;opacity:0;}
+.receta-card.sel .receta-sel-icon { opacity:1;}
 
-.cajas-lista { display:flex; flex-direction:column; gap:8px; max-height:260px;
-               overflow-y:auto; }
-.caja-item { background:#fff; border:1px solid var(--tan); border-radius:10px;
-             padding:10px 14px; display:flex; align-items:flex-start;
-             justify-content:space-between; gap:10px; }
-.caja-item-info { flex:1; }
-.caja-item-tag  { font-size:11px; font-weight:700; color:var(--brown-dk);
-                  display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.caja-item-prods { font-size:11px; color:var(--brown-lt); margin-top:3px; }
-.caja-item-count { display:flex; align-items:center; gap:6px; }
-.caja-item-count input { width:58px; border:1.5px solid var(--tan);
-                          border-radius:7px; padding:4px 8px; font-size:13px;
-                          font-weight:700; text-align:center; }
-.caja-item-del  { background:none; border:none; font-size:18px; cursor:pointer;
-                  color:var(--brown-lt); line-height:1; padding:0 2px; }
-.caja-item-del:hover { color:#ef4444; }
-.empty-lista { text-align:center; padding:20px; color:var(--brown-lt);
-               font-size:12px; border:1.5px dashed var(--tan); border-radius:9px; }
+/* Lista de líneas agregadas */
+.lineas-lista { display:flex;flex-direction:column;gap:7px;min-height:40px;}
+.linea-item { background:#fff;border:1.5px solid var(--tan);border-radius:9px;
+              padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.linea-item-info { flex:1;}
+.linea-nombre { font-weight:700;font-size:13px;color:var(--brown-dk);}
+.linea-receta { font-size:11px;color:var(--brown-lt);margin-top:1px;}
+.linea-badge  { background:var(--warm-bg);border:1px solid var(--tan);border-radius:7px;
+                padding:3px 10px;font-size:13px;font-weight:800;color:var(--brown);
+                white-space:nowrap;flex-shrink:0;}
+.linea-del { background:none;border:none;color:#dc2626;cursor:pointer;
+             font-size:17px;line-height:1;padding:2px 5px;border-radius:5px;flex-shrink:0;}
+.linea-del:hover { background:#fee2e2;}
 
-.ins-tbl { width:100%; border-collapse:collapse; font-size:12px; }
-.ins-tbl th { background:var(--warm-bg); padding:5px 9px; font-size:10px;
-              font-weight:800; text-transform:uppercase; color:var(--brown); text-align:left; }
-.ins-tbl td { padding:6px 9px; border-bottom:1px solid var(--tan); }
-.ins-ok { color:#065f46; font-weight:700; }
-.ins-ko { color:#dc2626; font-weight:700; }
-.bar-mini { display:inline-block; width:48px; height:5px; background:var(--tan);
-            border-radius:4px; vertical-align:middle; margin-left:4px; overflow:hidden; }
-.bar-fill { height:100%; border-radius:4px; }
+/* Tabla de insumos */
+.ins-tbl { width:100%;border-collapse:collapse;font-size:12px;}
+.ins-tbl th { background:var(--warm-bg);padding:7px 10px;font-size:10px;
+              font-weight:800;text-transform:uppercase;color:var(--brown);text-align:left;}
+.ins-tbl td { padding:7px 10px;border-bottom:1px solid var(--tan);}
+.ins-tbl tr:last-child td { border-bottom:none;}
+.ins-ok { color:#065f46;font-weight:700;}
+.ins-ko { color:#dc2626;font-weight:700;}
+.bar-mini { display:inline-block;width:48px;height:4px;background:var(--tan);
+            border-radius:3px;vertical-align:middle;margin-left:4px;overflow:hidden;}
+.bar-fill { height:100%;border-radius:3px;}
 
-.plant-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
-.plant-card { background:#fff; border:1.5px solid var(--tan); border-radius:10px;
-              padding:10px 13px; cursor:pointer; transition:all .15s; }
-.plant-card:hover { border-color:var(--brown); background:var(--warm-bg); }
-.plant-name  { font-size:13px; font-weight:700; color:var(--brown-dk); }
-.plant-lineas { font-size:11px; color:var(--brown-lt); }
+/* Plantillas */
+.plant-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+.plant-card { background:#fff;border:1.5px solid var(--tan);border-radius:9px;
+              padding:10px 12px;cursor:pointer;transition:border-color .15s;}
+.plant-card:hover { border-color:var(--brown);background:var(--warm-bg);}
+.plant-name { font-weight:700;font-size:12px;color:var(--brown-dk);}
+.plant-lineas { font-size:11px;color:var(--brown-lt);margin-top:3px;}
 
-.sysmodal-bd {
-  display:none; position:fixed; inset:0; background:rgba(0,0,0,.45);
-  z-index:2000; align-items:center; justify-content:center;
-}
-.sysmodal-bd.open { display:flex; }
-.sysmodal {
-  background:#fff; border-radius:16px; width:min(420px,92vw);
-  box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s;
-  overflow:hidden;
-}
-.sysmodal-header {
-  padding:18px 22px 12px; border-bottom:1px solid var(--tan);
-  display:flex; align-items:center; gap:10px;
-}
-.sysmodal-icon {
-  width:36px; height:36px; border-radius:10px; display:flex;
-  align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
-}
-.sysmodal-icon.warn  { background:#fef3c7; }
-.sysmodal-icon.info  { background:#dbeafe; }
-.sysmodal-icon.danger { background:#fee2e2; }
-.sysmodal-title {
-  font-family:'Playfair Display',serif; font-size:15px;
-  font-weight:700; color:var(--brown-dk);
-}
-.sysmodal-body {
-  padding:16px 22px; font-size:13px; color:var(--text); line-height:1.6;
-}
-.sysmodal-footer {
-  padding:12px 22px 16px; display:flex; justify-content:flex-end; gap:8px;
-}
-
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(14px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-.anim   { animation:fadeUp .35s ease both; }
-.anim-1 { animation-delay:.05s; }
-.anim-2 { animation-delay:.10s; }
-.anim-3 { animation-delay:.15s; }
+@keyframes slideIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
+.empty-lineas { text-align:center;padding:18px;font-size:12px;color:var(--brown-lt);
+                font-style:italic;}
 </style>
 {% endblock %}
 
 {% block container %}
 <div class="pd-wrap">
 
-  <div class="db-topbar anim">
+  <div class="db-topbar">
     <div>
       <h1 class="db-page-title">🥐 Producción Diaria</h1>
       <div class="db-breadcrumb">
-        Inicio <span>›</span> Operaciones <span>›</span> Producción Diaria
+        Inicio <span>›</span> Producción Diaria
       </div>
     </div>
-    <button class="btn btn-primary" onclick="abrirModalNueva()">＋ Nueva Producción</button>
-  </div>
-
-  <div class="stat-grid anim anim-1">
-    {% set STATS = [
-      ('pendiente', '📋', 'si-pending', 'Pendientes'),
-      ('en_proceso', '⚙️', 'si-process', 'En Proceso'),
-      ('finalizado', '✅', 'si-done',   'Finalizadas'),
-      ('cancelado',  '❌', 'si-cancel', 'Canceladas'),
-    ] %}
-    {% for est, icn, cls, lbl in STATS %}
-    <div class="stat-card {% if estado_sel == est %}active{% endif %}"
-         onclick="filtrarEstado('{{ est }}')">
-      <div class="stat-icon {{ cls }}">{{ icn }}</div>
-      <div>
-        <div class="stat-num">{{ conteos[est] }}</div>
-        <div class="stat-lbl">{{ lbl }}</div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-
-  <form method="GET" action="" class="filter-bar anim anim-2" id="form-filtro">
-    <label>Estado:</label>
-    <select name="estado" onchange="this.form.submit()">
-      <option value="" {% if not estado_sel %}selected{% endif %}>Todos</option>
-      {% for v, l in [('pendiente','Pendiente'),('en_proceso','En Proceso'),
-                       ('finalizado','Finalizado'),('cancelado','Cancelado')] %}
-      <option value="{{ v }}" {% if estado_sel==v %}selected{% endif %}>{{ l }}</option>
-      {% endfor %}
-    </select>
-    <span class="filter-sep">|</span>
-    <label>Del:</label>
-    <input type="date" name="fecha_ini" value="{{ fecha_ini }}" onchange="this.form.submit()">
-    <label>Al:</label>
-    <input type="date" name="fecha_fin" value="{{ fecha_fin }}" onchange="this.form.submit()">
-    {% if estado_sel or fecha_ini or fecha_fin %}
-    <a href="{{ url_for('produccion_diaria.index_pd') }}" class="btn btn-outline btn-sm">✕ Limpiar</a>
+    {% if current_user.rol.clave_rol in ('admin', 'empleado') %}
+    <button class="btn btn-primary" onclick="abrirModalNueva()">
+      ＋ Nueva Producción
+    </button>
     {% endif %}
+  </div>
+
+  <!-- KPI cards -->
+  <div class="stat-grid">
+    <div class="stat-card {% if estado_sel=='pendiente' %}active{% endif %}"
+         onclick="filtrarEstado('pendiente')">
+      <div class="stat-icon si-pending">📋</div>
+      <div>
+        <div class="stat-num">{{ conteos.pendiente }}</div>
+        <div class="stat-lbl">Pendiente</div>
+      </div>
+    </div>
+    <div class="stat-card {% if estado_sel=='en_proceso' %}active{% endif %}"
+         onclick="filtrarEstado('en_proceso')">
+      <div class="stat-icon si-process">⚙️</div>
+      <div>
+        <div class="stat-num">{{ conteos.en_proceso }}</div>
+        <div class="stat-lbl">En Proceso</div>
+      </div>
+    </div>
+    <div class="stat-card {% if estado_sel=='finalizado' %}active{% endif %}"
+         onclick="filtrarEstado('finalizado')">
+      <div class="stat-icon si-done">✅</div>
+      <div>
+        <div class="stat-num">{{ conteos.finalizado }}</div>
+        <div class="stat-lbl">Finalizado</div>
+      </div>
+    </div>
+    <div class="stat-card {% if estado_sel=='cancelado' %}active{% endif %}"
+         onclick="filtrarEstado('cancelado')">
+      <div class="stat-icon si-cancel">❌</div>
+      <div>
+        <div class="stat-num">{{ conteos.cancelado }}</div>
+        <div class="stat-lbl">Cancelado</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <form id="form-filtro" method="GET" action="{{ url_for('produccion_diaria.index_pd') }}">
+    <div class="filter-bar">
+      <label>Estado</label>
+      <select name="estado" onchange="this.form.submit()">
+        <option value="" {% if not estado_sel %}selected{% endif %}>Todos</option>
+        <option value="pendiente"  {% if estado_sel=='pendiente'  %}selected{% endif %}>Pendiente</option>
+        <option value="en_proceso" {% if estado_sel=='en_proceso' %}selected{% endif %}>En proceso</option>
+        <option value="finalizado" {% if estado_sel=='finalizado' %}selected{% endif %}>Finalizado</option>
+        <option value="cancelado"  {% if estado_sel=='cancelado'  %}selected{% endif %}>Cancelado</option>
+      </select>
+      <label>Desde</label>
+      <input type="date" name="fecha_ini" value="{{ fecha_ini }}">
+      <label>Hasta</label>
+      <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
+      <button type="submit" class="btn btn-outline btn-sm">🔍 Filtrar</button>
+      <a href="{{ url_for('produccion_diaria.index_pd') }}"
+         class="btn btn-outline btn-sm">✕ Limpiar</a>
+    </div>
   </form>
 
-  <div class="table-card anim anim-3">
+  <!-- Tabla -->
+  <div class="table-card">
     {% if producciones %}
     <table>
       <thead>
         <tr>
           <th>Folio</th>
           <th>Nombre</th>
-          <th>Cajas</th>
           <th>Piezas</th>
           <th>Estado</th>
           <th>Panadero</th>
@@ -308,15 +294,14 @@
       <tbody>
         {% for p in producciones %}
         <tr>
-          <td><span class="folio">{{ p.folio }}</span></td>
           <td>
-            <div style="font-weight:700; color:var(--brown-dk);">{{ p.nombre }}</div>
-            {% if p.alerta_insumos %}
-            <span class="alerta-badge">⚠ Insumos insuficientes</span>
+            <span class="folio">{{ p.folio }}</span>
+            {% if p.alerta_insumos and p.estado == 'pendiente' %}
+            <span class="alerta-badge">⚠ Insumos</span>
             {% endif %}
           </td>
-          <td style="font-weight:700;">{{ p.total_cajas }}</td>
-          <td style="font-weight:700; color:var(--brown);">{{ p.total_piezas_esperadas }} pzas</td>
+          <td style="font-weight:600;">{{ p.nombre }}</td>
+          <td style="font-weight:700;color:var(--brown);">{{ p.total_piezas_esperadas }} pzas</td>
           <td>
             <span class="pill pill-{{ p.estado }}">
               {% if p.estado=='pendiente' %}📋
@@ -327,8 +312,8 @@
             </span>
           </td>
           <td style="font-size:12px;">{{ p.operario or '—' }}</td>
-          <td style="font-size:12px; color:var(--brown-lt);">{{ p.creado_por_nombre or '—' }}</td>
-          <td style="font-size:11px; color:var(--brown-lt);">
+          <td style="font-size:12px;color:var(--brown-lt);">{{ p.creado_por_nombre or '—' }}</td>
+          <td style="font-size:11px;color:var(--brown-lt);">
             {{ p.creado_en.strftime('%d/%m/%Y') if p.creado_en else '—' }}
             {% if p.fecha_inicio %}
             <br><span style="color:var(--st-proc);">▶ {{ p.fecha_inicio.strftime('%d/%m %H:%M') }}</span>
@@ -338,14 +323,11 @@
             <div class="act-cell">
               <a href="{{ url_for('produccion_diaria.detalle_pd', id_pd=p.id_pd) }}"
                  class="btn btn-outline btn-xs">👁 Ver</a>
-              {% if p.estado == 'pendiente' %}
-              <form method="POST"
-                    action="{{ url_for('produccion_diaria.iniciar_pd', id_pd=p.id_pd) }}"
-                    style="display:inline;"
-                    onsubmit="return confirm('¿Iniciar la producción {{ p.folio }}?\nSe descontarán los insumos del almacén.')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn btn-blue btn-xs">▶ Iniciar</button>
-              </form>
+              {% if p.estado == 'pendiente' and current_user.rol.clave_rol in ('admin','panadero') %}
+              <button class="btn btn-blue btn-xs"
+                      onclick="abrirConfirm('{{ p.folio }}', '{{ url_for('produccion_diaria.iniciar_pd', id_pd=p.id_pd) }}')">
+                ▶ Iniciar
+              </button>
               {% endif %}
             </div>
           </td>
@@ -354,52 +336,29 @@
       </tbody>
     </table>
 
-    {% set p_ini = (pagina - 1) * 10 + 1 %}
-    {% set p_fin = [pagina * 10, total_count]|min %}
-
     <div class="paginador">
-        <div class="pag-info">
-            Mostrando <strong>{{ p_ini }}</strong> – <strong>{{ p_fin }}</strong>
-            de <strong>{{ total_count }}</strong> de producciones diarias{{ 'es' if total_count != 1 else '' }}
-            {% if estado_sel %} · {{ estado_sel | replace('_',' ') | title }}{% endif %}
-        </div>
-
-        <div class="pag-controles">
-            {% if pagina > 1 %}
-                <a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ pagina-1 }}" class="pag-btn">‹</a>
-            {% else %}
-                <span class="pag-btn disabled">‹</span>
-            {% endif %}
-
-            {% set total_pages = ((total_count - 1) // 10 + 1) if total_count > 0 else 1 %}
-            
-            {% for num in range(1, total_pages + 1) %}
-                {% if num == 1 or num == total_pages or (num >= pagina - 2 and num <= pagina + 2) %}
-                    
-                    {% if loop.index > 1 and num > 2
-                        and num - 1 not in [pagina-2, pagina-1, pagina, pagina+1, pagina+2]
-                        and num - 1 != 1 %}
-                        <span class="pag-puntos">…</span>
-                    {% endif %}
-                    
-                    <a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ num }}"
-                    class="pag-btn {% if num == pagina %}activo{% endif %}">{{ num }}</a>
-                    
-                    {% if num < total_pages - 1
-                        and num + 1 not in [pagina-2, pagina-1, pagina, pagina+1, pagina+2]
-                        and num + 1 != total_pages %}
-                        <span class="pag-puntos">…</span>
-                    {% endif %}
-                    
-                {% endif %}
-            {% endfor %}
-
-            {% if tiene_mas %}
-                <a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ pagina+1 }}" class="pag-btn">›</a>
-            {% else %}
-                <span class="pag-btn disabled">›</span>
-            {% endif %}
-        </div>
+      <div class="pag-info">
+        Página <strong>{{ pagina }}</strong>
+        {% if estado_sel %} · <strong>{{ estado_sel | replace('_',' ') | title }}</strong>{% endif %}
+        {% if not tiene_mas and producciones %} · <strong>{{ producciones|length }}</strong> resultado(s){% endif %}
+      </div>
+      <div class="pag-controles">
+        {% if pagina > 1 %}
+        <a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ pagina-1 }}" class="pag-btn">‹</a>
+        {% else %}
+        <span class="pag-btn disabled">‹</span>
+        {% endif %}
+        {% if pagina > 2 %}<a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina=1" class="pag-btn">1</a>{% endif %}
+        {% if pagina > 3 %}<span class="pag-puntos">…</span>{% endif %}
+        {% if pagina > 1 %}<a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ pagina-1 }}" class="pag-btn">{{ pagina-1 }}</a>{% endif %}
+        <span class="pag-btn activo">{{ pagina }}</span>
+        {% if tiene_mas %}<a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ pagina+1 }}" class="pag-btn">{{ pagina+1 }}</a>{% endif %}
+        {% if tiene_mas %}
+        <a href="?estado={{ estado_sel }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&pagina={{ pagina+1 }}" class="pag-btn">›</a>
+        {% else %}
+        <span class="pag-btn disabled">›</span>
+        {% endif %}
+      </div>
     </div>
 
     {% else %}
@@ -411,8 +370,43 @@
     {% endif %}
   </div>
 
+</div><!-- pd-wrap -->
+
+
+<!-- ══ MODAL CONFIRMAR INICIO ══ -->
+<div class="modal-bd" id="modalConfirm">
+  <div class="modal" style="width:min(440px,95vw);">
+    <div class="m-header">
+      <div class="m-title">▶ Iniciar Producción</div>
+      <button class="m-close" onclick="cerrarModal('modalConfirm')">✕</button>
+    </div>
+    <div class="m-body">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="font-size:36px;line-height:1;flex-shrink:0;">⚙️</div>
+        <div>
+          <p style="font-size:14px;font-weight:700;color:var(--brown-dk);margin:0 0 6px;">
+            ¿Iniciar <span id="confirm-folio" style="font-family:monospace;"></span>?
+          </p>
+          <p style="font-size:13px;color:var(--text);line-height:1.5;margin:0;">
+            Se descontarán los insumos del almacén al iniciar.
+            Esta acción no se puede revertir sin cancelar la producción.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button type="button" class="btn btn-outline"
+              onclick="cerrarModal('modalConfirm')">Cancelar</button>
+      <form id="form-confirm-iniciar" method="POST" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-blue">▶ Sí, iniciar</button>
+      </form>
+    </div>
+  </div>
 </div>
 
+
+<!-- ══ MODAL NUEVA PRODUCCIÓN ══ -->
 <div class="modal-bd" id="modalNueva">
   <div class="modal modal-lg">
     <div class="m-header">
@@ -428,12 +422,12 @@
 
       <div class="m-body">
 
+        <!-- Nombre + operario -->
         <div class="row-2">
           <div class="fg">
             <label>Nombre de la producción *</label>
-            <input type="text" name="nombre" required
-                   placeholder="Ej. Producción Mañanera del Lunes"
-                   maxlength="120">
+            <input type="text" name="nombre" required maxlength="120"
+                   placeholder="Ej. Producción Mañanera del Lunes">
           </div>
           <div class="fg">
             <label>Panadero asignado</label>
@@ -448,95 +442,87 @@
 
         <div class="fg">
           <label>Observaciones</label>
-          <textarea name="observaciones"
-                    placeholder="Turno, prioridades, notas especiales…"
-                    rows="2"></textarea>
+          <textarea name="observaciones" rows="2"
+                    placeholder="Turno, prioridades, notas especiales…"></textarea>
         </div>
 
+        <!-- Plantillas -->
         {% if plantillas %}
         <div class="builder-section">
           <div class="builder-title">📁 Usar plantilla guardada</div>
-          <div class="plant-grid" id="plant-grid">
+          <div class="plant-grid">
             {% for pl in plantillas %}
-            <div class="plant-card" onclick="cargarPlantilla({{ pl.id_plantilla }}, '{{ pl.nombre | e }}')">
+            <div class="plant-card"
+                 onclick="cargarPlantilla({{ pl.id_plantilla }}, '{{ pl.nombre | e }}')">
               <div class="plant-name">{{ pl.nombre }}</div>
-              <div class="plant-lineas">{{ pl.total_lineas }} tipo(s) de caja</div>
+              <div class="plant-lineas">{{ pl.total_lineas }} producto(s)</div>
             </div>
             {% endfor %}
           </div>
         </div>
         {% endif %}
 
+        <!-- Constructor: agregar producto -->
         <div class="builder-section">
           <div class="builder-title">
-            <span>🗂 Configurar cajas</span>
-            <span id="resumen-cajas" style="font-size:12px; color:var(--brown-lt); font-weight:600;"></span>
+            <span>🍞 Agregar producto</span>
+            <span id="resumen-lbl" style="font-size:12px;color:var(--brown);font-weight:700;"></span>
           </div>
 
-          <div class="row-2" style="margin-bottom:10px;">
-            <div class="fg">
-              <label>1. Tamaño de charola</label>
-              <select id="sel-tamanio" onchange="onTamanioChange()">
-                <option value="">— Selecciona —</option>
-                {% for t in tamanios %}
-                <option value="{{ t.id_tamanio }}"
-                        data-capacidad="{{ t.capacidad }}"
-                        data-nombre="{{ t.nombre | e }}">
-                  {{ t.nombre }} ({{ t.capacidad }} panes)
-                </option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="fg">
-              <label>2. Tipo de caja</label>
-              <div class="tipo-btns" id="tipo-btns">
-                <span style="font-size:12px; color:var(--brown-lt); padding:6px 0;">
-                  Selecciona primero el tamaño
-                </span>
-              </div>
-            </div>
+          <!-- Paso 1: seleccionar producto -->
+          <div class="fg" style="margin-bottom:4px;">
+            <label>Producto</label>
+            <select id="sel-producto" onchange="onProductoChange()">
+              <option value="">— Selecciona un producto —</option>
+              {% for p in productos %}
+              <option value="{{ p.id_producto }}">{{ p.nombre }}</option>
+              {% endfor %}
+            </select>
           </div>
 
-          <div class="slots-area" id="slots-area" style="margin-bottom:10px;"></div>
-
-          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <div class="fg" style="flex:0 0 160px;">
-              <label>Cantidad de cajas</label>
-              <input type="number" id="inp-cant-cajas" min="1" step="1" value="1"
-                     placeholder="Cajas">
-            </div>
-            <button type="button" class="btn btn-blue btn-sm"
-                    style="margin-top:18px;" onclick="agregarLinea()">
-              ＋ Agregar a la lista
-            </button>
+          <!-- Paso 2: recetas disponibles (rendimiento fijo) -->
+          <div class="recetas-area" id="recetas-area">
+            <label style="font-size:11px;font-weight:700;color:var(--brown);
+                   text-transform:uppercase;letter-spacing:.4px;">
+              Selecciona una receta (rendimiento)
+            </label>
+            <div id="recetas-cards"></div>
           </div>
+
+          <button type="button" class="btn btn-blue btn-sm"
+                  style="margin-top:10px;" onclick="agregarLinea()">
+            ＋ Agregar a la lista
+          </button>
         </div>
 
+        <!-- Lista de líneas -->
         <div class="builder-section">
           <div class="builder-title">
-            <span>📦 Lista de cajas de esta producción</span>
-            <span id="total-piezas-lbl" style="font-size:12px; color:var(--brown); font-weight:700;"></span>
+            <span>📋 Lista de producción</span>
           </div>
-          <div class="cajas-lista" id="cajas-lista">
-            <div class="empty-lista" id="empty-lista">
-              Aún no has agregado cajas. Configura arriba y presiona "Agregar".
-            </div>
+          <!-- empty-lineas está FUERA de lineas-lista para evitar el bug de appendChild -->
+          <div id="empty-lineas" class="empty-lineas">
+            Aún no has agregado productos. Selecciona arriba y presiona "Agregar".
           </div>
+          <div class="lineas-lista" id="lineas-lista"></div>
         </div>
 
+        <!-- Verificar insumos -->
         <div id="ins-section" style="display:none;">
-          <div style="font-size:11px; font-weight:800; color:var(--brown); text-transform:uppercase;
-               letter-spacing:.5px; margin-bottom:6px;">🔬 Verificación de insumos</div>
-          <div id="ins-loading" style="font-size:12px; color:var(--brown-lt); display:none;">
+          <div style="font-size:11px;font-weight:800;color:var(--brown);
+               text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">
+            🔬 Verificación de insumos
+          </div>
+          <div id="ins-loading" style="font-size:12px;color:var(--brown-lt);display:none;">
             Calculando insumos…
           </div>
           <div id="ins-result" style="display:none;">
-            <div id="ins-alerta" style="display:none; background:#fee2e2; border:1px solid #fca5a5;
-                 border-radius:9px; padding:9px 12px; font-size:12px; color:#991b1b;
-                 font-weight:700; margin-bottom:8px;"></div>
-            <div id="ins-ok-msg" style="display:none; background:#d1fae5; border:1px solid #6ee7b7;
-                 border-radius:9px; padding:9px 12px; font-size:12px; color:#065f46;
-                 font-weight:700; margin-bottom:8px;"></div>
+            <div id="ins-alerta" style="display:none;background:#fee2e2;border:1px solid #fca5a5;
+                 border-radius:9px;padding:9px 12px;font-size:12px;color:#991b1b;
+                 font-weight:700;margin-bottom:8px;"></div>
+            <div id="ins-ok-msg" style="display:none;background:#d1fae5;border:1px solid #6ee7b7;
+                 border-radius:9px;padding:9px 12px;font-size:12px;color:#065f46;
+                 font-weight:700;margin-bottom:8px;"></div>
             <div style="overflow-x:auto;">
               <table class="ins-tbl">
                 <thead>
@@ -549,9 +535,10 @@
           </div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <label style="display:flex; align-items:center; gap:6px; font-size:13px;
-                 cursor:pointer; font-weight:600; color:var(--brown);">
+        <!-- Guardar como plantilla -->
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;
+                 cursor:pointer;font-weight:600;color:var(--brown);">
             <input type="checkbox" id="chk-plantilla"
                    onchange="togglePlantillaNombre(this.checked)">
             Guardar esta configuración como plantilla
@@ -559,11 +546,11 @@
         </div>
         <div id="plantilla-nombre-fg" class="fg" style="display:none;">
           <label>Nombre de la plantilla</label>
-          <input type="text" name="nombre_plantilla" id="inp-plantilla-nombre"
+          <input type="text" name="nombre_plantilla"
                  placeholder="Ej. Surtido clásico mañanero" maxlength="120">
         </div>
 
-      </div>
+      </div><!-- m-body -->
 
       <div class="m-footer">
         <button type="button" class="btn btn-outline" onclick="cerrarModal('modalNueva')">Cancelar</button>
@@ -577,141 +564,56 @@
 
 {% block extra_scripts %}
 <script>
-(function() {
-  const html = `
-    <!-- Modal alerta -->
-    <div class="sysmodal-bd" id="sysAlertBd">
-      <div class="sysmodal">
-        <div class="sysmodal-header">
-          <div class="sysmodal-icon info" id="sysAlertIcon">ℹ️</div>
-          <div class="sysmodal-title" id="sysAlertTitle">Aviso</div>
-        </div>
-        <div class="sysmodal-body" id="sysAlertMsg"></div>
-        <div class="sysmodal-footer">
-          <button class="btn btn-primary btn-sm" id="sysAlertOk">Aceptar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal confirmación -->
-    <div class="sysmodal-bd" id="sysConfirmBd">
-      <div class="sysmodal">
-        <div class="sysmodal-header">
-          <div class="sysmodal-icon warn" id="sysConfirmIcon">⚠️</div>
-          <div class="sysmodal-title" id="sysConfirmTitle">Confirmar</div>
-        </div>
-        <div class="sysmodal-body" id="sysConfirmMsg"></div>
-        <div class="sysmodal-footer">
-          <button class="btn btn-outline btn-sm" id="sysConfirmCancel">Cancelar</button>
-          <button class="btn btn-primary btn-sm" id="sysConfirmOk">Confirmar</button>
-        </div>
-      </div>
-    </div>`;
-
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = html;
-  document.body.appendChild(wrapper);
-
-  ['sysAlertBd', 'sysConfirmBd'].forEach(id => {
-    document.getElementById(id).addEventListener('click', function(e) {
-      if (e.target === this) _closeSysModal(id);
-    });
-  });
-})();
-
-function _closeSysModal(id) {
-  document.getElementById(id).classList.remove('open');
-  document.body.style.overflow = '';
+/* ── Sistema de notificaciones flotantes ── */
+function toast(msg, tipo) {
+  const container = document.getElementById('toast-container') || (() => {
+    const c = document.createElement('div');
+    c.id = 'toast-container';
+    c.style.cssText = 'position:fixed;top:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+    document.body.appendChild(c);
+    return c;
+  })();
+  const colors = {
+    'warn':    { bg:'#fef3c7', border:'#fbbf24', text:'#92400e', icon:'⚠️' },
+    'error':   { bg:'#fee2e2', border:'#f87171', text:'#991b1b', icon:'⛔' },
+    'success': { bg:'#d1fae5', border:'#6ee7b7', text:'#065f46', icon:'✅' },
+    'info':    { bg:'#dbeafe', border:'#93c5fd', text:'#1e40af', icon:'ℹ️' },
+  };
+  const c = colors[tipo] || colors['info'];
+  const el = document.createElement('div');
+  el.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};color:${c.text};
+    border-radius:10px;padding:11px 16px;font-size:13px;font-weight:700;
+    max-width:320px;box-shadow:0 4px 16px rgba(0,0,0,.12);
+    display:flex;align-items:flex-start;gap:8px;font-family:'Lato',sans-serif;
+    animation:slideIn .2s ease;`;
+  el.innerHTML = `<span>${c.icon}</span><span style="flex:1">${msg}</span>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;
+      cursor:pointer;color:${c.text};font-size:15px;line-height:1;padding:0 0 0 4px;">✕</button>`;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
 }
 
-window.appAlert = function(msg, { title = 'Aviso', tipo = 'info' } = {}) {
-  return new Promise(resolve => {
-    const iconMap = { info: 'ℹ️', warn: '⚠️', danger: '⛔' };
-    document.getElementById('sysAlertIcon').textContent = iconMap[tipo] || 'ℹ️';
-    document.getElementById('sysAlertIcon').className = `sysmodal-icon ${tipo}`;
-    document.getElementById('sysAlertTitle').textContent = title;
-    document.getElementById('sysAlertMsg').textContent = msg;
-
-    const bd = document.getElementById('sysAlertBd');
-    const ok = document.getElementById('sysAlertOk');
-    bd.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    ok.focus();
-
-    const handler = () => {
-      ok.removeEventListener('click', handler);
-      _closeSysModal('sysAlertBd');
-      resolve();
-    };
-    ok.addEventListener('click', handler);
-  });
-};
-
-window.appConfirm = function(msg, {
-  title = 'Confirmar acción',
-  labelOk = 'Confirmar',
-  labelCancel = 'Cancelar',
-  tipo = 'warn'
-} = {}) {
-  return new Promise(resolve => {
-    const iconMap = { warn: '⚠️', danger: '⛔', info: 'ℹ️' };
-    document.getElementById('sysConfirmIcon').textContent = iconMap[tipo] || '⚠️';
-    document.getElementById('sysConfirmIcon').className = `sysmodal-icon ${tipo}`;
-    document.getElementById('sysConfirmTitle').textContent = title;
-    document.getElementById('sysConfirmMsg').textContent = msg;
-
-    const okBtn  = document.getElementById('sysConfirmOk');
-    const canBtn = document.getElementById('sysConfirmCancel');
-    okBtn.textContent  = labelOk;
-    canBtn.textContent = labelCancel;
-
-    okBtn.className = tipo === 'danger'
-      ? 'btn btn-danger btn-sm'
-      : 'btn btn-primary btn-sm';
-
-    const bd = document.getElementById('sysConfirmBd');
-    bd.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    okBtn.focus();
-
-    const cleanup = result => {
-      okBtn.removeEventListener('click', onOk);
-      canBtn.removeEventListener('click', onCancel);
-      _closeSysModal('sysConfirmBd');
-      resolve(result);
-    };
-    const onOk     = () => cleanup(true);
-    const onCancel = () => cleanup(false);
-    okBtn.addEventListener('click', onOk);
-    canBtn.addEventListener('click', onCancel);
-  });
-};
-
-const TAMANIOS = {};
-{% for t in tamanios %}
-TAMANIOS[{{ t.id_tamanio }}] = {
-  id: {{ t.id_tamanio }},
-  nombre: "{{ t.nombre | e }}",
-  capacidad: {{ t.capacidad }}
-};
-{% endfor %}
-
-const PRODS_POR_TAM = {};
-{% for t in tamanios %}
-PRODS_POR_TAM[{{ t.id_tamanio }}] = [
-  {% for p in productos if p.id_tamanio == t.id_tamanio %}
-  { id_producto: {{ p.id_producto }},
-    nombre:      "{{ p.nombre_producto | e }}",
-    id_receta:   {{ p.id_receta }},
-    capacidad:   {{ t.capacidad }} },
+/* ── Datos desde Jinja (productos agrupados con recetas) ── */
+const PRODUCTOS_ARR = [
+  {% for p in productos %}
+  {
+    id_producto: {{ p.id_producto }},
+    nombre:      "{{ p.nombre | e }}",
+    recetas: [
+      {% for r in p.recetas %}
+      { id_receta: {{ r.id_receta }}, nombre: "{{ r.nombre | e }}", rendimiento: {{ r.rendimiento }} },
+      {% endfor %}
+    ]
+  },
   {% endfor %}
 ];
-{% endfor %}
 
-let LINEAS   = [];
-let TIPO_SEL = null;
-let TAM_SEL  = null;
+/* ── Estado ── */
+let LINEAS     = [];   // [{ id_producto, nombre_prod, id_receta, nombre_receta, cantidad_piezas }]
+let REC_SEL    = null; // receta actualmente seleccionada en el builder
+let PROD_SEL   = null; // producto actualmente seleccionado
 
+/* ── Modales ── */
 window.cerrarModal = id => {
   document.getElementById(id).classList.remove('open');
   document.body.style.overflow = '';
@@ -727,204 +629,138 @@ document.querySelectorAll('.modal-bd').forEach(m =>
 );
 
 window.abrirModalNueva = () => {
-  LINEAS = []; TIPO_SEL = null; TAM_SEL = null;
+  LINEAS = []; REC_SEL = null; PROD_SEL = null;
   renderLista();
+  resetBuilder();
   document.getElementById('ins-section').style.display = 'none';
-  document.getElementById('sel-tamanio').value = '';
-  document.getElementById('tipo-btns').innerHTML =
-    '<span style="font-size:12px;color:var(--brown-lt);padding:6px 0;">Selecciona primero el tamaño</span>';
-  document.getElementById('slots-area').innerHTML = '';
+  document.getElementById('chk-plantilla').checked = false;
+  document.getElementById('inp-guardar-plant').value = '0';
+  document.getElementById('plantilla-nombre-fg').style.display = 'none';
   abrirModal('modalNueva');
 };
 
+function resetBuilder() {
+  document.getElementById('sel-producto').value = '';
+  document.getElementById('recetas-area').className = 'recetas-area';
+  document.getElementById('recetas-cards').innerHTML = '';
+  REC_SEL = null; PROD_SEL = null;
+}
+
+/* ── Filtrar por estado ── */
 window.filtrarEstado = est => {
   const f = document.getElementById('form-filtro');
   f.querySelector('[name=estado]').value = est;
   f.submit();
 };
 
-window.onTamanioChange = () => {
-  const sel = document.getElementById('sel-tamanio');
-  const id  = parseInt(sel.value);
-  if (!id) {
-    document.getElementById('tipo-btns').innerHTML =
-      '<span style="font-size:12px;color:var(--brown-lt);padding:6px 0;">Selecciona primero el tamaño</span>';
-    document.getElementById('slots-area').innerHTML = '';
-    TAM_SEL = null; TIPO_SEL = null;
-    return;
-  }
-  TAM_SEL = id;
-  TIPO_SEL = null;
-  const cap = TAMANIOS[id].capacidad;
-  let tipos = ['simple'];
-  if (cap >= 8)  tipos.push('mixta');
-  if (cap >= 12) tipos.push('triple');
-
-  const btns = document.getElementById('tipo-btns');
-  btns.innerHTML = tipos.map(t =>
-    `<button type="button" class="tipo-btn" data-tipo="${t}" onclick="selTipo('${t}')">
-       ${t.charAt(0).toUpperCase()+t.slice(1)}
-     </button>`
-  ).join('');
-  document.getElementById('slots-area').innerHTML = '';
+/* ── Confirm modal de inicio ── */
+window.abrirConfirm = (folio, url) => {
+  document.getElementById('confirm-folio').textContent = folio;
+  document.getElementById('form-confirm-iniciar').action = url;
+  abrirModal('modalConfirm');
 };
 
-window.selTipo = tipo => {
-  TIPO_SEL = tipo;
-  document.querySelectorAll('.tipo-btn').forEach(b =>
-    b.classList.toggle('sel', b.dataset.tipo === tipo)
-  );
-  renderSlots();
+/* ── Paso 1: cambio de producto → mostrar recetas ── */
+window.onProductoChange = () => {
+  const sel  = document.getElementById('sel-producto');
+  const area = document.getElementById('recetas-area');
+  const cards = document.getElementById('recetas-cards');
+  REC_SEL = null; PROD_SEL = null;
+  cards.innerHTML = '';
+
+  const pid = parseInt(sel.value);
+  if (!pid) { area.className = 'recetas-area'; return; }
+
+  PROD_SEL = PRODUCTOS_ARR.find(p => p.id_producto === pid);
+  if (!PROD_SEL) { area.className = 'recetas-area'; return; }
+
+  area.className = 'recetas-area visible';
+
+  PROD_SEL.recetas.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'receta-card';
+    card.dataset.idReceta = r.id_receta;
+    card.innerHTML = `
+      <div class="receta-rend">${r.rendimiento}<small>pzas</small></div>
+      <div class="receta-info">
+        <div class="receta-nombre">${r.nombre}</div>
+        <div class="receta-stock">${r.rendimiento} piezas por lote</div>
+      </div>
+      <div class="receta-sel-icon">✔️</div>`;
+    card.addEventListener('click', () => selReceta(r, card));
+    cards.appendChild(card);
+  });
 };
 
-function renderSlots() {
-  if (!TAM_SEL || !TIPO_SEL) return;
-  const cap    = TAMANIOS[TAM_SEL].capacidad;
-  const prods  = PRODS_POR_TAM[TAM_SEL] || [];
-  const n      = { simple: 1, mixta: 2, triple: 3 }[TIPO_SEL];
-  const piezas = Math.floor(cap / n);
-  const area   = document.getElementById('slots-area');
-  area.innerHTML = '';
-  for (let i = 0; i < n; i++) {
-    const sl = document.createElement('div');
-    sl.className = 'slot';
-    sl.innerHTML = `
-      <span class="slot-label">Pan ${i+1} (${piezas} pzas)</span>
-      <select id="slot-prod-${i}">
-        <option value="">— Selecciona producto —</option>
-        ${prods.map(p =>
-          `<option value="${p.id_producto}" data-receta="${p.id_receta}" data-piezas="${piezas}">
-             ${p.nombre}
-           </option>`).join('')}
-      </select>`;
-    area.appendChild(sl);
-  }
+/* ── Paso 2: seleccionar receta ── */
+function selReceta(receta, cardEl) {
+  REC_SEL = receta;
+  document.querySelectorAll('#recetas-cards .receta-card')
+    .forEach(c => c.classList.remove('sel'));
+  cardEl.classList.add('sel');
 }
 
-window.agregarLinea = async () => {
-  if (!TAM_SEL) {
-    await appAlert('Selecciona un tamaño de charola.', { title: 'Campo requerido' });
-    return;
-  }
-  if (!TIPO_SEL) {
-    await appAlert('Selecciona el tipo de caja (simple, mixta o triple).', { title: 'Campo requerido' });
-    return;
-  }
+/* ── Agregar línea (piezas = rendimiento, fijo) ── */
+window.agregarLinea = () => {
+  if (!PROD_SEL) { toast('Selecciona un producto.', 'warn'); return; }
+  if (!REC_SEL)  { toast('Selecciona una receta/rendimiento.', 'warn'); return; }
 
-  const n = { simple: 1, mixta: 2, triple: 3 }[TIPO_SEL];
-  const cap = TAMANIOS[TAM_SEL].capacidad;
-  const piezasPorSlot = Math.floor(cap / n);
-  const productos = [];
-
-  for (let i = 0; i < n; i++) {
-    const sel = document.getElementById(`slot-prod-${i}`);
-    if (!sel || !sel.value) {
-      await appAlert(`Selecciona el producto para el pan ${i+1}.`, { title: 'Campo requerido' });
-      return;
-    }
-    productos.push({
-      id_producto: parseInt(sel.value),
-      id_receta:   parseInt(sel.selectedOptions[0].dataset.receta),
-      piezas:      piezasPorSlot,
-      nombre:      sel.selectedOptions[0].text.trim(),
-    });
-  }
-
-  const cant = parseInt(document.getElementById('inp-cant-cajas').value) || 1;
   LINEAS.push({
-    id_tamanio:      TAM_SEL,
-    nombre_tam:      TAMANIOS[TAM_SEL].nombre,
-    tipo:            TIPO_SEL,
-    capacidad:       cap,
-    cantidad_cajas:  cant,
-    piezas_esperadas: cap * cant,
-    productos,
+    id_producto:    PROD_SEL.id_producto,
+    nombre_prod:    PROD_SEL.nombre,
+    id_receta:      REC_SEL.id_receta,
+    nombre_receta:  REC_SEL.nombre,
+    cantidad_piezas: REC_SEL.rendimiento,  // fijo, no editable
   });
+
   renderLista();
-  document.getElementById('sel-tamanio').value = '';
-  document.getElementById('tipo-btns').innerHTML =
-    '<span style="font-size:12px;color:var(--brown-lt);padding:6px 0;">Selecciona primero el tamaño</span>';
-  document.getElementById('slots-area').innerHTML = '';
-  TAM_SEL = null; TIPO_SEL = null;
+  resetBuilder();
 };
 
+/* ── Render lista ── */
 function renderLista() {
-  const cont  = document.getElementById('cajas-lista');
-  const empty = document.getElementById('empty-lista');
-  const totEl = document.getElementById('total-piezas-lbl');
-  const resum = document.getElementById('resumen-cajas');
+  const lista   = document.getElementById('lineas-lista');
+  const emptyEl = document.getElementById('empty-lineas');
+  const resumEl = document.getElementById('resumen-lbl');
+
+  lista.innerHTML = '';
 
   if (!LINEAS.length) {
-    cont.innerHTML = '';
-    cont.appendChild(empty);
-    empty.style.display = 'block';
-    totEl.textContent = '';
-    resum.textContent = '';
+    emptyEl.style.display = 'block';
+    resumEl.textContent   = '';
     return;
   }
-  empty.style.display = 'none';
 
-  cont.innerHTML = LINEAS.map((l, idx) => `
-    <div class="caja-item">
-      <div class="caja-item-info">
-        <div class="caja-item-tag">
-          <span style="background:var(--warm-bg);border-radius:5px;padding:1px 6px;">
-            ${l.nombre_tam}
-          </span>
-          <span style="text-transform:capitalize;">${l.tipo}</span>
-          <span style="color:var(--brown-lt);">${l.capacidad} panes/caja</span>
-        </div>
-        <div class="caja-item-prods">${l.productos.map(p => p.nombre).join(' · ')}</div>
-      </div>
-      <div class="caja-item-count">
-        <input type="number" min="1" value="${l.cantidad_cajas}"
-               onchange="updateCant(${idx}, this.value)">
-        <span style="font-size:11px;color:var(--brown-lt);">cajas</span>
-      </div>
-      <button class="caja-item-del" type="button"
-              onclick="eliminarLinea(${idx})" title="Eliminar">✕</button>
-    </div>`).join('');
+  emptyEl.style.display = 'none';
 
-  const totalCajas  = LINEAS.reduce((s, l) => s + l.cantidad_cajas, 0);
-  const totalPiezas = LINEAS.reduce((s, l) => s + l.piezas_esperadas, 0);
-  totEl.textContent = `Total: ${totalCajas} cajas · ${totalPiezas} piezas`;
-  resum.textContent = `${LINEAS.length} tipo(s)`;
+  LINEAS.forEach((l, idx) => {
+    const div = document.createElement('div');
+    div.className = 'linea-item';
+    div.innerHTML = `
+      <div class="linea-item-info">
+        <div class="linea-nombre">${l.nombre_prod}</div>
+        <div class="linea-receta">${l.nombre_receta}</div>
+      </div>
+      <div class="linea-badge">${l.cantidad_piezas} pzas</div>
+      <button class="linea-del" type="button"
+              onclick="eliminarLinea(${idx})" title="Eliminar">✕</button>`;
+    lista.appendChild(div);
+  });
+
+  const totalPzs = LINEAS.reduce((s, l) => s + l.cantidad_piezas, 0);
+  resumEl.textContent = `${LINEAS.length} producto(s) · ${totalPzs} piezas`;
 }
 
-window.updateCant = (idx, val) => {
-  const n = Math.max(1, parseInt(val) || 1);
-  LINEAS[idx].cantidad_cajas   = n;
-  LINEAS[idx].piezas_esperadas = LINEAS[idx].capacidad * n;
-  renderLista();
-};
-
-window.eliminarLinea = async idx => {
-  const linea = LINEAS[idx];
-  const ok = await appConfirm(
-    `¿Eliminar la línea "${linea.nombre_tam} – ${linea.tipo}" de la lista?`,
-    { title: 'Eliminar línea', labelOk: 'Eliminar', tipo: 'danger' }
-  );
-  if (!ok) return;
+window.eliminarLinea = idx => {
   LINEAS.splice(idx, 1);
   renderLista();
 };
 
+/* ── Verificar insumos ── */
 window.verificarInsumos = async () => {
-  if (!LINEAS.length) {
-    await appAlert('Agrega al menos una línea de cajas antes de verificar.', { title: 'Sin cajas' });
-    return;
-  }
+  if (!LINEAS.length) { toast('Agrega al menos un producto.', 'warn'); return; }
 
-  const items = {};
-  LINEAS.forEach(l => {
-    l.productos.forEach(p => {
-      const key = p.id_receta;
-      items[key] = (items[key] || 0) + (p.piezas * l.cantidad_cajas);
-    });
-  });
-  const payload = { items: Object.entries(items).map(([id, piezas]) =>
-    ({ id_receta: parseInt(id), piezas })) };
-
+  const items = LINEAS.map(l => ({ id_receta: l.id_receta, piezas: l.cantidad_piezas }));
   const sec  = document.getElementById('ins-section');
   const load = document.getElementById('ins-loading');
   const res  = document.getElementById('ins-result');
@@ -937,7 +773,7 @@ window.verificarInsumos = async () => {
     const r = await fetch('/produccion-diaria/api/verificar-insumos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ items }),
     });
     const d = await r.json();
     load.style.display = 'none';
@@ -951,17 +787,17 @@ window.verificarInsumos = async () => {
       alertEl.style.display = 'block';
       alertEl.textContent   = '⚠ ' + d.mensaje;
       okEl.style.display    = 'none';
-      tbody.innerHTML = '';
+      tbody.innerHTML       = '';
       return;
     }
 
     if (d.hay_faltantes) {
       alertEl.style.display = 'block';
-      alertEl.innerHTML = `⛔ Stock insuficiente: ${d.insumos_ok} de ${d.total_insumos} insumos disponibles. Se registrará con alerta.`;
+      alertEl.innerHTML = `⛔ Stock insuficiente: ${d.insumos_ok} de ${d.total_insumos} insumos OK. Se registrará con alerta.`;
       okEl.style.display = 'none';
     } else {
-      okEl.style.display = 'block';
-      okEl.textContent   = `✅ Stock suficiente para todos los insumos (${d.total_insumos}).`;
+      okEl.style.display  = 'block';
+      okEl.textContent    = `✅ Stock suficiente para todos los insumos (${d.total_insumos}).`;
       alertEl.style.display = 'none';
     }
 
@@ -974,14 +810,15 @@ window.verificarInsumos = async () => {
         <td style="color:var(--brown-lt);">${ins.unidad_base}</td>
         <td>${ins.cantidad_requerida.toFixed(2)}</td>
         <td>${ins.stock_actual.toFixed(2)}
-          <span class="bar-mini"><span class="bar-fill" style="width:${pct}%;background:${col};"></span></span>
+          <span class="bar-mini"><span class="bar-fill"
+            style="width:${pct}%;background:${col};"></span></span>
         </td>
         <td class="${ok ? 'ins-ok' : 'ins-ko'}">
-          ${ok ? '✅ OK' : '⛔ Faltan ' + (ins.cantidad_requerida - ins.stock_actual).toFixed(2)}
+          ${ok ? '✅ OK' : '⛔ Faltan '+(ins.cantidad_requerida-ins.stock_actual).toFixed(2)}
         </td></tr>`;
     }).join('');
 
-  } catch (e) {
+  } catch(e) {
     load.style.display = 'none';
     res.style.display  = 'block';
     document.getElementById('ins-alerta').style.display = 'block';
@@ -989,8 +826,9 @@ window.verificarInsumos = async () => {
   }
 };
 
+/* ── Plantilla ── */
 window.togglePlantillaNombre = checked => {
-  document.getElementById('plantilla-nombre-fg').style.display = checked ? 'flex' : 'none';
+  document.getElementById('plantilla-nombre-fg').style.display = checked ? 'flex':'none';
   document.getElementById('inp-guardar-plant').value = checked ? '1' : '0';
 };
 
@@ -998,52 +836,35 @@ window.cargarPlantilla = async (id, nombre) => {
   try {
     const r = await fetch(`/produccion-diaria/api/plantilla/${id}`);
     const d = await r.json();
-    if (!d.ok) {
-      await appAlert('Error: ' + d.mensaje, { title: 'Error al cargar plantilla', tipo: 'danger' });
-      return;
-    }
+    if (!d.ok) { toast('Error: ' + d.mensaje, 'error'); return; }
 
     LINEAS = d.lineas.map(l => ({
-      id_tamanio:       l.id_tamanio,
-      nombre_tam:       l.tamanio_nombre,
-      tipo:             l.tipo,
-      capacidad:        l.capacidad,
-      cantidad_cajas:   l.cantidad_cajas,
-      piezas_esperadas: l.piezas_esperadas,
-      productos:        (l.productos || []).map(p => ({
-        id_producto: p.id_producto,
-        id_receta:   p.id_receta,
-        piezas:      p.piezas_por_caja,
-        nombre:      p.nombre_producto,
-      })),
+      id_producto:    l.id_producto,
+      nombre_prod:    l.nombre_producto,
+      id_receta:      l.id_receta,
+      nombre_receta:  l.nombre_receta || '',
+      cantidad_piezas: l.cantidad_piezas,
     }));
     renderLista();
+
     const inpNombre = document.querySelector('[name=nombre]');
     if (!inpNombre.value) inpNombre.value = nombre;
   } catch(e) {
-    await appAlert('Error al cargar plantilla: ' + e.message, { title: 'Error', tipo: 'danger' });
+    toast('Error al cargar plantilla: ' + e.message, 'error');
   }
 };
 
-window.prepSubmit = async () => {
+/* ── Submit ── */
+window.prepSubmit = () => {
   if (!LINEAS.length) {
-    await appAlert(
-      'Agrega al menos una línea de cajas antes de crear la producción.',
-      { title: 'Sin cajas configuradas' }
-    );
+    toast('Agrega al menos un producto antes de crear la producción.', 'warn');
     return false;
   }
   document.getElementById('inp-cajas-json').value = JSON.stringify(
     LINEAS.map(l => ({
-      id_tamanio:       l.id_tamanio,
-      tipo:             l.tipo,
-      cantidad_cajas:   l.cantidad_cajas,
-      piezas_esperadas: l.piezas_esperadas,
-      productos:        l.productos.map(p => ({
-        id_producto: p.id_producto,
-        id_receta:   p.id_receta,
-        piezas:      p.piezas,
-      })),
+      id_producto:    l.id_producto,
+      id_receta:      l.id_receta,
+      cantidad_piezas: l.cantidad_piezas,
     }))
   );
   return true;
