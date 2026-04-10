@@ -496,14 +496,36 @@
             <div class="dd-divider"></div>
             {% if clave_rol == 'cliente' %}
             <a href="{{ url_for('registrar_usuario.mi_perfil') }}" class="dd-item">👤 Mi perfil</a>
-            <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="dd-item">🔑 Cambiar contraseña</a>
+            <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="dd-item"><animated-icons
+              src="https://animatedicons.co/get-icon?name=unlock&style=minimalistic&token=97ae0ebf-896b-47c4-9538-d143a34f7b43"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="30"
+              width="30"
+            ></animated-icons>Cambiar contraseña</a>
             <div class="dd-divider"></div>
-            <a href="{{ url_for('pedidos.mis_pedidos') }}" class="dd-item">📋 Mis Pedidos</a>
+            <a href="{{ url_for('pedidos.mis_pedidos') }}" class="dd-item"><animated-icons
+                src="https://animatedicons.co/get-icon?name=Order%20History&style=minimalistic&token=b3a68157-77f2-44c6-b4f0-ff2500f84622"
+                trigger="loop"
+                attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
+                height="30" width="30"></animated-icons> Mis Pedidos</a>
             {% else %}
-            <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="dd-item">🔑 Cambiar contraseña</a>
+            <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="dd-item"><animated-icons
+              src="https://animatedicons.co/get-icon?name=unlock&style=minimalistic&token=97ae0ebf-896b-47c4-9538-d143a34f7b43"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="30"
+              width="30"
+            ></animated-icons>Cambiar contraseña</a>
             {% endif %}
             <div class="dd-divider"></div>
-            <a href="{{ url_for('logout') }}" class="dd-item danger">➜] Cerrar sesión</a>
+            <a href="{{ url_for('logout') }}" class="dd-item danger"><animated-icons
+              src="https://animatedicons.co/get-icon?name=exit&style=minimalistic&token=6e09845f-509a-4b0a-a8b0-c47e168ad977"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="30"
+              width="30"
+            ></animated-icons> Cerrar sesión</a>
           </div>
 
         </div>
@@ -625,8 +647,8 @@
       const ICONS = {
         success: '<animated-icons src="https://animatedicons.co/get-icon?name=Success&style=minimalistic&token=2cb0da6b-0dad-4d02-8599-79b76c0333fb" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
         error: '<animated-icons src="https://animatedicons.co/get-icon?name=Error&style=minimalistic&token=0c38d9a8-cd4e-4a0f-9b7a-66d9e2368dc0" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
-        warning: '<animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FDEF10FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
-        info: '<animated-icons src="https://animatedicons.co/get-icon?name=help&style=minimalistic&token=f784ba5d-f728-4de4-bf74-464b9979474c" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FDEF10FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
+        warning: '<animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
+        info: '<animated-icons src="https://animatedicons.co/get-icon?name=help&style=minimalistic&token=f784ba5d-f728-4de4-bf74-464b9979474c" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
       };
 
       function resolveCategory(cat) {
@@ -718,18 +740,30 @@
   'pedidos.catalogo', 'pedidos.mis_pedidos'] %}
   <!-- Botón flotante de mermas -->
   <button class="merma-float-btn" id="btnMerma" onclick="abrirModalMerma()" title="Registrar Merma">
-    <span>🗑️</span>
+    <span><animated-icons
+      src="https://animatedicons.co/get-icon?name=From%20Deleted&style=minimalistic&token=3b251ac0-e35d-43e1-aebc-feaa97314959"
+      trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30"
+      width="30"
+    ></animated-icons></span>
   </button>
 
   <button class="merma-his-float-btn" id="btnMerma" onclick="abrirModalHistorialMermas()" title="Historial de Merma">
-    <span>📋</span>
+    <span><animated-icons
+      src="https://animatedicons.co/get-icon?name=reports&style=minimalistic&token=ff77881b-18e9-4ba6-b464-bfa18f63dab8"
+      trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30"
+      width="30"
+    ></animated-icons></span>
   </button>
 
   <!-- Modal de Mermas -->
   <div class="modal-overlay" id="modal-merma">
     <div class="modal" style="max-width: 550px;">
       <div class="modal-header" style="background: #8B4513;">
-        <h2><animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FDEF10FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Registrar Merma</h2>
+        <h2><animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Registrar Merma</h2>
         <button class="modal-close" onclick="cerrarModalMerma()">✕</button>
       </div>
       <div class="modal-body" style="padding: 24px;">
@@ -782,7 +816,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="cerrarModalMerma()">Cancelar</button>
-        <button class="btn btn-primary" onclick="registrarMerma()" style="background: #8B4513;"><animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FDEF10FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons> Registrar
+        <button class="btn btn-primary" onclick="registrarMerma()" style="background: #8B4513;"><animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons> Registrar
           Merma</button>
       </div>
     </div>
@@ -792,7 +826,13 @@
   <div class="modal-overlay" id="modal-historial-mermas">
     <div class="modal modal-xl" style="max-width: 900px;">
       <div class="modal-header" style="background: #8B4513;">
-        <h2>📋 Historial de Mermas</h2>
+        <h2><animated-icons
+          src="https://animatedicons.co/get-icon?name=reports&style=minimalistic&token=ff77881b-18e9-4ba6-b464-bfa18f63dab8"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30"
+          width="30"
+        ></animated-icons> Historial de Mermas</h2>
         <button class="modal-close" onclick="cerrarModalHistorialMermas()">✕</button>
       </div>
       <div class="modal-body" style="padding: 20px;">
@@ -809,7 +849,13 @@
             <option value="contaminacion">Contaminación</option>
             <option value="otro">Otro</option>
           </select>
-          <button class="btn btn-outline btn-sm" onclick="cargarHistorialMermas()">🔍 Buscar</button>
+          <button class="btn btn-outline btn-sm" onclick="cargarHistorialMermas()"><animated-icons
+            src="https://animatedicons.co/get-icon?name=search&style=minimalistic&token=ff77881b-18e9-4ba6-b464-bfa18f63dab8"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30"
+            width="30"
+          ></animated-icons>Buscar</button>
         </div>
         <div id="historialMermasContent" style="max-height: 500px; overflow-y: auto;">
           <table class="det-items-table" style="width: 100%;">
@@ -832,7 +878,13 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="cerrarModalHistorialMermas()">Cerrar</button>
-        <button class="btn btn-outline" onclick="cargarHistorialMermas()">🔄 Actualizar</button>
+        <button class="btn btn-outline" onclick="cargarHistorialMermas()"><animated-icons
+  src="https://animatedicons.co/get-icon?name=Sync&style=minimalistic&token=e9dea012-465e-4473-9939-5de89e4a2b52"
+  trigger="loop"
+  attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+  height="25"
+  width="25"
+></animated-icons>Actualizar</button>
       </div>
     </div>
   </div>
@@ -1151,9 +1203,9 @@
       const icons = {
         'aprobado': '<animated-icons src="https://animatedicons.co/get-icon?name=Success&style=minimalistic&token=2cb0da6b-0dad-4d02-8599-79b76c0333fb" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
         'rechazado': '<animated-icons src="https://animatedicons.co/get-icon?name=Error&style=minimalistic&token=0c38d9a8-cd4e-4a0f-9b7a-66d9e2368dc0" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
-        'listo': '🎉',
-        'entregado': '📦',
-        'en_produccion': '⚙️'
+        'listo': '<animated-icons src="https://animatedicons.co/get-icon?name=Firecracker&style=minimalistic&token=0e6f2ecc-a2ca-45ba-9eab-0926e9b25a78" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
+        'entregado': '<animated-icons src="https://animatedicons.co/get-icon?name=Magic%20Box&style=minimalistic&token=cc242f7a-6191-4a85-8812-a59e5fba44bf" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
+        'en_produccion': '<animated-icons src="https://animatedicons.co/get-icon?name=Activity&style=minimalistic&token=e9dea012-465e-4473-9939-5de89e4a2b52" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20" ></animated-icons>'
       };
       return icons[tipo] || '<animated-icons src="https://animatedicons.co/get-icon?name=notification&style=minimalistic&token=2a8c285f-a7a0-4f4d-b2c3-acccc136c454" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>';
     }
