@@ -2,6 +2,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/registrar_cliente.css') }}">
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %}
 
 {% block container %}
@@ -21,73 +22,112 @@
 
     <div class="reg-body">
 
-      <form method="POST" action="{{ url_for('registrar_cliente') }}" novalidate id="form-reg">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div style="display:flex;flex-direction:column;gap:16px;">
+      <!-- ── SECCIÓN: Formulario de registro ── -->
+      <div id="section-form">
+        <form method="POST" action="{{ url_for('registrar_cliente_verificar') }}" novalidate id="form-reg">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div style="display:flex;flex-direction:column;gap:16px;">
 
-          <div class="form-group">
-            <label class="form-label">Nombre Completo</label>
-            <input type="text" name="nombre" class="form-input" placeholder="Ej. Ana Martínez Ruiz"
-              value="{{ form.nombre.data or '' }}" required>
-            {% if form.nombre.errors %}
-            {% for e in form.nombre.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
-            {% endif %}
+            <div id="reg-error-global" style="display:none; color:#9c3a1a; font-size:0.85rem; padding:8px 10px; background:#fff0eb; border-radius:6px; border-left:3px solid #c0392b;"></div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre Completo</label>
+              <input type="text" name="nombre" class="form-input" placeholder="Ej. Ana Martínez Ruiz"
+                value="{{ form.nombre.data or '' }}" required>
+              {% if form.nombre.errors %}
+              {% for e in form.nombre.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+              {% endif %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input type="tel" name="telefono" class="form-input" placeholder="Ej. 3312345678"
+                value="{{ form.telefono.data or '' }}" required>
+              <span class="form-hint">10 dígitos, sin espacios ni guiones.</span>
+              {% if form.telefono.errors %}
+              {% for e in form.telefono.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+              {% endif %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Correo Electrónico</label>
+              <input type="email" name="username" class="form-input" placeholder="Ej. ana@correo.com"
+                value="{{ form.username.data or '' }}" required>
+              <span class="form-hint">Se usará para iniciar sesión y recibir notificaciones.</span>
+              {% if form.username.errors %}
+              {% for e in form.username.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+              {% endif %}
+            </div>
+
+            <div class="pwd-rules">
+              <strong>Requisitos de contraseña:</strong> mínimo 8 caracteres, una mayúscula,
+              un número y un carácter especial <strong>(@$!%*?&_)</strong>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <input type="password" name="password" id="reg-password" class="form-input" placeholder="Mín. 8 caracteres"
+                required>
+              {% if form.password.errors %}
+              {% for e in form.password.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+              {% endif %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Confirmar Contraseña</label>
+              <input type="password" name="confirmar" id="reg-confirmar" class="form-input"
+                placeholder="Repite tu contraseña" required>
+              <span class="form-hint match-msg" id="reg-match-msg"></span>
+              {% if form.confirmar.errors %}
+              {% for e in form.confirmar.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+              {% endif %}
+            </div>
+
+            <div class="form-group" style="display:flex;justify-content:center;align-items:center;width:100%;">
+              <div style="transform-origin:left center;" class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
+            </div>
+
           </div>
-
-          <div class="form-group">
-            <label class="form-label">Teléfono</label>
-            <input type="tel" name="telefono" class="form-input" placeholder="Ej. 3312345678"
-              value="{{ form.telefono.data or '' }}" required>
-            <span class="form-hint">10 dígitos, sin espacios ni guiones.</span>
-            {% if form.telefono.errors %}
-            {% for e in form.telefono.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
-            {% endif %}
+        </form>
+        <br>
+        <div class="reg-footer" style="padding-top:0;">
+          <button type="button" id="btn-reg-submit" class="btn-register">✅ Continuar</button>
+          <div class="footer-link">
+            ¿Ya tienes cuenta?
+            <a href="{{ url_for('login_cliente') }}">Inicia sesión aquí</a>
           </div>
-
-          <div class="form-group">
-            <label class="form-label">Nombre de Usuario</label>
-            <input type="text" name="username" class="form-input" placeholder="Ej. anamartinez"
-              value="{{ form.username.data or '' }}" required>
-            <span class="form-hint">Sin espacios ni caracteres especiales. Mínimo 4 caracteres.</span>
-            {% if form.username.errors %}
-            {% for e in form.username.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
-            {% endif %}
-          </div>
-
-          <div class="pwd-rules">
-            <strong>Requisitos de contraseña:</strong> mínimo 8 caracteres, una mayúscula,
-            un número y un carácter especial <strong>(@$!%*?&_)</strong>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Contraseña</label>
-            <input type="password" name="password" id="reg-password" class="form-input" placeholder="Mín. 8 caracteres"
-              required>
-            {% if form.password.errors %}
-            {% for e in form.password.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
-            {% endif %}
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Confirmar Contraseña</label>
-            <input type="password" name="confirmar" id="reg-confirmar" class="form-input"
-              placeholder="Repite tu contraseña" required>
-            <span class="form-hint match-msg" id="reg-match-msg"></span>
-            {% if form.confirmar.errors %}
-            {% for e in form.confirmar.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
-            {% endif %}
-          </div>
-
         </div>
-      </form>
-    </div>
-
-    <div class="reg-footer">
-      <button type="submit" form="form-reg" class="btn-register">✅ Crear Cuenta</button>
-      <div class="footer-link">
-        ¿Ya tienes cuenta?
-        <a href="{{ url_for('login_cliente') }}">Inicia sesión aquí</a>
       </div>
+
+      <!-- ── SECCIÓN: Verificación de correo ── -->
+      <div id="section-verify" style="display:none;">
+        <div style="text-align:center; margin-bottom:16px;">
+          <div style="font-size:2rem; margin-bottom:8px;">✉️</div>
+          <h2 style="font-size:1.1rem; margin:0 0 6px;">Verifica tu correo</h2>
+          <p id="verify-desc" style="font-size:0.88rem; color:#555; margin:0;">
+            Ingresa el código de 6 dígitos que enviamos a tu correo.
+          </p>
+        </div>
+
+        <div id="verify-error" style="display:none; color:#9c3a1a; font-size:0.85rem; margin-bottom:12px; padding:8px 10px; background:#fff0eb; border-radius:6px; border-left:3px solid #c0392b;"></div>
+
+        <form id="form-verify" method="POST" action="{{ url_for('registrar_cliente') }}" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">Código de verificación</label>
+            <input type="text" id="verify-codigo" name="codigo" class="form-input"
+              placeholder="123456" maxlength="6" inputmode="numeric"
+              style="text-align:center; font-size:1.4rem; letter-spacing:0.3em;">
+          </div>
+
+          <button type="submit" id="btn-verify-submit" class="btn-register">✅ Crear Cuenta</button>
+        </form>
+
+        <div style="text-align:center; margin-top:12px;">
+          <a href="#" id="link-volver-reg" style="font-size:0.85rem; color:#a0522d; text-decoration:none;">← Volver al formulario</a>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

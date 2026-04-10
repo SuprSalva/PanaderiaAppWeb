@@ -20,37 +20,63 @@
     </div>
   </div>
 
-  <form method="POST" action="{{ url_for('registrar_usuario.mi_perfil') }}" novalidate id="form-perfil">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div class="perfil-body">
+  <!-- SECCIÓN 1: Formulario -->
+  <div id="section-perfil-form">
+    <form method="POST" action="{{ url_for('registrar_usuario.mi_perfil') }}" novalidate id="form-perfil">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="perfil-body">
+        <div class="form-group">
+          <label class="form-label">Nombre Completo</label>
+          <input type="text" name="nombre" class="form-input" value="{{ usuario.nombre_completo }}" required
+            placeholder="Tu nombre completo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico</label>
+          <input type="email" name="username" id="perfil-email" class="form-input" value="{{ usuario.username }}" required
+            placeholder="tu@correo.com">
+          <span class="form-hint">Si cambias el correo se enviará un código de verificación</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número Telefónico</label>
+          <input type="tel" name="telefono" class="form-input" value="{{ usuario.telefono or '' }}"
+            placeholder="Ej. 5512345678">
+        </div>
+        <div id="form-error"
+          style="display:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;">
+        </div>
+      </div>
+      <div class="perfil-footer">
+        <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="btn btn-outline">🔑 Cambiar contraseña</a>
+        <button type="submit" id="btn-guardar-perfil" class="btn btn-primary">💾 Guardar cambios</button>
+      </div>
+    </form>
+  </div>
 
-      <div class="form-group">
-        <label class="form-label">Nombre Completo</label>
-        <input type="text" name="nombre" class="form-input" value="{{ usuario.nombre_completo }}" required
-          placeholder="Tu nombre completo">
+  <!-- SECCIÓN 2: Verificación de correo (oculta) -->
+  <div id="section-perfil-verify" style="display:none">
+    <form id="form-perfil-verify" method="POST" action="{{ url_for('registrar_usuario.mi_perfil') }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="perfil-body">
+        <p id="perfil-verify-desc" style="margin-bottom:16px;color:var(--brown-lt);font-size:14px;line-height:1.5;">
+          Se envió un código de 6 dígitos a tu nuevo correo.<br>
+          Ingrésalo para confirmar el cambio.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Código de Verificación</label>
+          <input type="text" name="codigo" id="perfil-verify-codigo" class="form-input"
+                 placeholder="Ej. 482917" maxlength="6" autocomplete="off"
+                 style="letter-spacing:6px;font-size:22px;text-align:center;">
+        </div>
+        <div id="perfil-verify-error"
+          style="display:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Usuario</label>
-        <input type="text" name="username" class="form-input" value="{{ usuario.username }}" required
-          placeholder="Sin espacios ni caracteres especiales">
-        <span class="form-hint">Este es el nombre con el que inicias sesión</span>
+      <div class="perfil-footer">
+        <button type="button" class="btn btn-outline" onclick="volverPerfilForm()">← Volver</button>
+        <button type="submit" id="btn-confirmar-perfil" class="btn btn-primary">✅ Confirmar cambio</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Número Telefónico</label>
-        <input type="tel" name="telefono" class="form-input" value="{{ usuario.telefono or '' }}"
-          placeholder="Ej. 5512345678">
-      </div>
-
-      <div id="form-error"
-        style="display:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;">
-      </div>
-    </div>
-
-    <div class="perfil-footer">
-      <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="btn btn-outline">🔑 Cambiar contraseña</a>
-      <button type="submit" class="btn btn-primary">💾 Guardar cambios</button>
-    </div>
-  </form>
+    </form>
+  </div>
 </div>
 
 {% block extra_scripts %}

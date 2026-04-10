@@ -1,8 +1,13 @@
 import uuid
 import datetime
 import logging
+import random
+import time
+import json
+import urllib.request
+import urllib.parse
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from auth import roles_required
@@ -11,6 +16,8 @@ from sqlalchemy import text
 from models import db, Usuario, Rol
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
+from extensions import mail
+from flask_mail import Message
 import forms
 
 from compras.routes import compras
@@ -24,6 +31,35 @@ from usuarios.routes import registrar_usuario_bp
 from productos.routes import productos_bp
 from pedidos import pedidos_bp
 from materiasPrimas.routes import materias_primas_bp
+
+# ── Rate limiting de login ────────────────────────────────────────────────────
+_login_attempts = {}   # {key: {'count': int, 'locked_until': float}}
+_LOGIN_MAX_ATTEMPTS = 5
+_LOGIN_LOCK_SECONDS = 180  # 3 minutos
+
+def _get_login_key(scope):
+    return f"{request.remote_addr}:{scope}"
+
+def _check_login_lock(key):
+    """Devuelve (bloqueado, segundos_restantes)."""
+    entry = _login_attempts.get(key)
+    if not entry:
+        return False, 0
+    remaining = entry.get('locked_until', 0) - time.time()
+    if remaining > 0:
+        return True, int(remaining)
+    return False, 0
+
+def _register_login_fail(key):
+    entry = _login_attempts.setdefault(key, {'count': 0, 'locked_until': 0.0})
+    entry['count'] += 1
+    if entry['count'] >= _LOGIN_MAX_ATTEMPTS:
+        entry['locked_until'] = time.time() + _LOGIN_LOCK_SECONDS
+        entry['count'] = 0
+
+def _clear_login_attempts(key):
+    _login_attempts.pop(key, None)
+
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -59,6 +95,7 @@ app.register_blueprint(pd_bp)
 
 db.init_app(app)
 login_manager.init_app(app)
+mail.init_app(app)
 migrate = Migrate(app, db)
 
 def _redirect_por_rol(usuario):
@@ -71,6 +108,11 @@ def _redirect_por_rol(usuario):
     }
     endpoint = destinos.get(clave, 'dashboard')
     return redirect(url_for(endpoint))
+
+@app.context_processor
+def inject_config():
+    return dict(config=app.config)
+
 
 @app.context_processor
 def inject_url_volver():
@@ -93,29 +135,48 @@ def login():
 
     form = forms.LoginForm(request.form)
 
-    if request.method == 'POST' and form.validate():
-        usuario = Usuario.query.filter_by(username=form.usuario.data).first()
+    if request.method == 'POST':
+        key = _get_login_key('admin')
+        is_locked, remaining = _check_login_lock(key)
+        if is_locked:
+            mins = max(1, (remaining + 59) // 60)
+            flash(f'Demasiados intentos fallidos. Intenta de nuevo en {mins} minuto(s).', 'error')
+            return render_template("login.html", form=form)
 
-        if usuario and check_password_hash(usuario.password_hash, form.password.data):
-            if usuario.estatus != 'activo':
-                app.logger.warning('Intento de acceso fallido (cuenta inactiva) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.', 'warning')
+        if form.validate():
+            if not _verificar_recaptcha(request.form.get('g-recaptcha-response', '')):
+                flash('Completa el reCAPTCHA para continuar.', 'error')
                 return render_template("login.html", form=form)
 
-            if usuario.rol and usuario.rol.clave_rol == 'cliente':
-                app.logger.warning('Intento de acceso fallido (area incorrecta) | username: %s | rol: cliente | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                flash('Esta área es exclusiva para empleados. Usa el acceso de clientes.', 'warning')
-                return render_template("login.html", form=form)
+            usuario = Usuario.query.filter_by(username=form.usuario.data).first()
 
-            login_user(usuario)
-            app.logger.info('Acceso exitoso | id: %s | username: %s | rol: %s | fecha: %s', usuario.id_usuario, usuario.username, usuario.rol.clave_rol if usuario.rol else 'N/A', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            usuario.ultimo_login = datetime.datetime.now()
-            db.session.commit()
+            if usuario and check_password_hash(usuario.password_hash, form.password.data):
+                if usuario.estatus != 'activo':
+                    app.logger.warning('Intento de acceso fallido (cuenta inactiva) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.', 'warning')
+                    return render_template("login.html", form=form)
 
-            return _redirect_por_rol(usuario)
-        else:
-            app.logger.warning('Intento de acceso fallido (credenciales incorrectas) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            flash('Usuario o contraseña incorrectos.', 'error')
+                if usuario.rol and usuario.rol.clave_rol == 'cliente':
+                    app.logger.warning('Intento de acceso fallido (area incorrecta) | username: %s | rol: cliente | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    flash('Esta área es exclusiva para empleados. Usa el acceso de clientes.', 'warning')
+                    return render_template("login.html", form=form)
+
+                _clear_login_attempts(key)
+                login_user(usuario)
+                app.logger.info('Acceso exitoso | id: %s | username: %s | rol: %s | fecha: %s', usuario.id_usuario, usuario.username, usuario.rol.clave_rol if usuario.rol else 'N/A', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                usuario.ultimo_login = datetime.datetime.now()
+                db.session.commit()
+
+                return _redirect_por_rol(usuario)
+            else:
+                _register_login_fail(key)
+                app.logger.warning('Intento de acceso fallido (credenciales incorrectas) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                _, remaining2 = _check_login_lock(key)
+                if remaining2 > 0:
+                    mins = max(1, (remaining2 + 59) // 60)
+                    flash(f'Demasiados intentos fallidos. Cuenta bloqueada por {mins} minuto(s).', 'error')
+                else:
+                    flash('Usuario o contraseña incorrectos.', 'error')
 
     return render_template("login.html", form=form)
 
@@ -134,28 +195,222 @@ def login_cliente():
         return redirect(url_for('pedidos.mis_pedidos'))
 
     form = forms.LoginForm(request.form)
-    if request.method == 'POST' and form.validate():
-        usuario = Usuario.query.filter_by(username=form.usuario.data).first()
-        if usuario and check_password_hash(usuario.password_hash, form.password.data):
-            if usuario.estatus != 'activo':
-                app.logger.warning('Intento de acceso cliente fallido (cuenta inactiva) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.', 'error')
+    if request.method == 'POST':
+        key = _get_login_key('cliente')
+        is_locked, remaining = _check_login_lock(key)
+        if is_locked:
+            mins = max(1, (remaining + 59) // 60)
+            flash(f'Demasiados intentos fallidos. Intenta de nuevo en {mins} minuto(s).', 'error')
+            return render_template("login_cliente.html", form=form)
+
+        if form.validate():
+            if not _verificar_recaptcha(request.form.get('g-recaptcha-response', '')):
+                flash('Completa el reCAPTCHA para continuar.', 'error')
                 return render_template("login_cliente.html", form=form)
-            clave = usuario.rol.clave_rol if usuario.rol else ''
-            if clave != 'cliente':
-                app.logger.warning('Intento de acceso cliente fallido (area incorrecta) | username: %s | rol: %s | fecha: %s', form.usuario.data, clave, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                flash('Esta área es exclusiva para clientes.', 'error')
-                return render_template("login_cliente.html", form=form)
-            login_user(usuario)
-            app.logger.info('Acceso cliente exitoso | id: %s | username: %s | fecha: %s', usuario.id_usuario, usuario.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            usuario.ultimo_login = datetime.datetime.now()
-            db.session.commit()
-            return redirect(url_for('pedidos.mis_pedidos'))
-        else:
-            app.logger.warning('Intento de acceso cliente fallido (credenciales incorrectas) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            flash('Usuario o contraseña incorrectos.', 'error')
+
+            usuario = Usuario.query.filter_by(username=form.usuario.data).first()
+            if usuario and check_password_hash(usuario.password_hash, form.password.data):
+                if usuario.estatus != 'activo':
+                    app.logger.warning('Intento de acceso cliente fallido (cuenta inactiva) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    flash('Tu cuenta está inactiva o bloqueada. Contacta al administrador.', 'error')
+                    return render_template("login_cliente.html", form=form)
+                clave = usuario.rol.clave_rol if usuario.rol else ''
+                if clave != 'cliente':
+                    app.logger.warning('Intento de acceso cliente fallido (area incorrecta) | username: %s | rol: %s | fecha: %s', form.usuario.data, clave, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    flash('Esta área es exclusiva para clientes.', 'error')
+                    return render_template("login_cliente.html", form=form)
+                _clear_login_attempts(key)
+                login_user(usuario)
+                app.logger.info('Acceso cliente exitoso | id: %s | username: %s | fecha: %s', usuario.id_usuario, usuario.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                usuario.ultimo_login = datetime.datetime.now()
+                db.session.commit()
+                return redirect(url_for('pedidos.mis_pedidos'))
+            else:
+                _register_login_fail(key)
+                app.logger.warning('Intento de acceso cliente fallido (credenciales incorrectas) | username: %s | fecha: %s', form.usuario.data, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                _, remaining2 = _check_login_lock(key)
+                if remaining2 > 0:
+                    mins = max(1, (remaining2 + 59) // 60)
+                    flash(f'Demasiados intentos fallidos. Cuenta bloqueada por {mins} minuto(s).', 'error')
+                else:
+                    flash('Usuario o contraseña incorrectos.', 'error')
 
     return render_template("login_cliente.html", form=form)
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+def _verificar_recaptcha(token):
+    data = urllib.parse.urlencode({
+        'secret': app.config.get('RECAPTCHA_SECRET_KEY', ''),
+        'response': token,
+    }).encode()
+    req_obj = urllib.request.Request('https://www.google.com/recaptcha/api/siteverify', data=data)
+    try:
+        with urllib.request.urlopen(req_obj, timeout=5) as resp:
+            return json.loads(resp.read().decode()).get('success', False)
+    except Exception:
+        return False
+
+
+def _enviar_codigo(destinatario, codigo, asunto, html_cuerpo):
+    try:
+        msg_mail = Message(asunto, recipients=[destinatario])
+        msg_mail.html = html_cuerpo 
+        mail.send(msg_mail)
+    except Exception as exc:
+        app.logger.error('Error al enviar correo a %s: %s', destinatario, exc)
+
+
+# ── Recuperación de contraseña (clientes) ────────────────────────────────────
+
+@app.route("/cliente/recuperar/solicitar", methods=['POST'])
+def cliente_recuperar_solicitar():
+    recaptcha_token = request.form.get('g-recaptcha-response', '')
+    if not recaptcha_token or not _verificar_recaptcha(recaptcha_token):
+        return jsonify(ok=False, error='Completa el reCAPTCHA para continuar.')
+
+    correo = request.form.get('correo', '').strip().lower()
+    if not correo:
+        return jsonify(ok=False, error='Ingresa tu correo o usuario.')
+
+    usuario = Usuario.query.filter_by(username=correo).first()
+    if not usuario or not (usuario.rol and usuario.rol.clave_rol == 'cliente'):
+        # respuesta genérica para no revelar si el correo existe
+        return jsonify(ok=False, error='No encontramos una cuenta con ese correo.')
+
+    if usuario.estatus != 'activo':
+        return jsonify(ok=False, error='Esta cuenta no está activa.')
+
+    codigo = str(random.randint(100000, 999999))
+    session['_pending_recovery'] = {
+        'id_usuario': usuario.id_usuario,
+        'codigo': codigo,
+        'expiry': time.time() + 600,  # 10 minutos
+    }
+
+    html_recuperacion = generar_html_correo(
+        nombre=usuario.nombre_completo,
+        titulo="Recuperación de Contraseña",
+        mensaje_principal="Has solicitado recuperar tu contraseña en el portal de clientes de Dulce Migaja.",
+        codigo=codigo,
+        mensaje_secundario="Si no solicitaste esto, puedes ignorar este mensaje de forma segura. Tu cuenta está protegida."
+    )
+
+    _enviar_codigo(
+        usuario.username,
+        codigo,
+        'Código de recuperación – Dulce Migaja',
+        html_recuperacion
+    )
+    app.logger.info('Código de recuperación enviado | id: %s | username: %s | fecha: %s',
+                    usuario.id_usuario, usuario.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    return jsonify(ok=True)
+
+
+@app.route("/cliente/recuperar/cambiar", methods=['POST'])
+def cliente_recuperar_cambiar():
+    import re as _re_route
+    pending = session.get('_pending_recovery')
+    if not pending:
+        return jsonify(ok=False, error='Sesión expirada. Vuelve a solicitar el código.')
+
+    if time.time() > pending.get('expiry', 0):
+        session.pop('_pending_recovery', None)
+        return jsonify(ok=False, error='El código expiró. Vuelve a solicitar uno nuevo.')
+
+    codigo_ingresado = request.form.get('codigo', '').strip()
+    nueva_pwd        = request.form.get('nueva_password', '')
+    confirmar_pwd    = request.form.get('confirmar_password', '')
+
+    if codigo_ingresado != pending['codigo']:
+        pending['intentos'] = pending.get('intentos', 0) + 1
+        if pending['intentos'] >= 5:
+            session.pop('_pending_recovery', None)
+            return jsonify(ok=False, error='Demasiados intentos incorrectos. El código ha expirado. Solicita uno nuevo.')
+        session['_pending_recovery'] = pending
+        return jsonify(ok=False, error='Código incorrecto.')
+
+    PWD_RE = _re_route.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,}$')
+    if not PWD_RE.match(nueva_pwd):
+        return jsonify(ok=False, error='La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).')
+
+    if nueva_pwd != confirmar_pwd:
+        return jsonify(ok=False, error='Las contraseñas no coinciden.')
+
+    try:
+        pwd_hash = generate_password_hash(nueva_pwd)
+        db.session.execute(
+            text("CALL sp_cambiar_password(:id, :pwd_hash)"),
+            {'id': pending['id_usuario'], 'pwd_hash': pwd_hash}
+        )
+        db.session.commit()
+        session.pop('_pending_recovery', None)
+        app.logger.info('Contraseña recuperada | id: %s | fecha: %s',
+                        pending['id_usuario'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        flash('Contraseña actualizada correctamente. Ya puedes iniciar sesión.', 'success')
+        return jsonify(ok=True, redirect=url_for('login_cliente'))
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error('Error al cambiar contraseña (recuperación) | id: %s | error: %s', pending['id_usuario'], e)
+        return jsonify(ok=False, error='Error al actualizar la contraseña. Intenta de nuevo.')
+
+
+# ── Registro de cliente ───────────────────────────────────────────────────────
+
+@app.route("/cliente/registro/verificar", methods=['POST'])
+def registrar_cliente_verificar():
+    if current_user.is_authenticated:
+        return jsonify(ok=False, error='Ya tienes sesión iniciada.')
+
+    # Verificar reCAPTCHA
+    recaptcha_token = request.form.get('g-recaptcha-response', '')
+    if not recaptcha_token:
+        return jsonify(ok=False, error='Por favor completa el reCAPTCHA.')
+    if not _verificar_recaptcha(recaptcha_token):
+        return jsonify(ok=False, error='Verificación reCAPTCHA fallida. Intenta de nuevo.')
+
+    form = forms.RegistroClienteForm(request.form)
+    if not form.validate():
+        errores = {}
+        for field in form:
+            if field.errors:
+                errores[field.name] = field.errors[0]
+        first_error = next(iter(errores.values()), 'Revisa los datos del formulario.')
+        return jsonify(ok=False, error=first_error, errores=errores)
+
+    correo = form.username.data.strip().lower()
+    # Verificar que el correo no exista ya
+    if Usuario.query.filter_by(username=correo).first():
+        return jsonify(ok=False, error='Este correo ya está registrado. Intenta iniciar sesión.')
+
+    codigo = str(random.randint(100000, 999999))
+    session['_pending_registro_cliente'] = {
+        'nombre':   form.nombre.data.strip(),
+        'telefono': form.telefono.data.strip(),
+        'username': correo,
+        'pwd_hash': generate_password_hash(form.password.data),
+        'codigo':   codigo,
+        'expiry':   time.time() + 600,
+    }
+
+    html_registro = generar_html_correo(
+        nombre=form.nombre.data.strip(),
+        titulo="Portal de Clientes",
+        mensaje_principal="¡Estamos emocionados de que te unas! Para finalizar la creación de tu cuenta en Dulce Migaja, utiliza el siguiente código.",
+        codigo=codigo,
+        mensaje_secundario="Si no intentaste registrarte, ignora este mensaje y no compartas el código con nadie."
+    )
+
+    _enviar_codigo(
+        correo,
+        codigo,
+        'Código de verificación – Dulce Migaja',
+        html_registro
+    )
+    app.logger.info('Código de registro enviado | username: %s | fecha: %s',
+                    correo, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    return jsonify(ok=True)
 
 
 @app.route("/cliente/registro", methods=['GET', 'POST'])
@@ -164,33 +419,55 @@ def registrar_cliente():
         return redirect(url_for('pedidos.mis_pedidos'))
 
     form = forms.RegistroClienteForm(request.form)
-    if request.method == 'POST' and form.validate():
+
+    if request.method == 'POST':
+        pending = session.get('_pending_registro_cliente')
+        if not pending:
+            return jsonify(ok=False, error='Sesión expirada. Vuelve a completar el formulario.')
+
+        if time.time() > pending.get('expiry', 0):
+            session.pop('_pending_registro_cliente', None)
+            return jsonify(ok=False, error='El código expiró. Vuelve a completar el formulario.')
+
+        codigo_ingresado = request.form.get('codigo', '').strip()
+        if codigo_ingresado != pending['codigo']:
+            pending['intentos'] = pending.get('intentos', 0) + 1
+            if pending['intentos'] >= 5:
+                session.pop('_pending_registro_cliente', None)
+                return jsonify(ok=False, error='Demasiados intentos incorrectos. El código ha expirado. Vuelve a completar el formulario.')
+            session['_pending_registro_cliente'] = pending
+            return jsonify(ok=False, error='Código incorrecto.')
+
         try:
             db.session.execute(
                 text("CALL sp_registrar_cliente(:uuid, :nombre, :telefono, :username, :pwd_hash)"),
                 {
                     'uuid':     str(uuid.uuid4()),
-                    'nombre':   form.nombre.data.strip(),
-                    'telefono': form.telefono.data.strip(),
-                    'username': form.username.data.strip(),
-                    'pwd_hash': generate_password_hash(form.password.data),
+                    'nombre':   pending['nombre'],
+                    'telefono': pending['telefono'],
+                    'username': pending['username'],
+                    'pwd_hash': pending['pwd_hash'],
                 }
             )
             db.session.commit()
-            app.logger.info('Nuevo cliente registrado | username: %s | nombre: %s | fecha: %s', form.username.data.strip(), form.nombre.data.strip(), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            session.pop('_pending_registro_cliente', None)
+            app.logger.info('Nuevo cliente registrado | username: %s | nombre: %s | fecha: %s',
+                            pending['username'], pending['nombre'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('¡Cuenta creada exitosamente! Ya puedes iniciar sesión.', 'success')
-            return redirect(url_for('login_cliente'))
+            return jsonify(ok=True, redirect=url_for('login_cliente'))
         except Exception as e:
             db.session.rollback()
             orig = getattr(e, 'orig', None)
             code = orig.args[0] if orig and hasattr(orig, 'args') and len(orig.args) >= 1 else None
             msg  = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
             if code == 1062 or 'ya esta en uso' in msg or 'ya está en uso' in msg:
-                app.logger.warning('Intento de registro cliente con usuario ya existente | username: %s | fecha: %s', form.username.data.strip(), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                flash('El nombre de usuario ya está en uso. Elige otro.', 'error')
+                app.logger.warning('Intento de registro cliente con usuario ya existente | username: %s | fecha: %s',
+                                   pending['username'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                return jsonify(ok=False, error='El correo ya está en uso. Elige otro.')
             else:
-                app.logger.error('Error general al registrar cliente | username: %s | error: %s | fecha: %s', form.username.data.strip(), msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                flash(msg, 'error')
+                app.logger.error('Error general al registrar cliente | username: %s | error: %s | fecha: %s',
+                                 pending['username'], msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                return jsonify(ok=False, error=msg)
 
     return render_template("usuarios/registrar_cliente.html", form=form)
 
@@ -527,6 +804,55 @@ def api_listar_mermas():
             'success': False,
             'error': str(e)
         }), 500
+    
+def generar_html_correo(nombre, titulo, mensaje_principal, codigo, mensaje_secundario):
+    return f"""
+    <!DOCTYPE html>
+    <html lang="es">
+    <body style="background-color: #fdf6ec; margin: 0; padding: 40px 20px; font-family: 'Lato', Arial, sans-serif; color: #3b2a1a;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fdf6ec;">
+        <tr>
+          <td align="center">
+            <!-- Tarjeta Principal -->
+            <table width="100%" max-width="500" cellpadding="0" cellspacing="0" border="0" style="max-width: 500px; background-color: #ffffff; border: 1px solid #e8d5b7; border-radius: 20px; box-shadow: 0 12px 40px rgba(107, 68, 35, 0.12); margin: 0 auto;">
+              <tr>
+                <td align="center" style="padding: 40px 30px;">
+                  
+                  <!-- Logo / Header -->
+                  <div style="font-size: 40px; margin-bottom: 10px;">🥐</div>
+                  <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #6b4423; font-size: 26px; margin: 0 0 5px 0; font-weight: 700; line-height: 1.1;">Dulce Migaja</h1>
+                  <div style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c8a97e; margin-bottom: 30px;">{titulo}</div>
+
+                  <!-- Mensaje -->
+                  <h2 style="font-family: 'Playfair Display', Georgia, serif; color: #6b4423; font-size: 22px; margin: 0 0 15px 0;">¡Hola, {nombre}!</h2>
+                  <p style="font-size: 15px; line-height: 1.7; color: #7a5c3a; margin: 0 0 25px 0;">{mensaje_principal}</p>
+
+                  <!-- Caja del Código -->
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5ead8; border: 1px dashed #9c6f3e; border-radius: 12px; margin-bottom: 25px;">
+                    <tr>
+                      <td align="center" style="padding: 20px;">
+                        <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9c6f3e; margin: 0 0 10px 0; font-weight: 700;">Tu código de verificación</p>
+                        <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #c0522a; margin: 0;">{codigo}</div>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <p style="font-size: 14px; color: #9c7a55; margin: 0 0 30px 0;">Este código es válido por <strong>10 minutos</strong>.</p>
+
+                  <!-- Footer -->
+                  <div style="border-top: 1px solid #e8d5b7; padding-top: 20px; font-size: 12px; color: #c8a97e; line-height: 1.5;">
+                    <p style="margin: 0;">{mensaje_secundario}</p>
+                  </div>
+
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+    """
     
 @app.route("/api/mermas/estadisticas", methods=['GET'])
 @login_required
