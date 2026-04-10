@@ -4,6 +4,14 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/login_cliente.css') }}">
+<script>
+  var _rcLogin, _rcForgot;
+  function onRecaptchaReady() {
+    _rcLogin = grecaptcha.render('recaptcha-login', { sitekey: '{{ config.RECAPTCHA_SITE_KEY }}' });
+    _rcForgot = grecaptcha.render('recaptcha-forgot', { sitekey: '{{ config.RECAPTCHA_SITE_KEY }}' });
+  }
+</script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaReady&render=explicit" async defer></script>
 {% endblock %}
 
 <div class="login-page">
@@ -50,38 +58,124 @@
       <div class="card-greeting">¡Bienvenido!</div>
       <div class="card-sub">Ingresa a tu cuenta de cliente</div>
 
-      <form action="" method="POST" novalidate>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <!-- ── SECCIÓN 1: Formulario de login ── -->
+      <div id="sec-login">
+        <form action="" method="POST" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="login-form-group">
+            <label class="login-label">Usuario</label>
+            <div class="login-input-wrap">
+              <span class="l-icon">👤</span>
+              {{ form.usuario(class="", placeholder="Tu correo electrónico", autocomplete="username") }}
+            </div>
+            {% if form.usuario.errors %}
+              {% for e in form.usuario.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+            {% endif %}
+          </div>
+
+          <div class="login-form-group">
+            <label class="login-label">Contraseña</label>
+            <div class="login-input-wrap">
+              <span class="l-icon">🔒</span>
+              {{ form.password(class="", placeholder="••••••••", autocomplete="current-password") }}
+            </div>
+            {% if form.password.errors %}
+              {% for e in form.password.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
+            {% endif %}
+          </div>
+
+          <div style="display:flex;justify-content:center;margin:14px 0 4px;">
+            <div id="recaptcha-login"></div>
+          </div>
+          <div id="login-captcha-error" style="display:none;color:#9c3a1a;font-size:0.82rem;text-align:center;margin-bottom:6px;"></div>
+          <button type="submit" class="btn-login">Iniciar Sesión →</button>
+        </form>
+
+        <div style="text-align:center; margin-top:10px;">
+          <a href="#" id="link-forgot" style="font-size:0.85rem; color:#a0522d; text-decoration:none;">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <div class="login-footer-link">
+          ¿No tienes cuenta?
+          <a href="{{ url_for('registrar_cliente') }}">Regístrate aquí</a>
+        </div>
+      </div>
+
+      <!-- ── SECCIÓN 2: Recuperar contraseña — Paso 1 ── -->
+      <div id="sec-forgot-1" style="display:none;">
+        <div class="card-sub" style="margin-bottom:16px;">Recuperar contraseña — Paso 1 de 2</div>
+        <p style="font-size:0.88rem; color:#555; margin-bottom:16px;">
+          Ingresa el correo con el que te registraste y te enviaremos un código de verificación.
+        </p>
+
+        <div id="forgot1-error" style="display:none; color:#9c3a1a; font-size:0.85rem; margin-bottom:12px; padding:8px 10px; background:#fff0eb; border-radius:6px; border-left:3px solid #c0392b;"></div>
 
         <div class="login-form-group">
-          <label class="login-label">Usuario</label>
+          <label class="login-label">Correo / Usuario</label>
           <div class="login-input-wrap">
-            <span class="l-icon">👤</span>
-            {{ form.usuario(class="", placeholder="Tu nombre de usuario", autocomplete="username") }}
+            <span class="l-icon">✉️</span>
+            <input type="email" id="forgot-correo" class="" placeholder="tu@correo.com" autocomplete="email">
           </div>
-          {% if form.usuario.errors %}
-            {% for e in form.usuario.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
-          {% endif %}
+        </div>
+
+        <div style="display:flex;justify-content:center;margin:14px 0 4px;">
+          <div id="recaptcha-forgot"></div>
+        </div>
+        <div id="forgot-captcha-error" style="display:none;color:#9c3a1a;font-size:0.82rem;text-align:center;margin-bottom:6px;"></div>
+
+        <button type="button" id="btn-enviar-codigo" class="btn-login">Enviar Código →</button>
+
+        <div style="text-align:center; margin-top:12px;">
+          <a href="#" id="link-volver-login" style="font-size:0.85rem; color:#a0522d; text-decoration:none;">← Volver al inicio de sesión</a>
+        </div>
+      </div>
+
+      <!-- ── SECCIÓN 3: Recuperar contraseña — Paso 2 ── -->
+      <div id="sec-forgot-2" style="display:none;">
+        <div class="card-sub" style="margin-bottom:16px;">Recuperar contraseña — Paso 2 de 2</div>
+        <p id="forgot2-desc" style="font-size:0.88rem; color:#555; margin-bottom:16px;">
+          Ingresa el código de 6 dígitos que enviamos a tu correo y tu nueva contraseña.
+        </p>
+
+        <div id="forgot2-error" style="display:none; color:#9c3a1a; font-size:0.85rem; margin-bottom:12px; padding:8px 10px; background:#fff0eb; border-radius:6px; border-left:3px solid #c0392b;"></div>
+
+        <div class="login-form-group">
+          <label class="login-label">Código de verificación</label>
+          <div class="login-input-wrap">
+            <span class="l-icon">🔑</span>
+            <input type="text" id="forgot-codigo" class="" placeholder="123456" maxlength="6" inputmode="numeric">
+          </div>
         </div>
 
         <div class="login-form-group">
-          <label class="login-label">Contraseña</label>
+          <label class="login-label">Nueva contraseña</label>
           <div class="login-input-wrap">
             <span class="l-icon">🔒</span>
-            {{ form.password(class="", placeholder="••••••••", autocomplete="current-password") }}
+            <input type="password" id="forgot-nueva-pwd" class="" placeholder="Mín. 8 caracteres" autocomplete="new-password">
           </div>
-          {% if form.password.errors %}
-            {% for e in form.password.errors %}<div class="field-error">⚠ {{ e }}</div>{% endfor %}
-          {% endif %}
         </div>
 
-        <button type="submit" class="btn-login">Iniciar Sesión →</button>
-      </form>
+        <div class="login-form-group">
+          <label class="login-label">Confirmar contraseña</label>
+          <div class="login-input-wrap">
+            <span class="l-icon">🔒</span>
+            <input type="password" id="forgot-confirmar-pwd" class="" placeholder="Repite tu contraseña" autocomplete="new-password">
+          </div>
+          <span id="forgot-match-msg" style="font-size:0.82rem;"></span>
+        </div>
 
-      <div class="login-footer-link">
-        ¿No tienes cuenta?
-        <a href="{{ url_for('registrar_cliente') }}">Regístrate aquí</a>
+        <div style="font-size:0.8rem; color:#666; background:#f9f5f0; padding:8px 10px; border-radius:6px; margin-bottom:12px;">
+          Mín. 8 caracteres, una mayúscula, un número y un carácter especial <strong>(@$!%*?&_)</strong>
+        </div>
+
+        <button type="button" id="btn-cambiar-pwd" class="btn-login">Actualizar Contraseña →</button>
+
+        <div style="text-align:center; margin-top:12px;">
+          <a href="#" id="link-volver-forgot1" style="font-size:0.85rem; color:#a0522d; text-decoration:none;">← Volver al paso anterior</a>
+        </div>
       </div>
+
     </div>
   </div>
 </div>

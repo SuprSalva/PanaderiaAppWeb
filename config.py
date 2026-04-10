@@ -34,3 +34,13 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = _WEB_URI
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'dulcemigajainfo@gmail.com'
+    MAIL_PASSWORD = 'fhlg whdn juca acpd'
+    MAIL_DEFAULT_SENDER = ('Dulce Migaja', 'dulcemigajainfo@gmail.com')
+
+    RECAPTCHA_SITE_KEY   = '6Ld6HLAsAAAAANxYuQKKmqGtSt3MfYSwuybC4AO-'  # Google test key
+    RECAPTCHA_SECRET_KEY = '6Ld6HLAsAAAAABTmV-h4-sv1F_p6nE3dp7rxeZ04'  # Google test key

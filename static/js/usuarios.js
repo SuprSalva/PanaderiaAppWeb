@@ -20,7 +20,12 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   if (modal) modal.addEventListener('click', e => e.stopPropagation());
 });
 
+let _editUserId    = null;
+let _originalEmail = null;
+
 function openEdit(idUsuario, nombre, usuario, idRol, estatus) {
+  _editUserId    = idUsuario;
+  _originalEmail = usuario;
   document.getElementById('edit-nombre').value    = nombre;
   document.getElementById('edit-usuario').value   = usuario;
   document.getElementById('edit-rol').value       = idRol;
@@ -124,9 +129,11 @@ function abrirModalNuevo() {
   openModal('modal-add');
 }
 
-/* Validar form de NUEVO usuario */
-document.querySelector('#modal-add form').addEventListener('submit', function(e) {
+/* Validar form de NUEVO usuario — envía a verificar-email y abre modal de código */
+document.getElementById('form-add').addEventListener('submit', function(e) {
+  e.preventDefault();
   limpiarErrorModal('modal-add');
+
   const nombre    = this.nombre.value.trim();
   const username  = this.username.value.trim();
   const id_rol    = this['id_rol'].value;
@@ -134,17 +141,88 @@ document.querySelector('#modal-add form').addEventListener('submit', function(e)
   const confirmar = this.confirmar.value;
 
   if (!nombre || !username || !id_rol || id_rol === '0') {
-    e.preventDefault();
     mostrarErrorModal('modal-add', 'Todos los campos son obligatorios.');
     return;
   }
   const err = validarPassword(pwd, confirmar, true);
-  if (err) { e.preventDefault(); mostrarErrorModal('modal-add', err); }
+  if (err) { mostrarErrorModal('modal-add', err); return; }
+
+  const btn = this.querySelector('[type=submit]');
+  btn.disabled = true;
+  btn.textContent = 'Enviando código…';
+
+  const data = new FormData(this);
+
+  fetch('/usuarios/verificar-email', { method: 'POST', body: data })
+    .then(r => r.json())
+    .then(res => {
+      if (res.ok) {
+        closeModal('modal-add');
+        document.getElementById('verify-codigo').value = '';
+        document.getElementById('form-verify').action = '/usuarios/crear';
+        document.getElementById('verify-desc').textContent = 'Se envió un código de 6 dígitos al correo del nuevo usuario. Ingrésalo a continuación para confirmar y crear la cuenta.';
+        document.getElementById('verify-btn').textContent = '✅ Confirmar y Crear';
+        openModal('modal-verify');
+      } else {
+        mostrarErrorModal('modal-add', res.error || 'Error al enviar el código.');
+      }
+    })
+    .catch(() => mostrarErrorModal('modal-add', 'Error de red. Intenta de nuevo.'))
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<span>Guardar Usuario</span>';
+    });
 });
 
-/* Validar form de EDITAR usuario */
+/* Verificar código — mantiene el modal abierto si falla */
+document.getElementById('form-verify').addEventListener('submit', function(e) {
+  e.preventDefault();
+  limpiarErrorModal('modal-verify');
+
+  const codigo = document.getElementById('verify-codigo').value.trim();
+  if (!codigo) {
+    mostrarErrorModal('modal-verify', 'Ingresa el código de 6 dígitos.');
+    return;
+  }
+
+  const btn = this.querySelector('[type=submit]');
+  btn.disabled = true;
+  btn.textContent = 'Verificando…';
+
+  const data = new FormData(this);
+
+  fetch(this.action, { method: 'POST', body: data })
+    .then(r => r.json())
+    .then(res => {
+      if (res.ok) {
+        closeModal('modal-verify');
+        window.location.href = '/usuarios';
+      } else {
+        // Si el código expiró por demasiados intentos, cerrar modal y mostrar aviso
+        if (res.error && res.error.indexOf('Demasiados') !== -1) {
+          closeModal('modal-verify');
+          closeModal('modal-add');
+          closeModal('modal-edit');
+          alert(res.error);
+        } else {
+          mostrarErrorModal('modal-verify', res.error || 'Error al verificar.');
+        }
+        btn.disabled = false;
+        btn.textContent = '✅ Confirmar y Crear';
+      }
+    })
+    .catch(() => {
+      mostrarErrorModal('modal-verify', 'Error de red. Intenta de nuevo.');
+      btn.disabled = false;
+      btn.textContent = '✅ Confirmar y Crear';
+    });
+});
+
+/* Validar form de EDITAR usuario — con verificación si el correo cambia */
 document.getElementById('form-edit').addEventListener('submit', function(e) {
+  e.preventDefault();
   limpiarErrorModal('modal-edit');
+
   const nombre    = this.nombre.value.trim();
   const username  = this.username.value.trim();
   const id_rol    = this['id_rol'].value;
@@ -152,16 +230,64 @@ document.getElementById('form-edit').addEventListener('submit', function(e) {
   const confirmar = this.confirmar.value;
 
   if (!nombre || !username || !id_rol) {
-    e.preventDefault();
-    mostrarErrorModal('modal-edit', 'Nombre, usuario y rol son obligatorios.');
+    mostrarErrorModal('modal-edit', 'Nombre, correo y rol son obligatorios.');
     return;
   }
   const err = validarPassword(pwd, confirmar, false);
-  if (err) { e.preventDefault(); mostrarErrorModal('modal-edit', err); }
+  if (err) { mostrarErrorModal('modal-edit', err); return; }
+
+  const emailCambio = username !== _originalEmail;
+  const btn = this.querySelector('[type=submit]');
+  btn.disabled = true;
+  btn.textContent = emailCambio ? 'Enviando código…' : 'Guardando…';
+
+  const data = new FormData(this);
+
+  if (emailCambio) {
+    // Nuevo correo → verificar antes de guardar
+    fetch('/usuarios/verificar-email-editar/' + _editUserId, { method: 'POST', body: data })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok) {
+          closeModal('modal-edit');
+          document.getElementById('verify-codigo').value = '';
+          document.getElementById('form-verify').action = '/usuarios/editar/' + _editUserId;
+          document.getElementById('verify-desc').textContent = 'Se envió un código de 6 dígitos al nuevo correo. Ingrésalo a continuación para confirmar y actualizar la cuenta.';
+          document.getElementById('verify-btn').textContent = '✅ Confirmar y Actualizar';
+          openModal('modal-verify');
+        } else {
+          mostrarErrorModal('modal-edit', res.error || 'Error al enviar el código.');
+        }
+      })
+      .catch(() => mostrarErrorModal('modal-edit', 'Error de red. Intenta de nuevo.'))
+      .finally(() => {
+        btn.disabled = false;
+        btn.textContent = 'Guardar Cambios';
+      });
+  } else {
+    // Correo sin cambios → guardar directo via fetch
+    fetch('/usuarios/editar/' + _editUserId, { method: 'POST', body: data })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok) {
+          closeModal('modal-edit');
+          window.location.href = '/usuarios';
+        } else {
+          mostrarErrorModal('modal-edit', res.error || 'Error al guardar.');
+          btn.disabled = false;
+          btn.textContent = 'Guardar Cambios';
+        }
+      })
+      .catch(() => {
+        mostrarErrorModal('modal-edit', 'Error de red. Intenta de nuevo.');
+        btn.disabled = false;
+        btn.textContent = 'Guardar Cambios';
+      });
+  }
 });
 
 /* Limpiar errores al hacer clic en el backdrop */
-['modal-add', 'modal-edit'].forEach(id => {
+['modal-add', 'modal-edit', 'modal-verify'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) limpiarErrorModal(id);
   });

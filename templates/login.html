@@ -3,6 +3,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %}
 
 {% block container %}
@@ -104,6 +105,10 @@
           {% endif %}
         </div>
 
+        <div style="display:flex;justify-content:center;margin:14px 0 4px;">
+          <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
+        </div>
+        <div id="login-captcha-error" style="display:none;color:#9c3a1a;font-size:0.82rem;text-align:center;margin-bottom:6px;"></div>
         <button type="submit" class="btn-login">
                   Iniciar Sesión <animated-icons
           src="https://animatedicons.co/get-icon?name=login&style=minimalistic&token=e611dfb8-fad8-4fd7-80da-af68bebdafb8"

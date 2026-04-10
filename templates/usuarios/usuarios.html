@@ -72,7 +72,7 @@
       height="30"
       width="30"
     ></animated-icons></span>
-    <input type="text" placeholder="Buscar por nombre, usuario o rol…" id="searchInput" oninput="filterTable()">
+    <input type="text" placeholder="Buscar por nombre, correo o rol…" id="searchInput" oninput="filterTable()">
   </div>
   <select class="filter-select" id="filterRol" onchange="filterTable()">
     <option value="">Todos los roles</option>
@@ -94,7 +94,7 @@
     <thead>
       <tr>
         <th>#</th>
-        <th>Usuario</th>
+        <th>Correo / Usuario</th>
         <th>Rol</th>
         <th>Estatus</th>
         <th>Último Acceso</th>
@@ -123,7 +123,7 @@
             <div class="user-avatar-sm" style="background:{{ avatar_color }}">{{ iniciales | upper }}</div>
             <div>
               <div class="user-fullname">{{ u.nombre_completo }}</div>
-              <div class="user-username">@{{ u.username }}</div>
+              <div class="user-username">{{ u.username }}</div>
             </div>
           </div>
         </td>
@@ -199,7 +199,7 @@
       ></animated-icons> Nuevo Usuario</h2>
       <button type="button" class="modal-close" onclick="closeModal('modal-add')">✕</button>
     </div>
-    <form method="POST" action="{{ url_for('registrar_usuario.crear_usuario') }}" novalidate>
+    <form id="form-add" method="POST" action="{{ url_for('registrar_usuario.crear_usuario') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <div class="form-row cols-2">
@@ -208,9 +208,9 @@
             <input type="text" name="nombre" class="form-input" placeholder="Ej. Ana Martínez Ruiz" required>
           </div>
           <div class="form-group">
-            <label class="form-label">Usuario</label>
-            <input type="text" name="username" class="form-input" placeholder="Ej. anamartinez" required>
-            <span class="form-hint">Sin espacios ni caracteres especiales</span>
+            <label class="form-label">Correo Electrónico</label>
+            <input type="email" name="username" class="form-input" placeholder="Ej. ana.martinez@correo.com" required>
+            <span class="form-hint">Se usará como identificador de acceso</span>
           </div>
           <div class="form-group">
             <label class="form-label">Rol</label>
@@ -269,7 +269,7 @@
       ></animated-icons> Editar Usuario</h2>
       <button type="button" class="modal-close" onclick="closeModal('modal-edit')">✕</button>
     </div>
-    <form id="form-edit" method="POST" novalidate>
+    <form id="form-edit" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <div class="form-row cols-2">
@@ -278,8 +278,8 @@
             <input type="text" name="nombre" class="form-input" id="edit-nombre" required>
           </div>
           <div class="form-group">
-            <label class="form-label">Usuario</label>
-            <input type="text" name="username" class="form-input" id="edit-usuario" required>
+            <label class="form-label">Correo Electrónico</label>
+            <input type="email" name="username" class="form-input" id="edit-usuario" required>
           </div>
           <div class="form-group">
             <label class="form-label">Rol</label>
@@ -343,6 +343,37 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button>
         <button type="submit" class="btn btn-danger" id="delete-confirm-btn">🚫 Desactivar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: VERIFICAR CORREO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-verify">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h2>✉️ Verificar Correo</h2>
+      <button type="button" class="modal-close" onclick="closeModal('modal-verify')">✕</button>
+    </div>
+    <form id="form-verify" method="POST" action="{{ url_for('registrar_usuario.crear_usuario') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-body">
+        <p id="verify-desc" style="margin-bottom:16px;color:var(--brown-lt);font-size:14px;">
+          Se envió un código de 6 dígitos al correo del nuevo usuario.
+          Ingrésalo a continuación para confirmar y crear la cuenta.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Código de verificación</label>
+          <input type="text" name="codigo" id="verify-codigo" class="form-input"
+                 placeholder="Ej. 482917" maxlength="6" autocomplete="off" required
+                 style="letter-spacing:6px;font-size:22px;text-align:center;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-verify')">Cancelar</button>
+        <button type="submit" id="verify-btn" class="btn btn-primary">✅ Confirmar y Crear</button>
       </div>
     </form>
   </div>

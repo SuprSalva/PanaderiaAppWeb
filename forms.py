@@ -6,7 +6,7 @@ from wtforms import (
     TextAreaField, DecimalField, IntegerField, HiddenField,
     FieldList, FormField, validators, BooleanField
 )
-from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length
+from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length, Email
 
 _USR_PWD_RE = _re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,}$')
 
@@ -53,7 +53,7 @@ class CompraForm(Form):
 class RegistroClienteForm(Form):
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
     telefono  = StringField('Teléfono', [DataRequired(message='El teléfono es obligatorio.'), Length(max=20, message='El teléfono no puede exceder 20 caracteres.')])
-    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    username  = StringField('Correo Electrónico', [DataRequired(message='El correo es obligatorio.'), Email(message='Introduce un correo electrónico válido.'), Length(max=120, message='El correo no puede superar 120 caracteres.')])
     password  = PasswordField('Contraseña', [DataRequired(message='La contraseña es obligatoria.')])
     confirmar = PasswordField('Confirmar Contraseña', [DataRequired(message='Confirma la contraseña.')])
 
@@ -68,7 +68,7 @@ class RegistroClienteForm(Form):
 
 class CrearUsuarioForm(Form):
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
-    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    username  = StringField('Correo Electrónico', [DataRequired(message='El correo es obligatorio.'), Email(message='Introduce un correo electrónico válido.'), Length(max=120, message='El correo no puede superar 120 caracteres.')])
     id_rol    = SelectField('Rol', coerce=int, validators=[NumberRange(min=1, message='Selecciona un rol.')])
     password  = PasswordField('Contraseña', [DataRequired(message='La contraseña es obligatoria.')])
     confirmar = PasswordField('Confirmar Contraseña', [DataRequired(message='Confirma la contraseña.')])
@@ -85,7 +85,7 @@ class CrearUsuarioForm(Form):
 
 class EditarUsuarioForm(Form):
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
-    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    username  = StringField('Correo Electrónico', [DataRequired(message='El correo es obligatorio.'), Email(message='Introduce un correo electrónico válido.'), Length(max=120, message='El correo no puede superar 120 caracteres.')])
     id_rol    = SelectField('Rol', coerce=int, validators=[NumberRange(min=1, message='Selecciona un rol.')])
     password  = PasswordField('Contraseña', [Optional()])
     confirmar = PasswordField('Confirmar Contraseña', [Optional()])
