@@ -2,13 +2,89 @@ import re as _re
 
 from flask_wtf import FlaskForm
 from wtforms import (
-    Form, StringField, PasswordField, SelectField,
+    Form, StringField, PasswordField, SelectField, FileField,
     TextAreaField, DecimalField, IntegerField, HiddenField,
     FieldList, FormField, validators, BooleanField
 )
 from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length
 
+import io
+import os
+
 _USR_PWD_RE = _re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,}$')
+_IMG_EXTENSIONES = {'.jpg', '.jpeg', '.png', '.webp'}
+_IMG_MAX_BYTES   = 3 * 1024 * 1024   # 3 MB
+_IMG_MAGIC: list = [
+    (b'\xff\xd8\xff', None),                  
+    (b'\x89PNG\r\n\x1a\n', None),             
+    (b'RIFF', b'WEBP'),                      
+]
+
+def _validar_imagen(form, field):
+    from PIL import Image, UnidentifiedImageError
+    from werkzeug.utils import secure_filename
+ 
+    archivo = field.data
+    if not archivo or not getattr(archivo, 'filename', ''):
+        return                   
+ 
+    nombre_seguro = secure_filename(archivo.filename or '')
+    if not nombre_seguro:
+        raise ValidationError('Nombre de archivo inválido.')
+ 
+    ext = os.path.splitext(nombre_seguro)[1].lower()
+    if ext not in _IMG_EXTENSIONES:
+        raise ValidationError(
+            f'Solo se permiten imágenes JPG, PNG o WebP '
+            f'(recibido: "{ext or "sin extensión"}").'
+        )
+ 
+    archivo.stream.seek(0)
+    contenido = archivo.stream.read()
+    archivo.stream.seek(0)
+ 
+    if len(contenido) > _IMG_MAX_BYTES:
+        mb = len(contenido) / (1024 * 1024)
+        raise ValidationError(f'La imagen no puede superar 3 MB (recibidos {mb:.1f} MB).')
+ 
+    # Magic bytes
+    coincide = False
+    for magic_inicio, magic_riff in _IMG_MAGIC:
+        if contenido[:len(magic_inicio)] == magic_inicio:
+            if magic_riff is None:
+                coincide = True
+                coincide = (contenido[8:12] == magic_riff)
+            break
+    if not coincide:
+        raise ValidationError(
+            'El archivo no tiene firma de imagen válida. '
+            'Asegúrate de subir un JPG, PNG o WebP real.'
+        )
+ 
+    try:
+        img = Image.open(io.BytesIO(contenido))
+        img.verify()
+    except (UnidentifiedImageError, Exception):
+        raise ValidationError(
+            'No se pudo verificar la imagen. El archivo podría estar dañado o '
+            'no ser una imagen real.'
+        )
+ 
+ 
+class ProductoForm(Form):
+    nombre = StringField('Nombre del Producto', [
+        validators.DataRequired(message='El nombre es obligatorio.'),
+        validators.Length(max=120, message='Máximo 120 caracteres.'),
+    ])
+    descripcion = TextAreaField('Descripción', [
+        Optional(),
+        validators.Length(max=2000),
+    ])
+    precio_venta = DecimalField('Precio de Venta ($)', [
+        validators.DataRequired(message='El precio de venta es obligatorio.'),
+        NumberRange(min=0.01, message='El precio debe ser mayor a 0.'),
+    ], places=2)
+    imagen = FileField('Imagen del Producto', validators=[_validar_imagen])
 
 
 class LoginForm(Form):
@@ -126,20 +202,6 @@ class RecetaForm(Form):
         NumberRange(min=0, message="El precio no puede ser negativo."),
     ], places=2)
 
-
-class ProductoForm(Form):
-    nombre = StringField('Nombre del Producto', [
-        validators.DataRequired(message='El nombre es obligatorio.'),
-        validators.Length(max=120, message='Máximo 120 caracteres.'),
-    ])
-    descripcion = TextAreaField('Descripción', [
-        Optional(),
-        validators.Length(max=2000),
-    ])
-    precio_venta = DecimalField('Precio de Venta ($)', [
-        validators.DataRequired(message='El precio de venta es obligatorio.'),
-        NumberRange(min=0.01, message='El precio debe ser mayor a 0.'),
-    ], places=2)
 
 class PanCajaForm(Form):
 

@@ -145,3 +145,28 @@
   .form-input:focus, .form-textarea:focus { border-color:var(--brown); background:var(--white); }
   .form-hint { font-size:11px; color:var(--brown-lt); }
   .form-textarea { resize:vertical; min-height:70px; }
+
+  .td-img { width: 56px; text-align: center; padding: 6px 8px; }
+ 
+.prod-thumb {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1.5px solid var(--tan);
+}
+ 
+.prod-thumb-placeholder {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--warm-bg);
+    border: 1.5px dashed var(--tan);
+    border-radius: 8px;
+    font-size: 20px;
+}
+ 
+.btn-img { color: var(--brown-lt); }
+.btn-img:hover { color: var(--brown); background: var(--warm-bg); }
