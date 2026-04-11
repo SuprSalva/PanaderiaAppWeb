@@ -75,7 +75,6 @@ def materias_primas_nueva():
     categoria   = request.form.get('categoria', '').strip()
     unidad_base = request.form.get('unidad_base', '').strip()
     stock_min   = request.form.get('stock_minimo', '0').strip()
-    stock_ini   = request.form.get('stock_inicial', '0').strip()
     estatus     = request.form.get('estatus', 'activo')
 
     if not nombre:
@@ -95,7 +94,7 @@ def materias_primas_nueva():
 
     try:
         stock_min_f = float(stock_min) if stock_min else 0.0
-        stock_ini_f = float(stock_ini) if stock_ini else 0.0
+        stock_ini_f = 0.0
     except ValueError:
         current_app.logger.warning('Creacion de materia prima fallida (stock no numerico) | usuario: %s | materia: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Los valores de stock deben ser numéricos.', 'error')

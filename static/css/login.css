@@ -83,7 +83,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     padding: 60px 64px;
     position: relative;
     z-index: 1;
@@ -131,14 +131,14 @@
 
   .brand-name {
     font-family: 'Playfair Display', serif;
-    font-size: 26px;
+    font-size: 30px;
     font-weight: 700;
     color: var(--brown-dk);
     line-height: 1.1;
   }
 
   .brand-tagline {
-    font-size: 11px;
+    font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
     color: var(--brown-lt);
@@ -152,14 +152,16 @@
     color: var(--brown-dk);
     line-height: 1.15;
     margin-bottom: 16px;
+    text-align: center;
   }
 
   .welcome-sub {
-    font-size: 15px;
+    font-size: 13px;
     color: #7a5c3a;
     line-height: 1.7;
     max-width: 340px;
     margin-bottom: 40px;
+    text-align: center;
   }
 
   .feature-pills {
@@ -226,16 +228,18 @@
 
   .card-greeting {
     font-family: 'Playfair Display', serif;
-    font-size: 24px;
+    font-size: 30px;
     font-weight: 700;
     color: var(--brown-dk);
     margin-bottom: 6px;
+    text-align: center;
   }
 
   .card-sub {
     font-size: 13px;
     color: #9c7a55;
     margin-bottom: 32px;
+    text-align: center;
   }
 
   .login-form-group {
@@ -261,7 +265,7 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 15px;
+    font-size: 13px;
     color: var(--brown-lt);
     pointer-events: none;
   }
@@ -312,7 +316,7 @@
     border: none;
     border-radius: 50px;
     font-family: 'Lato', sans-serif;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     letter-spacing: .5px;
