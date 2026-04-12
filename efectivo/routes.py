@@ -12,7 +12,6 @@ from . import efectivo
 
 
 def _salida_form():
-    """Instancia SalidaEfectivoForm con las opciones de proveedores activos."""
     form = SalidaEfectivoForm(request.form)
     form.id_proveedor.choices = (
         [(0, '— Sin proveedor —')] +
@@ -29,7 +28,6 @@ def _gen_folio():
     return f"SE-{total:04d}"
 
 
-# ── LISTA DE SALIDAS ────────────────────────────────────────
 @efectivo.route("/salida-efectivo")
 @login_required
 @roles_required('admin', 'empleado')
@@ -57,7 +55,6 @@ def index_salida_efectivo():
     movimientos_hoy = sum(1 for s in lista if s.fecha_salida == hoy)
     pendientes      = sum(1 for s in lista if s.estado == 'pendiente')
 
-    # Egresos aprobados por categoría (hoy)
     cats_map = defaultdict(lambda: {'count': 0, 'total': 0.0})
     for s in lista:
         if s.fecha_salida == hoy and s.estado == 'aprobada':
@@ -84,17 +81,15 @@ def index_salida_efectivo():
     )
 
 
-# ── REGISTRAR SALIDA MANUAL ─────────────────────────────────
 @efectivo.route("/salida-efectivo/registrar", methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado')
 def crear_salida():
     form = _salida_form()
     if not form.validate():
-        # El JS valida antes de enviar; si llega aquí es sin JS — mostramos el primer error
         primer_error = next(iter(form.errors.values()))[0]
         current_app.logger.warning('Intento de registrar salida de efectivo fallido (validacion) | usuario: %s | error: %s | fecha: %s', current_user.username, primer_error, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        flash(f'⚠️ {primer_error}', 'error')
+        flash(f' {primer_error}', 'error')
         return redirect(url_for('efectivo.index_salida_efectivo'))
 
     id_proveedor = form.id_proveedor.data or None
@@ -125,7 +120,6 @@ def crear_salida():
     return redirect(url_for('efectivo.index_salida_efectivo'))
 
 
-# ── APROBAR / RECHAZAR SALIDA ───────────────────────────────
 @efectivo.route("/salida-efectivo/aprobar/<int:id_salida>", methods=['POST'])
 @login_required
 @roles_required('admin')

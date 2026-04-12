@@ -1,20 +1,4 @@
--- ═══════════════════════════════════════════════════════════
---  Stored Procedures — Módulo Compras
---  Base de datos: dulce_migaja
---  Ejecutar como root en MySQL Workbench
--- ═══════════════════════════════════════════════════════════
-
 USE dulce_migaja;
-
--- ─────────────────────────────────────────────
---  SP: sp_crear_pedido_compra
---  Crea un pedido de compra en estatus 'ordenado'.
---  Los detalles se insertan línea por línea desde
---  Python antes de llamar a este SP, o bien se
---  pasa el JSON de ítems y se itera aquí.
---  Optamos por: primero insertar la cabecera y
---  devolver el id, luego Python inserta los detalles.
--- ─────────────────────────────────────────────
 DROP PROCEDURE IF EXISTS sp_crear_pedido_compra;
 
 DELIMITER $$
@@ -29,7 +13,6 @@ CREATE PROCEDURE sp_crear_pedido_compra(
     OUT p_id_compra      INT
 )
 BEGIN
-    -- Proveedor debe existir y estar activo
     IF NOT EXISTS (
         SELECT 1 FROM proveedores
         WHERE id_proveedor = p_id_proveedor AND estatus = 'activo'
@@ -38,7 +21,6 @@ BEGIN
             SET MESSAGE_TEXT = 'El proveedor no existe o está inactivo.';
     END IF;
 
-    -- Folio duplicado
     IF EXISTS (SELECT 1 FROM compras WHERE folio = p_folio) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'El folio de compra ya existe.';
@@ -57,14 +39,6 @@ END$$
 
 DELIMITER ;
 
-
--- ─────────────────────────────────────────────
---  SP: sp_agregar_detalle_compra
---  Inserta una línea de detalle a un pedido
---  en estatus 'ordenado' y recalcula el total.
---  La conversión ya viene calculada desde Python:
---    cantidad_base = cantidad_comprada * factor_conversion
--- ─────────────────────────────────────────────
 DROP PROCEDURE IF EXISTS sp_agregar_detalle_compra;
 
 DELIMITER $$
@@ -72,7 +46,7 @@ DELIMITER $$
 CREATE PROCEDURE sp_agregar_detalle_compra(
     IN p_id_compra              INT,
     IN p_id_materia             INT,
-    IN p_id_unidad_presentacion INT,      -- NULL si unidad libre
+    IN p_id_unidad_presentacion INT,  
     IN p_cantidad_comprada      DECIMAL(12,4),
     IN p_unidad_compra          VARCHAR(20) CHARACTER SET utf8mb4,
     IN p_factor_conversion      DECIMAL(12,4),
@@ -86,7 +60,6 @@ BEGIN
         RESIGNAL;
     END;
 
-    -- Solo se puede modificar un pedido en estatus ordenado
     IF NOT EXISTS (
         SELECT 1 FROM compras
         WHERE id_compra = p_id_compra AND estatus = 'ordenado'
@@ -108,7 +81,6 @@ BEGIN
         p_factor_conversion, p_cantidad_base, p_costo_unitario
     );
 
-    -- Recalcular total de la cabecera
     UPDATE compras
     SET total = (
         SELECT COALESCE(SUM(cantidad_comprada * costo_unitario), 0)
@@ -123,11 +95,6 @@ END$$
 DELIMITER ;
 
 
--- ─────────────────────────────────────────────
---  SP: sp_cancelar_compra
---  Cambia el estatus a 'cancelado' y guarda motivo.
---  Solo aplica a pedidos 'ordenado'.
--- ─────────────────────────────────────────────
 DROP PROCEDURE IF EXISTS sp_cancelar_compra;
 
 DELIMITER $$
@@ -166,14 +133,6 @@ END$$
 
 DELIMITER ;
 
-
--- ─────────────────────────────────────────────
---  SP: sp_finalizar_compra
---  Cambia estatus a 'finalizado', suma al stock
---  de cada materia prima y genera una salida de
---  efectivo hacia el proveedor.
---  Solo aplica a pedidos 'ordenado'.
--- ─────────────────────────────────────────────
 DROP PROCEDURE IF EXISTS sp_finalizar_compra;
 
 DELIMITER $$
@@ -212,18 +171,15 @@ BEGIN
 
     START TRANSACTION;
 
-    -- 1. Actualizar stock
     UPDATE materias_primas mp
     JOIN detalle_compras dc ON dc.id_materia = mp.id_materia
     SET mp.stock_actual = mp.stock_actual + dc.cantidad_base
     WHERE dc.id_compra = p_id_compra;
 
-    -- 2. Cambiar estatus del pedido
     UPDATE compras
     SET estatus = 'finalizado'
     WHERE id_compra = p_id_compra;
 
-    -- 3. Registrar salida pendiente de autorización
     INSERT INTO salidas_efectivo (
         folio_salida, id_proveedor, id_compra, categoria,
         descripcion, monto, fecha_salida,
@@ -247,11 +203,6 @@ END$$
 
 DELIMITER ;
 
--- ─────────────────────────────────────────────
---  SP: sp_limpiar_detalles_compra
---  Elimina todos los renglones de un pedido en
---  estatus 'ordenado' para poder re-insertarlos.
--- ─────────────────────────────────────────────
 DROP PROCEDURE IF EXISTS sp_limpiar_detalles_compra;
 
 DELIMITER $$
@@ -285,11 +236,7 @@ END$$
 
 DELIMITER ;
 
--- ─────────────────────────────────────────────
---  SP: sp_crear_unidad_compra
---  Inserta una nueva unidad de presentación para
---  compras (uso = 'compra' o 'ambos').
--- ─────────────────────────────────────────────
+
 DROP PROCEDURE IF EXISTS sp_crear_unidad_compra;
 
 DELIMITER $$
@@ -309,7 +256,6 @@ BEGIN
         SET p_uso = 'compra';
     END IF;
 
-    -- Verificar duplicado antes de insertar
     IF EXISTS (
         SELECT 1 FROM unidades_presentacion
         WHERE id_materia = p_id_materia
@@ -327,11 +273,6 @@ END$$
 
 DELIMITER ;
 
--- ── 5. SP: sp_corregir_precio_compra ────────────────────────
---    Actualiza los costos unitarios de los detalles de una
---    compra finalizada cuyo pago fue rechazado, recalcula el
---    total y genera una nueva salida de efectivo pendiente.
---    Los campos de cantidad/inventario NO se tocan.
 DROP PROCEDURE IF EXISTS sp_corregir_precio_compra;
 
 DELIMITER $$
@@ -354,7 +295,6 @@ BEGIN
         RESIGNAL;
     END;
 
-    -- Verificar que la compra existe y está finalizada
     SELECT folio, id_proveedor, fecha_compra
     INTO   v_folio, v_id_proveedor, v_fecha
     FROM   compras WHERE id_compra = p_id_compra;
@@ -364,7 +304,6 @@ BEGIN
             SET MESSAGE_TEXT = 'El pedido de compra no existe.';
     END IF;
 
-    -- Verificar que el pago está rechazado
     SELECT estado INTO v_estatus_pago
     FROM   salidas_efectivo
     WHERE  id_compra = p_id_compra
@@ -378,7 +317,6 @@ BEGIN
 
     START TRANSACTION;
 
-    -- Recalcular total con los nuevos costos ya actualizados desde Python
     UPDATE compras
     SET total = (
         SELECT COALESCE(SUM(cantidad_comprada * costo_unitario), 0)
@@ -390,7 +328,6 @@ BEGIN
     SELECT total INTO v_nuevo_total
     FROM   compras WHERE id_compra = p_id_compra;
 
-    -- Registrar nueva salida pendiente con el precio corregido
     INSERT INTO salidas_efectivo (
         folio_salida, id_proveedor, id_compra, categoria,
         descripcion, monto, fecha_salida,
@@ -414,12 +351,6 @@ END$$
 
 DELIMITER ;
 
--- ─────────────────────────────────────────────
---  Vista: vw_compras
---  Joins compras con proveedores para mostrar
---  la lista en el módulo de compras.
---  el permiso para consultar se enceuntra en db_roles_permisos.sql
--- ─────────────────────────────────────────────
 DROP VIEW IF EXISTS vw_compras;
 
 CREATE VIEW vw_compras AS

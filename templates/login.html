@@ -3,6 +3,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %}
 
 {% block container %}
@@ -30,16 +31,32 @@
 
     <div class="feature-pills">
       <div class="feature-pill">
-        <div class="pill-icon">🌾</div> Control de Materias Primas
+        <div class="pill-icon"><animated-icons
+            src="https://animatedicons.co/get-icon?name=Grocery&style=minimalistic&token=d2653a36-69f5-4727-add9-1cd534323346"
+            trigger="loop"
+            attributes='{"type":"custom","id":1775687015120,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"Nuevo"}'
+            height="30" width="30"></animated-icons></div> Control de Materias Primas
       </div>
       <div class="feature-pill">
-        <div class="pill-icon">📋</div> Gestión de Recetas
+        <div class="pill-icon"><animated-icons
+            src="https://animatedicons.co/get-icon?name=Newspaper&style=minimalistic&token=b3a68157-77f2-44c6-b4f0-ff2500f84622"
+            trigger="loop"
+            attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
+            height="30" width="30"></animated-icons></div> Gestión de Recetas
       </div>
       <div class="feature-pill">
-        <div class="pill-icon">⚙️</div> Seguimiento de Producción
+        <div class="pill-icon"><animated-icons
+            src="https://animatedicons.co/get-icon?name=Setup&style=minimalistic&token=eb758eaf-90cb-43dc-9be6-dcfdc8296167"
+            trigger="loop"
+            attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
+            height="30" width="30"></animated-icons></div> Seguimiento de Producción
       </div>
       <div class="feature-pill">
-        <div class="pill-icon">📊</div> Dashboard en Tiempo Real
+        <div class="pill-icon"><animated-icons
+            src="https://animatedicons.co/get-icon?name=Report%20V2&style=minimalistic&token=1869947d-0b96-4314-9dd7-a86ec7a829ff"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30" width="30"></animated-icons></div> Dashboard en Tiempo Real
       </div>
     </div>
   </div>
@@ -57,7 +74,11 @@
         <div class="login-form-group">
           {{ form.usuario.label(class="login-label") }}
           <div class="login-input-wrap">
-            <span class="l-icon">👤</span>
+            <span class="l-icon"><animated-icons
+                src="https://animatedicons.co/get-icon?name=user%20profile&style=minimalistic&token=defd54f5-3357-43dd-ad9e-32e227c0ac60"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></span>
             {{ form.usuario(class="", placeholder="Usuario", autocomplete="username") }}
           </div>
           {% if form.usuario.errors %}
@@ -70,7 +91,11 @@
         <div class="login-form-group">
           {{ form.password.label(class="login-label") }}
           <div class="login-input-wrap">
-            <span class="l-icon">🔒</span>
+            <span class="l-icon"><animated-icons
+                src="https://animatedicons.co/get-icon?name=lock&style=minimalistic&token=926b8ba3-4f53-4fdf-9e27-cfc704fb7c70"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></span>
             {{ form.password(class="", placeholder="••••••••", autocomplete="current-password") }}
           </div>
           {% if form.password.errors %}
@@ -80,8 +105,18 @@
           {% endif %}
         </div>
 
+        <div style="display:flex;justify-content:center;margin:14px 0 4px;">
+          <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_SITE_KEY }}"></div>
+        </div>
+        <div id="login-captcha-error" style="display:none;color:#9c3a1a;font-size:0.82rem;text-align:center;margin-bottom:6px;"></div>
         <button type="submit" class="btn-login">
-          Iniciar Sesión →
+                  Iniciar Sesión <animated-icons
+          src="https://animatedicons.co/get-icon?name=login&style=minimalistic&token=e611dfb8-fad8-4fd7-80da-af68bebdafb8"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30"
+          width="30"
+        ></animated-icons>
         </button>
       </form>
 

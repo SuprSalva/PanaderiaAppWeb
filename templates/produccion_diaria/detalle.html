@@ -1,0 +1,494 @@
+{% extends "layout.html" %}
+{% block title %}{{ pd.folio }} – Producción Diaria{% endblock %}
+
+{% block extra_head %}
+<style>
+.btn { display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+       border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;
+       border:none;transition:all .18s;text-decoration:none;font-family:'Lato',sans-serif;}
+.btn-primary { background:var(--brown-dk);color:var(--cream);}
+.btn-primary:hover { background:var(--rust);}
+.btn-success { background:#10b981;color:#fff;}
+.btn-success:hover { background:#059669;}
+.btn-danger  { background:#ef4444;color:#fff;}
+.btn-danger:hover  { background:#dc2626;}
+.btn-blue    { background:#3b82f6;color:#fff;}
+.btn-blue:hover    { background:#2563eb;}
+.btn-outline { background:#fff;color:var(--brown-dk);border:1.5px solid var(--tan);}
+.btn-outline:hover { border-color:var(--brown);background:var(--warm-bg);}
+.btn-sm { padding:5px 11px;font-size:12px;border-radius:7px;}
+
+.det-wrap { display:flex;flex-direction:column;gap:20px;}
+.db-topbar { display:flex;align-items:flex-start;justify-content:space-between;
+             gap:12px;flex-wrap:wrap;margin-bottom:24px;}
+.db-page-title { font-family:'Playfair Display',serif;font-size:24px;
+                 font-weight:700;color:var(--brown-dk);display:flex;align-items:center;gap:10px;}
+.db-breadcrumb { font-size:12px;color:var(--brown-lt);margin-top:5px;
+                 display:flex;align-items:center;gap:5px;}
+.db-breadcrumb span { color:var(--tan);}
+
+.card { background:#fff;border:1px solid var(--tan);border-radius:13px;padding:18px 20px;}
+.card-title { font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;
+              letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+.info-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.info-item label { font-size:10px;font-weight:700;text-transform:uppercase;
+                   letter-spacing:.5px;color:var(--brown-lt);display:block;margin-bottom:3px;}
+.info-item .val  { font-size:13px;color:var(--text);font-weight:600;}
+
+.pill { display:inline-flex;align-items:center;gap:4px;padding:4px 12px;
+        border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;}
+.pill-pendiente  { background:#fef3c7;color:#92400e;}
+.pill-en_proceso { background:#dbeafe;color:#1d4ed8;}
+.pill-finalizado { background:#d1fae5;color:#065f46;}
+.pill-cancelado  { background:#f3f4f6;color:#374151;}
+
+.alerta-banner { background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;
+                 padding:11px 16px;font-size:13px;color:#991b1b;font-weight:700;
+                 display:flex;align-items:center;gap:8px;}
+
+/* Líneas de productos */
+.lineas-grid { display:flex;flex-direction:column;gap:8px;}
+.linea-card  { background:var(--warm-bg);border:1.5px solid var(--tan);
+               border-radius:10px;padding:12px 15px;
+               display:flex;align-items:center;gap:14px;}
+.linea-icon { font-size:22px;}
+.linea-info { flex:1;}
+.linea-nombre { font-weight:700;font-size:13px;color:var(--brown-dk);}
+.linea-receta { font-size:11px;color:var(--brown-lt);margin-top:2px;}
+.linea-piezas { font-size:20px;font-weight:900;color:var(--brown);
+                white-space:nowrap;}
+.linea-piezas small { font-size:11px;font-weight:600;color:var(--brown-lt);}
+
+/* Tabla insumos */
+.ins-table { width:100%;border-collapse:collapse;font-size:12px;}
+.ins-table th { background:var(--warm-bg);padding:7px 11px;font-size:10px;
+                font-weight:800;text-transform:uppercase;color:var(--brown);text-align:left;}
+.ins-table td { padding:8px 11px;border-bottom:1px solid var(--tan);vertical-align:middle;}
+.ins-table tr:last-child td { border-bottom:none;}
+.ins-ok  { color:#065f46;font-weight:700;}
+.ins-ko  { color:#dc2626;font-weight:700;}
+.bar-mini { display:inline-block;width:55px;height:5px;background:var(--tan);
+            border-radius:4px;vertical-align:middle;margin-left:5px;overflow:hidden;}
+.bar-fill { height:100%;border-radius:4px;}
+
+.acciones-bar { display:flex;gap:10px;flex-wrap:wrap;}
+
+.modal-bd { display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+            z-index:1000;align-items:center;justify-content:center;}
+.modal-bd.open { display:flex;}
+.modal { background:#fff;border-radius:16px;width:min(540px,95vw);
+         max-height:90vh;overflow-y:auto;
+         box-shadow:0 20px 60px rgba(0,0,0,.25);animation:fadeUp .22s;}
+@keyframes fadeUp { from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-header { padding:18px 22px 14px;border-bottom:1px solid var(--tan);
+            display:flex;align-items:center;justify-content:space-between;}
+.m-title  { font-family:'Playfair Display',serif;font-size:17px;
+            font-weight:700;color:var(--brown-dk);}
+.m-close  { background:none;border:none;font-size:20px;cursor:pointer;
+            color:var(--brown-lt);border-radius:7px;width:30px;height:30px;
+            display:flex;align-items:center;justify-content:center;}
+.m-close:hover { background:var(--warm-bg);}
+.m-body  { padding:18px 22px;display:flex;flex-direction:column;gap:14px;}
+.m-footer { padding:12px 22px 18px;border-top:1px solid var(--tan);
+            display:flex;justify-content:flex-end;gap:9px;}
+.fg { display:flex;flex-direction:column;gap:4px;}
+.fg label { font-size:11px;font-weight:700;color:var(--brown);
+            text-transform:uppercase;letter-spacing:.4px;}
+.fg input,.fg textarea
+  { border:1.5px solid var(--tan);border-radius:9px;padding:8px 12px;
+    font-size:13px;color:var(--text);font-family:'Lato',sans-serif;
+    width:100%;box-sizing:border-box;}
+.fg input:focus,.fg textarea:focus
+  { outline:none;border-color:var(--brown);box-shadow:0 0 0 3px rgba(156,111,62,.08);}
+.fg textarea { resize:vertical;min-height:70px;}
+</style>
+{% endblock %}
+
+{% block container %}
+<div class="det-wrap">
+
+  <!-- Topbar -->
+  <div class="db-topbar">
+    <div>
+      <h1 class="db-page-title">
+        🥐 <span style="font-family:monospace;font-size:20px;">{{ pd.folio }}</span>
+      </h1>
+      <div class="db-breadcrumb">
+        Inicio <span>›</span>
+        <a href="{{ url_for('produccion_diaria.index_pd') }}"
+           style="color:var(--brown);text-decoration:none;">Producción Diaria</a>
+        <span>›</span> {{ pd.nombre }}
+      </div>
+    </div>
+    <div class="acciones-bar">
+      {% if pd.estado == 'pendiente' %}
+        {% if current_user.rol.clave_rol in ('admin', 'panadero') %}
+        <button class="btn btn-blue" onclick="abrirConfirm()">▶ Iniciar Producción</button>
+        {% endif %}
+        {% if current_user.rol.clave_rol in ('admin', 'empleado') %}
+        <button class="btn btn-danger btn-sm" onclick="abrirCancelar()">✕ Cancelar</button>
+        {% endif %}
+      {% endif %}
+
+      {% if pd.estado == 'en_proceso' %}
+        {% if current_user.rol.clave_rol in ('admin', 'panadero') %}
+        <button class="btn btn-success" onclick="abrirFinalizar()">✅ Finalizar</button>
+        {% endif %}
+        {% if current_user.rol.clave_rol in ('admin', 'empleado') %}
+        <button class="btn btn-danger btn-sm" onclick="abrirCancelar()">✕ Cancelar</button>
+        {% endif %}
+      {% endif %}
+
+      {% if pd.estado in ('pendiente','finalizado','en_proceso') %}
+        {% if current_user.rol.clave_rol in ('admin', 'empleado') %}
+        <button class="btn btn-outline btn-sm" onclick="abrirGuardarPlantilla()">
+          📁 Guardar como plantilla
+        </button>
+        {% endif %}
+      {% endif %}
+
+      <a href="{{ url_for('produccion_diaria.index_pd') }}"
+         class="btn btn-outline btn-sm">← Volver</a>
+    </div>
+  </div>
+
+  <!-- Alerta de insumos (solo cuando pendiente y no descontados) -->
+  {% if pd.alerta_insumos and pd.estado == 'pendiente' and not pd.insumos_descontados %}
+  <div class="alerta-banner">
+    ⚠️ Esta producción tiene insumos insuficientes en el almacén.
+    Realiza una compra antes de iniciar para garantizar el stock necesario.
+  </div>
+  {% endif %}
+
+  <!-- Info cabecera -->
+  <div class="card">
+    <div class="card-title">📋 Información general</div>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Nombre</label>
+        <div class="val">{{ pd.nombre }}</div>
+      </div>
+      <div class="info-item">
+        <label>Estado</label>
+        <div class="val">
+          <span class="pill pill-{{ pd.estado }}">
+            {% if pd.estado=='pendiente'  %}📋
+            {% elif pd.estado=='en_proceso' %}⚙️
+            {% elif pd.estado=='finalizado' %}✅
+            {% else %}❌{% endif %}
+            {{ pd.estado | replace('_',' ') | title }}
+          </span>
+        </div>
+      </div>
+      <div class="info-item">
+        <label>Piezas esperadas</label>
+        <div class="val" style="color:var(--brown);font-weight:700;">
+          {{ pd.total_piezas_esperadas }}
+        </div>
+      </div>
+      <div class="info-item">
+        <label>Panadero</label>
+        <div class="val">{{ pd.operario or '—' }}</div>
+      </div>
+      <div class="info-item">
+        <label>Creado por</label>
+        <div class="val">{{ pd.creado_por_nombre or '—' }}</div>
+      </div>
+      <div class="info-item">
+        <label>Creado en</label>
+        <div class="val">
+          {{ pd.creado_en.strftime('%d/%m/%Y %H:%M') if pd.creado_en else '—' }}
+        </div>
+      </div>
+      {% if pd.fecha_inicio %}
+      <div class="info-item">
+        <label>Inicio producción</label>
+        <div class="val" style="color:#1d4ed8;">
+          {{ pd.fecha_inicio.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+      </div>
+      {% endif %}
+      {% if pd.fecha_fin_real %}
+      <div class="info-item">
+        <label>Finalizado</label>
+        <div class="val" style="color:#065f46;">
+          {{ pd.fecha_fin_real.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+      </div>
+      {% endif %}
+      {% if pd.observaciones %}
+      <div class="info-item" style="grid-column:1/-1;">
+        <label>Observaciones</label>
+        <div class="val">{{ pd.observaciones }}</div>
+      </div>
+      {% endif %}
+      {% if pd.motivo_cancelacion %}
+      <div class="info-item" style="grid-column:1/-1;">
+        <label>Motivo cancelación</label>
+        <div class="val" style="color:#991b1b;">{{ pd.motivo_cancelacion }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Líneas de productos -->
+  <div class="card">
+    <div class="card-title">🍞 Productos a producir</div>
+    <div class="lineas-grid">
+      {% for l in lineas %}
+      <div class="linea-card">
+        <div class="linea-icon">🍞</div>
+        <div class="linea-info">
+          <div class="linea-nombre">{{ l.nombre_producto }}</div>
+          <div class="linea-receta">Receta: {{ l.nombre_receta }}</div>
+        </div>
+        <div class="linea-piezas">
+          {{ l.cantidad_piezas }} <small>piezas</small>
+        </div>
+      </div>
+      {% else %}
+      <p style="font-size:13px;color:var(--brown-lt);">Sin líneas de producción.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Insumos -->
+  <div class="card">
+    <div class="card-title">
+      🧪 Insumos requeridos
+      {% if pd.insumos_descontados %}
+      <span style="font-size:11px;background:#d1fae5;color:#065f46;
+            border-radius:7px;padding:2px 8px;font-weight:700;">
+        ✅ Ya descontados del almacén
+      </span>
+      {% elif insumos %}
+        {% set hay_ko = insumos | selectattr('stock_suficiente', 'equalto', 0) | list | length %}
+        {% if hay_ko %}
+        <span style="font-size:11px;background:#fee2e2;color:#991b1b;
+              border-radius:7px;padding:2px 8px;font-weight:700;">
+          ⚠ {{ hay_ko }} insuficiente(s)
+        </span>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    {% if insumos %}
+    <div style="overflow-x:auto;">
+      <table class="ins-table">
+        <thead>
+          <tr>
+            <th>Insumo</th>
+            <th>Unidad</th>
+            <th>Requerido</th>
+            <th>Descontado</th>
+            <th>Stock actual</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ins in insumos %}
+          <tr>
+            <td style="font-weight:700;">{{ ins.nombre_materia }}</td>
+            <td style="color:var(--brown-lt);">{{ ins.unidad_base }}</td>
+            <td>{{ '%.2f' | format(ins.cantidad_requerida | float) }}</td>
+            <td>
+              {% if pd.insumos_descontados %}
+              {{ '%.2f' | format(ins.cantidad_descontada | float) }}
+              {% else %}—{% endif %}
+            </td>
+            <td>{{ '%.2f' | format(ins.stock_actual | float) }}</td>
+            <td>
+              {# Si ya se descontaron los insumos, siempre mostrar OK al panadero #}
+              {% if pd.insumos_descontados %}
+              <span class="ins-ok">✅ OK</span>
+              {% elif ins.stock_suficiente %}
+              <span class="ins-ok">✅ OK</span>
+              {% else %}
+              {% set falta = (ins.cantidad_requerida | float) - (ins.stock_actual | float) %}
+              <span class="ins-ko">⛔ Faltan {{ '%.2f' | format(falta) }}</span>
+              {% endif %}
+              {# Barra solo cuando no hay descuento confirmado #}
+              {% if not pd.insumos_descontados %}
+              {% set pct = [((ins.stock_actual | float) / (ins.cantidad_requerida | float) * 100) | round(0) | int, 100] | min if (ins.cantidad_requerida | float) > 0 else 100 %}
+              {% set col = '#10b981' if ins.stock_suficiente else ('#f59e0b' if pct >= 50 else '#ef4444') %}
+              <span class="bar-mini">
+                <span class="bar-fill" style="width:{{ pct }}%;background:{{ col }};"></span>
+              </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="font-size:13px;color:var(--brown-lt);">Insumos aún no calculados.</p>
+    {% endif %}
+  </div>
+
+</div><!-- det-wrap -->
+
+
+<!-- ══ MODAL CONFIRMAR INICIO ══ -->
+<div class="modal-bd" id="modalConfirm">
+  <div class="modal">
+    <div class="m-header">
+      <div class="m-title">▶ Iniciar Producción</div>
+      <button class="m-close" onclick="cerrarModal('modalConfirm')">✕</button>
+    </div>
+    <div class="m-body">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="font-size:36px;line-height:1;flex-shrink:0;">⚙️</div>
+        <div>
+          <p style="font-size:14px;font-weight:700;color:var(--brown-dk);margin:0 0 6px;">
+            ¿Iniciar <span style="font-family:monospace;">{{ pd.folio }}</span>?
+          </p>
+          <p style="font-size:13px;color:var(--text);line-height:1.5;margin:0;">
+            Se descontarán los insumos del almacén al iniciar.
+            Esta acción no se puede revertir sin cancelar la producción.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button type="button" class="btn btn-outline"
+              onclick="cerrarModal('modalConfirm')">No, volver</button>
+      <form method="POST"
+            action="{{ url_for('produccion_diaria.iniciar_pd', id_pd=pd.id_pd) }}"
+            style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-blue">▶ Sí, iniciar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MODAL FINALIZAR (sin campo de piezas) ══ -->
+<div class="modal-bd" id="modalFinalizar">
+  <div class="modal">
+    <div class="m-header">
+      <div class="m-title">✅ Finalizar Producción {{ pd.folio }}</div>
+      <button class="m-close" onclick="cerrarModal('modalFinalizar')">✕</button>
+    </div>
+    <form method="POST"
+          action="{{ url_for('produccion_diaria.finalizar_pd', id_pd=pd.id_pd) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="m-body">
+        <p style="font-size:13px;color:var(--text);line-height:1.6;">
+          Al finalizar se acreditarán
+          <strong>{{ pd.total_piezas_esperadas }} piezas</strong>
+          al inventario de producto terminado.
+          Esta operación es <strong>irreversible</strong>.
+        </p>
+        <div style="background:var(--warm-bg);border-radius:10px;padding:12px 15px;">
+          <div style="font-size:12px;color:var(--brown-lt);margin-bottom:6px;font-weight:700;">RESUMEN</div>
+          {% for l in lineas %}
+          <div style="display:flex;justify-content:space-between;font-size:13px;
+                      padding:3px 0;border-bottom:1px solid var(--tan);">
+            <span>{{ l.nombre_producto }}</span>
+            <strong>{{ l.cantidad_piezas }} pzas</strong>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="m-footer">
+        <button type="button" class="btn btn-outline"
+                onclick="cerrarModal('modalFinalizar')">Cancelar</button>
+        <button type="submit" class="btn btn-success">✅ Confirmar Finalización</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ══ MODAL CANCELAR ══ -->
+<div class="modal-bd" id="modalCancelar">
+  <div class="modal">
+    <div class="m-header">
+      <div class="m-title">❌ Cancelar Producción {{ pd.folio }}</div>
+      <button class="m-close" onclick="cerrarModal('modalCancelar')">✕</button>
+    </div>
+    <form method="POST"
+          action="{{ url_for('produccion_diaria.cancelar_pd', id_pd=pd.id_pd) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="m-body">
+        {% if pd.insumos_descontados %}
+        <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:9px;
+             padding:10px 14px;font-size:13px;color:#92400e;font-weight:600;">
+          ⚠️ Esta producción ya fue iniciada. Al cancelar se
+          <strong>restaurarán los insumos</strong> al almacén automáticamente.
+        </div>
+        {% endif %}
+        <div class="fg">
+          <label>{{ form_can.motivo.label.text }} *</label>
+          {{ form_can.motivo() }}
+        </div>
+      </div>
+      <div class="m-footer">
+        <button type="button" class="btn btn-outline"
+                onclick="cerrarModal('modalCancelar')">No, volver</button>
+        <button type="submit" class="btn btn-danger">Sí, cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ══ MODAL GUARDAR PLANTILLA ══ -->
+<div class="modal-bd" id="modalPlantilla">
+  <div class="modal">
+    <div class="m-header">
+      <div class="m-title">📁 Guardar como plantilla</div>
+      <button class="m-close" onclick="cerrarModal('modalPlantilla')">✕</button>
+    </div>
+    <form method="POST"
+          action="{{ url_for('produccion_diaria.guardar_plantilla_pd', id_pd=pd.id_pd) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {{ form_plant.id_pd(value=pd.id_pd) }}
+      <div class="m-body">
+        <p style="font-size:13px;color:var(--text);line-height:1.5;">
+          Guarda la lista de productos de esta producción para reutilizarla
+          fácilmente en futuras producciones.
+        </p>
+        <div class="fg">
+          <label>{{ form_plant.nombre.label.text }} *</label>
+          {{ form_plant.nombre(placeholder='Ej. Surtido clásico mañanero') }}
+        </div>
+        <div class="fg">
+          <label>{{ form_plant.descripcion.label.text }}</label>
+          {{ form_plant.descripcion(placeholder='Notas sobre esta plantilla…') }}
+        </div>
+      </div>
+      <div class="m-footer">
+        <button type="button" class="btn btn-outline"
+                onclick="cerrarModal('modalPlantilla')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">💾 Guardar plantilla</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+window.cerrarModal = id => {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+};
+const abrirModal = id => {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+document.querySelectorAll('.modal-bd').forEach(m =>
+  m.addEventListener('click', e => {
+    if (e.target === m) { m.classList.remove('open'); document.body.style.overflow = ''; }
+  })
+);
+window.abrirFinalizar        = () => abrirModal('modalFinalizar');
+window.abrirCancelar         = () => abrirModal('modalCancelar');
+window.abrirGuardarPlantilla = () => abrirModal('modalPlantilla');
+window.abrirConfirm          = () => abrirModal('modalConfirm');
+</script>
+{% endblock %}

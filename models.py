@@ -152,41 +152,24 @@ class DetalleCompra(db.Model):
 
 class Producto(db.Model):
     __tablename__ = 'productos'
-
-    id_producto    = db.Column(db.Integer,      primary_key=True, autoincrement=True)
-    uuid_producto  = db.Column(db.String(36),   nullable=False, unique=True)
-    nombre         = db.Column(db.String(120),  nullable=False)
+ 
+    id_producto    = db.Column(db.Integer,       primary_key=True, autoincrement=True)
+    uuid_producto  = db.Column(db.String(36),    nullable=False, unique=True)
+    nombre         = db.Column(db.String(120),   nullable=False)
     descripcion    = db.Column(db.Text)
-    precio_venta   = db.Column(db.Numeric(10,2),nullable=False, default=0)
+    imagen_url     = db.Column(db.String(255),   nullable=True)   # ← NUEVA COLUMNA
+    precio_venta   = db.Column(db.Numeric(10,2), nullable=False, default=0)
     estatus        = db.Column(db.Enum('activo','inactivo'), nullable=False, default='activo')
     creado_en      = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
-    actualizado_en = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now,
+    actualizado_en = db.Column(db.DateTime, nullable=False,
+                                default=datetime.datetime.now,
                                 onupdate=datetime.datetime.now)
     creado_por     = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=True)
-
+ 
     inventario = db.relationship('InventarioPT', back_populates='producto',
-                                  uselist=False,        
-                                  cascade='all, delete-orphan')
+                                  uselist=False, lazy=True)
     recetas    = db.relationship('Receta', back_populates='producto', lazy=True)
-
-    @property
-    def stock_actual(self):
-        return self.inventario.stock_actual if self.inventario else 0
-
-    @property
-    def stock_minimo(self):
-        return self.inventario.stock_minimo if self.inventario else 0
-
-    @property
-    def nivel_stock(self):
-        actual  = float(self.stock_actual)
-        minimo  = float(self.stock_minimo)
-        if actual <= 0:
-            return 'sin_stock'
-        if actual <= minimo:
-            return 'bajo'
-        return 'ok'
-
+ 
 class InventarioPT(db.Model):
     __tablename__ = 'inventario_pt'
 

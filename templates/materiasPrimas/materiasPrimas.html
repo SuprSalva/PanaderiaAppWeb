@@ -13,7 +13,6 @@
   <a href="{{ url_for('materias_primas.index_materias_primas', modal='nueva') }}" class="btn btn-primary">＋ Nueva Materia Prima</a>
 </div>
 
-{# ESTADÍSTICAS FUNCIONALES #}
 <div class="mp-stats anim anim-1">
   <button class="mp-stat" onclick="filtrarPorNivelStock('todos')">
     <div class="mp-stat-icon brown">🌾</div>
@@ -45,7 +44,6 @@
   </button>
 </div>
 
-{# FORMULARIO DE FILTROS #}
 <form method="GET" action="{{ url_for('materias_primas.index_materias_primas') }}" id="form-filtro">
   <input type="hidden" name="pagina" value="1">
   <input type="hidden" name="nivel_stock" id="nivel_stock" value="{{ nivel_stock_sel|default('') }}">
@@ -62,7 +60,6 @@
   </div>
 </form>
 
-{# TABLA DE MATERIAS PRIMAS #}
 <div class="table-card anim anim-3">
   <table>
     <thead>
@@ -104,13 +101,23 @@
           <div class="stock-wrap">
             <div class="bar-track"><div class="bar-fill {{ bar_class }}" style="width: {{ pct }}%;"></div></div>
             <span class="stock-val">
-              {{ '{:,.0f}'.format(stock) }} {{ m.unidad_base }}
+              {% if m.unidad_base == 'l' %}
+                {{ '{:,.3f}'.format(stock) }} l
+              {% else %}
+                {{ '{:,.0f}'.format(stock) }} {{ m.unidad_base }}
+              {% endif %}
               {% if nivel == 'bajo' %}<span class="badge badge-low">Stock Bajo</span>
               {% elif nivel == 'critico' %}<span class="badge badge-critical">Sin Stock</span>{% endif %}
             </span>
           </div>
         </td>
-        <td><span class="stock-val">{{ '{:,.0f}'.format(minimo) }} {{ m.unidad_base }}</span></td>
+        <td><span class="stock-val">
+          {% if m.unidad_base == 'l' %}
+            {{ '{:,.3f}'.format(minimo) }} l
+          {% else %}
+            {{ '{:,.0f}'.format(minimo) }} {{ m.unidad_base }}
+          {% endif %}
+        </span></td>
         <td>{% if m.estatus == 'activo' %}<span class="badge badge-active">Activo</span>{% else %}<span class="badge badge-inactive">Inactivo</span>{% endif %}</td>
         <td class="actions-cell">
           <a href="{{ url_for('materias_primas.index_materias_primas', modal='editar', id=m.id_materia, buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn-icon" title="Editar">✏️</a>
@@ -127,7 +134,6 @@
     </tbody>
   </table>
 
-  {# PAGINACIÓN #}
   {% if paginacion.pages > 1 %}
   <div class="paginador">
     <div class="pag-info">Mostrando <strong>{{ (paginacion.page - 1) * 10 + 1 }}</strong> – <strong>{{ [paginacion.page * 10, paginacion.total]|min }}</strong> de <strong>{{ paginacion.total }}</strong> materia{{ 's' if paginacion.total != 1 else '' }} prima{{ 's' if paginacion.total != 1 else '' }}</div>
@@ -146,7 +152,6 @@
   {% endif %}
 </div>
 
-<!-- Modal: Nueva Materia Prima -->
 <div class="modal-overlay {% if request.args.get('modal')=='nueva' %}open{% endif %}" id="modal-nueva">
   <div class="modal">
     <div class="modal-header">
@@ -163,7 +168,6 @@
           <div class="form-divider">Unidad y Stock</div>
           <div class="form-group"><label class="form-label">Unidad Base *</label><select name="unidad_base" class="form-select" required><option value="">— Seleccionar —</option><option value="g">gramos (g)</option><option value="ml">mililitros (ml)</option><option value="pza">piezas (pza)</option><option value="l">litros (l)</option><option value="kg">kilogramos (kg)</option></select><span class="form-hint">Unidad interna de almacenamiento</span></div>
           <div class="form-group"><label class="form-label">Stock Mínimo</label><input type="number" name="stock_minimo" class="form-input" placeholder="Ej. 5000" min="0" step="0.01" value="0"><span class="form-hint">Cantidad que dispara la alerta</span></div>
-          <div class="form-group"><label class="form-label">Stock Inicial</label><input type="number" name="stock_inicial" class="form-input" placeholder="Ej. 40000" min="0" step="0.01" value="0"><span class="form-hint">Existencia de apertura</span></div>
         </div>
       </div>
       <div class="modal-footer"><a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn btn-outline">Cancelar</a><button type="submit" class="btn btn-primary">💾 Guardar</button></div>
@@ -171,7 +175,6 @@
   </div>
 </div>
 
-<!-- Modal: Editar Materia Prima -->
 {% set edit_id = request.args.get('id', 0) | int %}
 {% set mat_edit = namespace(obj=None) %}
 {% for m in materias %}{% if m.id_materia == edit_id %}{% set mat_edit.obj = m %}{% endif %}{% endfor %}
@@ -197,7 +200,6 @@
   </div>
 </div>
 
-<!-- Modal: Confirmar toggle (activar/desactivar) -->
 {% set toggle_id = request.args.get('id', 0) | int %}
 {% set mat_toggle = namespace(obj=None) %}
 {% for m in materias %}{% if m.id_materia == toggle_id %}{% set mat_toggle.obj = m %}{% endif %}{% endfor %}

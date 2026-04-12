@@ -1,13 +1,90 @@
 import re as _re
 
+from flask_wtf import FlaskForm
 from wtforms import (
-    Form, StringField, PasswordField, SelectField,
+    Form, StringField, PasswordField, SelectField, FileField,
     TextAreaField, DecimalField, IntegerField, HiddenField,
     FieldList, FormField, validators, BooleanField
 )
-from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length
+from wtforms.validators import Optional, NumberRange, DataRequired, ValidationError, Length, Email
+
+import io
+import os
 
 _USR_PWD_RE = _re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_]).{8,}$')
+_IMG_EXTENSIONES = {'.jpg', '.jpeg', '.png', '.webp'}
+_IMG_MAX_BYTES   = 3 * 1024 * 1024   # 3 MB
+_IMG_MAGIC: list = [
+    (b'\xff\xd8\xff', None),                  
+    (b'\x89PNG\r\n\x1a\n', None),             
+    (b'RIFF', b'WEBP'),                      
+]
+
+def _validar_imagen(form, field):
+    from PIL import Image, UnidentifiedImageError
+    from werkzeug.utils import secure_filename
+ 
+    archivo = field.data
+    if not archivo or not getattr(archivo, 'filename', ''):
+        return                   
+ 
+    nombre_seguro = secure_filename(archivo.filename or '')
+    if not nombre_seguro:
+        raise ValidationError('Nombre de archivo inválido.')
+ 
+    ext = os.path.splitext(nombre_seguro)[1].lower()
+    if ext not in _IMG_EXTENSIONES:
+        raise ValidationError(
+            f'Solo se permiten imágenes JPG, PNG o WebP '
+            f'(recibido: "{ext or "sin extensión"}").'
+        )
+ 
+    archivo.stream.seek(0)
+    contenido = archivo.stream.read()
+    archivo.stream.seek(0)
+ 
+    if len(contenido) > _IMG_MAX_BYTES:
+        mb = len(contenido) / (1024 * 1024)
+        raise ValidationError(f'La imagen no puede superar 3 MB (recibidos {mb:.1f} MB).')
+ 
+    # Magic bytes
+    coincide = False
+    for magic_inicio, magic_riff in _IMG_MAGIC:
+        if contenido[:len(magic_inicio)] == magic_inicio:
+            if magic_riff is None:
+                coincide = True
+                coincide = (contenido[8:12] == magic_riff)
+            break
+    if not coincide:
+        raise ValidationError(
+            'El archivo no tiene firma de imagen válida. '
+            'Asegúrate de subir un JPG, PNG o WebP real.'
+        )
+ 
+    try:
+        img = Image.open(io.BytesIO(contenido))
+        img.verify()
+    except (UnidentifiedImageError, Exception):
+        raise ValidationError(
+            'No se pudo verificar la imagen. El archivo podría estar dañado o '
+            'no ser una imagen real.'
+        )
+ 
+ 
+class ProductoForm(Form):
+    nombre = StringField('Nombre del Producto', [
+        validators.DataRequired(message='El nombre es obligatorio.'),
+        validators.Length(max=120, message='Máximo 120 caracteres.'),
+    ])
+    descripcion = TextAreaField('Descripción', [
+        Optional(),
+        validators.Length(max=2000),
+    ])
+    precio_venta = DecimalField('Precio de Venta ($)', [
+        validators.DataRequired(message='El precio de venta es obligatorio.'),
+        NumberRange(min=0.01, message='El precio debe ser mayor a 0.'),
+    ], places=2)
+    imagen = FileField('Imagen del Producto', validators=[_validar_imagen])
 
 
 class LoginForm(Form):
@@ -39,7 +116,6 @@ class RegistroUsuarioForm(Form):
 
 
 class CompraForm(Form):
-    """Valida el encabezado de un pedido de compra (nueva o edición)."""
     id_proveedor  = SelectField('Proveedor', coerce=int,
                                 validators=[DataRequired(message='Selecciona un proveedor.')])
     fecha_compra  = StringField('Fecha de Compra',
@@ -51,10 +127,9 @@ class CompraForm(Form):
 
 
 class RegistroClienteForm(Form):
-    """Registro público de clientes (el rol siempre es 'cliente')."""
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
     telefono  = StringField('Teléfono', [DataRequired(message='El teléfono es obligatorio.'), Length(max=20, message='El teléfono no puede exceder 20 caracteres.')])
-    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    username  = StringField('Correo Electrónico', [DataRequired(message='El correo es obligatorio.'), Email(message='Introduce un correo electrónico válido.'), Length(max=120, message='El correo no puede superar 120 caracteres.')])
     password  = PasswordField('Contraseña', [DataRequired(message='La contraseña es obligatoria.')])
     confirmar = PasswordField('Confirmar Contraseña', [DataRequired(message='Confirma la contraseña.')])
 
@@ -68,9 +143,8 @@ class RegistroClienteForm(Form):
 
 
 class CrearUsuarioForm(Form):
-    """Valida el formulario de creación de usuario (password obligatorio)."""
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
-    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    username  = StringField('Correo Electrónico', [DataRequired(message='El correo es obligatorio.'), Email(message='Introduce un correo electrónico válido.'), Length(max=120, message='El correo no puede superar 120 caracteres.')])
     id_rol    = SelectField('Rol', coerce=int, validators=[NumberRange(min=1, message='Selecciona un rol.')])
     password  = PasswordField('Contraseña', [DataRequired(message='La contraseña es obligatoria.')])
     confirmar = PasswordField('Confirmar Contraseña', [DataRequired(message='Confirma la contraseña.')])
@@ -86,9 +160,8 @@ class CrearUsuarioForm(Form):
 
 
 class EditarUsuarioForm(Form):
-    """Valida el formulario de edición de usuario (password opcional)."""
     nombre    = StringField('Nombre Completo', [DataRequired(message='El nombre es obligatorio.'), Length(min=3, max=120, message='El nombre debe tener entre 3 y 120 caracteres.')])
-    username  = StringField('Usuario', [DataRequired(message='El usuario es obligatorio.'), Length(min=4, max=60, message='El usuario debe tener entre 4 y 60 caracteres.')])
+    username  = StringField('Correo Electrónico', [DataRequired(message='El correo es obligatorio.'), Email(message='Introduce un correo electrónico válido.'), Length(max=120, message='El correo no puede superar 120 caracteres.')])
     id_rol    = SelectField('Rol', coerce=int, validators=[NumberRange(min=1, message='Selecciona un rol.')])
     password  = PasswordField('Contraseña', [Optional()])
     confirmar = PasswordField('Confirmar Contraseña', [Optional()])
@@ -129,20 +202,6 @@ class RecetaForm(Form):
         NumberRange(min=0, message="El precio no puede ser negativo."),
     ], places=2)
 
-
-class ProductoForm(Form):
-    nombre = StringField('Nombre del Producto', [
-        validators.DataRequired(message='El nombre es obligatorio.'),
-        validators.Length(max=120, message='Máximo 120 caracteres.'),
-    ])
-    descripcion = TextAreaField('Descripción', [
-        Optional(),
-        validators.Length(max=2000),
-    ])
-    precio_venta = DecimalField('Precio de Venta ($)', [
-        validators.DataRequired(message='El precio de venta es obligatorio.'),
-        NumberRange(min=0.01, message='El precio debe ser mayor a 0.'),
-    ], places=2)
 
 class PanCajaForm(Form):
 
@@ -228,7 +287,6 @@ class PedidoCajaForm(Form):
         
 
 class SalidaEfectivoForm(Form):
-    """Valida el registro manual de una salida de efectivo."""
     id_proveedor = SelectField(
         'Proveedor', coerce=int,
         validators=[Optional()],
@@ -287,7 +345,6 @@ class ProveedorForm(Form):
     ])
 
 class CostoUtilidadFiltroForm(Form):
-    """Formulario de filtros para el reporte de Costos y Utilidad."""
 
     buscar = StringField('Buscar Producto', [
         Optional(),
@@ -312,7 +369,6 @@ class CostoUtilidadFiltroForm(Form):
         NumberRange(min=0, message='Debe ser mayor o igual a 0.'),
     ], places=2)
 class ItemVentaForm(Form):
-    """Formulario para cada producto en una venta"""
     id_producto = HiddenField('ID Producto', [DataRequired(message='Producto requerido')])
     nombre = HiddenField('Nombre')
     cantidad = DecimalField('Cantidad', 
@@ -329,7 +385,6 @@ class ItemVentaForm(Form):
 
 
 class VentaForm(Form):
-    """Formulario principal para registrar una venta"""
     metodo_pago = SelectField('Método de Pago',
                              choices=[
                                  ('efectivo', '💵 Efectivo'),
@@ -353,7 +408,6 @@ class VentaForm(Form):
 
 
 class FiltroVentasForm(Form):
-    """Formulario para filtrar el listado de ventas"""
     fecha_inicio = StringField('Fecha Inicio', [Optional()])
     fecha_fin = StringField('Fecha Fin', [Optional()])
     metodo_pago = SelectField('Método de Pago',
@@ -379,11 +433,9 @@ class FiltroVentasForm(Form):
     
     def __init__(self, *args, **kwargs):
         super(FiltroVentasForm, self).__init__(*args, **kwargs)
-        # Las opciones de vendedor se cargarán dinámicamente desde la base de datos
 
 
 class CancelarVentaForm(Form):
-    """Formulario para cancelar una venta"""
     motivo_cancelacion = TextAreaField('Motivo de Cancelación',
                                        [Length(max=500, message='Máximo 500 caracteres')])
     
@@ -392,7 +444,6 @@ class CancelarVentaForm(Form):
 
 
 class CorteVentaForm(Form):
-    """Formulario para realizar corte de ventas"""
     fecha_corte = StringField('Fecha de Corte',
                               [DataRequired(message='La fecha es obligatoria')])
     
@@ -443,7 +494,6 @@ class CorteVentaForm(Form):
 
 
 class BusquedaProductoVentaForm(Form):
-    """Formulario para buscar productos en el POS"""
     busqueda = StringField('Buscar producto',
                           [Length(max=100, message='Máximo 100 caracteres')])
     
@@ -459,7 +509,6 @@ class BusquedaProductoVentaForm(Form):
 
 
 class TicketForm(Form):
-    """Formulario para reimprimir ticket"""
     folio_venta = StringField('Folio de Venta',
                              [DataRequired(message='El folio es obligatorio'),
                               Length(min=5, max=20, message='Folio inválido')])
@@ -474,7 +523,6 @@ class TicketForm(Form):
 
 
 class DevolucionForm(Form):
-    """Formulario para devolución de productos"""
     folio_venta_original = StringField('Folio de Venta Original',
                                        [DataRequired(message='El folio original es obligatorio')])
     
@@ -500,3 +548,60 @@ class DevolucionForm(Form):
                                       ('credito_tienda', 'Crédito en tienda')
                                   ],
                                   validators=[DataRequired(message='Selecciona método de reembolso')])
+
+
+class NuevaProduccionDiariaForm(FlaskForm):
+    """Formulario principal para crear una orden de producción diaria."""
+    nombre = StringField(
+        'Nombre de la producción',
+        validators=[DataRequired(message='El nombre es obligatorio.'),
+                    Length(max=120)],
+        render_kw={'placeholder': 'Ej. Producción Mañanera del Lunes'}
+    )
+    operario_id = SelectField(
+        'Panadero asignado', coerce=int,
+        validators=[Optional()], choices=[]
+    )
+    observaciones = TextAreaField(
+        'Observaciones',
+        validators=[Optional(), Length(max=1000)],
+        render_kw={'placeholder': 'Notas adicionales, turno, urgencia…', 'rows': 3}
+    )
+    # JSON: [{"id_producto":1,"id_receta":17,"cantidad_piezas":24,"nombre":"Pan de choc"}]
+    cajas_json = HiddenField(
+        'Productos JSON',
+        validators=[DataRequired(message='Debes agregar al menos un producto.')]
+    )
+    guardar_plantilla = HiddenField('Guardar plantilla', default='0')
+    nombre_plantilla = StringField(
+        'Nombre de plantilla',
+        validators=[Optional(), Length(max=120)],
+        render_kw={'placeholder': 'Ej. Surtido clásico mañanero'}
+    )
+ 
+ 
+class FinalizarProduccionDiariaForm(FlaskForm):
+    """Solo CSRF — sin campos extra."""
+    pass
+ 
+ 
+class CancelarProduccionDiariaForm(FlaskForm):
+    motivo = TextAreaField(
+        'Motivo de cancelación',
+        validators=[DataRequired(message='El motivo es obligatorio.'), Length(max=500)],
+        render_kw={'placeholder': 'Ej. Cambio de plan, falta de insumos…', 'rows': 3}
+    )
+ 
+ 
+class GuardarPlantillaForm(FlaskForm):
+    id_pd = HiddenField('ID Producción', validators=[DataRequired()])
+    nombre = StringField(
+        'Nombre de plantilla',
+        validators=[DataRequired(message='El nombre es obligatorio.'), Length(max=120)],
+        render_kw={'placeholder': 'Ej. Surtido clásico mañanero'}
+    )
+    descripcion = TextAreaField(
+        'Descripción',
+        validators=[Optional(), Length(max=500)],
+        render_kw={'placeholder': 'Notas sobre esta plantilla…', 'rows': 2}
+    )

@@ -47,7 +47,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     padding: 60px 64px;
     position: relative;
     z-index: 1;
@@ -77,11 +77,11 @@
     display: flex; align-items: center; justify-content: center; font-size: 32px;
     box-shadow: 0 8px 24px rgba(107,68,35,.3);
   }
-  .brand-name { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); line-height: 1.1; }
-  .brand-tagline { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--brown-lt); margin-top: 3px; }
+  .brand-name { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--brown-dk); line-height: 1.1; }
+  .brand-tagline { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--brown-lt); margin-top: 3px; }
 
-  .welcome-heading { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; color: var(--brown-dk); line-height: 1.15; margin-bottom: 16px; }
-  .welcome-sub { font-size: 15px; color: #7a5c3a; line-height: 1.7; max-width: 340px; margin-bottom: 40px; }
+  .welcome-heading { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; color: var(--brown-dk); line-height: 1.15; margin-bottom: 16px; text-align: center;}
+  .welcome-sub { font-size: 15px; color: #7a5c3a; line-height: 1.7; max-width: 340px; margin-bottom: 40px; text-align: center; }
 
   .feature-pills { display: flex; flex-direction: column; gap: 12px; }
   .feature-pill {
@@ -104,8 +104,8 @@
   }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
-  .card-greeting { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--brown-dk); margin-bottom: 6px; }
-  .card-sub { font-size: 13px; color: #9c7a55; margin-bottom: 32px; }
+  .card-greeting { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--brown-dk); margin-bottom: 6px; text-align: center;}
+  .card-sub { font-size: 13px; color: #9c7a55; margin-bottom: 32px; text-align: center;}
 
   .login-form-group { margin-bottom: 20px; }
   .login-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown); margin-bottom: 8px; }

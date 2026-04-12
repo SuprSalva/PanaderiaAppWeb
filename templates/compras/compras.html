@@ -7,7 +7,6 @@
 
 {% block container %}
 
-<!-- TOPBAR -->
 <div class="db-topbar anim">
   <div>
     <div class="db-page-title">🛒 Compras de Materias Primas</div>
@@ -16,7 +15,6 @@
   <button class="btn btn-primary" onclick="abrirModalNueva()">＋ Registrar Pedido</button>
 </div>
 
-<!-- STATS -->
 <div class="c-stats anim anim-1">
   <div class="c-stat">
     <div class="c-stat-icon brown">🛒</div>
@@ -36,7 +34,6 @@
   </div>
 </div>
 
-<!-- TOOLBAR -->
 <div class="toolbar anim anim-2">
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
@@ -58,7 +55,6 @@
   </select>
 </div>
 
-<!-- TABLE -->
 <div class="table-card anim anim-3">
   <table id="comprasTable">
     <thead>
@@ -82,20 +78,20 @@
         <td>{{ c.fecha_compra.strftime('%d/%m/%Y') }}</td>
         <td>
           <span class="badge badge-{{ c.estatus }}">
-            {% if c.estatus == 'ordenado' %}📋 Ordenado
-            {% elif c.estatus == 'finalizado' %}✅ Finalizado
-            {% else %}🚫 Cancelado{% endif %}
+            {% if c.estatus == 'ordenado' %}Ordenado
+            {% elif c.estatus == 'finalizado' %}Finalizado
+            {% else %}Cancelado{% endif %}
           </span>
         </td>
         <td>
           <span class="monto-val">${{ "%.2f"|format(c.total) }}</span>
           {% if c.estatus == 'finalizado' %}
             {% if c.estatus_pago == 'pendiente' %}
-              <div style="margin-top:4px"><span class="badge" style="background:#fef3d0;color:#8a6200;font-size:10px;">⏳ Pago pendiente</span></div>
+              <div style="margin-top:4px"><span class="badge" style="background:#fef3d0;color:#8a6200;font-size:10px;">Pago pendiente</span></div>
             {% elif c.estatus_pago == 'rechazada' %}
-              <div style="margin-top:4px"><span class="badge" style="background:#fce8df;color:#9c3a1a;font-size:10px;">🚫 Pago rechazado</span></div>
+              <div style="margin-top:4px"><span class="badge" style="background:#fce8df;color:#9c3a1a;font-size:10px;">Pago rechazado</span></div>
             {% elif c.estatus_pago == 'aprobada' %}
-              <div style="margin-top:4px"><span class="badge" style="background:#e2eede;color:#3a6034;font-size:10px;">✅ Pago autorizado</span></div>
+              <div style="margin-top:4px"><span class="badge" style="background:#e2eede;color:#3a6034;font-size:10px;">Pago autorizado</span></div>
             {% endif %}
           {% endif %}
         </td>
@@ -129,10 +125,6 @@
   </div>
 </div>
 
-
-<!-- ══════════════════════════════════════
-    MODAL: REGISTRAR PEDIDO
-══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal modal-lg">
     <div class="modal-header">
@@ -143,7 +135,6 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
 
-        <!-- Cabecera -->
         <div class="form-row cols-3" style="margin-bottom:20px">
           <div class="section-divider">Datos del Pedido</div>
           <div class="form-group">
@@ -169,7 +160,6 @@
           </div>
         </div>
 
-        <!-- Detalle -->
         <div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brown-lt)">Detalle de Insumos</span>
         </div>
@@ -189,7 +179,6 @@
         </div>
 
         <div id="renglones-container">
-          <!-- Los renglones se generan dinámicamente -->
         </div>
 
         <div style="padding:8px 10px;background:var(--cream);border:1px solid var(--tan);border-top:none;border-radius:0 0 8px 8px;font-size:11.5px;color:var(--brown);display:flex;gap:6px;align-items:center;">
@@ -216,10 +205,6 @@
   </div>
 </div>
 
-
-<!-- ══════════════════════════════════════
-    MODAL: VER DETALLE
-══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-detalle">
   <div class="modal modal-lg">
     <div class="modal-header">
@@ -235,20 +220,16 @@
   </div>
 </div>
 
-
-<!-- ══════════════════════════════════════
-    MODAL: FINALIZAR PEDIDO
-══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-finalizar">
   <div class="modal modal-sm">
     <div class="modal-header success">
-      <h2>✅ Finalizar Pedido</h2>
+      <h2>Finalizar Pedido</h2>
       <button class="modal-close" type="button" onclick="closeModal('modal-finalizar')">✕</button>
     </div>
     <form id="form-finalizar" method="POST" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body" style="text-align:center;padding:30px 26px">
-        <div style="font-size:48px;margin-bottom:12px">✅</div>
+        <div style="font-size:48px;margin-bottom:12px"></div>
         <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:var(--brown-dk);margin-bottom:8px">¿Aceptar la mercancía?</h3>
         <p style="font-size:13px;color:var(--brown-lt);line-height:1.6">
           El pedido <strong id="fin-folio" style="color:var(--brown-dk)"></strong> cambiará a <strong>Finalizado</strong>.<br>
@@ -257,16 +238,12 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-finalizar')">Cancelar</button>
-        <button type="submit" class="btn btn-primary" style="background:#5a7a52">✅ Confirmar recepción</button>
+        <button type="submit" class="btn btn-primary" style="background:#5a7a52"> Confirmar recepción</button>
       </div>
     </form>
   </div>
 </div>
 
-
-<!-- ══════════════════════════════════════
-    MODAL: CANCELAR PEDIDO
-══════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-cancelar">
   <div class="modal modal-sm">
     <div class="modal-header danger">

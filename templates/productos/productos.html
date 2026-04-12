@@ -5,7 +5,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/productos.css') }}">
 {% endblock %}
 
-{# ══ TOPBAR ══ #}
 <div class="db-topbar anim">
   <div>
     <div class="db-page-title">🏷️ Catálogo de Productos</div>
@@ -14,49 +13,65 @@
   <a href="?modal=nuevo" class="btn btn-primary">＋ Nuevo Producto</a>
 </div>
 
-{# ══ STATS ══ #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+    <div class="alert alert-{{ 'success' if cat == 'success' else ('warning' if cat == 'warning' else 'danger') }}">
+      {{ msg }}
+      <button onclick="this.parentElement.remove()"
+              style="background:none;border:none;cursor:pointer;font-size:16px;color:inherit;">✕</button>
+    </div>
+  {% endfor %}
+{% endwith %}
+
 <div class="p-stats anim anim-1">
   <div class="p-stat">
     <div class="p-stat-icon brown">🏷️</div>
-    <div><div class="p-stat-val">{{ total }}</div><div class="p-stat-lbl">Productos Registrados</div></div>
+    <div>
+      <div class="p-stat-val">{{ total }}</div>
+      <div class="p-stat-lbl">Productos Registrados</div>
+    </div>
   </div>
   <div class="p-stat">
     <div class="p-stat-icon green">✅</div>
-    <div><div class="p-stat-val">{{ total_activos }}</div><div class="p-stat-lbl">Activos</div></div>
+    <div>
+      <div class="p-stat-val">{{ total_activos }}</div>
+      <div class="p-stat-lbl">Activos</div>
+    </div>
   </div>
   <div class="p-stat">
     <div class="p-stat-icon rust">🚫</div>
-    <div><div class="p-stat-val">{{ total_inactivos }}</div><div class="p-stat-lbl">Inactivos</div></div>
+    <div>
+      <div class="p-stat-val">{{ total_inactivos }}</div>
+      <div class="p-stat-lbl">Inactivos</div>
+    </div>
   </div>
 </div>
 
-{# ══ TOOLBAR ══ #}
-{# Búsqueda y filtro redirigen al servidor para respetar la paginación #}
-<form method="GET" action="{{ url_for('productos_bp.index_productos') }}" id="form-filtro">
-  <input type="hidden" name="pagina" value="1">
-  <div class="toolbar anim anim-2">
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" name="buscar" id="buscador"
-             placeholder="Buscar producto…"
-             value="{{ buscar }}" autocomplete="off"
-             oninput="debounceSubmit()">
-    </div>
-    <select name="estatus" id="filtro-estatus" class="filter-select"
-            onchange="this.form.submit()">
-      <option value="todos"    {% if estatus_sel=='todos'    %}selected{% endif %}>Todos los estatus</option>
-      <option value="activo"   {% if estatus_sel=='activo'   %}selected{% endif %}>Activos</option>
-      <option value="inactivo" {% if estatus_sel=='inactivo' %}selected{% endif %}>Inactivos</option>
-    </select>
+<div class="toolbar anim anim-2">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text"
+           id="searchInput"
+           placeholder="Buscar por nombre o descripción…"
+           autocomplete="off"
+           oninput="filterTable()">
   </div>
-</form>
+  <select id="filterEstatus" class="filter-select" onchange="filterTable()">
+    <option value="">Todos los estatus</option>
+    <option value="activo">Activos</option>
+    <option value="inactivo">Inactivos</option>
+  </select>
+  <span class="pag-info" style="font-size:12px;color:var(--brown-lt);font-weight:600;">
+    <span id="visibleCount">{{ total }}</span> producto{{ 's' if total != 1 else '' }}
+  </span>
+</div>
 
-{# ══ TABLA ══ #}
 <div class="table-card anim anim-3">
-  <table>
+  <table id="productosTable">
     <thead>
       <tr>
-        <th>#</th>
+        <th style="width:44px;">#</th>
+        <th style="width:56px;">Foto</th>
         <th>Producto</th>
         <th>Precio Venta</th>
         <th>Recetas</th>
@@ -66,14 +81,30 @@
     </thead>
     <tbody>
       {% for p in productos %}
-      <tr>
-        {# Número global = posición en la página actual #}
+      {# data-* para filtrado client-side #}
+      <tr data-nombre="{{ p.nombre | lower }}"
+          data-desc="{{ (p.descripcion or '') | lower }}"
+          data-estatus="{{ p.estatus }}">
+
         <td style="color:var(--brown-lt);font-size:12px;">
-          {{ (paginacion.page - 1) * 10 + loop.index }}
+          <span class="row-num">{{ loop.index }}</span>
         </td>
+
+        {# Foto #}
+        <td class="td-img">
+          {% if p.imagen_url %}
+            <img src="{{ url_for('static', filename=p.imagen_url) }}"
+                 alt="{{ p.nombre | e }}"
+                 class="prod-thumb"
+                 loading="lazy">
+          {% else %}
+            <div class="prod-thumb-placeholder">🥐</div>
+          {% endif %}
+        </td>
+
+        {# Nombre + descripción #}
         <td>
           <div class="prod-cell">
-            <div class="prod-emoji">🍞</div>
             <div>
               <div class="prod-name">{{ p.nombre }}</div>
               {% if p.descripcion %}
@@ -82,7 +113,9 @@
             </div>
           </div>
         </td>
+
         <td><span class="precio-chip">${{ "%.2f"|format(p.precio_venta) }}</span></td>
+
         <td>
           {% set n = p.recetas|length %}
           {% if n > 0 %}
@@ -93,19 +126,35 @@
             <span style="color:var(--brown-lt);font-size:12px">Sin recetas</span>
           {% endif %}
         </td>
+
         <td>
           <span class="badge {% if p.estatus=='activo' %}badge-active{% else %}badge-inactive{% endif %}">
             {{ 'Activo' if p.estatus=='activo' else 'Inactivo' }}
           </span>
         </td>
+
         <td>
           <div class="actions-cell">
-            <a href="?modal=editar&id={{ p.id_producto }}&pagina={{ pagina }}&buscar={{ buscar }}&estatus={{ estatus_sel }}"
-               class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar">✏️</a>
+            {# Editar — abre modal pasando el id como query param #}
+            <a href="?modal=editar&id={{ p.id_producto }}"
+               class="btn btn-outline btn-sm btn-icon" title="Editar">✏️</a>
+
+            {# Toggle estatus #}
             <button class="btn btn-outline btn-sm btn-icon"
-                    data-tooltip="{{ 'Desactivar' if p.estatus=='activo' else 'Activar' }}"
+                    title="{{ 'Desactivar' if p.estatus=='activo' else 'Activar' }}"
                     onclick="abrirToggleProd({{ p.id_producto }}, '{{ p.nombre|replace("'","\\'")|replace('"','\\"') }}', '{{ p.estatus }}')">
               {{ '🚫' if p.estatus=='activo' else '✅' }}
+            </button>
+
+            {# Imagen — data-* evita conflicto de comillas con url_for en onclick #}
+            <button type="button"
+                    class="btn btn-outline btn-sm btn-icon btn-img"
+                    title="{{ 'Cambiar imagen' if p.imagen_url else 'Subir imagen' }}"
+                    data-id="{{ p.id_producto }}"
+                    data-nombre="{{ p.nombre | e }}"
+                    data-url="{{ url_for('static', filename=p.imagen_url) if p.imagen_url else '' }}"
+                    onclick="abrirModalImagen(this.dataset.id, this.dataset.nombre, this.dataset.url)">
+              📷
             </button>
           </div>
         </td>
@@ -113,104 +162,30 @@
       {% else %}
       <tr>
         <td colspan="7" style="text-align:center;padding:40px;color:var(--brown-lt);">
-          No hay productos que mostrar.
+          No hay productos registrados.
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
-  {# ══ PAGINADOR ══ #}
-  {% if paginacion.pages > 1 %}
-  <div class="paginador">
-
-    {# Info: "Mostrando 1-10 de 23 productos" #}
-    <div class="pag-info">
-      Mostrando
-      <strong>{{ (paginacion.page - 1) * 10 + 1 }}</strong>
-      –
-      <strong>{{ [paginacion.page * 10, paginacion.total]|min }}</strong>
-      de
-      <strong>{{ paginacion.total }}</strong>
-      producto{{ 's' if paginacion.total != 1 else '' }}
-    </div>
-
-    {# Controles de navegación #}
-    <div class="pag-controles">
-
-      {# ← Anterior #}
-      {% if paginacion.has_prev %}
-        <a href="{{ url_for('productos_bp.index_productos', pagina=paginacion.prev_num, buscar=buscar, estatus=estatus_sel) }}"
-           class="pag-btn">‹</a>
-      {% else %}
-        <span class="pag-btn disabled">‹</span>
-      {% endif %}
-
-      {# Números de página con lógica de puntos suspensivos #}
-      {% set p_actual = paginacion.page %}
-      {% set p_total  = paginacion.pages %}
-
-      {% for num in range(1, p_total + 1) %}
-        {% if num == 1 or num == p_total
-              or (num >= p_actual - 2 and num <= p_actual + 2) %}
-
-          {# Puntos suspensivos izquierda #}
-          {% if loop.index > 1 and num > 2
-                and range(1, p_total + 1)|list|select("equalto", num - 1)|list|length == 0 %}
-            <span class="pag-puntos">…</span>
-          {% endif %}
-
-          <a href="{{ url_for('productos_bp.index_productos', pagina=num, buscar=buscar, estatus=estatus_sel) }}"
-             class="pag-btn {% if num == p_actual %}activo{% endif %}">
-            {{ num }}
-          </a>
-
-          {# Puntos suspensivos derecha #}
-          {% if num < p_total - 1
-                and not (num + 1 >= p_actual - 2 and num + 1 <= p_actual + 2)
-                and num + 1 != p_total %}
-            <span class="pag-puntos">…</span>
-          {% endif %}
-
-        {% endif %}
-      {% endfor %}
-
-      {# → Siguiente #}
-      {% if paginacion.has_next %}
-        <a href="{{ url_for('productos_bp.index_productos', pagina=paginacion.next_num, buscar=buscar, estatus=estatus_sel) }}"
-           class="pag-btn">›</a>
-      {% else %}
-        <span class="pag-btn disabled">›</span>
-      {% endif %}
-
-    </div>
+  <div id="paginador-wrap" class="paginador" style="display:none;">
+    <div id="pag-info" class="pag-info"></div>
+    <div id="pag-controles" class="pag-controles"></div>
   </div>
-  {% else %}
-  {# Si solo hay una página, mostrar info simple #}
-  {% if paginacion.total > 0 %}
-  <div class="paginador">
-    <div class="pag-info">
-      <strong>{{ paginacion.total }}</strong>
-      producto{{ 's' if paginacion.total != 1 else '' }} en total
-    </div>
-  </div>
-  {% endif %}
-  {% endif %}
 
 </div>{# fin .table-card #}
 
-
-{# ══════════════════════════════════════════
-   MODAL — NUEVO PRODUCTO
-══════════════════════════════════════════ #}
 <div class="modal-overlay {% if request.args.get('modal')=='nuevo' %}open{% endif %}" id="modal-nuevo">
   <div class="modal">
     <div class="modal-header">
       <h2>➕ Nuevo Producto</h2>
-      <a href="{{ url_for('productos_bp.index_productos', buscar=buscar, estatus=estatus_sel) }}"
+      <a href="{{ url_for('productos_bp.index_productos') }}"
          class="modal-close-link">✕</a>
     </div>
-    <form method="POST" action="{{ url_for('productos_bp.productos_nuevo') }}">
+    <form method="POST"
+          action="{{ url_for('productos_bp.productos_nuevo') }}"
+          enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <div class="form-grid">
@@ -228,6 +203,13 @@
             <span class="form-hint">Precio unitario al público</span>
           </div>
 
+          <div class="form-group">
+            <label class="form-label">Imagen del Producto</label>
+            <input type="file" name="imagen" class="form-input"
+                   accept=".jpg,.jpeg,.png,.webp">
+            <span class="form-hint">JPG, PNG o WebP · máx. 3 MB (opcional)</span>
+          </div>
+
           <div class="form-group full">
             <label class="form-label">Descripción</label>
             <textarea name="descripcion" class="form-textarea"
@@ -237,18 +219,14 @@
         </div>
       </div>
       <div class="modal-footer">
-        <a href="{{ url_for('productos_bp.index_productos', buscar=buscar, estatus=estatus_sel) }}"
+        <a href="{{ url_for('productos_bp.index_productos') }}"
            class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">💾 Guardar Producto</button>
+        <button type="submit" class="btn btn-primary">Guardar Producto</button>
       </div>
     </form>
   </div>
 </div>
 
-
-{# ══════════════════════════════════════════
-   MODAL — EDITAR PRODUCTO
-══════════════════════════════════════════ #}
 {% set edit_id = request.args.get('id', 0)|int %}
 {% set prod_edit = namespace(obj=None) %}
 {% for p in productos %}
@@ -259,13 +237,14 @@
   <div class="modal">
     <div class="modal-header">
       <h2>✏️ Editar Producto</h2>
-      <a href="{{ url_for('productos_bp.index_productos', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
+      <a href="{{ url_for('productos_bp.index_productos') }}"
          class="modal-close-link">✕</a>
     </div>
 
     {% if prod_edit.obj %}{% set pe = prod_edit.obj %}
     <form method="POST"
-          action="{{ url_for('productos_bp.productos_editar', id_producto=pe.id_producto) }}">
+          action="{{ url_for('productos_bp.productos_editar', id_producto=pe.id_producto) }}"
+          enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <div class="form-grid">
@@ -276,7 +255,7 @@
                    value="{{ pe.nombre }}" required maxlength="120">
           </div>
 
-          <div class="form-group">
+          <div class="form-group full">
             <label class="form-label">Precio de Venta ($) *</label>
             <input type="number" name="precio_venta" class="form-input"
                    value="{{ pe.precio_venta }}" min="0.01" step="0.01" required>
@@ -290,9 +269,9 @@
         </div>
       </div>
       <div class="modal-footer">
-        <a href="{{ url_for('productos_bp.index_productos', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
+        <a href="{{ url_for('productos_bp.index_productos') }}"
            class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
       </div>
     </form>
     {% endif %}
@@ -300,26 +279,73 @@
 </div>
 
 
-{# ═══════════════ MODAL: ACTIVAR / DESACTIVAR PRODUCTO ═══════════════ #}
 <div class="modal-overlay" id="modal-toggle-prod">
   <div class="modal" style="max-width:420px">
     <div class="modal-header" id="toggle-prod-header" style="background:var(--rust);">
-      <h2 id="toggle-prod-title">🚫 Desactivar Producto</h2>
-      <button type="button"
-              onclick="cerrarToggleProd()"
-              style="background:rgba(255,255,255,.15);border:none;cursor:pointer;color:var(--cream);font-size:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;">✕</button>
+      <h2>
+        <span id="toggle-prod-icon">🚫</span>
+        <span id="toggle-prod-title">Desactivar Producto</span>
+      </h2>
+      <button type="button" onclick="cerrarToggleProd()"
+              style="background:rgba(255,255,255,.15);border:none;cursor:pointer;
+                     color:var(--cream);font-size:16px;width:28px;height:28px;
+                     border-radius:6px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <form id="form-toggle-prod" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:28px 26px 10px;text-align:center;">
-        <div id="toggle-prod-icon" style="font-size:42px;margin-bottom:12px;"></div>
-        <p id="toggle-prod-msg" style="font-size:14px;color:var(--brown-dk);line-height:1.7;margin:0;"></p>
+        <p id="toggle-prod-msg"
+           style="font-size:14px;color:var(--brown-dk);line-height:1.7;margin:0;"></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="cerrarToggleProd()">Cancelar</button>
-        <button type="submit" id="toggle-prod-btn" class="btn btn-danger"></button>
+        <button type="submit" id="toggle-prod-btn" class="btn btn-danger">Confirmar</button>
       </div>
     </form>
+  </div>
+</div>
+<div class="modal-overlay" id="modalImagen">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header" style="background:var(--brown-dk);">
+      <h2>📷 Imagen del Producto</h2>
+      <button type="button" onclick="cerrarModalImagen()" class="modal-close-link"
+              style="background:rgba(255,255,255,.15);border:none;cursor:pointer;">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="img-nombre-prod"
+         style="font-weight:700;color:var(--brown-dk);margin:0 0 14px;font-size:14px;"></p>
+      <div style="text-align:center;margin-bottom:18px;">
+        <img id="img-preview-actual" src="" alt="Vista previa"
+             style="max-width:100%;max-height:200px;border-radius:10px;
+                    border:2px solid var(--tan);display:none;object-fit:cover;">
+        <div id="img-sin-imagen"
+             style="background:var(--warm-bg);border:2px dashed var(--tan);
+                    border-radius:10px;padding:36px 20px;
+                    color:var(--brown-lt);font-size:13px;font-weight:600;">
+          Sin imagen
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nueva imagen (JPG / PNG / WebP · máx. 3 MB)</label>
+        <input type="file" id="img-input" name="imagen"
+               accept=".jpg,.jpeg,.png,.webp"
+               class="form-input"
+               onchange="previewImagen(this)">
+      </div>
+      <div id="img-error"
+           style="color:#dc2626;font-size:12px;margin-top:6px;display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="btn-quitar-img" onclick="quitarImagen()"
+              style="display:none;color:#dc2626;border:1.5px solid #dc2626;
+                     background:transparent;border-radius:8px;padding:8px 16px;
+                     font-family:'Lato',sans-serif;font-size:13px;
+                     font-weight:700;cursor:pointer;">
+        🗑 Quitar imagen
+      </button>
+      <button type="button" class="btn btn-outline" onclick="cerrarModalImagen()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="subirImagen()">💾 Guardar imagen</button>
+    </div>
   </div>
 </div>
 

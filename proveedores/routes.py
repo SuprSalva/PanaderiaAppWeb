@@ -13,20 +13,16 @@ from . import proveedores
 POR_PAGINA = 10
 
 
-# ─── utilidad interna ──────────────────────────────────────────────────────────
 def _usuario_actual():
-    """Retorna el id_usuario de la sesión activa, o None si no hay sesión."""
     return session.get('id_usuario')
 
 
 def _msg_error_sp(exc):
-    """Extrae el mensaje del SIGNAL SQLSTATE lanzado por un SP de MySQL."""
     if exc.orig and len(exc.orig.args) > 1:
         return exc.orig.args[1]
     return 'Ocurrió un error al procesar la operación.'
 
 
-# ─── Listado ───────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores', methods=['GET'])
 @login_required
 @roles_required('admin', 'empleado')
@@ -73,7 +69,6 @@ def index_proveedores():
     )
 
 
-# ─── Crear ─────────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/nuevo', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado')
@@ -122,7 +117,6 @@ def proveedores_nuevo():
     return redirect(url_for('proveedores.index_proveedores'))
 
 
-# ─── Editar ────────────────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/editar/<int:id_proveedor>', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado')
@@ -174,7 +168,6 @@ def proveedores_editar(id_proveedor):
     return redirect(url_for('proveedores.index_proveedores'))
 
 
-# ─── Confirmar toggle ──────────────────────────────────────────────────────────
 @proveedores.route('/proveedores/confirmar-toggle/<int:id_proveedor>', methods=['GET'])
 @login_required
 @roles_required('admin', 'empleado')
@@ -183,7 +176,6 @@ def proveedores_confirmar_toggle(id_proveedor):
     return render_template('proveedores/proveedores_confirmar_toggle.html', prov=prov)
 
 
-# ─── Toggle estatus (activo ↔ inactivo) ───────────────────────────────────────
 @proveedores.route('/proveedores/toggle/<int:id_proveedor>', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado')

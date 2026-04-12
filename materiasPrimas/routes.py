@@ -15,7 +15,7 @@ POR_PAGINA = 10
 def index_materias_primas():
     buscar = request.args.get('buscar', '').strip()
     estatus = request.args.get('estatus', 'todos')
-    nivel_stock = request.args.get('nivel_stock', '')  # nuevo filtro
+    nivel_stock = request.args.get('nivel_stock', '') 
     pagina = request.args.get('pagina', 1, type=int)
     if pagina < 1:
         pagina = 1
@@ -31,7 +31,6 @@ def index_materias_primas():
     if estatus in ('activo', 'inactivo'):
         query = query.filter_by(estatus=estatus)
 
-    # Aplicar filtro por nivel de stock (sobre la consulta, no sobre todos)
     if nivel_stock == 'normal':
         query = query.filter(MateriaPrima.stock_actual > MateriaPrima.stock_minimo)
     elif nivel_stock == 'bajo':
@@ -45,7 +44,6 @@ def index_materias_primas():
     paginacion = query.order_by(MateriaPrima.nombre).paginate(page=pagina, per_page=POR_PAGINA, error_out=False)
     lista = paginacion.items
 
-    # Contadores globales (sin el filtro de nivel_stock, para las tarjetas)
     todas = MateriaPrima.query.all()
     normal = sum(1 for m in todas if float(m.stock_actual) > float(m.stock_minimo))
     bajo = sum(1 for m in todas if 0 < float(m.stock_actual) <= float(m.stock_minimo))
@@ -77,7 +75,6 @@ def materias_primas_nueva():
     categoria   = request.form.get('categoria', '').strip()
     unidad_base = request.form.get('unidad_base', '').strip()
     stock_min   = request.form.get('stock_minimo', '0').strip()
-    stock_ini   = request.form.get('stock_inicial', '0').strip()
     estatus     = request.form.get('estatus', 'activo')
 
     if not nombre:
@@ -97,7 +94,7 @@ def materias_primas_nueva():
 
     try:
         stock_min_f = float(stock_min) if stock_min else 0.0
-        stock_ini_f = float(stock_ini) if stock_ini else 0.0
+        stock_ini_f = 0.0
     except ValueError:
         current_app.logger.warning('Creacion de materia prima fallida (stock no numerico) | usuario: %s | materia: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Los valores de stock deben ser numéricos.', 'error')
