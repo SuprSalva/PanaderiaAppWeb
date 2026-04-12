@@ -37,16 +37,40 @@
 
     <div class="feature-pills">
       <div class="feature-pill">
-        <div class="pill-icon">🛍️</div> Realiza tu Pedido en Línea
+        <div class="pill-icon"><animated-icons
+  src="/static/icons/man-with-cart-dcd96639.json"
+  trigger="loop"
+  attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+  height="30"
+  width="30"
+></animated-icons></div> Realiza tu Pedido en Línea
       </div>
       <div class="feature-pill">
-        <div class="pill-icon">📦</div> Consulta tus Pedidos
+        <div class="pill-icon"><animated-icons
+          src="/static/icons/order-history-c80ddd83.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30"
+          width="30"
+        ></animated-icons></div> Consulta tus Pedidos
       </div>
       <div class="feature-pill">
-        <div class="pill-icon">🎂</div> Catálogo de Productos
+        <div class="pill-icon"><animated-icons
+          src="/static/icons/order-history-c80ddd83.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30"
+          width="30"
+        ></animated-icons></div> Catálogo de Productos
       </div>
       <div class="feature-pill">
-        <div class="pill-icon">👤</div> Gestiona tu Perfil
+        <div class="pill-icon"><animated-icons
+          src="/static/icons/grocery-d2653a36.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30"
+          width="30"
+        ></animated-icons></div> Gestiona tu Perfil
       </div>
     </div>
   </div>
@@ -66,7 +90,11 @@
           <div class="login-form-group">
             <label class="login-label">Usuario</label>
             <div class="login-input-wrap">
-              <span class="l-icon">👤</span>
+              <span class="l-icon"><animated-icons
+                src="/static/icons/user-profile-defd54f5.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></span>
               {{ form.usuario(class="", placeholder="Tu correo electrónico", autocomplete="username") }}
             </div>
             {% if form.usuario.errors %}
@@ -77,7 +105,11 @@
           <div class="login-form-group">
             <label class="login-label">Contraseña</label>
             <div class="login-input-wrap">
-              <span class="l-icon">🔒</span>
+              <span class="l-icon"><animated-icons
+                src="/static/icons/lock-926b8ba3.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></span>
               {{ form.password(class="", placeholder="••••••••", autocomplete="current-password") }}
             </div>
             {% if form.password.errors %}
@@ -89,7 +121,14 @@
             <div id="recaptcha-login"></div>
           </div>
           <div id="login-captcha-error" style="display:none;color:#9c3a1a;font-size:0.82rem;text-align:center;margin-bottom:6px;"></div>
-          <button type="submit" class="btn-login">Iniciar Sesión →</button>
+          <button type="submit" class="btn-login">Iniciar Sesión <animated-icons
+              src="/static/icons/login-e611dfb8.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="30"
+              width="30"
+            ></animated-icons>
+          </button>
         </form>
 
         <div style="text-align:center; margin-top:10px;">
@@ -124,10 +163,24 @@
         </div>
         <div id="forgot-captcha-error" style="display:none;color:#9c3a1a;font-size:0.82rem;text-align:center;margin-bottom:6px;"></div>
 
-        <button type="button" id="btn-enviar-codigo" class="btn-login">Enviar Código →</button>
+        <button type="button" id="btn-enviar-codigo" class="btn-login">Enviar Código <animated-icons
+            src="/static/icons/exit-6e09845f.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30"
+            width="30"
+          ></animated-icons>
+        </button>
 
         <div style="text-align:center; margin-top:12px;">
-          <a href="#" id="link-volver-login" style="font-size:0.85rem; color:#a0522d; text-decoration:none;">← Volver al inicio de sesión</a>
+          <a href="#" id="link-volver-login" style="font-size:0.85rem; color:#a0522d; text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;"><animated-icons
+            src="/static/icons/login-e611dfb8.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30"
+            width="30"
+          ></animated-icons>
+          Volver al inicio de sesión</a>
         </div>
       </div>
 
@@ -143,7 +196,15 @@
         <div class="login-form-group">
           <label class="login-label">Código de verificación</label>
           <div class="login-input-wrap">
-            <span class="l-icon">🔑</span>
+            <span class="l-icon">
+              <animated-icons
+                src="/static/icons/unlock-97ae0ebf.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30"
+                width="30"
+              ></animated-icons>
+            </span>
             <input type="text" id="forgot-codigo" class="" placeholder="123456" maxlength="6" inputmode="numeric">
           </div>
         </div>
@@ -151,7 +212,13 @@
         <div class="login-form-group">
           <label class="login-label">Nueva contraseña</label>
           <div class="login-input-wrap">
-            <span class="l-icon">🔒</span>
+            <span class="l-icon">
+              <animated-icons
+                src="/static/icons/lock-926b8ba3.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+            </span>
             <input type="password" id="forgot-nueva-pwd" class="" placeholder="Mín. 8 caracteres" autocomplete="new-password">
           </div>
         </div>
@@ -159,7 +226,13 @@
         <div class="login-form-group">
           <label class="login-label">Confirmar contraseña</label>
           <div class="login-input-wrap">
-            <span class="l-icon">🔒</span>
+            <span class="l-icon">
+              <animated-icons
+                src="/static/icons/lock-926b8ba3.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+            </span>
             <input type="password" id="forgot-confirmar-pwd" class="" placeholder="Repite tu contraseña" autocomplete="new-password">
           </div>
           <span id="forgot-match-msg" style="font-size:0.82rem;"></span>
@@ -169,10 +242,24 @@
           Mín. 8 caracteres, una mayúscula, un número y un carácter especial <strong>(@$!%*?&_)</strong>
         </div>
 
-        <button type="button" id="btn-cambiar-pwd" class="btn-login">Actualizar Contraseña →</button>
+        <button type="button" id="btn-cambiar-pwd" class="btn-login">Actualizar Contraseña 
+          <animated-icons
+            src="/static/icons/exit-6e09845f.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30"
+            width="30"
+          ></animated-icons>
+        </button>
 
         <div style="text-align:center; margin-top:12px;">
-          <a href="#" id="link-volver-forgot1" style="font-size:0.85rem; color:#a0522d; text-decoration:none;">← Volver al paso anterior</a>
+          <a href="#" id="link-volver-forgot1" style="font-size:0.85rem; color:#a0522d; text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;"><animated-icons
+            src="/static/icons/login-e611dfb8.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30"
+            width="30"
+          ></animated-icons> Volver al paso anterior</a>
         </div>
       </div>
 
