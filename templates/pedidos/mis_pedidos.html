@@ -3,207 +3,309 @@
 
 {% block extra_head %}
 <style>
-  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid var(--tan); }
-  .tab {
-    padding: 12px 20px; border: none; background: none; cursor: pointer; font-size: 14px;
-    font-weight: 700; color: var(--brown-lt); border-bottom: 2px solid transparent;
-    margin-bottom: -2px; transition: all .15s; font-family: 'Lato', sans-serif;
-  }
-  .tab.active { color: var(--rust); border-bottom-color: var(--rust); }
-  .tab:hover  { color: var(--brown-dk); }
-  .tab-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    background: var(--rust); color: #fff; border-radius: 10px;
-    font-size: 10px; font-weight: 800; padding: 1px 6px; margin-left: 6px;
-  }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+/* ═══════════════════════════════════════════
+   MIS PEDIDOS  ·  DulceMigaja
+   ═══════════════════════════════════════════ */
 
-  .ped-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-  .ped-card {
-    background: var(--white); border: 1.5px solid var(--tan); border-radius: 16px;
-    padding: 18px; transition: all .2s; position: relative;
-    display: flex; flex-direction: column;  
-  }
-  .ped-card:hover { border-color: var(--brown-lt); transform: translateY(-2px); box-shadow: 0 6px 15px var(--shadow); }
+/* Tabs */
+.tabs {
+  display:flex; gap:4px; margin-bottom:20px;
+  border-bottom:2px solid var(--tan);
+}
+.tab {
+  padding:12px 20px; border:none; background:none; cursor:pointer;
+  font-size:14px; font-weight:700; color:var(--brown-lt);
+  border-bottom:2px solid transparent; margin-bottom:-2px;
+  transition:all .15s; font-family:'Lato',sans-serif;
+}
+.tab.active { color:var(--rust); border-bottom-color:var(--rust); }
+.tab:hover  { color:var(--brown-dk); }
+.tab-badge {
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--rust); color:#fff; border-radius:10px;
+  font-size:10px; font-weight:800; padding:1px 6px; margin-left:6px;
+}
+.tab-content        { display:none; }
+.tab-content.active { display:block; }
 
-  .ped-card .folio { font-size: 11px; font-family: monospace; font-weight: 700; color: var(--brown-lt); margin-bottom: 8px; letter-spacing: 1px; }
-  .ped-card .meta  { font-size: 12px; color: var(--brown-lt); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
-  .ped-card .total {
-  font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 800;
-  color: var(--brown-dk); margin-top: auto; 
-  padding-top: 10px; border-top: 1px dashed var(--tan);
+/* Grid de tarjetas */
+.ped-cards {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+  gap:16px;
 }
 
-  .caja-block {
-    background: var(--warm-bg); border-radius: 10px; padding: 12px 14px;
-    margin-bottom: 12px; display: flex; align-items: center; gap: 12px;
-  }
-  .caja-block .ico   { font-size: 32px; flex-shrink: 0; }
-  .caja-block .nom   { font-weight: 800; font-size: 14px; color: var(--brown-dk); margin-bottom: 4px; }
-  .caja-block .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip {
-    display: inline-block; border-radius: 6px; padding: 2px 8px;
-    font-size: 10px; font-weight: 700; border: 1px solid var(--tan);
-    background: var(--white); color: var(--brown-dk);
-  }
-  .chip.simple { background: #e2eede; color: #3a6034; border-color: #3a6034; }
-  .chip.mixta  { background: #dbeafe; color: #1e40af; border-color: #1e40af; }
+/* Tarjeta */
+.ped-card {
+  background:var(--white); border:1.5px solid var(--tan);
+  border-radius:16px; overflow:hidden;
+  display:flex; flex-direction:column;
+  transition:all .2s; position:relative;
+}
+.ped-card:hover { border-color:var(--brown-lt); transform:translateY(-2px); box-shadow:0 6px 15px var(--shadow); }
 
-  .panes-list { list-style: none; padding: 0; margin: 0 0 10px; }
-  .panes-list li { font-size: 12px; color: var(--brown-dk); padding: 4px 0; border-bottom: 1px dashed var(--tan); display: flex; justify-content: space-between; }
-  .panes-list li:last-child { border-bottom: none; }
+/* Barra lateral de color por estado */
+.ped-card-inner { display:flex; flex:1; }
+.ped-card-bar   { width:5px; flex-shrink:0; }
+.ped-card.pendiente  .ped-card-bar { background:#f59e0b; }
+.ped-card.aprobado   .ped-card-bar { background:#3b82f6; }
+.ped-card.listo      .ped-card-bar { background:#22c55e; }
+.ped-card.rechazado  .ped-card-bar { background:#ef4444; }
+.ped-card.entregado  .ped-card-bar { background:#94a3b8; }
 
-  .badge-estado { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
-  .badge-pendiente     { background: #fef3d0; color: #8a6200; }
-  .badge-aprobado      { background: #e2eede; color: #3a6034; }
-  .badge-en_produccion { background: #e8f0fe; color: #1a56db; }
-  .badge-listo         { background: #dbeafe; color: #1e40af; }
-  .badge-entregado     { background: #f3e8d8; color: var(--brown-dk); }
-  .badge-rechazado     { background: #fce8df; color: var(--rust); }
+.ped-card-body { flex:1; padding:16px 18px; display:flex; flex-direction:column; gap:8px; }
 
-  .rechazo-box {
-    background: #fff5f2; border: 1px solid #ffcfc2; border-radius: 10px;
-    padding: 12px; font-size: 12px; color: #b33a1b; margin-top: 12px;
-  }
+/* Cabecera */
+.ped-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+.ped-folio     { font-size:11px; font-family:monospace; font-weight:700; color:var(--brown-lt); letter-spacing:1px; }
 
-  .notif-list { display: flex; flex-direction: column; gap: 12px; }
-  .notif-item { display: flex; gap: 14px; padding: 14px; border-radius: 14px; background: var(--white); border: 1.5px solid var(--tan); transition: all .15s; }
-  .notif-item.unread { border-color: var(--rust); background: #fffcfb; box-shadow: 0 4px 10px rgba(188,78,33,.05); }
-  .notif-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--tan); flex-shrink: 0; margin-top: 4px; }
-  .notif-item.unread .notif-dot { background: var(--rust); }
-  .notif-body  { flex: 1; }
-  .notif-msg   { font-size: 13.5px; color: var(--brown-dk); line-height: 1.4; }
-  .notif-meta  { font-size: 11px; color: var(--brown-lt); margin-top: 5px; font-weight: 600; }
+/* Badge de estado */
+.badge-estado {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 10px; border-radius:20px;
+  font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+  white-space:nowrap;
+}
+.badge-pendiente { background:#fef3c7; color:#92400e; }
+.badge-aprobado  { background:#dbeafe; color:#1e40af; }
+.badge-listo     { background:#dcfce7; color:#166534; }
+.badge-rechazado { background:#fee2e2; color:#991b1b; }
+.badge-entregado { background:#f1f5f9; color:#64748b; }
 
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--brown-lt); }
-  .empty-state .ico { font-size: 48px; margin-bottom: 15px; opacity: .5; }
+/* Método de pago badge */
+.badge-pago {
+  display:inline-flex; align-items:center; gap:4px;
+  border-radius:20px; padding:3px 9px;
+  font-size:10px; font-weight:700;
+  border:1px solid var(--tan); background:var(--warm-bg); color:var(--brown-dk);
+}
+.badge-pago.efectivo      { border-color:#86efac; background:#f0fdf4; color:#166534; }
+.badge-pago.tarjeta       { border-color:#93c5fd; background:#eff6ff; color:#1e40af; }
+.badge-pago.transferencia { border-color:#c4b5fd; background:#faf5ff; color:#6d28d9; }
 
-  .marcar-leidas-btn {
-    display: inline-block; font-size: 12px; color: var(--rust); cursor: pointer;
-    font-weight: 700; text-decoration: none; margin-bottom: 15px;
-    background: none; border: 1px solid var(--rust); padding: 6px 14px; border-radius: 8px;
-  }
-  .marcar-leidas-btn:hover { background: var(--rust); color: #fff; }
+/* Productos */
+.ped-panes {
+  background:var(--warm-bg); border-radius:10px; padding:10px 12px;
+}
+.ped-panes-title { font-size:10px; font-weight:800; color:var(--brown-lt); letter-spacing:.5px; margin-bottom:6px; }
+.ped-panes-list  { list-style:none; padding:0; margin:0; }
+.ped-panes-list li {
+  font-size:12px; color:var(--brown-dk);
+  padding:3px 0; border-bottom:1px dashed var(--tan);
+  display:flex; justify-content:space-between;
+}
+.ped-panes-list li:last-child { border-bottom:none; }
+
+/* Meta */
+.ped-meta { font-size:12px; color:var(--brown-lt); display:flex; align-items:center; gap:5px; }
+.ped-meta strong { color:var(--brown-dk); }
+
+/* Motivo de rechazo */
+.rechazo-box {
+  background:#fff5f2; border:1px solid #ffcfc2;
+  border-radius:10px; padding:10px 12px;
+  font-size:12px; color:#b33a1b;
+}
+
+/* Listo banner */
+.listo-banner {
+  background:#e8f5e9; border:1px solid #a5d6a7;
+  border-radius:10px; padding:10px; font-size:12px;
+  color:#2e7d32; font-weight:700; text-align:center;
+}
+
+/* Footer de la tarjeta */
+.ped-card-foot {
+  padding:10px 18px; border-top:1px dashed var(--tan);
+  display:flex; align-items:center; justify-content:space-between;
+  background:#fdfaf6;
+}
+.ped-total {
+  font-family:'Playfair Display',serif; font-size:18px;
+  font-weight:900; color:var(--brown-dk);
+}
+.ped-piezas { font-size:11px; color:var(--brown-lt); }
+
+/* Notificaciones */
+.notif-list { display:flex; flex-direction:column; gap:12px; }
+.notif-item {
+  display:flex; gap:14px; padding:14px; border-radius:14px;
+  background:var(--white); border:1.5px solid var(--tan); transition:all .15s;
+}
+.notif-item.unread {
+  border-color:var(--rust); background:#fffcfb;
+  box-shadow:0 4px 10px rgba(188,78,33,.05);
+}
+.notif-dot {
+  width:10px; height:10px; border-radius:50%;
+  background:var(--tan); flex-shrink:0; margin-top:4px;
+}
+.notif-item.unread .notif-dot { background:var(--rust); }
+.notif-body  { flex:1; }
+.notif-msg   { font-size:13.5px; color:var(--brown-dk); line-height:1.4; }
+.notif-meta  { font-size:11px; color:var(--brown-lt); margin-top:5px; font-weight:600; }
+
+/* Vacío */
+.empty-state       { text-align:center; padding:60px 20px; color:var(--brown-lt); }
+.empty-state .ico  { font-size:48px; margin-bottom:15px; opacity:.5; }
+.empty-state p     { font-size:14px; margin-bottom:14px; }
+
+/* Botón marcar leídas */
+.marcar-leidas-btn {
+  display:inline-block; font-size:12px; color:var(--rust); cursor:pointer;
+  font-weight:700; margin-bottom:15px;
+  background:none; border:1px solid var(--rust);
+  padding:6px 14px; border-radius:8px;
+}
+.marcar-leidas-btn:hover { background:var(--rust); color:#fff; }
+
+/* Botón nuevo pedido */
+.btn-nuevo {
+  background:var(--rust); color:#fff; padding:10px 18px;
+  border-radius:10px; text-decoration:none; font-weight:700;
+  font-size:13px; display:inline-flex; align-items:center; gap:6px;
+  transition:background .2s;
+}
+.btn-nuevo:hover { background:#9c3a1a; }
 </style>
 {% endblock %}
 
 {% block container %}
 
-<div class="db-topbar anim" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+<!-- ── Encabezado ─────────────────────────────────────────── -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
   <div>
-    <h1 style="font-family:'Playfair Display', serif; color:var(--brown-dk); font-size:24px;">📦 Mis Pedidos</h1>
-    <p style="font-size:13px; color:var(--brown-lt);">Sigue el progreso de tus cajas en tiempo real</p>
+    <h1 style="font-family:'Playfair Display',serif; color:var(--brown-dk); font-size:24px; margin:0 0 4px;">
+      📦 Mis Pedidos
+    </h1>
+    <p style="font-size:13px; color:var(--brown-lt); margin:0;">
+      Sigue el estado de tus pedidos en tiempo real
+    </p>
   </div>
-  <a href="{{ url_for('pedidos.catalogo') }}" class="btn btn-primary"
-     style="background:var(--brown-dk); color:var(--cream); padding:10px 18px; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px;">
-    Pedir Caja
+  <a href="{{ url_for('pedidos.tienda') }}" class="btn-nuevo">
+    🥐 Nuevo Pedido
   </a>
 </div>
 
-<div class="tabs anim">
+<!-- ── Tabs ───────────────────────────────────────────────── -->
+<div class="tabs">
   <button class="tab active" onclick="switchTab('pedidos', this)">
     📦 Mis Pedidos
-    <span class="tab-badge">{{ pedidos|length }}</span>
+    <span class="tab-badge">{{ pedidos | length }}</span>
   </button>
   <button class="tab" onclick="switchTab('notifs', this)" id="tab-notifs">
     🔔 Notificaciones
-    {% set unread_count = notifs|selectattr('leida','equalto',0)|list|length %}
+    {% set unread_count = notifs | selectattr('leida', 'equalto', 0) | list | length %}
     {% if unread_count > 0 %}
     <span class="tab-badge" id="badge-notif-count">{{ unread_count }}</span>
     {% endif %}
   </button>
 </div>
 
-<!-- TAB: PEDIDOS -->
-<div class="tab-content active anim" id="tab-content-pedidos">
+<!-- ══════════════════════════════════════════════════════════
+     TAB: PEDIDOS
+     ══════════════════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-content-pedidos">
   {% if pedidos %}
   <div class="ped-cards">
     {% for p in pedidos %}
-    <div class="ped-card">
-      <div class="folio">{{ p.folio }}</div>
 
-      <div style="margin-bottom:10px;">
-        <span class="badge-estado badge-{{ p.estado }}">
-          {% if p.estado == 'pendiente'      %}Pendiente
-          {% elif p.estado == 'aprobado'     %}Aprobado
-          {% elif p.estado == 'en_produccion'%}En Producción
-          {% elif p.estado == 'listo'        %}Lista para recoger
-          {% elif p.estado == 'entregado'    %}Entregada
-          {% elif p.estado == 'rechazado'    %}Rechazado
-          {% endif %}
-        </span>
-      </div>
+    {# Íconos de pago #}
+    {% set pago_ico = {'efectivo':'💵','tarjeta':'💳','transferencia':'🏦'} %}
 
-      <!-- Info de la caja -->
-      <div class="caja-block">
-        <div class="ico">{{ '' if p.tipo_caja == 'simple' else '' }}</div>
-        <div>
-          <div class="nom">{{ p.nombre_caja if p.nombre_caja else 'Caja de Pan' }}</div>
-          <div class="chips">
-            {% if p.tamanio_nombre %}
-            <span class="chip"> {{ p.tamanio_nombre }}</span>
-            {% endif %}
-            {% if p.tipo_caja %}
-            <span class="chip {{ p.tipo_caja }}">
-              {{ ' Simple' if p.tipo_caja == 'simple' else ' Mixta' }}
+    <div class="ped-card {{ p.estado }}">
+      <div class="ped-card-inner">
+        <div class="ped-card-bar"></div>
+        <div class="ped-card-body">
+
+          <!-- Cabecera: folio + estado -->
+          <div class="ped-card-head">
+            <span class="ped-folio">{{ p.folio }}</span>
+            <span class="badge-estado badge-{{ p.estado }}">
+              {% if p.estado == 'pendiente'  %}⏳ Pendiente
+              {% elif p.estado == 'aprobado' %}✅ Aprobado
+              {% elif p.estado == 'listo'    %}🎉 Listo
+              {% elif p.estado == 'entregado'%}📦 Entregado
+              {% elif p.estado == 'rechazado'%}❌ Rechazado
+              {% endif %}
             </span>
-            {% endif %}
-            {% if p.capacidad %}
-            <span class="chip"> {{ p.capacidad }} pzas</span>
-            {% endif %}
           </div>
+
+          <!-- Método de pago -->
+          <div>
+            <span class="badge-pago {{ p.metodo_pago }}">
+              {{ pago_ico.get(p.metodo_pago, '💰') }}
+              {{ p.metodo_pago | capitalize }}
+            </span>
+          </div>
+
+          <!-- Productos del pedido -->
+          {% if p.panes_resumen %}
+          <div class="ped-panes">
+            <div class="ped-panes-title">🥐 PRODUCTOS</div>
+            <ul class="ped-panes-list">
+              {% for pan in p.panes_resumen.split(',') %}
+              <li><span>{{ pan.strip() }}</span></li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          <!-- Meta: hora + fecha -->
+          <div class="ped-meta">
+            🕐 Recoger a las
+            <strong>{{ p.fecha_recogida.strftime('%H:%M') if p.fecha_recogida else '—' }}</strong>
+            — {{ p.fecha_recogida.strftime('%d/%m/%Y') if p.fecha_recogida else '' }}
+          </div>
+          <div class="ped-meta">
+            📅 Pedido el {{ p.creado_en.strftime('%d/%m/%Y %H:%M') if p.creado_en else '—' }}
+          </div>
+
+          <!-- Rechazo -->
+          {% if p.motivo_rechazo %}
+          <div class="rechazo-box">
+            <strong>Motivo del rechazo:</strong><br>{{ p.motivo_rechazo }}
+          </div>
+          {% endif %}
+
+          <!-- Banner listo -->
+          {% if p.estado == 'listo' %}
+          <div class="listo-banner">
+            🎉 ¡Tu pedido está listo para recoger!
+          </div>
+          {% endif %}
+
         </div>
       </div>
 
-      <!-- Panes que lleva la caja (si el SP los trae) -->
-      {% if p.panes_resumen %}
-      <ul class="panes-list">
-        {% for pan in p.panes_resumen.split(',') %}
-        <li><span>{{ pan.strip() }}</span></li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-
-      <div class="meta">
-        <span>📅</span> Recoger: <strong>{{ p.fecha_recogida.strftime('%d/%m/%Y %H:%M') if p.fecha_recogida else 'Sin fecha' }}</strong>
-      </div>
-      <div class="meta">
-        <span>🕒</span> Solicitado: {{ p.creado_en.strftime('%d/%m/%Y') }}
-      </div>
-
-      {% if p.motivo_rechazo %}
-      <div class="rechazo-box">
-        <strong style="display:block; margin-bottom:2px;">Motivo de rechazo:</strong>
-        {{ p.motivo_rechazo }}
-      </div>
-      {% endif %}
-
-      {% if p.estado == 'listo' %}
-      <div style="margin-top:12px; background:#eef6ff; border:1px solid #bcdbff; border-radius:10px; padding:10px; font-size:12px; color:#1e40af; font-weight:700; text-align:center;">
-        ¡Tu caja ya está lista para recoger!
-      </div>
-      {% endif %}
-
-      <div class="total">
-        <span style="font-size:12px; font-weight:600; color:var(--brown-lt);">Total estimado:</span>
-        ${{ "%.2f"|format(p.total_estimado) }}
+      <!-- Footer: total + piezas -->
+      <div class="ped-card-foot">
+        <span class="ped-piezas">
+          {{ p.total_piezas | int }} pieza{{ 's' if p.total_piezas != 1 else '' }}
+        </span>
+        <span class="ped-total">${{ "%.2f"|format(p.total_estimado) }}</span>
       </div>
     </div>
+
     {% endfor %}
   </div>
+
   {% else %}
   <div class="empty-state">
     <div class="ico">📦</div>
-    <p>Aún no has pedido ninguna caja.</p>
-    <a href="{{ url_for('pedidos.catalogo') }}" style="color:var(--rust); font-weight:700;">Pedir mi primera caja →</a>
+    <p>Aún no has realizado ningún pedido.</p>
+    <a href="{{ url_for('pedidos.tienda') }}" class="btn-nuevo">
+      🥐 Ver la tienda del día
+    </a>
   </div>
   {% endif %}
 </div>
 
-<!-- TAB: NOTIFICACIONES -->
-<div class="tab-content anim" id="tab-content-notifs">
-  {% set unread = notifs|selectattr('leida','equalto',0)|list %}
+<!-- ══════════════════════════════════════════════════════════
+     TAB: NOTIFICACIONES
+     ══════════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-content-notifs">
+  {% set unread = notifs | selectattr('leida', 'equalto', 0) | list %}
   {% if unread %}
   <button class="marcar-leidas-btn" id="btn-marcar-leidas" onclick="marcarLeidas()">
     ✓ Marcar todas como leídas
@@ -219,7 +321,7 @@
         <div class="notif-msg">{{ n.mensaje }}</div>
         <div class="notif-meta">
           <span style="color:var(--rust); font-family:monospace;">{{ n.folio }}</span>
-          • {{ n.creado_en.strftime('%d/%m/%Y %H:%M') }}
+          &bull; {{ n.creado_en.strftime('%d/%m/%Y %H:%M') if n.creado_en else '—' }}
         </div>
       </div>
     </div>
@@ -253,8 +355,7 @@ function marcarLeidas() {
       document.getElementById('btn-marcar-leidas')?.remove();
       document.getElementById('badge-notif-count')?.remove();
     }
-  })
-  .catch(err => console.error('Error al marcar como leídas:', err));
+  });
 }
 </script>
 {% endblock %}

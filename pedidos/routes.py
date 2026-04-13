@@ -19,181 +19,219 @@ from forms import PedidoCajaForm
 @login_required
 @roles_required('admin', 'empleado', 'panadero', 'cliente')
 def catalogo():
-    current_app.logger.info('Vista de catalogo de pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    current_app.logger.info(
+        'Vista tienda express | usuario: %s | fecha: %s',
+        current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    )
     conn = db.session.connection()
     cur  = conn.connection.cursor()
-    cur.execute("CALL sp_catalogo_pedido()")
-
-    rows_tam  = cur.fetchall()
-    cur.nextset()
-    rows_prod = cur.fetchall()
+    cur.execute("CALL sp_catalogo_tienda()")
+    rows = cur.fetchall()
     cur.close()
-
-    Tamanio  = namedtuple('Tamanio',  ['id_tamanio', 'nombre', 'capacidad', 'descripcion'])
-    Producto = namedtuple('Producto', ['id_producto', 'nombre', 'descripcion', 'precio_venta'])
-    tamanios  = [Tamanio(*r)  for r in rows_tam]
-    productos = [Producto(*r) for r in rows_prod]
-
-    tamanios_json = Markup(json.dumps({
-        str(t.id_tamanio): {'nombre': t.nombre, 'capacidad': t.capacidad}
-        for t in tamanios
-    }))
-    productos_json = Markup(json.dumps({
-        str(p.id_producto): {'nombre': p.nombre, 'precio': float(p.precio_venta)}
+ 
+    Producto = namedtuple('Producto', [
+        'id_producto', 'uuid_producto', 'nombre', 'descripcion',
+        'precio_venta', 'stock_actual', 'stock_minimo', 'nivel_stock'
+    ])
+    productos = [Producto(*r) for r in rows]
+ 
+    productos_json = Markup(json.dumps([
+        {
+            'id':          p.id_producto,
+            'uuid':        p.uuid_producto,
+            'nombre':      p.nombre,
+            'descripcion': p.descripcion or '',
+            'precio':      float(p.precio_venta),
+            'stock':       int(p.stock_actual),
+            'nivel':       p.nivel_stock,
+            'imagen_url':   p.imagen_url or '',
+        }
         for p in productos
-    }))
-
-    return render_template('pedidos/catalogo.html',
-                           tamanios=tamanios,
-                           productos=productos,
-                           tamanios_json=tamanios_json,
-                           productos_json=productos_json)
+    ]))
+ 
+    return render_template(
+        'pedidos/catalogo.html',
+        productos=productos,
+        productos_json=productos_json,
+    )
 
 
 @pedidos_bp.route('/nuevo', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero', 'cliente')
 def crear_pedido():
-    form = PedidoCajaForm(request.form)
-    cajas_raw = request.form.get('cajas_json', '').strip()
-
-    if not cajas_raw:
-        current_app.logger.warning('Intento de crear pedido fallido (sin cajas) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        flash('No se recibieron cajas en el pedido.', 'error')
+    carrito_raw  = request.form.get('carrito_json', '').strip()
+    hora_str     = request.form.get('hora_recogida', '').strip()
+    metodo_pago  = request.form.get('metodo_pago', 'efectivo').strip()
+    notas        = request.form.get('notas', '').strip() or None
+ 
+    if not carrito_raw:
+        flash('No se recibieron productos en el pedido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
+ 
     try:
-        cajas_data = json.loads(cajas_raw)
+        carrito_data = json.loads(carrito_raw)
     except (ValueError, TypeError):
-        current_app.logger.warning('Intento de crear pedido fallido (json invalido) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        flash('Error al leer los datos del pedido.', 'error')
+        flash('Error al leer los datos del carrito.', 'error')
         return redirect(url_for('pedidos.catalogo'))
-
-    if not isinstance(cajas_data, list) or len(cajas_data) == 0:
-        current_app.logger.warning('Intento de crear pedido fallido (sin cajas decodificadas) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        flash('Agrega al menos una caja al pedido.', 'error')
+ 
+    if not isinstance(carrito_data, list) or len(carrito_data) == 0:
+        flash('Agrega al menos un producto al pedido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
-
-    fecha_str = request.form.get('fecha_recogida', '').strip()
-    if not fecha_str:
-        current_app.logger.warning('Intento de crear pedido fallido (sin fecha) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        flash('Indica la fecha y hora de recolección.', 'error')
+ 
+    if not hora_str:
+        flash('Selecciona la hora de recogida.', 'error')
         return redirect(url_for('pedidos.catalogo'))
-
-    errores = _validar_cajas(cajas_data)
-    if errores:
-        for e in errores:
-            flash(e, 'error')
+ 
+    if metodo_pago not in ('efectivo', 'tarjeta', 'transferencia'):
+        flash('Método de pago inválido.', 'error')
         return redirect(url_for('pedidos.catalogo'))
-
+ 
+    productos_json_str = json.dumps([
+        {'id': item['id'], 'qty': item['qty'], 'precio': item['precio']}
+        for item in carrito_data
+    ])
+ 
     try:
-        db.session.execute(
-            text("SET @p_id_pedido = NULL, @p_folio = NULL, @p_error = NULL")
+        conn = db.session.connection()
+        cur  = conn.connection.cursor()
+        cur.callproc('sp_pedido_express', (
+            current_user.id_usuario,
+            hora_str + ':00',
+            metodo_pago,
+            notas,
+            productos_json_str,
+            0, '', '',          # OUT p_id_pedido, p_folio, p_error
+        ))
+        cur.nextset()
+        cur.execute(
+            "SELECT @_sp_pedido_express_5, "
+            "       @_sp_pedido_express_6, "
+            "       @_sp_pedido_express_7"
         )
-        db.session.execute(
-            text("""
-                CALL sp_crear_pedido_caja(
-                    :cliente, :fecha, :cajas,
-                    @p_id_pedido, @p_folio, @p_error
-                )
-            """),
-            {
-                'cliente': current_user.id_usuario,
-                'fecha':   fecha_str.replace('T', ' '),
-                'cajas':   cajas_raw,
-            }
-        )
-        row = db.session.execute(
-            text("SELECT @p_id_pedido, @p_folio, @p_error")
-        ).fetchone()
-
-        if row[2]:
+        row = cur.fetchone()
+        cur.close()
+ 
+        p_id_pedido, p_folio, p_error = row[0], row[1], row[2]
+ 
+        if p_error:
             db.session.rollback()
-            current_app.logger.error('Error db al crear pedido | usuario: %s | error: %s | fecha: %s', current_user.username, row[2], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            flash(f'Error: {row[2]}', 'error')
+            current_app.logger.warning(
+                'Pedido express rechazado | usuario: %s | error: %s | fecha: %s',
+                current_user.username, p_error,
+                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            flash(f'No se pudo crear el pedido: {p_error}', 'error')
             return redirect(url_for('pedidos.catalogo'))
-
+ 
         db.session.commit()
-        n = len(cajas_data)
-        current_app.logger.info('Pedido creado exitosamente | usuario: %s | folio: %s | piezas: %s | fecha: %s', current_user.username, row[1], n, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        n = sum(item['qty'] for item in carrito_data)
+        current_app.logger.info(
+            'Pedido express creado | usuario: %s | folio: %s | piezas: %s | fecha: %s',
+            current_user.username, p_folio, int(n),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(
-            f'¡Pedido {row[1]} enviado con {n} caja{"s" if n > 1 else ""}! '
-            'Te avisaremos cuando esté listo.',
+            f'¡Pedido {p_folio} enviado con {int(n)} '
+            f'pieza{"s" if n != 1 else ""}! '
+            f'Te avisaremos cuando esté listo para las {hora_str}.',
             'success'
         )
         return redirect(url_for('pedidos.mis_pedidos'))
-
-    except Exception as e:
+ 
+    except Exception as exc:
         db.session.rollback()
-        current_app.logger.error('Error general al crear pedido | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        current_app.logger.error(
+            'Error al crear pedido express | usuario: %s | error: %s | fecha: %s',
+            current_user.username, str(exc),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'error')
         return redirect(url_for('pedidos.catalogo'))
 
 
-def _validar_cajas(cajas_data: list) -> list[str]:
-    errores = []
-    TIPOS_VALIDOS   = {'simple', 'mixta', 'triple'}
-    PANES_POR_TIPO  = {'simple': 1, 'mixta': 2, 'triple': 3}
-    NOMBRES_TIPO    = {'simple': 'un tipo', 'mixta': 'dos tipos', 'triple': 'tres tipos'}
+@pedidos_bp.route('/gestion')
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
+def gestion_pedidos():
+    current_app.logger.info(
+        'Vista gestión pedidos | usuario: %s | fecha: %s',
+        current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    )
+    estado = request.args.get('estado', '') or None
+    fecha  = request.args.get('fecha', '')  or None
+ 
+    pedidos_rows = db.session.execute(text("""
+        SELECT
+            p.id_pedido,
+            p.folio,
+            p.estado,
+            p.fecha_recogida,
+            p.total_estimado,
+            p.metodo_pago,
+            p.creado_en,
+            u.nombre_completo              AS cliente_nombre,
+            u.telefono,
+            COALESCE(a.nombre_completo,'—') AS atendido_por,
+            GROUP_CONCAT(
+              CONCAT(pr.nombre, ' ×', CAST(dp.cantidad AS SIGNED))
+              ORDER BY pr.nombre SEPARATOR ' · '
+            )                              AS productos_resumen,
+            IFNULL(SUM(dp.cantidad), 0)    AS total_piezas
+        FROM pedidos p
+        JOIN usuarios u  ON u.id_usuario  = p.id_cliente
+        LEFT JOIN usuarios a ON a.id_usuario  = p.atendido_por
+        LEFT JOIN detalle_pedidos dp ON dp.id_pedido   = p.id_pedido
+        LEFT JOIN productos pr       ON pr.id_producto = dp.id_producto
+          AND (:estado IS NULL OR p.estado = :estado)
+          AND (:fecha  IS NULL OR DATE(p.fecha_recogida) = :fecha)
+        GROUP BY
+            p.id_pedido, p.folio, p.estado, p.fecha_recogida,
+            p.total_estimado, p.metodo_pago, p.creado_en,
+            u.nombre_completo, u.telefono, a.nombre_completo
+        ORDER BY
+            FIELD(p.estado, 'pendiente', 'aprobado', 'listo', 'rechazado'),
+            p.fecha_recogida ASC
+    """), {'estado': estado, 'fecha': fecha}).mappings().all()
+ 
+    db.session.commit()
+ 
+    conteos_rows = db.session.execute(
+        text("SELECT estado, total FROM v_conteo_pedidos_por_estado")
+    ).fetchall()
+    conteos = {r[0]: r[1] for r in conteos_rows}
+ 
+    _dias  = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']
+    _meses = ['enero','febrero','marzo','abril','mayo','junio',
+              'julio','agosto','septiembre','octubre','noviembre','diciembre']
+    _now   = datetime.datetime.now()
+    fecha_hoy = (
+        f"{_dias[_now.weekday()]} {_now.day} "
+        f"de {_meses[_now.month - 1]}, {_now.year}"
+    )
+ 
+    return render_template(
+        'pedidos/gestion_pedidos.html',
+        pedidos=pedidos_rows,
+        conteos=conteos,
+        filtro_estado=estado or '',
+        filtro_fecha=fecha or '',
+        fecha_hoy=fecha_hoy,
+        now=_now,
+    )
+ 
 
-    for i, caja in enumerate(cajas_data, start=1):
-        label = f'Caja {i}'
-
-        try:
-            id_tamanio = int(caja.get('id_tamanio', 0))
-            if id_tamanio <= 0:
-                raise ValueError
-        except (TypeError, ValueError):
-            errores.append(f'{label}: selecciona un tamaño de charola válido.')
-            continue
-
-        tipo = caja.get('tipo', '')
-        if tipo not in TIPOS_VALIDOS:
-            errores.append(f'{label}: tipo de caja inválido ("{tipo}").')
-            continue
-
-        panes = caja.get('panes', [])
-        if not isinstance(panes, list) or len(panes) == 0:
-            errores.append(f'{label}: agrega al menos un tipo de pan.')
-            continue
-
-        esperado = PANES_POR_TIPO[tipo]
-        if len(panes) != esperado:
-            errores.append(
-                f'{label}: una caja {tipo} requiere exactamente '
-                f'{NOMBRES_TIPO[tipo]} de pan.'
-            )
-            continue
-
-        for j, pan in enumerate(panes, start=1):
-            try:
-                id_prod = int(pan.get('id_producto', 0))
-                if id_prod <= 0:
-                    raise ValueError
-            except (TypeError, ValueError):
-                errores.append(f'{label}, pan {j}: producto inválido.')
-
-            try:
-                cant = int(pan.get('cantidad', 0))
-                if cant <= 0:
-                    raise ValueError
-            except (TypeError, ValueError):
-                errores.append(f'{label}, pan {j}: cantidad inválida.')
-
-            try:
-                precio = float(pan.get('precio', -1))
-                if precio < 0:
-                    raise ValueError
-            except (TypeError, ValueError):
-                errores.append(f'{label}, pan {j}: precio inválido.')
-
-    return errores
-
+# REEMPLAZAR la función mis_pedidos() en pedidos/routes.py
 
 @pedidos_bp.route('/mis-pedidos')
 @login_required
 @roles_required('admin', 'empleado', 'panadero', 'cliente')
 def mis_pedidos():
-    current_app.logger.info('Vista de mis pedidos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    current_app.logger.info(
+        'Vista de mis pedidos | usuario: %s | fecha: %s',
+        current_user.username,
+        datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    )
     conn = db.session.connection()
     cur  = conn.connection.cursor()
     cur.execute("CALL sp_mis_pedidos_cliente(%s)", (current_user.id_usuario,))
@@ -203,19 +241,23 @@ def mis_pedidos():
     rows_notif = cur.fetchall()
     cur.close()
 
-    cols_p = ['id_pedido', 'folio', 'estado', 'fecha_recogida', 'total_estimado',
-              'motivo_rechazo', 'creado_en', 'tipo_caja', 'tamanio_nombre',
-              'capacidad', 'panes_resumen', 'nombre_caja']
+    cols_p = [
+        'id_pedido', 'folio', 'estado', 'fecha_recogida',
+        'total_estimado', 'motivo_rechazo', 'creado_en',
+        'metodo_pago', 'panes_resumen', 'total_piezas'
+    ]
     cols_n = ['id_notif', 'id_pedido', 'folio', 'mensaje', 'leida', 'creado_en']
+
     Pedido = namedtuple('Pedido', cols_p)
     Notif  = namedtuple('Notif',  cols_n)
     pedidos = [Pedido(*r) for r in rows_ped]
     notifs  = [Notif(*r)  for r in rows_notif]
 
-    return render_template('pedidos/mis_pedidos.html',
-                           pedidos=pedidos,
-                           notifs=notifs)
-
+    return render_template(
+        'pedidos/mis_pedidos.html',
+        pedidos=pedidos,
+        notifs=notifs,
+    )
 
 @pedidos_bp.route('/pedidos')
 @login_required
@@ -588,7 +630,7 @@ def api_faltantes_compra(folio):
 # ── Aprobar pedido ──────────────────────────────────────────
 @pedidos_bp.route('/<folio>/aprobar', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero', 'cliente')
+@roles_required('admin', 'empleado')
 def aprobar_pedido(folio):
     nota = request.form.get('nota', '').strip() or 'Pedido aprobado.'
     try:
@@ -600,30 +642,36 @@ def aprobar_pedido(folio):
         )
         row = conn.execute(text("SELECT @ok AS ok, @err AS err")).mappings().one()
         db.session.commit()
-
+ 
         if int(row['ok'] or 0) == 1:
-            current_app.logger.info('Pedido aprobado exitosamente | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            flash(f'Pedido {folio} aprobado', 'success')
+            current_app.logger.info(
+                'Pedido aprobado | usuario: %s | folio: %s | fecha: %s',
+                current_user.username, folio,
+                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            flash(f'Pedido {folio} aprobado ✅. Stock descontado.', 'success')
         else:
-            current_app.logger.warning('Aprobacion de pedido rechazada | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, row["err"], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            db.session.rollback()
             flash(f'No se pudo aprobar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        current_app.logger.error('Error al aprobar pedido | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        current_app.logger.error(
+            'Error al aprobar pedido | usuario: %s | folio: %s | error: %s | fecha: %s',
+            current_user.username, folio, str(exc),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(f'Error: {exc}', 'error')
-    return redirect(request.referrer or url_for('pedidos.cola_produccion'))
-
-
-# ── Rechazar pedido ─────────────────────────────────────────
+    return redirect(request.referrer or url_for('pedidos.gestion_pedidos'))
+ 
+ 
 @pedidos_bp.route('/<folio>/rechazar', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero', 'cliente')
+@roles_required('admin', 'empleado')
 def rechazar_pedido(folio):
     motivo = request.form.get('motivo', '').strip()
     if not motivo:
-        current_app.logger.warning('Intento de rechazar pedido fallido (sin motivo) | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Debes indicar el motivo del rechazo.', 'warning')
-        return redirect(request.referrer or url_for('pedidos.cola_produccion'))
+        return redirect(request.referrer or url_for('pedidos.gestion_pedidos'))
     try:
         conn = db.session.connection()
         conn.execute(text("SET @ok=0, @err=NULL"))
@@ -633,18 +681,22 @@ def rechazar_pedido(folio):
         )
         row = conn.execute(text("SELECT @ok AS ok, @err AS err")).mappings().one()
         db.session.commit()
-
+ 
         if int(row['ok'] or 0) == 1:
-            current_app.logger.info('Pedido rechazado exitosamente | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            flash(f'Pedido {folio} rechazado.', 'success')
+            current_app.logger.info(
+                'Pedido rechazado | usuario: %s | folio: %s | fecha: %s',
+                current_user.username, folio,
+                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            flash(f'Pedido {folio} rechazado ❌.', 'success')
         else:
-            current_app.logger.warning('Rechazo de pedido invalido por db | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, row["err"], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            db.session.rollback()
             flash(f'No se pudo rechazar: {row["err"] or "Error desconocido"}', 'error')
     except Exception as exc:
         db.session.rollback()
-        current_app.logger.error('Error al rechazar pedido | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error: {exc}', 'error')
-    return redirect(request.referrer or url_for('pedidos.cola_produccion'))
+    return redirect(request.referrer or url_for('pedidos.gestion_pedidos'))
+ 
 
 @pedidos_bp.route('/<folio>/iniciar-produccion', methods=['POST'])
 @login_required
@@ -828,3 +880,200 @@ def api_notificaciones():
             'ok': False,
             'error': str(e)
         }), 500
+
+@pedidos_bp.route('/<folio>/marcar-listo', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado')
+def marcar_listo(folio):
+    try:
+        conn = db.session.connection()
+        conn.execute(text("SET @ok=0, @err=NULL"))
+        conn.execute(
+            text("CALL sp_marcar_listo_pedido(:f, :u, @ok, @err)"),
+            {'f': folio, 'u': current_user.id_usuario}
+        )
+        row = conn.execute(text("SELECT @ok AS ok, @err AS err")).mappings().one()
+        db.session.commit()
+ 
+        if int(row['ok'] or 0) == 1:
+            current_app.logger.info(
+                'Pedido marcado listo | usuario: %s | folio: %s | fecha: %s',
+                current_user.username, folio,
+                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            flash(f'Pedido {folio} marcado como listo 🎉. Cliente notificado.', 'success')
+        else:
+            db.session.rollback()
+            flash(f'No se pudo marcar como listo: {row["err"] or "Error desconocido"}', 'error')
+    except Exception as exc:
+        db.session.rollback()
+        flash(f'Error: {exc}', 'error')
+    return redirect(request.referrer or url_for('pedidos.gestion_pedidos'))
+
+@pedidos_bp.route('/<folio>/marcar-entregado', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado')
+def marcar_entregado(folio):
+    try:
+        conn = db.session.connection()
+        conn.execute(text("SET @ok=0, @err=NULL"))
+        conn.execute(
+            text("CALL sp_marcar_entregado_pedido(:f, :u, @ok, @err)"),
+            {'f': folio, 'u': current_user.id_usuario}
+        )
+        row = conn.execute(text("SELECT @ok AS ok, @err AS err")).mappings().one()
+        db.session.commit()
+ 
+        if int(row['ok'] or 0) == 1:
+            current_app.logger.info(
+                'Pedido entregado | usuario: %s | folio: %s | fecha: %s',
+                current_user.username, folio,
+                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            flash(f'Pedido {folio} marcado como entregado 📦.', 'success')
+        else:
+            db.session.rollback()
+            flash(f'No se pudo marcar como entregado: {row["err"] or "Error desconocido"}', 'error')
+    except Exception as exc:
+        db.session.rollback()
+        flash(f'Error: {exc}', 'error')
+    return redirect(request.referrer or url_for('pedidos.gestion_pedidos'))
+ 
+ 
+@pedidos_bp.route('/tienda')
+@login_required
+@roles_required('admin', 'cliente')
+def tienda():
+    """Catálogo de la tienda express — muestra productos con stock real."""
+    current_app.logger.info(
+        'Vista de tienda express accesada | usuario: %s | fecha: %s',
+        current_user.username,
+        datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    )
+    conn = db.session.connection()
+    cur  = conn.connection.cursor()
+    cur.execute("CALL sp_catalogo_tienda()")
+    rows = cur.fetchall()
+    cur.close()
+
+    Producto = namedtuple(
+        'Producto',
+        ['id_producto', 'uuid_producto', 'nombre', 'descripcion',
+        'precio_venta', 'stock_actual', 'stock_minimo', 'nivel_stock',
+        'imagen_url']
+    )
+    productos = [Producto(*r) for r in rows]
+
+    productos_json = Markup(json.dumps([
+        {
+            'id':           p.id_producto,
+            'uuid':         p.uuid_producto,
+            'nombre':       p.nombre,
+            'descripcion':  p.descripcion or '',
+            'precio':       float(p.precio_venta),
+            'stock':        int(p.stock_actual),
+            'nivel':        p.nivel_stock,
+        }
+        for p in productos
+    ]))
+
+    return render_template(
+        'pedidos/tienda.html',
+        productos=productos,
+        productos_json=productos_json,
+    )
+
+
+@pedidos_bp.route('/tienda/crear', methods=['POST'])
+@login_required
+@roles_required('admin', 'cliente')
+def crear_pedido_express():
+    """Procesa el pedido express de la tienda del día."""
+    carrito_raw = request.form.get('carrito_json', '').strip()
+    hora_str    = request.form.get('hora_recogida', '').strip()
+    notas       = request.form.get('notas', '').strip() or None
+
+    if not carrito_raw:
+        flash('No se recibieron productos en el pedido.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    try:
+        carrito_data = json.loads(carrito_raw)
+    except (ValueError, TypeError):
+        flash('Error al leer los datos del carrito.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    if not isinstance(carrito_data, list) or len(carrito_data) == 0:
+        flash('Agrega al menos un producto al pedido.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    if not hora_str:
+        flash('Selecciona la hora de recogida.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    # Validar hora formato HH:MM
+    import re as _re
+    if not _re.match(r'^\d{2}:\d{2}$', hora_str):
+        flash('Hora de recogida inválida.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    productos_json = json.dumps([
+        {'id': item['id'], 'qty': item['qty'], 'precio': item['precio']}
+        for item in carrito_data
+    ])
+
+    try:
+        conn = db.session.connection()
+        cur  = conn.connection.cursor()
+        cur.callproc('sp_pedido_express', (
+            current_user.id_usuario,
+            hora_str + ':00',      # TIME: HH:MM:SS
+            notas,
+            productos_json,
+            0,      # OUT p_id_pedido
+            '',     # OUT p_folio
+            '',     # OUT p_error
+        ))
+        cur.nextset()
+
+        # Leer OUTs
+        cur.execute("SELECT @_sp_pedido_express_4, @_sp_pedido_express_5, @_sp_pedido_express_6")
+        row = cur.fetchone()
+        cur.close()
+
+        p_id_pedido, p_folio, p_error = row[0], row[1], row[2]
+
+        if p_error:
+            db.session.rollback()
+            current_app.logger.warning(
+                'Pedido express rechazado | usuario: %s | error: %s | fecha: %s',
+                current_user.username, p_error,
+                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            flash(f'No se pudo crear el pedido: {p_error}', 'error')
+            return redirect(url_for('pedidos.tienda'))
+
+        db.session.commit()
+        n_items = sum(item['qty'] for item in carrito_data)
+        current_app.logger.info(
+            'Pedido express creado | usuario: %s | folio: %s | piezas: %s | fecha: %s',
+            current_user.username, p_folio, n_items,
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
+        flash(
+            f'¡Pedido {p_folio} enviado con {int(n_items)} '
+            f'pieza{"s" if n_items != 1 else ""}! '
+            f'Te avisaremos cuando esté listo para recoger a las {hora_str}.',
+            'success'
+        )
+        return redirect(url_for('pedidos.mis_pedidos'))
+
+    except Exception as exc:
+        db.session.rollback()
+        current_app.logger.error(
+            'Error general al crear pedido express | usuario: %s | error: %s | fecha: %s',
+            current_user.username, str(exc),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
+        flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'error')
+        return redirect(url_for('pedidos.tienda'))
