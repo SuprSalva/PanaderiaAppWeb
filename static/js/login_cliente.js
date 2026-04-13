@@ -11,8 +11,10 @@ document.querySelectorAll('.flash-error, .flash-success').forEach(function(el) {
 function mostrarError(elId, msg) {
   var el = document.getElementById(elId);
   if (!el) return;
-  el.textContent = '⚠️ ' + msg;
-  el.style.display = 'block';
+  el.innerHTML = `<span style="display:inline-flex; align-items:center; gap:0.35rem; vertical-align:middle;"><animated-icons src=\"/static/icons/alert-4ff92fe8.json\" trigger=\"loop\" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height=\"20\" width=\"20\"></animated-icons><span>${msg}</span></span>`;
+  el.style.display = 'flex';
+  el.style.justifyContent = 'center';
+  el.style.alignItems = 'center';
 }
 function ocultarError(elId) {
   var el = document.getElementById(elId);
@@ -32,8 +34,10 @@ document.querySelector('#sec-login form').addEventListener('submit', function(e)
   var token = (typeof grecaptcha !== 'undefined') ? grecaptcha.getResponse(_rcLogin) : '';
   if (!token) {
     e.preventDefault();
-    errEl.textContent = '⚠️ Completa el reCAPTCHA para continuar.';
-    errEl.style.display = 'block';
+    errEl.innerHTML = `<span style="display:inline-flex; align-items:center; gap:0.35rem; vertical-align:middle;"><animated-icons src=\"/static/icons/alert-4ff92fe8.json\" trigger=\"loop\" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height=\"20\" width=\"20\"></animated-icons><span> Completa el reCAPTCHA para continuar.</span></span>`;
+    errEl.style.display = 'flex';
+    errEl.style.justifyContent = 'center';
+    errEl.style.alignItems = 'center';
   } else {
     errEl.style.display = 'none';
   }
@@ -74,8 +78,10 @@ document.getElementById('btn-enviar-codigo').addEventListener('click', function(
 
   var captchaToken = (typeof grecaptcha !== 'undefined') ? grecaptcha.getResponse(_rcForgot) : '';
   if (!captchaToken) {
-    document.getElementById('forgot-captcha-error').textContent = '⚠️ Completa el reCAPTCHA para continuar.';
-    document.getElementById('forgot-captcha-error').style.display = 'block';
+    document.getElementById('forgot-captcha-error').innerHTML = `<span style="display:inline-flex; align-items:center; gap:0.35rem; vertical-align:middle;"><animated-icons src=\"/static/icons/alert-4ff92fe8.json\" trigger=\"loop\" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height=\"20\" width=\"20\"></animated-icons><span> Completa el reCAPTCHA para continuar.</span></span>`;
+    document.getElementById('forgot-captcha-error').style.display = 'flex';
+    document.getElementById('forgot-captcha-error').style.justifyContent = 'center';
+    document.getElementById('forgot-captcha-error').style.alignItems = 'center';
     return;
   }
 
@@ -114,7 +120,7 @@ document.getElementById('btn-enviar-codigo').addEventListener('click', function(
     })
     .finally(function() {
       btn.disabled = false;
-      btn.textContent = 'Enviar Código →';
+      btn.innerHTML = 'Enviar Código <animated-icons src="https://animatedicons.co/get-icon?name=exit&style=minimalistic&token=6e09845f-509a-4b0a-a8b0-c47e168ad977" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>';
     });
 });
 
@@ -191,12 +197,12 @@ document.getElementById('btn-cambiar-pwd').addEventListener('click', function() 
           mostrarError('forgot2-error', res.error || 'Error al actualizar la contraseña.');
         }
         btn.disabled = false;
-        btn.textContent = 'Actualizar Contraseña →';
+        btn.innerHTML = 'Actualizar Contraseña <animated-icons src="https://animatedicons.co/get-icon?name=exit&style=minimalistic&token=6e09845f-509a-4b0a-a8b0-c47e168ad977" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>';
       }
     })
     .catch(function() {
       mostrarError('forgot2-error', 'Error de red. Intenta de nuevo.');
       btn.disabled = false;
-      btn.textContent = 'Actualizar Contraseña →';
+      btn.innerHTML = 'Actualizar Contraseña <animated-icons src="https://animatedicons.co/get-icon?name=exit&style=minimalistic&token=6e09845f-509a-4b0a-a8b0-c47e168ad977" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>';
     });
 });

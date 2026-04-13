@@ -91,7 +91,15 @@
         </form>
         <br>
         <div class="reg-footer" style="padding-top:0;">
-          <button type="button" id="btn-reg-submit" class="btn-register">✅ Continuar</button>
+          <button type="button" id="btn-reg-submit" class="btn-register">
+            <animated-icons
+              src="/static/icons/register-97ae0ebf.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="30"
+              width="30"
+            ></animated-icons>
+            Continuar</button>
           <div class="footer-link">
             ¿Ya tienes cuenta?
             <a href="{{ url_for('login_cliente') }}">Inicia sesión aquí</a>
@@ -102,7 +110,15 @@
       <!-- ── SECCIÓN: Verificación de correo ── -->
       <div id="section-verify" style="display:none;">
         <div style="text-align:center; margin-bottom:16px;">
-          <div style="font-size:2rem; margin-bottom:8px;">✉️</div>
+          <div style="font-size:2rem; margin-bottom:8px; display:inline-flex; justify-content:center; align-items:center;">
+              <animated-icons
+              src="/static/icons/mail-97ae0ebf.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="40"
+              width="40"
+              ></animated-icons>
+          </div>
           <h2 style="font-size:1.1rem; margin:0 0 6px;">Verifica tu correo</h2>
           <p id="verify-desc" style="font-size:0.88rem; color:#555; margin:0;">
             Ingresa el código de 6 dígitos que enviamos a tu correo.
@@ -120,11 +136,27 @@
               style="text-align:center; font-size:1.4rem; letter-spacing:0.3em;">
           </div>
 
-          <button type="submit" id="btn-verify-submit" class="btn-register">✅ Crear Cuenta</button>
+          <button type="submit" id="btn-verify-submit" class="btn-register">
+            <animated-icons
+              src="/static/icons/success-2cb0da6b.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+              height="30"
+              width="30"
+            ></animated-icons>
+            Crear Cuenta</button>
         </form>
 
         <div style="text-align:center; margin-top:12px;">
-          <a href="#" id="link-volver-reg" style="font-size:0.85rem; color:#a0522d; text-decoration:none;">← Volver al formulario</a>
+          <a href="#" id="link-volver-reg" style="font-size:0.85rem; color:#a0522d; text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
+            <animated-icons
+            src="/static/icons/login-e611dfb8.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30"
+            width="30"
+            ></animated-icons>
+          Volver al formulario</a>
         </div>
       </div>
 

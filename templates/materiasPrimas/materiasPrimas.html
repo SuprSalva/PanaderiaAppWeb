@@ -50,7 +50,7 @@
   <div class="toolbar anim anim-2">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" name="buscar" placeholder="Buscar por nombre o categoría…" value="{{ buscar }}" autocomplete="off" oninput="debounceSubmit()">
+      <input type="text" name="buscar" placeholder="Buscar por nombre o categoría…" value="{{ buscar }}" autocomplete="off" oninput="buscarDebounce()">
     </div>
     <select name="estatus" class="filter-select" onchange="this.form.submit()">
       <option value="todos" {% if estatus_sel=='todos' %}selected{% endif %}>Todos los estatus</option>
@@ -101,13 +101,23 @@
           <div class="stock-wrap">
             <div class="bar-track"><div class="bar-fill {{ bar_class }}" style="width: {{ pct }}%;"></div></div>
             <span class="stock-val">
-              {{ '{:,.0f}'.format(stock) }} {{ m.unidad_base }}
+              {% if m.unidad_base == 'l' %}
+                {{ '{:,.3f}'.format(stock) }} l
+              {% else %}
+                {{ '{:,.0f}'.format(stock) }} {{ m.unidad_base }}
+              {% endif %}
               {% if nivel == 'bajo' %}<span class="badge badge-low">Stock Bajo</span>
               {% elif nivel == 'critico' %}<span class="badge badge-critical">Sin Stock</span>{% endif %}
             </span>
           </div>
         </td>
-        <td><span class="stock-val">{{ '{:,.0f}'.format(minimo) }} {{ m.unidad_base }}</span></td>
+        <td><span class="stock-val">
+          {% if m.unidad_base == 'l' %}
+            {{ '{:,.3f}'.format(minimo) }} l
+          {% else %}
+            {{ '{:,.0f}'.format(minimo) }} {{ m.unidad_base }}
+          {% endif %}
+        </span></td>
         <td>{% if m.estatus == 'activo' %}<span class="badge badge-active">Activo</span>{% else %}<span class="badge badge-inactive">Inactivo</span>{% endif %}</td>
         <td class="actions-cell">
           <a href="{{ url_for('materias_primas.index_materias_primas', modal='editar', id=m.id_materia, buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn-icon" title="Editar">✏️</a>
@@ -119,7 +129,7 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="empty-table">No hay materias primas para mostrar.</td></tr>
+      <tr class="empty-row"><td colspan="7" class="empty-table">No hay materias primas para mostrar.</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -158,7 +168,6 @@
           <div class="form-divider">Unidad y Stock</div>
           <div class="form-group"><label class="form-label">Unidad Base *</label><select name="unidad_base" class="form-select" required><option value="">— Seleccionar —</option><option value="g">gramos (g)</option><option value="ml">mililitros (ml)</option><option value="pza">piezas (pza)</option><option value="l">litros (l)</option><option value="kg">kilogramos (kg)</option></select><span class="form-hint">Unidad interna de almacenamiento</span></div>
           <div class="form-group"><label class="form-label">Stock Mínimo</label><input type="number" name="stock_minimo" class="form-input" placeholder="Ej. 5000" min="0" step="0.01" value="0"><span class="form-hint">Cantidad que dispara la alerta</span></div>
-          <div class="form-group"><label class="form-label">Stock Inicial</label><input type="number" name="stock_inicial" class="form-input" placeholder="Ej. 40000" min="0" step="0.01" value="0"><span class="form-hint">Existencia de apertura</span></div>
         </div>
       </div>
       <div class="modal-footer"><a href="{{ url_for('materias_primas.index_materias_primas', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}" class="btn btn-outline">Cancelar</a><button type="submit" class="btn btn-primary">💾 Guardar</button></div>
