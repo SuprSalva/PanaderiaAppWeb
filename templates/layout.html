@@ -133,8 +133,8 @@
           <div class="nav-section-label">Administración</div>
 
           {# Pedidos: admin, empleado, panadero #}
-          <a href="{{ url_for('pedidos.lista') }}"
-            class="nav-item {% if request.endpoint == 'pedidos.lista' %}active{% endif %}" data-label="Pedidos" title="Pedidos">
+          <a href="{{ url_for('pedidos.gestion_pedidos') }}"
+            class="nav-item {% if request.endpoint == 'pedidos.gestion_pedidos' %}active{% endif %}" data-label="Pedidos">
             <span class="nav-icon"><animated-icons
                 src="/static/icons/order-history-b3a68157.json"
                 trigger="loop"
@@ -322,7 +322,7 @@
           {% endif %}
 
           {% if rol == 'cliente' %}
-          <a href="{{ url_for('pedidos.catalogo') }}"
+          <a href="{{ url_for('pedidos.tienda') }}"
             class="nav-item {% if request.endpoint in ['ventas.ventas_online', 'ventas.checkout'] %}active{% endif %}"
             data-label="Venta en Línea" title="Venta en Línea">
             <span class="nav-icon"><animated-icons
@@ -725,7 +725,7 @@
   </script>
 
   {% if request.endpoint not in ['login', 'entrar', 'registrar_usuario', 'login_cliente', 'registrar_cliente',
-  'pedidos.catalogo', 'pedidos.mis_pedidos'] %}
+  'pedidos.tienda', 'pedidos.mis_pedidos'] %}
   <!-- Botón flotante de mermas -->
   <button class="merma-float-btn" id="btnMerma" onclick="abrirModalMerma()" title="Registrar Merma">
     <span><animated-icons

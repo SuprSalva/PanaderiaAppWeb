@@ -47,7 +47,7 @@ def _guardar_imagen(file_storage) -> str | None:
         img = img.convert('RGB')
     nombre_archivo = f'{_uuid.uuid4().hex}.webp'
     ruta_disco     = os.path.join(_ruta_static(), nombre_archivo)
-    img.save(ruta_disco, format='WEBP', quality=85, method=6)
+    img.save(ruta_disco, format='WEBP', quality=85, method=4)
     return os.path.join(_CARPETA_IMG, nombre_archivo).replace('\\', '/')
 
 
@@ -251,17 +251,18 @@ def productos_editar(id_producto):
 def imagen_subir(id_producto):
     producto = Producto.query.get_or_404(id_producto)
 
-    form      = ProductoForm(_form_con_archivos())
-    campo_img = form.imagen
-    campo_img.process(CombinedMultiDict([request.files, request.form]))
-    campo_img.validate(form)
-
-    if campo_img.errors:
-        return jsonify({'ok': False, 'msg': campo_img.errors[0]}), 400
-
     archivo = request.files.get('imagen')
     if not archivo or not archivo.filename:
         return jsonify({'ok': False, 'msg': 'No se recibió ningún archivo.'}), 400
+
+    # Verificar que sea imagen válida con Pillow directamente
+    try:
+        archivo.stream.seek(0)
+        img = Image.open(archivo.stream)
+        img.verify()          # valida firma sin decodificar todo
+        archivo.stream.seek(0)  # rebobinar para _guardar_imagen
+    except Exception:
+        return jsonify({'ok': False, 'msg': 'El archivo no tiene firma de imagen válida.'}), 400
 
     try:
         nueva_url    = _guardar_imagen(archivo)
@@ -285,7 +286,6 @@ def imagen_subir(id_producto):
         db.session.rollback()
         current_app.logger.error('Error al subir imagen | %s', exc)
         return jsonify({'ok': False, 'msg': 'Error interno al procesar la imagen.'}), 500
-
 
 @productos_bp.route('/productos/<int:id_producto>/imagen/quitar', methods=['POST'])
 @login_required
