@@ -20,6 +20,7 @@ from extensions import mail
 from flask_mail import Message
 import forms
 
+from dashboard import dashboard_bp
 from compras.routes import compras
 from proveedores.routes import proveedores
 from recetas.routes import recetas_bp
@@ -81,6 +82,7 @@ login_manager.login_message = 'Debes iniciar sesión para acceder.'
 def load_user(user_id):
     return db.session.get(Usuario, int(user_id))
 
+app.register_blueprint(dashboard_bp)
 app.register_blueprint(compras)
 app.register_blueprint(proveedores)
 app.register_blueprint(recetas_bp)
@@ -102,7 +104,7 @@ def _redirect_por_rol(usuario):
     clave = usuario.rol.clave_rol if usuario.rol else ''
     destinos = {
         'admin':    'dashboard',
-        'empleado': 'dashboard_ventas',
+        'empleado': 'dashboard',
         'panadero': 'pedidos.cola_produccion',
         'cliente':  'pedidos.mis_pedidos',
     }
@@ -120,7 +122,7 @@ def inject_url_volver():
         return dict(url_volver=url_for('login'))
     destinos = {
         'admin':    'dashboard',
-        'empleado': 'dashboard_ventas',
+        'empleado': 'dashboard',
         'panadero': 'pedidos.cola_produccion',
         'cliente':  'pedidos.mis_pedidos',
     }
@@ -516,12 +518,6 @@ def registrar_usuario():
 @roles_required('admin')
 def dashboard():
     return render_template("dashboard.html")
-
-@app.route("/dashboardVentas")
-@login_required
-@roles_required('admin', 'empleado')
-def dashboard_ventas():
-    return render_template("dashboardVentas.html")
 
 @app.errorhandler(403)
 def forbidden(e):
