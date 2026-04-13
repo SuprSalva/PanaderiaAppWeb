@@ -605,3 +605,17 @@ class GuardarPlantillaForm(FlaskForm):
         validators=[Optional(), Length(max=500)],
         render_kw={'placeholder': 'Notas sobre esta plantilla…', 'rows': 2}
     )
+
+class PeriodoForm(Form):
+    """Filtro de periodo para las métricas del dashboard."""
+ 
+    periodo = SelectField(
+        'Periodo',
+        choices=[
+            ('7',  'Últimos 7 días'),
+            ('30', 'Últimos 30 días'),
+            ('90', 'Últimos 90 días'),
+        ],
+        default='7',
+        validators=[DataRequired()],
+    )
