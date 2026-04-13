@@ -11,8 +11,10 @@ document.querySelectorAll('.flash-error, .flash-success').forEach(function(el) {
 function mostrarError(elId, msg) {
   var el = document.getElementById(elId);
   if (!el) return;
-  el.textContent = '⚠️ ' + msg;
-  el.style.display = 'block';
+  el.innerHTML = `<span style="display:inline-flex; align-items:center; gap:0.35rem; vertical-align:middle;"><animated-icons src=\"/static/icons/alert-4ff92fe8.json\" trigger=\"loop\" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height=\"20\" width=\"20\"></animated-icons><span>${msg}</span></span>`;
+  el.style.display = 'flex';
+  el.style.justifyContent = 'center';
+  el.style.alignItems = 'center';
 }
 function ocultarError(elId) {
   var el = document.getElementById(elId);
@@ -81,7 +83,7 @@ document.getElementById('btn-reg-submit').addEventListener('click', function() {
     })
     .finally(function() {
       btn.disabled = false;
-      btn.textContent = '✅ Continuar';
+      btn.innerHTML = '<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons> Continuar';
     });
 });
 
@@ -127,12 +129,12 @@ document.getElementById('form-verify').addEventListener('submit', function(e) {
           mostrarError('verify-error', res.error || 'Error al verificar el código.');
         }
         btn.disabled = false;
-        btn.textContent = '✅ Crear Cuenta';
+        btn.innerHTML = '<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons> Crear Cuenta';
       }
     })
     .catch(function() {
       mostrarError('verify-error', 'Error de red. Intenta de nuevo.');
       btn.disabled = false;
-      btn.textContent = '✅ Crear Cuenta';
+      btn.innerHTML = '<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons> Crear Cuenta';
     });
 });

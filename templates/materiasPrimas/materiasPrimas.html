@@ -50,7 +50,7 @@
   <div class="toolbar anim anim-2">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" name="buscar" placeholder="Buscar por nombre o categoría…" value="{{ buscar }}" autocomplete="off" oninput="debounceSubmit()">
+      <input type="text" name="buscar" placeholder="Buscar por nombre o categoría…" value="{{ buscar }}" autocomplete="off" oninput="buscarDebounce()">
     </div>
     <select name="estatus" class="filter-select" onchange="this.form.submit()">
       <option value="todos" {% if estatus_sel=='todos' %}selected{% endif %}>Todos los estatus</option>
@@ -129,7 +129,7 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="empty-table">No hay materias primas para mostrar.</td></tr>
+      <tr class="empty-row"><td colspan="7" class="empty-table">No hay materias primas para mostrar.</td></tr>
       {% endfor %}
     </tbody>
   </table>

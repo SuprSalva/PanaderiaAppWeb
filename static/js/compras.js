@@ -99,7 +99,7 @@ function addRenglon() {
       <div class="insumo-lista">${_tplOpciones}</div>
     </div>
     <input type="number" class="det-input" name="cantidad_comprada[]"
-           placeholder="0" min="0.001" step="0.001" id="qty-${n}" oninput="calcSubtotal(${n})" required>
+           placeholder="0" min="1" step="1" id="qty-${n}" onkeydown="if(['.','e','E','+','-'].includes(event.key))event.preventDefault()" oninput="calcSubtotal(${n})" required>
     <div style="display:flex;gap:4px;align-items:center">
       <select class="det-select" name="id_unidad_presentacion[]" id="usel-${n}"
               onchange="onUnidadCambio(${n})" style="flex:1;min-width:0">

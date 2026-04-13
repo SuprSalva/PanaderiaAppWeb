@@ -121,11 +121,27 @@
   .login-input-wrap input::placeholder { color: #c4a882; }
 
   .btn-login {
-    width: 100%; padding: 14px; background: var(--brown-dk); color: var(--cream);
-    border: none; border-radius: 50px; font-family: 'Lato', sans-serif; font-size: 15px; font-weight: 700;
-    cursor: pointer; letter-spacing: .5px; transition: background .2s, transform .15s, box-shadow .2s;
-    box-shadow: 0 4px 16px rgba(107,68,35,.35); margin-top: 10px;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 14px;
+    background: var(--brown-dk);
+    color: var(--cream);
+    border: none;
+    border-radius: 50px;
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    box-shadow: 0 4px 16px rgba(107, 68, 35, .35);
+    margin-top: 10px;
+    white-space: nowrap;
   }
+
   .btn-login:hover { background: var(--brown); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(107,68,35,.4); }
   .btn-login:active { transform: translateY(0); }
 

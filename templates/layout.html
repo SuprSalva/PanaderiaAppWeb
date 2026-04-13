@@ -106,9 +106,9 @@
 
           {% if rol == 'admin' %}
           <a href="{{ url_for('dashboard') }}"
-            class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}" data-label="Dashboard">
+            class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}" data-label="Dashboard" title="Dashboard">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Report%20V2&style=minimalistic&token=1869947d-0b96-4314-9dd7-a86ec7a829ff"
+                src="/static/icons/report-v2-1869947d.json"
                 trigger="loop"
                 attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
                 height="30" width="30"></animated-icons></span>
@@ -119,9 +119,9 @@
 
           <a href="{{ url_for('dashboard_ventas') }}"
             class="nav-item {% if request.endpoint == 'dashboard_ventas' %}active{% endif %}"
-            data-label="Dashboard Ventas">
+            data-label="Dashboard Ventas" title="Dashboard Ventas">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Advantage&style=minimalistic&token=bbc79435-552e-4da3-894d-89c634dc884b"
+                src="/static/icons/advantage-bbc79435.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons></span>
@@ -146,9 +146,9 @@
 
           {# Pedidos: admin, empleado, panadero #}
           <a href="{{ url_for('pedidos.lista') }}"
-            class="nav-item {% if request.endpoint == 'pedidos.lista' %}active{% endif %}" data-label="Pedidos">
+            class="nav-item {% if request.endpoint == 'pedidos.lista' %}active{% endif %}" data-label="Pedidos" title="Pedidos">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Order%20History&style=minimalistic&token=b3a68157-77f2-44c6-b4f0-ff2500f84622"
+                src="/static/icons/order-history-b3a68157.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons>
@@ -161,9 +161,9 @@
           {% if rol == 'admin' %}
           <a href="{{ url_for('registrar_usuario.usuarios') }}"
             class="nav-item {% if request.endpoint in ['registrar_usuario.usuarios', 'registrar_usuario'] %}active{% endif %}"
-            data-label="Usuarios">
+            data-label="Usuarios" title="Usuarios">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Team&style=minimalistic&token=9c840f28-8274-4ee6-b5b3-7707bde20ce4"
+                src="/static/icons/team-9c840f28.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775687015120,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#e07a52","background":"#FFFFFF"},"variationName":"Nuevo"}'
                 height="30" width="30"></animated-icons></span>
@@ -176,9 +176,9 @@
           {% if rol in ['admin', 'empleado'] %}
           <a href="{{ url_for('proveedores.index_proveedores') }}"
             class="nav-item {% if request.endpoint == 'proveedores.index_proveedores' %}active{% endif %}"
-            data-label="Proveedores">
+            data-label="Proveedores" title="Proveedores">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Retail&style=minimalistic&token=7b7f631c-8731-466a-b7df-99e77887f0f0"
+                src="/static/icons/retail-7b7f631c.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775687015120,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#e07a52","background":"#FFFFFF"},"variationName":"Nuevo"}'
                 height="30" width="30"></animated-icons></span>
@@ -190,9 +190,9 @@
           {# Materias Primas: admin, empleado, panadero #}
           <a href="{{ url_for('materias_primas.index_materias_primas') }}"
             class="nav-item {% if request.endpoint == 'materias_primas.index_materias_primas' %}active{% endif %}"
-            data-label="Materias Primas">
+            data-label="Materias Primas" title="Materias Primas">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Grocery&style=minimalistic&token=d2653a36-69f5-4727-add9-1cd534323346"
+                src="/static/icons/grocery-d2653a36.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775687015120,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"Nuevo"}'
                 height="30" width="30"></animated-icons></span>
@@ -202,9 +202,9 @@
 
           {# Compras: admin, empleado, panadero #}
           <a href="{{ url_for('compras.index_compras') }}"
-            class="nav-item {% if request.endpoint == 'compras.index_compras' %}active{% endif %}" data-label="Compras">
+            class="nav-item {% if request.endpoint == 'compras.index_compras' %}active{% endif %}" data-label="Compras" title="Compras">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=shopping&style=minimalistic&token=1a426870-e168-49f4-b12a-f584dc9f311e"
+                src="/static/icons/shopping-1a426870.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775687015120,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"Nuevo"}'
                 height="30" width="30"></animated-icons></span>
@@ -216,9 +216,9 @@
           {% if rol in ['admin', 'empleado'] %}
           <a href="{{ url_for('productos_bp.index_productos') }}"
             class="nav-item {% if request.endpoint == 'productos_bp.index_productos' %}active{% endif %}"
-            data-label="Productos">
+            data-label="Productos" title="Productos">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Product&style=minimalistic&token=64f0cb11-7ef5-4030-8e65-e6b4975a0256"
+                src="/static/icons/product-64f0cb11.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775687015120,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"Nuevo"}'
                 height="30" width="30"></animated-icons></span>
@@ -241,10 +241,10 @@
 
           <a href="{{ url_for('recetas_bp.index_recetas') }}"
             class="nav-item {% if request.endpoint == 'recetas_bp.index_recetas' %}active{% endif %}"
-            data-label="Recetas">
+            data-label="Recetas" title="Recetas">
             <span class="nav-icon">
               <animated-icons
-                src="https://animatedicons.co/get-icon?name=Newspaper&style=minimalistic&token=b3a68157-77f2-44c6-b4f0-ff2500f84622"
+                src="/static/icons/newspaper-b3a68157.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons>
@@ -255,9 +255,9 @@
 
           <a href="{{ url_for('pedidos.cola_produccion') }}"
             class="nav-item {% if request.endpoint == 'pedidos.cola_produccion' %}active{% endif %}"
-            data-label="Cola Producción">
+            data-label="Cola Producción" title="Cola Producción">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Video%20Timeline&style=minimalistic&token=b3a68157-77f2-44c6-b4f0-ff2500f84622"
+                src="/static/icons/video-timeline-b3a68157.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons></span>
@@ -267,10 +267,10 @@
 
           <a href="{{ url_for('produccion_diaria.index_pd') }}"
             class="nav-item {% if request.endpoint == 'produccion_diaria.index_pd' %}active{% endif %}"
-            data-label="Producción Diaria">
+            data-label="Producción Diaria" title="Producción Diaria">
             <span class="nav-icon">
               <animated-icons
-                src="https://animatedicons.co/get-icon?name=Setup&style=minimalistic&token=eb758eaf-90cb-43dc-9be6-dcfdc8296167"
+                src="/static/icons/setup-eb758eaf.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons>
@@ -296,10 +296,10 @@
 
           {% if rol in ['admin', 'empleado'] %}
           <a href="{{ url_for('ventas.index_ventas') }}"
-            class="nav-item {% if request.endpoint == 'ventas.index_ventas' %}active{% endif %}" data-label="Ventas">
+            class="nav-item {% if request.endpoint == 'ventas.index_ventas' %}active{% endif %}" data-label="Ventas" title="Ventas">
             <span class="nav-icon">
               <animated-icons
-                src="https://animatedicons.co/get-icon?name=Small%20Business&style=minimalistic&token=13011e87-65b9-45cb-bd01-958e72e340e8"
+                src="/static/icons/small-business-13011e87.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons>
@@ -310,9 +310,9 @@
 
           <a href="{{ url_for('ventas.corte_ventas') }}"
             class="nav-item {% if request.endpoint == 'ventas.corte_ventas' %}active{% endif %}"
-            data-label="Corte Diario">
+            data-label="Corte Diario" title="Corte Diario">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=EMI&style=minimalistic&token=7f5c8c23-d09a-43d2-8e3b-34f4e1b12290"
+                src="/static/icons/emi-7f5c8c23.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775687015120,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"Nuevo"}'
                 height="30" width="30"></animated-icons></span>
@@ -322,9 +322,9 @@
 
           <a href="{{ url_for('efectivo.index_salida_efectivo') }}"
             class="nav-item {% if request.endpoint == 'efectivo.index_salida_efectivo' %}active{% endif %}"
-            data-label="Salida de Efectivo">
+            data-label="Salida de Efectivo" title="Salida de Efectivo">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Withdraw&style=minimalistic&token=bbc79435-552e-4da3-894d-89c634dc884b"
+                src="/static/icons/withdraw-bbc79435.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons></span>
@@ -336,9 +336,9 @@
           {% if rol == 'cliente' %}
           <a href="{{ url_for('pedidos.catalogo') }}"
             class="nav-item {% if request.endpoint in ['ventas.ventas_online', 'ventas.checkout'] %}active{% endif %}"
-            data-label="Venta en Línea">
+            data-label="Venta en Línea" title="Venta en Línea">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Retail&style=minimalistic&token=7b7f631c-8731-466a-b7df-99e77887f0f0"
+                src="/static/icons/retail-7b7f631c.json"
                 trigger="loop"
                 attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
                 height="30" width="30"></animated-icons></span>
@@ -348,9 +348,9 @@
 
           <a href="{{ url_for('pedidos.mis_pedidos') }}"
             class="nav-item {% if request.endpoint == 'pedidos.mis_pedidos' %}active{% endif %}"
-            data-label="Mis Pedidos">
+            data-label="Mis Pedidos" title="Mis Pedidos">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Order%20History&style=minimalistic&token=b3a68157-77f2-44c6-b4f0-ff2500f84622"
+                src="/static/icons/order-history-b3a68157.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons></span>
@@ -373,9 +373,9 @@
 
           <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}"
             class="nav-item {% if request.endpoint == 'costoUtilidad.index_costo_utilidad' %}active{% endif %}"
-            data-label="Costo y Utilidad">
+            data-label="Costo y Utilidad" title="Costo y Utilidad">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Prices%20Continue%20To%20Rise&style=minimalistic&token=2df62946-b1ae-4b58-b632-08b0eeb19421"
+                src="/static/icons/prices-continue-to-rise-2df62946.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons></span>
@@ -385,9 +385,9 @@
 
           <a href="{{ url_for('costoUtilidad.index_utilidad') }}"
             class="nav-item {% if request.endpoint == 'costoUtilidad.index_utilidad' %}active{% endif %}"
-            data-label="Utilidad Diaria">
+            data-label="Utilidad Diaria" title="Utilidad Diaria">
             <span class="nav-icon"><animated-icons
-                src="https://animatedicons.co/get-icon?name=analytics&style=minimalistic&token=2bdff727-9a4f-41a9-8222-312ccd145207"
+                src="/static/icons/analytics-2bdff727.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"Nuevo"}'
                 height="30" width="30"></animated-icons></span>
@@ -402,9 +402,9 @@
       </nav>
 
       <div class="sidebar-toggle">
-        <button class="toggle-btn" onclick="toggleSidebar()" id="toggleBtn">
+        <button class="toggle-btn" onclick="toggleSidebar()" id="toggleBtn" title="Contraer menú">
           <span id="toggleIcon"><animated-icons
-              src="https://animatedicons.co/get-icon?name=Arrow%20Left&style=minimalistic&token=fa13e0db-49ee-4fc6-88d0-609496daffac"
+              src="/static/icons/arrow-left-fa13e0db.json"
               trigger="loop"
               attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":2.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#FFFFFF","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
               height="30" width="30"></animated-icons></span>
@@ -432,7 +432,7 @@
         <div class="topbar-spacer"></div>
 
         <div class="topbar-search">
-          <span class="topbar-search-icon"><animated-icons src="https://animatedicons.co/get-icon?name=search&style=minimalistic&token=12e9ffab-e7da-417f-a9d9-d7f67b64d808" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span>
+          <span class="topbar-search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span>
           <input type="text" id="menuSearch" placeholder="Buscar en menú…" autocomplete="off"
             oninput="filterNav(this.value)">
           <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpiar búsqueda">✕</button>
@@ -441,7 +441,7 @@
         <div class="topbar-actions">
           <div class="topbar-notif-wrapper" style="position: relative;">
             <button class="topbar-btn" id="btnNotificaciones" title="Notificaciones" onclick="toggleNotifDropdown()">
-              <animated-icons src="https://animatedicons.co/get-icon?name=notification&style=minimalistic&token=2a8c285f-a7a0-4f4d-b2c3-acccc136c454" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons>
+              <animated-icons src="/static/icons/notification-2a8c285f.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons>
               <span class="notif-dot" id="notifBadge" style="display: none;"></span>
               <span class="notif-count" id="notifCount" style="display: none;">0</span>
             </button>
@@ -461,12 +461,12 @@
 
           <button class="topbar-btn" id="btnFullscreen" title="Pantalla completa" onclick="toggleFullscreen()">
             <span id="iconFullscreen"><animated-icons
-  src="https://animatedicons.co/get-icon?name=Fullscreen&style=minimalistic&token=defd54f5-3357-43dd-ad9e-32e227c0ac60"
-  trigger="loop"
-  attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-  height="25"
-  width="25"
-></animated-icons></span>
+              src="/static/icons/fullscreen-defd54f5.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="25"
+              width="25"
+            ></animated-icons></span>
           </button>
         </div>
 
@@ -497,7 +497,7 @@
             {% if clave_rol == 'cliente' %}
             <a href="{{ url_for('registrar_usuario.mi_perfil') }}" class="dd-item">👤 Mi perfil</a>
             <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="dd-item"><animated-icons
-              src="https://animatedicons.co/get-icon?name=unlock&style=minimalistic&token=97ae0ebf-896b-47c4-9538-d143a34f7b43"
+              src="/static/icons/unlock-97ae0ebf.json"
               trigger="loop"
               attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
               height="30"
@@ -505,13 +505,13 @@
             ></animated-icons>Cambiar contraseña</a>
             <div class="dd-divider"></div>
             <a href="{{ url_for('pedidos.mis_pedidos') }}" class="dd-item"><animated-icons
-                src="https://animatedicons.co/get-icon?name=Order%20History&style=minimalistic&token=b3a68157-77f2-44c6-b4f0-ff2500f84622"
+                src="/static/icons/order-history-b3a68157.json"
                 trigger="loop"
                 attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
                 height="30" width="30"></animated-icons> Mis Pedidos</a>
             {% else %}
             <a href="{{ url_for('registrar_usuario.cambiar_password') }}" class="dd-item"><animated-icons
-              src="https://animatedicons.co/get-icon?name=unlock&style=minimalistic&token=97ae0ebf-896b-47c4-9538-d143a34f7b43"
+              src="/static/icons/unlock-97ae0ebf.json"
               trigger="loop"
               attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
               height="30"
@@ -520,7 +520,7 @@
             {% endif %}
             <div class="dd-divider"></div>
             <a href="{{ url_for('logout') }}" class="dd-item danger"><animated-icons
-              src="https://animatedicons.co/get-icon?name=exit&style=minimalistic&token=6e09845f-509a-4b0a-a8b0-c47e168ad977"
+              src="/static/icons/exit-6e09845f.json"
               trigger="loop"
               attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
               height="30"
@@ -645,10 +645,10 @@
       const DURATION = 5000; // ms — tiempo de vida del toast
 
       const ICONS = {
-        success: '<animated-icons src="https://animatedicons.co/get-icon?name=Success&style=minimalistic&token=2cb0da6b-0dad-4d02-8599-79b76c0333fb" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
-        error: '<animated-icons src="https://animatedicons.co/get-icon?name=Error&style=minimalistic&token=0c38d9a8-cd4e-4a0f-9b7a-66d9e2368dc0" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
-        warning: '<animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
-        info: '<animated-icons src="https://animatedicons.co/get-icon?name=help&style=minimalistic&token=f784ba5d-f728-4de4-bf74-464b9979474c" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
+        success: '<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
+        error: '<animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
+        warning: '<animated-icons src="/static/icons/alert-4ff92fe8.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
+        info: '<animated-icons src="/static/icons/information-b3a68157.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons>',
       };
 
       function resolveCategory(cat) {
@@ -741,7 +741,7 @@
   <!-- Botón flotante de mermas -->
   <button class="merma-float-btn" id="btnMerma" onclick="abrirModalMerma()" title="Registrar Merma">
     <span><animated-icons
-      src="https://animatedicons.co/get-icon?name=From%20Deleted&style=minimalistic&token=3b251ac0-e35d-43e1-aebc-feaa97314959"
+      src="/static/icons/from-deleted-3b251ac0.json"
       trigger="loop"
       attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
       height="30"
@@ -751,7 +751,7 @@
 
   <button class="merma-his-float-btn" id="btnMerma" onclick="abrirModalHistorialMermas()" title="Historial de Merma">
     <span><animated-icons
-      src="https://animatedicons.co/get-icon?name=reports&style=minimalistic&token=ff77881b-18e9-4ba6-b464-bfa18f63dab8"
+      src="/static/icons/reports-ff77881b.json"
       trigger="loop"
       attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
       height="30"
@@ -763,7 +763,7 @@
   <div class="modal-overlay" id="modal-merma">
     <div class="modal" style="max-width: 550px;">
       <div class="modal-header" style="background: #8B4513;">
-        <h2><animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Registrar Merma</h2>
+        <h2><animated-icons src="/static/icons/alert-4ff92fe8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Registrar Merma</h2>
         <button class="modal-close" onclick="cerrarModalMerma()">✕</button>
       </div>
       <div class="modal-body" style="padding: 24px;">
@@ -816,7 +816,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="cerrarModalMerma()">Cancelar</button>
-        <button class="btn btn-primary" onclick="registrarMerma()" style="background: #8B4513;"><animated-icons src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=4ff92fe8-3f2e-471b-beff-2c28789b1813" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons> Registrar
+        <button class="btn btn-primary" onclick="registrarMerma()" style="background: #8B4513;"><animated-icons src="/static/icons/alert-4ff92fe8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons> Registrar
           Merma</button>
       </div>
     </div>
@@ -827,7 +827,7 @@
     <div class="modal modal-xl" style="max-width: 900px;">
       <div class="modal-header" style="background: #8B4513;">
         <h2><animated-icons
-          src="https://animatedicons.co/get-icon?name=reports&style=minimalistic&token=ff77881b-18e9-4ba6-b464-bfa18f63dab8"
+          src="/static/icons/reports-ff77881b.json"
           trigger="loop"
           attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
           height="30"
@@ -850,7 +850,7 @@
             <option value="otro">Otro</option>
           </select>
           <button class="btn btn-outline btn-sm" onclick="cargarHistorialMermas()"><animated-icons
-            src="https://animatedicons.co/get-icon?name=search&style=minimalistic&token=ff77881b-18e9-4ba6-b464-bfa18f63dab8"
+            src="/static/icons/search-ff77881b.json"
             trigger="loop"
             attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
             height="30"
@@ -879,7 +879,7 @@
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="cerrarModalHistorialMermas()">Cerrar</button>
         <button class="btn btn-outline" onclick="cargarHistorialMermas()"><animated-icons
-  src="https://animatedicons.co/get-icon?name=Sync&style=minimalistic&token=e9dea012-465e-4473-9939-5de89e4a2b52"
+  src="/static/icons/sync-e9dea012.json"
   trigger="loop"
   attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
   height="25"
@@ -1191,7 +1191,7 @@
                     </div>
                 `).join('');
         } else {
-          listContainer.innerHTML = '<div class="notif-empty"><animated-icons src="https://animatedicons.co/get-icon?name=notification&style=minimalistic&token=2a8c285f-a7a0-4f4d-b2c3-acccc136c454" trigger="loop"attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons> No tienes notificaciones recientes</div>';
+          listContainer.innerHTML = '<div class="notif-empty"><animated-icons src="/static/icons/notification-2a8c285f.json" trigger="loop"attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons> No tienes notificaciones recientes</div>';
         }
       } catch (error) {
         console.error('Error cargando notificaciones:', error);
@@ -1201,13 +1201,13 @@
 
     function getNotifIcon(tipo) {
       const icons = {
-        'aprobado': '<animated-icons src="https://animatedicons.co/get-icon?name=Success&style=minimalistic&token=2cb0da6b-0dad-4d02-8599-79b76c0333fb" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
-        'rechazado': '<animated-icons src="https://animatedicons.co/get-icon?name=Error&style=minimalistic&token=0c38d9a8-cd4e-4a0f-9b7a-66d9e2368dc0" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
-        'listo': '<animated-icons src="https://animatedicons.co/get-icon?name=Firecracker&style=minimalistic&token=0e6f2ecc-a2ca-45ba-9eab-0926e9b25a78" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
-        'entregado': '<animated-icons src="https://animatedicons.co/get-icon?name=Magic%20Box&style=minimalistic&token=cc242f7a-6191-4a85-8812-a59e5fba44bf" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
-        'en_produccion': '<animated-icons src="https://animatedicons.co/get-icon?name=Activity&style=minimalistic&token=e9dea012-465e-4473-9939-5de89e4a2b52" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20" ></animated-icons>'
+        'aprobado': '<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
+        'rechazado': '<animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
+        'listo': '<animated-icons src="/static/icons/firecracker-0e6f2ecc.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
+        'entregado': '<animated-icons src="/static/icons/magic-box-cc242f7a.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>',
+        'en_produccion': '<animated-icons src="/static/icons/activity-e9dea012.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20" ></animated-icons>'
       };
-      return icons[tipo] || '<animated-icons src="https://animatedicons.co/get-icon?name=notification&style=minimalistic&token=2a8c285f-a7a0-4f4d-b2c3-acccc136c454" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>';
+      return icons[tipo] || '<animated-icons src="/static/icons/notification-2a8c285f.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons>';
     }
 
     function formatearFechaNotif(fechaStr) {

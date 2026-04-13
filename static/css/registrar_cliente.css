@@ -89,6 +89,7 @@
     width: 100%; padding: 13px; background: var(--brown-dk); color: var(--cream);
     border: none; border-radius: 50px; font-family: 'Lato', sans-serif; font-size: 15px; font-weight: 700;
     cursor: pointer; transition: background .2s, transform .15s; box-shadow: 0 4px 16px rgba(107,68,35,.3);
+    display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;
   }
   .btn-register:hover { background: var(--brown); transform: translateY(-1px); }
   .btn-register:active { transform: translateY(0); }
