@@ -1,0 +1,194 @@
+/* ── Animaciones ─────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.anim   { animation: fadeUp .38s ease both; }
+.anim-1 { animation-delay:.04s; }
+.anim-2 { animation-delay:.09s; }
+.anim-3 { animation-delay:.14s; }
+.anim-4 { animation-delay:.19s; }
+.anim-5 { animation-delay:.24s; }
+
+/* ── Topbar ──────────────────────────────────────────────────── */
+.db-topbar {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:22px; gap:12px; flex-wrap:wrap;
+}
+.db-page-title {
+  font-family:'Playfair Display',serif; font-size:24px;
+  font-weight:700; color:var(--brown-dk);
+  display:flex; align-items:center; gap:10px; line-height:1.2;
+}
+.db-breadcrumb {
+  font-size:12px; color:var(--brown-lt); margin-top:4px;
+  display:flex; align-items:center; gap:5px;
+}
+.db-breadcrumb span { color:var(--tan); }
+
+/* ── Filtro de periodo ───────────────────────────────────────── */
+.dm-filtro-periodo {
+  display:flex; gap:4px; margin-bottom:16px;
+  background:var(--warm-bg); border:1px solid var(--tan);
+  border-radius:10px; padding:4px; width:fit-content;
+}
+.dm-p-btn {
+  background:transparent; border:none; padding:6px 18px;
+  border-radius:7px; font-size:13px; font-weight:700;
+  color:var(--brown-lt); cursor:pointer; transition:all .15s;
+  font-family:'Lato',sans-serif;
+}
+.dm-p-btn.active {
+  background:var(--white); color:var(--brown-dk);
+  box-shadow:0 1px 4px var(--shadow);
+}
+
+/* ── Etiqueta de sección ─────────────────────────────────────── */
+.dm-sec-label {
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:1px; color:var(--brown-lt);
+  margin:24px 0 12px; display:flex; align-items:center; gap:8px;
+}
+.dm-sec-label::after {
+  content:''; flex:1; height:1px; background:var(--tan);
+}
+
+/* ── Stat cards ──────────────────────────────────────────────── */
+.stats-grid {
+  display:grid; gap:14px; margin-bottom:20px;
+}
+@media (max-width:860px) { .stats-grid { grid-template-columns:1fr !important; } }
+
+.stat-card-v2 {
+  background:var(--white); border:1px solid var(--tan);
+  border-radius:14px; padding:18px 20px;
+  box-shadow:0 2px 10px var(--shadow);
+  transition:transform .18s, box-shadow .18s;
+  position:relative; overflow:hidden;
+}
+.stat-card-v2:hover {
+  transform:translateY(-3px); box-shadow:0 6px 18px var(--shadow);
+}
+.stat-card-v2::before {
+  content:''; position:absolute; top:0; left:0; right:0;
+  height:3px; border-radius:14px 14px 0 0;
+}
+.stat-card-v2.accent-brown::before { background:var(--brown-dk); }
+.stat-card-v2.accent-gold::before  { background:#c9950a; }
+.stat-card-v2.accent-rust::before  { background:var(--rust); }
+.stat-card-v2.accent-green::before { background:#4a7a42; }
+
+.sc-top {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px;
+}
+.sc-icon {
+  width:40px; height:40px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:19px; flex-shrink:0;
+}
+.sc-val {
+  font-family:'Playfair Display',serif; font-size:26px;
+  font-weight:700; color:var(--brown-dk); line-height:1;
+}
+.sc-lbl { font-size:11.5px; color:var(--brown-lt); margin-top:5px; font-weight:600; }
+.sc-sub { font-size:11px; color:var(--brown-lt); margin-top:3px; }
+
+/* Badge de cambio % */
+.dm-badge {
+  display:inline-flex; align-items:center; padding:2px 9px;
+  border-radius:999px; font-size:11px; font-weight:700;
+}
+.dm-badge.up      { background:#d1fae5; color:#065f46; }
+.dm-badge.down    { background:#fee2e2; color:#991b1b; }
+.dm-badge.neutral { background:var(--warm-bg); color:var(--brown-lt); }
+
+/* ── Panel card ──────────────────────────────────────────────── */
+.panel-card {
+  background:var(--white); border:1px solid var(--tan);
+  border-radius:14px; box-shadow:0 2px 10px var(--shadow);
+  overflow:hidden;
+}
+.panel-header {
+  padding:14px 18px; background:var(--warm-bg);
+  border-bottom:1px solid var(--tan);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.panel-title {
+  font-family:'Playfair Display',serif; font-size:15px;
+  font-weight:700; color:var(--brown-dk);
+  display:flex; align-items:center; gap:8px;
+}
+.panel-body { padding:16px 18px; }
+
+/* ── Tabla ───────────────────────────────────────────────────── */
+.dm-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.dm-tbl thead th {
+  background:var(--warm-bg); color:var(--brown-lt);
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.6px; padding:9px 14px; text-align:left;
+  border-bottom:1px solid var(--tan);
+}
+.dm-tbl tbody td {
+  padding:10px 14px; border-bottom:1px solid var(--warm-bg);
+  vertical-align:middle; color:var(--brown-dk);
+}
+.dm-tbl tbody tr:last-child td { border-bottom:none; }
+.dm-tbl tbody tr:hover td { background:var(--warm-bg); }
+.dm-empty {
+  text-align:center; padding:28px; color:var(--brown-lt); font-size:13px;
+}
+
+/* ── Chips de estado de stock ────────────────────────────────── */
+.chip-estado {
+  padding:3px 10px; border-radius:999px;
+  font-size:11px; font-weight:700; display: inline-flex; justify-content: center !important; 
+  text-align: center !important; align-items: center;
+}
+.chip-critico     { background:#fee2e2; color:#991b1b; }
+.chip-bajo        { background:#fef3c7; color:#92400e; }
+.chip-advertencia { background:#fffde7; color:#78600a; }
+
+/* Barra de stock bajo la cantidad */
+.dm-stock-bar {
+  width:80px; height:5px; background:var(--warm-bg);
+  border-radius:999px; overflow:hidden;
+  display:inline-block; vertical-align:middle; margin-left:6px;
+}
+.dm-stock-bar-fill { height:100%; border-radius:999px; }
+.dm-stock-bar-fill.critico     { background:#ef4444; }
+.dm-stock-bar-fill.bajo        { background:#f59e0b; }
+.dm-stock-bar-fill.advertencia { background:#facc15; }
+
+/* ── Paginador tabla utilidad ────────────────────────────────── */
+.dm-paginador {
+  display:flex; align-items:center; justify-content:center;
+  gap:12px; padding:12px 18px; border-top:1px solid var(--warm-bg);
+}
+.dm-pag-btn { padding:5px 14px !important; font-size:12px !important; }
+.dm-pag-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+/* ── Refresh spin ────────────────────────────────────────────── */
+@keyframes dm-spin { to { transform:rotate(360deg); } }
+.spinning { animation:dm-spin .8s linear infinite; }
+
+/* ── Botón de información (ⓘ) ───────────────────────────────── */
+.dm-info-btn {
+  width:20px; height:20px; border-radius:50%;
+  border:1.5px solid var(--tan);
+  background:var(--white); color:var(--brown-lt);
+  font-size:11px; font-weight:700; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all .15s; line-height:1;
+  font-family:'Lato',sans-serif;
+}
+.dm-info-btn:hover {
+  background:var(--brown-dk); color:var(--cream);
+  border-color:var(--brown-dk);
+}
+.dm-info-wrap {
+  display:inline-flex; align-items:center;
+}
+
+/* .dm-info-pop actúa solo como contenedor de datos; el modal en layout.html lo muestra */
+.dm-info-pop { display:none !important; }

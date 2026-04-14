@@ -9,34 +9,61 @@
 
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title">🛒 Compras de Materias Primas</div>
+    <div class="db-page-title"><animated-icons src="/static/icons/shopping-1a426870.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="50" width="50"></animated-icons> Compras de Materias Primas</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Compras</div>
   </div>
-  <button class="btn btn-primary" onclick="abrirModalNueva()">＋ Registrar Pedido</button>
+  <button class="btn btn-primary" onclick="abrirModalNueva()"><animated-icons src="/static/icons/plus-0c38d9a8.json"
+      trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30" width="30"></animated-icons> Registrar Pedido</button>
 </div>
 
 <div class="c-stats anim anim-1">
   <div class="c-stat">
-    <div class="c-stat-icon brown">🛒</div>
-    <div><div class="c-stat-val">{{ total_compras }}</div><div class="c-stat-lbl">Pedidos Registrados</div></div>
+    <div class="c-stat-icon brown"><animated-icons src="/static/icons/shopping-1a426870.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="c-stat-val">{{ total_compras }}</div>
+      <div class="c-stat-lbl">Pedidos Registrados</div>
+    </div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon gold">📅</div>
-    <div><div class="c-stat-val">{{ compras_mes }}</div><div class="c-stat-lbl">Pedidos este Mes</div></div>
+    <div class="c-stat-icon gold"><animated-icons src="/static/icons/reports-ff77881b.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="c-stat-val">{{ compras_mes }}</div>
+      <div class="c-stat-lbl">Pedidos este Mes</div>
+    </div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon green">💰</div>
-    <div><div class="c-stat-val">${{ "%.0f"|format(gasto_mes) }}</div><div class="c-stat-lbl">Gasto Finalizado (mes)</div></div>
+    <div class="c-stat-icon green"><animated-icons src="/static/icons/income-ca37a84b.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="c-stat-val">${{ "%.0f"|format(gasto_mes) }}</div>
+      <div class="c-stat-lbl">Gasto Finalizado (mes)</div>
+    </div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon rust">🏭</div>
-    <div><div class="c-stat-val">{{ provs_activos }}</div><div class="c-stat-lbl">Proveedores Activos</div></div>
+    <div class="c-stat-icon rust"><animated-icons src="/static/icons/small-business-13011e87.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="c-stat-val">{{ provs_activos }}</div>
+      <div class="c-stat-lbl">Proveedores Activos</div>
+    </div>
   </div>
 </div>
 
 <div class="toolbar anim anim-2">
   <div class="search-wrap">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></span>
     <input type="text" placeholder="Buscar por folio o proveedor…" id="searchInput" oninput="filterTable()">
   </div>
   <input type="date" class="filter-select" id="filterDesde" onchange="filterTable()" title="Desde">
@@ -50,7 +77,7 @@
   <select class="filter-select" id="filterProv" onchange="filterTable()">
     <option value="">Todos los proveedores</option>
     {% for p in proveedores %}
-      <option value="{{ p.nombre.lower() }}">{{ p.nombre }}</option>
+    <option value="{{ p.nombre.lower() }}">{{ p.nombre }}</option>
     {% endfor %}
   </select>
 </div>
@@ -86,37 +113,57 @@
         <td>
           <span class="monto-val">${{ "%.2f"|format(c.total) }}</span>
           {% if c.estatus == 'finalizado' %}
-            {% if c.estatus_pago == 'pendiente' %}
-              <div style="margin-top:4px"><span class="badge" style="background:#fef3d0;color:#8a6200;font-size:10px;">Pago pendiente</span></div>
-            {% elif c.estatus_pago == 'rechazada' %}
-              <div style="margin-top:4px"><span class="badge" style="background:#fce8df;color:#9c3a1a;font-size:10px;">Pago rechazado</span></div>
-            {% elif c.estatus_pago == 'aprobada' %}
-              <div style="margin-top:4px"><span class="badge" style="background:#e2eede;color:#3a6034;font-size:10px;">Pago autorizado</span></div>
-            {% endif %}
+          {% if c.estatus_pago == 'pendiente' %}
+          <div style="margin-top:4px"><span class="badge" style="background:#fef3d0;color:#8a6200;font-size:10px;">Pago
+              pendiente</span></div>
+          {% elif c.estatus_pago == 'rechazada' %}
+          <div style="margin-top:4px"><span class="badge" style="background:#fce8df;color:#9c3a1a;font-size:10px;">Pago
+              rechazado</span></div>
+          {% elif c.estatus_pago == 'aprobada' %}
+          <div style="margin-top:4px"><span class="badge" style="background:#e2eede;color:#3a6034;font-size:10px;">Pago
+              autorizado</span></div>
+          {% endif %}
           {% endif %}
         </td>
         <td>
           <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle"
-              onclick="verDetalle({{ c.id_compra }})">👁️</button>
+            <button class="btn btn-outline btn-sm btn-icon" title="Ver detalle"
+              onclick="verDetalle({{ c.id_compra }})"><animated-icons src="/static/icons/newspaper-b3a68157.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></button>
             {% if c.estatus == 'ordenado' %}
-              <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar pedido"
-                onclick="abrirEditar({{ c.id_compra }},'{{ c.folio }}')">✏️</button>
-              <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Finalizar (aceptar mercancía)"
-                onclick="abrirFinalizar({{ c.id_compra }},'{{ c.folio }}')">✅</button>
-              <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Cancelar"
-                onclick="abrirCancelar({{ c.id_compra }},'{{ c.folio }}')">🚫</button>
+            <button class="btn btn-outline btn-sm btn-icon" title="Editar pedido"
+              onclick="abrirEditar({{ c.id_compra }},'{{ c.folio }}')"><animated-icons
+                src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></button>
+            <button class="btn btn-outline btn-sm btn-icon" title="Finalizar (aceptar mercancía)"
+              onclick="abrirFinalizar({{ c.id_compra }},'{{ c.folio }}')"><animated-icons
+                src="/static/icons/success-2cb0da6b.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></button>
+            <button class="btn btn-outline btn-sm btn-icon" title="Cancelar"
+              onclick="abrirCancelar({{ c.id_compra }},'{{ c.folio }}')"><animated-icons
+                src="/static/icons/minus-8e4bd16d.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></button>
             {% endif %}
             {% if c.estatus == 'finalizado' and c.estatus_pago == 'rechazada' %}
-              <button class="btn btn-outline btn-sm" style="color:#8a6200;border-color:#c9950a;"
-                data-tooltip="Corregir precio y reenviar pago"
-                onclick="abrirCorregirPrecio({{ c.id_compra }},'{{ c.folio }}')">✏️ Corregir precio</button>
+            <button class="btn btn-outline btn-sm" style="color:#8a6200;border-color:#c9950a;"
+              title="Corregir precio y reenviar pago"
+              onclick="abrirCorregirPrecio({{ c.id_compra }},'{{ c.folio }}')"><animated-icons
+                src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="24" width="24"></animated-icons> Corregir precio</button>
             {% endif %}
           </div>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--brown-lt)">No hay pedidos registrados.</td></tr>
+      <tr>
+        <td colspan="6" style="text-align:center;padding:24px;color:var(--brown-lt)">No hay pedidos registrados.</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -128,7 +175,9 @@
 <div class="modal-overlay" id="modal-add">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <h2 id="modal-add-titulo">🛒 Nuevo Pedido de Compra</h2>
+      <h2 id="modal-add-titulo"><animated-icons src="/static/icons/shopping-1a426870.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Nuevo Pedido de Compra</h2>
       <button class="modal-close" type="button" onclick="closeModal('modal-add')">✕</button>
     </div>
     <form method="POST" action="" id="form-nueva-compra" novalidate>
@@ -142,7 +191,7 @@
             <select name="id_proveedor" class="form-select" required>
               <option value="">— Seleccionar —</option>
               {% for p in proveedores %}
-                <option value="{{ p.id_proveedor }}">{{ p.nombre }}</option>
+              <option value="{{ p.id_proveedor }}">{{ p.nombre }}</option>
               {% endfor %}
             </select>
           </div>
@@ -161,12 +210,18 @@
         </div>
 
         <div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brown-lt)">Detalle de Insumos</span>
+          <span
+            style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brown-lt)">Detalle
+            de Insumos</span>
         </div>
 
         <div class="info-box">
-          <span>💡</span>
-          <span>Selecciona la materia prima y la unidad en la que la compras. El sistema calculará automáticamente cuánto suma al inventario según el factor de conversión configurado.</span>
+          <span style="display:flex;align-items:center"><animated-icons src="/static/icons/alert-240003ce.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="24" width="24"></animated-icons></span>
+          <span>Selecciona la materia prima y la unidad en la que la compras. El sistema calculará automáticamente
+            cuánto suma al inventario según el factor de conversión configurado.</span>
         </div>
 
         <div class="detalle-header">
@@ -181,13 +236,20 @@
         <div id="renglones-container">
         </div>
 
-        <div style="padding:8px 10px;background:var(--cream);border:1px solid var(--tan);border-top:none;border-radius:0 0 8px 8px;font-size:11.5px;color:var(--brown);display:flex;gap:6px;align-items:center;">
-          <span>🔄</span>
+        <div
+          style="padding:8px 10px;background:var(--cream);border:1px solid var(--tan);border-top:none;border-radius:0 0 8px 8px;font-size:11.5px;color:var(--brown);display:flex;gap:6px;align-items:center;">
+          <span style="display:flex;align-items:center"><animated-icons src="/static/icons/sync-e9dea012.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="24" width="24"></animated-icons></span>
           <span id="conversion-info">Selecciona una materia prima y unidad para ver la conversión.</span>
         </div>
 
         <div style="margin-top:10px;">
-          <button type="button" class="btn btn-outline btn-sm" onclick="addRenglon()">＋ Agregar insumo</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="addRenglon()"><animated-icons
+              src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="24" width="24"></animated-icons> Agregar insumo</button>
         </div>
 
         <div class="total-bar">
@@ -195,11 +257,16 @@
           <strong id="total-compra">$0.00</strong>
         </div>
 
-        <div id="form-error" style="display:none;margin-top:12px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;"></div>
+        <div id="form-error"
+          style="display:none;margin-top:12px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;">
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
-        <button type="submit" class="btn btn-primary">💾 Guardar Pedido (Ordenado)</button>
+        <button type="submit" class="btn btn-primary"><animated-icons src="/static/icons/save-0c38d9a8.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="24" width="24"></animated-icons> Guardar Pedido (Ordenado)</button>
       </div>
     </form>
   </div>
@@ -208,7 +275,10 @@
 <div class="modal-overlay" id="modal-detalle">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <h2>📋 Detalle — <span id="det-folio" style="opacity:.7;font-size:14px;"></span></h2>
+      <h2><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Detalle — <span id="det-folio"
+          style="opacity:.7;font-size:14px;"></span></h2>
       <button class="modal-close" type="button" onclick="closeModal('modal-detalle')">✕</button>
     </div>
     <div class="modal-body" id="det-body">
@@ -230,9 +300,11 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body" style="text-align:center;padding:30px 26px">
         <div style="font-size:48px;margin-bottom:12px"></div>
-        <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:var(--brown-dk);margin-bottom:8px">¿Aceptar la mercancía?</h3>
+        <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:var(--brown-dk);margin-bottom:8px">¿Aceptar
+          la mercancía?</h3>
         <p style="font-size:13px;color:var(--brown-lt);line-height:1.6">
-          El pedido <strong id="fin-folio" style="color:var(--brown-dk)"></strong> cambiará a <strong>Finalizado</strong>.<br>
+          El pedido <strong id="fin-folio" style="color:var(--brown-dk)"></strong> cambiará a
+          <strong>Finalizado</strong>.<br>
           Se sumará al stock de cada materia prima y se registrará la salida de efectivo al proveedor.
         </p>
       </div>
@@ -247,14 +319,18 @@
 <div class="modal-overlay" id="modal-cancelar">
   <div class="modal modal-sm">
     <div class="modal-header danger">
-      <h2>🚫 Cancelar Pedido</h2>
+      <h2 style="display:inline-flex;align-items:center;gap:10px;"><animated-icons
+          src="/static/icons/minus-8e4bd16d.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#FFFFFF","group-2":"#FFFFFF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Cancelar Pedido</h2>
       <button class="modal-close" type="button" onclick="closeModal('modal-cancelar')">✕</button>
     </div>
     <form id="form-cancelar" method="POST" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <p style="font-size:13px;color:var(--brown-lt);margin-bottom:16px">
-          Cancelar el pedido <strong id="can-folio" style="color:var(--rust)"></strong>. Esta acción no se puede deshacer.
+          Cancelar el pedido <strong id="can-folio" style="color:var(--rust)"></strong>. Esta acción no se puede
+          deshacer.
         </p>
         <div class="form-group">
           <label class="form-label">Motivo de Cancelación *</label>
@@ -262,11 +338,16 @@
             placeholder="Describe el motivo de la cancelación…" required
             style="resize:vertical;min-height:80px"></textarea>
         </div>
-        <div id="can-error" style="display:none;margin-top:10px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;"></div>
+        <div id="can-error"
+          style="display:none;margin-top:10px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;">
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-cancelar')">Volver</button>
-        <button type="submit" class="btn btn-danger">🚫 Cancelar Pedido</button>
+        <button type="submit" class="btn btn-danger"><animated-icons src="/static/icons/minus-8e4bd16d.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#FFFFFF","group-2":"#FFFFFF","background":"#FFFFFF"}}'
+            height="24" width="24"></animated-icons> Cancelar Pedido</button>
       </div>
     </form>
   </div>
@@ -279,26 +360,37 @@
 <div class="modal-overlay" id="modal-corregir">
   <div class="modal modal-lg">
     <div class="modal-header" style="background:#8a6200">
-      <h2>✏️ Corregir Precio — <span id="cor-folio" style="opacity:.7;font-size:14px;"></span></h2>
+      <h2 style="display:inline-flex;align-items:center;gap:10px;"><animated-icons
+          src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#FFFFFF","group-2":"#FFFFFF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Corregir Precio — <span id="cor-folio"
+          style="opacity:.7;font-size:14px;"></span></h2>
       <button class="modal-close" type="button" onclick="closeModal('modal-corregir')">✕</button>
     </div>
     <form id="form-corregir" method="POST" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
         <div class="info-box" style="background:#fef3d0;border-color:#c9950a;">
-          <span>⚠️</span>
-          <span>El pago de esta compra fue <strong>rechazado</strong>. Solo puedes corregir el <strong>precio unitario</strong> de cada insumo. Las cantidades y el inventario <strong>no se modifican</strong>.</span>
+          <span style="display:flex;align-items:center"><animated-icons src="/static/icons/alert-240003ce.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="24" width="24"></animated-icons></span>
+          <span>El pago de esta compra fue <strong>rechazado</strong>. Solo puedes corregir el <strong>precio
+              unitario</strong> de cada insumo. Las cantidades y el inventario <strong>no se modifican</strong>.</span>
         </div>
         <div id="cor-renglones" style="margin-top:12px;"></div>
         <div class="total-bar" style="margin-top:12px;">
           <span>Nuevo Total</span>
           <strong id="cor-total">$0.00</strong>
         </div>
-        <div id="cor-error" style="display:none;margin-top:12px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;"></div>
+        <div id="cor-error"
+          style="display:none;margin-top:12px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;">
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-corregir')">Cancelar</button>
-        <button type="submit" class="btn btn-primary" style="background:#8a6200">📤 Enviar corrección para autorización</button>
+        <button type="submit" class="btn btn-primary" style="background:#8a6200">📤 Enviar corrección para
+          autorización</button>
       </div>
     </form>
   </div>
@@ -309,11 +401,8 @@
 <template id="tpl-opciones-materia">
   <div class="insumo-sin-res">Sin resultados</div>
   {% for m in materias %}
-  <div class="insumo-opcion"
-      data-val="{{ m.id_materia }}"
-      data-txt="{{ m.nombre | e }} ({{ m.unidad_base | e }})"
-      data-unidad-base="{{ m.unidad_base | e }}"
-      onmousedown="seleccionarInsumoC(this)">
+  <div class="insumo-opcion" data-val="{{ m.id_materia }}" data-txt="{{ m.nombre | e }} ({{ m.unidad_base | e }})"
+    data-unidad-base="{{ m.unidad_base | e }}" onmousedown="seleccionarInsumoC(this)">
     {{ m.nombre }} <span style="color:var(--brown-lt);font-size:11px">({{ m.unidad_base }})</span>
   </div>
   {% endfor %}
@@ -322,8 +411,8 @@
 <script>
   const MATERIAS = {
     {% for m in materias %}
-    {{ m.id_materia }}: { nombre: {{ m.nombre | tojson }}, unidad_base: {{ m.unidad_base | tojson }} },
-    {% endfor %}
+  {{ m.id_materia }}: { nombre: {{ m.nombre | tojson }}, unidad_base: {{ m.unidad_base | tojson }} },
+  {% endfor %}
   };
   const URL_CREAR_COMPRA = '{{ url_for("compras.crear_compra") }}';
   const CSRF_TOKEN = '{{ csrf_token() }}';
@@ -331,19 +420,19 @@
 {% block extra_scripts %}
 <script src="{{ url_for('static', filename='js/compras.js') }}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  window.abrirCorregirPrecio = function(id, folio) {
-    document.getElementById('cor-folio').textContent = folio;
-    document.getElementById('cor-renglones').innerHTML = '<p style="text-align:center;color:var(--brown-lt);padding:16px">Cargando…</p>';
-    document.getElementById('cor-total').textContent = '$0.00';
-    document.getElementById('cor-error').style.display = 'none';
-    document.getElementById('form-corregir').action = `/compras/corregir-precio/${id}`;
-    openModal('modal-corregir');
+  document.addEventListener('DOMContentLoaded', () => {
+    window.abrirCorregirPrecio = function (id, folio) {
+      document.getElementById('cor-folio').textContent = folio;
+      document.getElementById('cor-renglones').innerHTML = '<p style="text-align:center;color:var(--brown-lt);padding:16px">Cargando…</p>';
+      document.getElementById('cor-total').textContent = '$0.00';
+      document.getElementById('cor-error').style.display = 'none';
+      document.getElementById('form-corregir').action = `/compras/corregir-precio/${id}`;
+      openModal('modal-corregir');
 
-    fetch(`/compras/detalle/${id}`)
-      .then(r => r.json())
-      .then(d => {
-        const html = d.detalles.map((det, i) => `
+      fetch(`/compras/detalle/${id}`)
+        .then(r => r.json())
+        .then(d => {
+          const html = d.detalles.map((det, i) => `
           <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--tan);">
             <div>
               <div style="font-weight:700;color:var(--brown-dk);font-size:13px">${det.materia}</div>
@@ -367,45 +456,46 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>`).join('');
 
-        document.getElementById('cor-renglones').innerHTML = html || '<p>Sin detalles.</p>';
-        recalcularCorTotal();
-      })
-      .catch(() => {
-        document.getElementById('cor-renglones').innerHTML = '<p style="color:var(--rust);text-align:center;padding:16px">Error al cargar el detalle.</p>';
-      });
-  };
-});
-
-function recalcularCorTotal() {
-  let total = 0;
-  document.querySelectorAll('#form-corregir input[name="costo_unitario[]"]').forEach((inp, i) => {
-    const costo = parseFloat(inp.value) || 0;
-    const qty   = parseFloat(inp.dataset.qty) || 0;
-    const sub   = costo * qty;
-    const subEl = document.getElementById('cor-sub-' + i);
-    if (subEl) subEl.textContent = '$' + sub.toFixed(2);
-    total += sub;
+          document.getElementById('cor-renglones').innerHTML = html || '<p>Sin detalles.</p>';
+          recalcularCorTotal();
+        })
+        .catch(() => {
+          document.getElementById('cor-renglones').innerHTML = '<p style="color:var(--rust);text-align:center;padding:16px">Error al cargar el detalle.</p>';
+        });
+    };
   });
-  document.getElementById('cor-total').textContent = '$' + total.toFixed(2);
-}
 
-document.getElementById('form-corregir').addEventListener('submit', function(e) {
-  const inputs = this.querySelectorAll('input[name="costo_unitario[]"]');
-  for (const inp of inputs) {
-    if (!inp.value || parseFloat(inp.value) <= 0) {
-      e.preventDefault();
-      const err = document.getElementById('cor-error');
-      err.textContent = '⚠️ Todos los precios deben ser mayores a $0.';
-      err.style.display = 'block';
-      clearTimeout(err._t);
-      err._t = setTimeout(() => { err.style.display = 'none'; }, 4000);
-      return;
-    }
+  function recalcularCorTotal() {
+    let total = 0;
+    document.querySelectorAll('#form-corregir input[name="costo_unitario[]"]').forEach((inp, i) => {
+      const costo = parseFloat(inp.value) || 0;
+      const qty = parseFloat(inp.dataset.qty) || 0;
+      const sub = costo * qty;
+      const subEl = document.getElementById('cor-sub-' + i);
+      if (subEl) subEl.textContent = '$' + sub.toFixed(2);
+      total += sub;
+    });
+    document.getElementById('cor-total').textContent = '$' + total.toFixed(2);
   }
-  const btn = this.querySelector('button[type="submit"]');
-  btn.disabled = true;
-  btn.textContent = '⏳ Enviando…';
-});
+
+  document.getElementById('form-corregir').addEventListener('submit', function (e) {
+    const inputs = this.querySelectorAll('input[name="costo_unitario[]"]');
+    for (const inp of inputs) {
+      if (!inp.value || parseFloat(inp.value) <= 0) {
+        e.preventDefault();
+        const err = document.getElementById('cor-error');
+        const icon = `<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-right:6px"><animated-icons src="/static/icons/alert-240003ce.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span>`;
+        err.innerHTML = '⚠️ Todos los precios deben ser mayores a $0.'.replace('⚠️', icon);
+        err.style.display = 'block';
+        clearTimeout(err._t);
+        err._t = setTimeout(() => { err.style.display = 'none'; }, 4000);
+        return;
+      }
+    }
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = `<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-right:6px"><animated-icons src="/static/icons/sync-e9dea012.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#FFFFFF","group-2":"#FFFFFF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span> Enviando…`;
+  });
 </script>
 {% endblock %}
 
@@ -416,7 +506,10 @@ document.getElementById('form-corregir').addEventListener('submit', function(e) 
 <div class="modal-overlay" id="modal-nueva-unidad">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <h2>📐 Nueva Unidad de Compra</h2>
+      <h2 style="display:inline-flex;align-items:center;gap:10px;"><animated-icons
+          src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Nueva Unidad de Compra</h2>
       <button class="modal-close" type="button" onclick="closeModal('modal-nueva-unidad')">✕</button>
     </div>
     <div class="modal-body">
@@ -434,16 +527,20 @@ document.getElementById('form-corregir').addEventListener('submit', function(e) 
         </div>
         <div class="form-group">
           <label class="form-label">Factor a unidad base *</label>
-          <input type="number" id="nu-factor" class="form-input" placeholder="Ej. 50 (1 saco = 50 kg)" min="0.0001" step="0.0001">
+          <input type="number" id="nu-factor" class="form-input" placeholder="Ej. 50 (1 saco = 50 kg)" min="0.0001"
+            step="0.0001">
           <span class="form-hint" id="nu-hint">Cuántas unidades base equivale 1 de esta unidad.</span>
         </div>
         <input type="hidden" id="nu-uso" value="compra">
       </div>
-      <div id="nu-error" style="display:none;margin-top:12px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;"></div>
+      <div id="nu-error"
+        style="display:none;margin-top:12px;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;background:#fce8df;color:#9c3a1a;border:1px solid #f5c6b0;">
+      </div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-outline" onclick="closeModal('modal-nueva-unidad')">Cancelar</button>
-      <button type="button" class="btn btn-primary" id="nu-guardar-btn" onclick="guardarNuevaUnidad()">💾 Guardar Unidad</button>
+      <button type="button" class="btn btn-primary" id="nu-guardar-btn" onclick="guardarNuevaUnidad()">💾 Guardar
+        Unidad</button>
     </div>
   </div>
 </div>

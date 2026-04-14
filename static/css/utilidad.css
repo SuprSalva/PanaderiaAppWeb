@@ -1,0 +1,321 @@
+/* ════════════════════════════════════════════
+   MÓDULO: Utilidad por Ventas
+   static/css/utilidad.css
+   ════════════════════════════════════════════ */
+
+/* ── Topbar ─────────────────────────────────────────────── */
+.uv-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.uv-page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--brown-dk);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.uv-breadcrumb {
+  font-size: 12px;
+  color: var(--brown-lt);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.uv-breadcrumb span { color: var(--tan); }
+
+/* ── Export button ──────────────────────────────────────── */
+.uv-export-btn {
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+}
+.uv-export-btn:hover { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+
+/* ── Filtro ─────────────────────────────────────────────── */
+.uv-filtro-card {
+  background: var(--white);
+  border: 1px solid var(--tan);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.uv-filtro-body {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.uv-filtro-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.uv-filtro-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--brown-lt);
+}
+.uv-date-input {
+  border: 1.5px solid var(--tan);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: 'Lato', sans-serif;
+  color: var(--brown-dk);
+  background: var(--warm-bg);
+  outline: none;
+  transition: border-color .2s;
+}
+.uv-date-input:focus { border-color: var(--brown); }
+.uv-filtro-sep { font-size: 18px; color: var(--brown-lt); padding-bottom: 4px; }
+
+.uv-consultar-btn { font-size: 12px; height: 36px; align-self: flex-end; }
+
+.uv-shortcuts {
+  display: flex;
+  gap: 6px;
+  align-self: flex-end;
+}
+.uv-sc-btn {
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1.5px solid var(--tan);
+  background: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brown-lt);
+  cursor: pointer;
+  transition: all .2s;
+}
+.uv-sc-btn:hover { background: var(--warm-bg); border-color: var(--brown); color: var(--brown-dk); }
+
+.uv-estado {
+  font-size: 11px;
+  color: var(--brown-lt);
+  margin-top: 8px;
+  min-height: 16px;
+}
+
+/* ── KPI Cards ─────────────────────────────────────────── */
+.uv-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) { .uv-kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .uv-kpis { grid-template-columns: 1fr; } }
+
+.uv-kpi-card {
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.uv-kpi-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.uv-kpi-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+.uv-kpi-sub { font-size: 11px; margin-top: 5px; }
+
+.kpi-ingresos {
+  background: linear-gradient(135deg, #e8f5e4, #d4edcd);
+  border: 1px solid #b2d4aa;
+}
+.kpi-ingresos .uv-kpi-lbl { color: #3a6034; }
+.kpi-ingresos .uv-kpi-val { color: #2a5024; }
+.kpi-ingresos .uv-kpi-sub { color: #3a6034; }
+
+.kpi-costo {
+  background: linear-gradient(135deg, #fce8df, #f5d5c8);
+  border: 1px solid #e8b09a;
+}
+.kpi-costo .uv-kpi-lbl { color: #9c3a1a; }
+.kpi-costo .uv-kpi-val { color: var(--rust); }
+.kpi-costo .uv-kpi-sub { color: #9c3a1a; }
+
+.kpi-utilidad {
+  background: linear-gradient(135deg, var(--brown-dk), #8b5e3c);
+  border: 1px solid var(--brown);
+}
+.kpi-utilidad .uv-kpi-lbl { color: rgba(255,255,255,.7); }
+.kpi-utilidad .uv-kpi-val { color: var(--cream); }
+.kpi-utilidad .uv-kpi-sub { color: rgba(255,255,255,.6); }
+
+.kpi-margen {
+  background: linear-gradient(135deg, #e8f0fe, #d0e0fa);
+  border: 1px solid #a8c4f0;
+}
+.kpi-margen .uv-kpi-lbl { color: #1a56a0; }
+.kpi-margen .uv-kpi-val { color: #1a3a80; }
+.kpi-margen .uv-kpi-sub { color: #2a56a0; }
+
+/* ── Section label ──────────────────────────────────────── */
+.uv-sec-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--brown-dk);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Panel ──────────────────────────────────────────────── */
+.panel-card {
+  background: var(--white);
+  border: 1px solid var(--tan);
+  border-radius: 14px;
+  box-shadow: 0 3px 12px var(--shadow);
+  overflow: hidden;
+}
+.panel-header {
+  padding: 14px 20px;
+  background: var(--warm-bg);
+  border-bottom: 1px solid var(--tan);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.panel-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brown-dk);
+}
+
+/* ── Tabla ──────────────────────────────────────────────── */
+.uv-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.uv-tbl thead {
+  background: var(--warm-bg);
+}
+.uv-tbl thead th {
+  padding: 10px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--brown);
+  text-align: left;
+  border-bottom: 1px solid var(--tan);
+  white-space: nowrap;
+}
+.uv-tbl tbody tr {
+  border-top: 1px solid var(--tan);
+  transition: background .13s;
+}
+.uv-tbl tbody tr:hover { background: #fdf3e6; }
+.uv-tbl tbody td { padding: 10px 16px; vertical-align: middle; }
+.uv-tbl .money { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--brown-dk); }
+.uv-tbl .pos   { color: #2d6a27; }
+.uv-tbl .neg   { color: var(--rust); }
+
+.uv-margen-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.chip-high { background: #e2eede; color: #3a6034; }
+.chip-mid  { background: #fef3d0; color: #8a6200; }
+.chip-low  { background: #fce8df; color: var(--rust); }
+
+/* ── Spinner ────────────────────────────────────────────── */
+.uv-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px;
+  color: var(--brown-lt);
+  font-size: 13px;
+}
+.uv-spin-circle {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--tan);
+  border-top-color: var(--brown);
+  border-radius: 50%;
+  animation: uv-spin .8s linear infinite;
+}
+@keyframes uv-spin { to { transform: rotate(360deg); } }
+
+/* ── Estado vacío ───────────────────────────────────────── */
+.uv-empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--brown-lt);
+  font-size: 13px;
+}
+
+/* ── Paginador ──────────────────────────────────────────── */
+.uv-paginador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--tan);
+  background: var(--warm-bg);
+}
+.uv-pag-btn { font-size: 12px; }
+.uv-pag-info { font-size: 12px; color: var(--brown-lt); }
+
+/* ── Botón de información (ⓘ) ───────────────────────────── */
+.dm-info-btn {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid var(--tan);
+  background: var(--white); color: var(--brown-lt);
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .15s; line-height: 1;
+  font-family: 'Lato', sans-serif;
+}
+.dm-info-btn:hover {
+  background: var(--brown-dk); color: var(--cream);
+  border-color: var(--brown-dk);
+}
+.dm-info-wrap { display: inline-flex; align-items: center; }
+
+/* .dm-info-pop actúa solo como contenedor de datos; el modal en layout.html lo muestra */
+.dm-info-pop { display: none !important; }
+
+/* ── Animaciones ────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim   { animation: fadeUp .35s ease both; }
+.anim-1 { animation-delay: .05s; }
+.anim-2 { animation-delay: .10s; }
+.anim-3 { animation-delay: .15s; }
+.anim-4 { animation-delay: .20s; }

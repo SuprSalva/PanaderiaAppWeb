@@ -117,18 +117,6 @@
           </a>
           {% endif %}
 
-          <a href="{{ url_for('dashboard_ventas') }}"
-            class="nav-item {% if request.endpoint == 'dashboard_ventas' %}active{% endif %}"
-            data-label="Dashboard Ventas" title="Dashboard Ventas">
-            <span class="nav-icon"><animated-icons
-                src="/static/icons/advantage-bbc79435.json"
-                trigger="loop"
-                attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
-                height="30" width="30"></animated-icons></span>
-            <span class="nav-label">Dashboard Ventas</span>
-            <span class="nav-tooltip">Dashboard Ventas</span>
-          </a>
-        </div>
         {% endif %}
 
         {# ══════════════════════════════════════
@@ -393,6 +381,26 @@
                 height="30" width="30"></animated-icons></span>
             <span class="nav-label">Utilidad Diaria</span>
             <span class="nav-tooltip">Utilidad Diaria</span>
+          </a>
+        </div>
+
+        {# ══════════════════════════════════════
+        SECCIÓN: SISTEMA
+        Respaldo y Restauración → admin
+        ══════════════════════════════════════ #}
+        <div class="nav-section" id="section-sistema">
+          <div class="nav-section-label">Sistema</div>
+
+          <a href="{{ url_for('backup.index') }}"
+            class="nav-item {% if request.blueprint == 'backup' %}active{% endif %}"
+            data-label="Respaldo BD" title="Respaldo y Restauración">
+            <span class="nav-icon"><animated-icons
+                src="/static/icons/sync-e9dea012.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></span>
+            <span class="nav-label">Respaldo BD</span>
+            <span class="nav-tooltip">Respaldo y Restauración</span>
           </a>
         </div>
         {% endif %}
@@ -1269,6 +1277,77 @@
 
   <script src="{{ url_for('static', filename='js/layout.js') }}"></script>
   <script src="https://animatedicons.co/scripts/embed-animated-icons.js" defer></script>
+
+  {# ── Modal compartido de información (ⓘ) ── #}
+  <div id="dm-info-modal" class="dm-modal-backdrop" style="display:none;"
+       onclick="if(event.target===this)dmCloseModal()">
+    <div class="dm-modal-box">
+      <button class="dm-modal-close" onclick="dmCloseModal()" title="Cerrar">&#215;</button>
+      <div id="dm-modal-content"></div>
+    </div>
+  </div>
+  <style>
+  .dm-modal-backdrop {
+    position:fixed; inset:0; z-index:99999;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    background:rgba(59,42,26,.52);
+  }
+  .dm-modal-box {
+    background:var(--brown-dk,#6b4423); color:var(--cream,#fdf6ec);
+    border-radius:16px; padding:28px 28px 24px;
+    width:100%; max-width:440px; position:relative;
+    font-family:'Lato',sans-serif; font-size:13px; line-height:1.75;
+    box-shadow:0 24px 64px rgba(0,0,0,.38);
+    animation:dmModalIn .2s ease both;
+  }
+  @keyframes dmModalIn {
+    from { opacity:0; transform:scale(.93) translateY(14px); }
+    to   { opacity:1; transform:scale(1)   translateY(0); }
+  }
+  .dm-modal-close {
+    position:absolute; top:14px; right:14px;
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(255,255,255,.12); border:none;
+    color:rgba(255,255,255,.75); font-size:18px; line-height:1;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background .15s, color .15s;
+  }
+  .dm-modal-close:hover { background:rgba(255,255,255,.25); color:#fff; }
+  #dm-modal-content strong {
+    display:block; margin-bottom:8px;
+    font-size:11px; letter-spacing:.8px; text-transform:uppercase;
+    color:rgba(255,255,255,.55); font-weight:700;
+  }
+  #dm-modal-content .dm-info-tag {
+    display:inline-block; padding:3px 10px; border-radius:999px;
+    background:rgba(255,255,255,.15); font-size:11px; font-weight:700;
+    margin-bottom:10px;
+  }
+  #dm-modal-content ul { margin:8px 0 0; padding-left:18px; }
+  #dm-modal-content ul li { margin-bottom:6px; }
+  #dm-modal-content b { font-weight:700; }
+  #dm-modal-content em { font-style:italic; opacity:.85; }
+  </style>
+  <script>
+  function dmToggleInfo(btn) {
+    const pop = btn.nextElementSibling;
+    if (!pop || !pop.classList.contains('dm-info-pop')) return;
+    const modal   = document.getElementById('dm-info-modal');
+    const content = document.getElementById('dm-modal-content');
+    if (!modal || !content) return;
+    content.innerHTML = pop.innerHTML;
+    modal.style.display = 'flex';
+  }
+  function dmCloseModal() {
+    const modal = document.getElementById('dm-info-modal');
+    if (modal) modal.style.display = 'none';
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') dmCloseModal();
+  });
+  </script>
+
   {% block extra_scripts %}{% endblock %}
 </body>
 

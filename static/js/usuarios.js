@@ -1,5 +1,11 @@
 /* ── Módulo Usuarios ── */
 
+const ICONS = {
+  danger: `<animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons>`,
+  success: `<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons>`,
+  alert: `<animated-icons src="/static/icons/alert-4ff92fe8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons>`,
+};
+
 function openModal(id) {
   const el = document.getElementById(id);
   el.classList.add('open');
@@ -45,20 +51,18 @@ function openDelete(idUsuario, nombre, estatus) {
   if (reactivar) {
     document.getElementById('delete-estatus-input').value    = 'activo';
     document.getElementById('delete-header').style.background = '#5a7a52';
-    document.getElementById('delete-header-title').textContent = '✅ Reactivar Usuario';
-    document.getElementById('delete-icon').textContent        = '✅';
+    document.getElementById('delete-header-title').innerHTML = ICONS.success + ' Reactivar Usuario';
     document.getElementById('delete-title').textContent       = '¿Reactivar este usuario?';
-    document.getElementById('delete-confirm-btn').textContent = '✅ Reactivar';
+    document.getElementById('delete-confirm-btn').innerHTML  = ICONS.success + ' Reactivar';
     document.getElementById('delete-confirm-btn').className   = 'btn btn-primary';
     document.getElementById('delete-msg').innerHTML =
       'El usuario <strong id="delete-name">' + nombre + '</strong> podrá iniciar sesión nuevamente.';
   } else {
     document.getElementById('delete-estatus-input').value    = 'inactivo';
     document.getElementById('delete-header').style.background = 'var(--rust)';
-    document.getElementById('delete-header-title').textContent = '🚫 Desactivar Usuario';
-    document.getElementById('delete-icon').textContent        = '🚫';
+    document.getElementById('delete-header-title').innerHTML = ICONS.danger + ' Desactivar Usuario';
     document.getElementById('delete-title').textContent       = '¿Desactivar este usuario?';
-    document.getElementById('delete-confirm-btn').textContent = '🚫 Desactivar';
+    document.getElementById('delete-confirm-btn').innerHTML  = ICONS.danger + ' Desactivar';
     document.getElementById('delete-confirm-btn').className   = 'btn btn-danger';
     document.getElementById('delete-msg').innerHTML =
       'El usuario <strong id="delete-name">' + nombre + '</strong> no podrá iniciar sesión.<br>Esta acción es reversible desde la misma pantalla.';
@@ -90,7 +94,7 @@ function mostrarErrorModal(modalId, mensaje) {
     const body = document.querySelector('#' + modalId + ' .modal-body');
     body.parentNode.insertBefore(el, body.nextSibling);
   }
-  el.textContent = '⚠️ ' + mensaje;
+  el.innerHTML = ICONS.alert + ' ' + mensaje;
   el.style.display = 'block';
   clearTimeout(el._t);
   el._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
@@ -161,7 +165,7 @@ document.getElementById('form-add').addEventListener('submit', function(e) {
         document.getElementById('verify-codigo').value = '';
         document.getElementById('form-verify').action = '/usuarios/crear';
         document.getElementById('verify-desc').textContent = 'Se envió un código de 6 dígitos al correo del nuevo usuario. Ingrésalo a continuación para confirmar y crear la cuenta.';
-        document.getElementById('verify-btn').textContent = '✅ Confirmar y Crear';
+        document.getElementById('verify-btn').innerHTML = ICONS.success + ' Confirmar y Crear';
         openModal('modal-verify');
       } else {
         mostrarErrorModal('modal-add', res.error || 'Error al enviar el código.');
@@ -208,13 +212,13 @@ document.getElementById('form-verify').addEventListener('submit', function(e) {
           mostrarErrorModal('modal-verify', res.error || 'Error al verificar.');
         }
         btn.disabled = false;
-        btn.textContent = '✅ Confirmar y Crear';
+        btn.innerHTML = ICONS.success + ' Confirmar y Crear';
       }
     })
     .catch(() => {
       mostrarErrorModal('modal-verify', 'Error de red. Intenta de nuevo.');
       btn.disabled = false;
-      btn.textContent = '✅ Confirmar y Crear';
+      btn.innerHTML = ICONS.success + ' Confirmar y Crear';
     });
 });
 
@@ -253,7 +257,7 @@ document.getElementById('form-edit').addEventListener('submit', function(e) {
           document.getElementById('verify-codigo').value = '';
           document.getElementById('form-verify').action = '/usuarios/editar/' + _editUserId;
           document.getElementById('verify-desc').textContent = 'Se envió un código de 6 dígitos al nuevo correo. Ingrésalo a continuación para confirmar y actualizar la cuenta.';
-          document.getElementById('verify-btn').textContent = '✅ Confirmar y Actualizar';
+          document.getElementById('verify-btn').innerHTML = ICONS.success + ' Confirmar y Actualizar';
           openModal('modal-verify');
         } else {
           mostrarErrorModal('modal-edit', res.error || 'Error al enviar el código.');

@@ -1,116 +1,123 @@
 {% extends "layout.html" %}
 {% block title %}Costo y Utilidad{% endblock %}
+{% block breadcrumb %}Inicio › Reportes › Costo y Utilidad{% endblock %}
 
 {% block container %}
-<link rel="stylesheet" href="{{ url_for('costoUtilidad.static', filename='css/costoUtilidad.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/costoUtilidad.css') }}">
 
 {# ── TOPBAR ── #}
 <div class="cu-topbar anim">
-  <div class="cu-title-wrap">
-    <div class="cu-page-title">💰 Costos y Utilidad</div>
+  <div>
+    <div class="cu-page-title">
+      <animated-icons
+        src="/static/icons/tax-17427ea4.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="46" width="46">
+      </animated-icons>
+      Costo y Utilidad por Producto
+    </div>
     <div class="cu-breadcrumb">
       Inicio <span>›</span> Reportes <span>›</span> Costo y Utilidad
     </div>
   </div>
+  <a href="{{ url_for('costoUtilidad.exportar_excel_costo',
+               buscar=buscar or '',
+               orden=orden,
+               utilidad_min=util_min if util_min is not none else '',
+               utilidad_max=util_max if util_max is not none else '') }}"
+     class="btn btn-outline cu-export-btn"
+     title="Exportar a Excel">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+    Exportar Excel
+  </a>
 </div>
 
-{# ── FLASH ── #}
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div class="alert alert-{{ cat }}">{{ msg }}</div>
-  {% endfor %}
-{% endwith %}
+{# ── KPI CARDS ── #}
+<div class="cu-kpis anim anim-1">
 
-<div class="cu-stats anim anim-1">
-
-  <div class="cu-stat">
-    <div class="cu-stat-icon green">📈</div>
-    <div>
+  <div class="cu-kpi-card kpi-cu-margen">
+    <div class="cu-kpi-lbl">Margen Promedio</div>
+    <div class="cu-kpi-val">
       {% set vmp = kpis.get('margen_prom') %}
-      <div class="cu-stat-val">
-        {% if vmp is not none and vmp != '' %}
-          {{ "%.1f"|format(vmp|float) }}%
-        {% else %}—{% endif %}
-      </div>
-      <div class="cu-stat-lbl">Margen Promedio</div>
+      {% if vmp is not none and vmp != '' %}{{ "%.1f"|format(vmp|float) }}%{% else %}—{% endif %}
     </div>
+    <div class="cu-kpi-sub">Sobre todos los productos activos</div>
   </div>
 
-  <div class="cu-stat">
-    <div class="cu-stat-icon brown">🧮</div>
-    <div>
+  <div class="cu-kpi-card kpi-cu-costo">
+    <div class="cu-kpi-lbl">Costo Prom. / Pieza</div>
+    <div class="cu-kpi-val">
       {% set vcp = kpis.get('costo_prom') %}
-      <div class="cu-stat-val">
-        {% if vcp is not none and vcp != '' %}
-          ${{ "%.2f"|format(vcp|float) }}
-        {% else %}—{% endif %}
-      </div>
-      <div class="cu-stat-lbl">Costo Prom. / Pieza</div>
+      {% if vcp is not none and vcp != '' %}${{ "%.2f"|format(vcp|float) }}{% else %}—{% endif %}
     </div>
+    <div class="cu-kpi-sub">Costo promedio de producción</div>
   </div>
 
-  <div class="cu-stat">
-    <div class="cu-stat-icon gold">🏷️</div>
-    <div>
+  <div class="cu-kpi-card kpi-cu-precio">
+    <div class="cu-kpi-lbl">Precio Prom. / Pieza</div>
+    <div class="cu-kpi-val">
       {% set vpp = kpis.get('precio_prom') %}
-      <div class="cu-stat-val">
-        {% if vpp is not none and vpp != '' %}
-          ${{ "%.2f"|format(vpp|float) }}
-        {% else %}—{% endif %}
-      </div>
-      <div class="cu-stat-lbl">Precio Prom. / Pieza</div>
+      {% if vpp is not none and vpp != '' %}${{ "%.2f"|format(vpp|float) }}{% else %}—{% endif %}
     </div>
+    <div class="cu-kpi-sub">Precio promedio de venta</div>
   </div>
 
-  <div class="cu-stat">
-    <div class="cu-stat-icon rust">⚠️</div>
-    <div>
-      <div class="cu-stat-val">{{ kpis.get('productos_margen_bajo', 0) or 0 }}</div>
-      <div class="cu-stat-lbl">Margen bajo (&lt;20%)</div>
-    </div>
+  <div class="cu-kpi-card kpi-cu-alerta">
+    <div class="cu-kpi-lbl">Margen Bajo (&lt;20%)</div>
+    <div class="cu-kpi-val">{{ kpis.get('productos_margen_bajo', 0) or 0 }}</div>
+    <div class="cu-kpi-sub">Productos que requieren revisión</div>
   </div>
 
 </div>
 
+{# ── FILTROS ── #}
 <form method="GET" action="{{ url_for('costoUtilidad.index_costo_utilidad') }}" id="form-filtro">
-  <div class="toolbar anim anim-2">
+  <div class="cu-filtro-card anim anim-2">
 
-    {# Búsqueda por nombre #}
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
+    <div class="cu-search-wrap">
+      <svg class="cu-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
       {{ form.buscar(
            id='buscador',
            placeholder='Buscar producto…',
            autocomplete='off',
-           oninput='debounceSubmit()'
+           oninput='debounceSubmit()',
+           **{'class': ''}
       ) }}
     </div>
 
-    <div class="range-wrap">
-      <span class="range-lbl">Utilidad $</span>
+    <div class="cu-range-wrap">
+      <span class="cu-range-lbl">Ganancia $</span>
       {{ form.utilidad_min(
            id='utilidad_min',
            placeholder='Mín',
-           class_='range-input',
-           oninput='debounceSubmit()'
+           **{'class': 'cu-range-input', 'oninput': 'debounceSubmit()'}
       ) }}
-      <span class="range-sep">—</span>
+      <span class="cu-range-sep">—</span>
       {{ form.utilidad_max(
            id='utilidad_max',
            placeholder='Máx',
-           class_='range-input',
-           oninput='debounceSubmit()'
+           **{'class': 'cu-range-input', 'oninput': 'debounceSubmit()'}
       ) }}
     </div>
 
     {{ form.orden(
          id='filtro-orden',
-         class_='filter-select',
-         onchange='this.form.submit()'
+         **{'class': 'cu-filter-select', 'onchange': 'this.form.submit()'}
     ) }}
 
     {% if buscar or util_min is not none or util_max is not none %}
-    <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}" class="btn-limpiar">
+    <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}" class="cu-btn-limpiar">
       ✕ Limpiar
     </a>
     {% endif %}
@@ -119,47 +126,70 @@
 </form>
 
 {% if util_min is not none or util_max is not none %}
-<div class="filtro-activo anim">
-  🔎 Utilidad filtrada:
+<div class="cu-filtro-activo anim">
+  Ganancia filtrada:
   {% if util_min is not none and util_max is not none %}
     entre ${{ "%.2f"|format(util_min) }} y ${{ "%.2f"|format(util_max) }}
   {% elif util_min is not none %}
-    ≥ ${{ "%.2f"|format(util_min) }}
+    mayor o igual a ${{ "%.2f"|format(util_min) }}
   {% else %}
-    ≤ ${{ "%.2f"|format(util_max) }}
+    menor o igual a ${{ "%.2f"|format(util_max) }}
   {% endif %}
   — {{ productos|length }} resultado(s)
 </div>
 {% endif %}
 
+{# ── LAYOUT DOS COLUMNAS ── #}
 <div class="cu-layout anim anim-3">
 
-  <div class="table-card">
-    <div class="tc-header">
-      <div class="tc-title">📋 Productos — Costo vs. Precio</div>
-      {% if productos %}
-      <span class="tc-hint">Haz click en un producto para ver su desglose</span>
-      {% endif %}
+  {# ── TABLA DE PRODUCTOS ── #}
+  <div class="cu-table-card">
+    <div class="cu-tc-header">
+      <div class="cu-tc-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
+          <line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/>
+        </svg>
+        Productos — Costo vs. Ganancia
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        {% if productos %}
+        <span class="cu-tc-hint">Haz clic en un producto para ver su desglose</span>
+        {% endif %}
+        <div class="dm-info-wrap">
+          <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+          <div class="dm-info-pop">
+            <strong>Costo y Ganancia por Producto</strong>
+            <span class="dm-info-tag">Todos los productos activos con receta</span>
+            Muestra todos los productos que tienen una receta registrada, aunque no se hayan vendido recientemente.
+            <ul>
+              <li><b>Costo por pieza:</b> se calcula sumando el costo de cada ingrediente de la receta. El costo de cada ingrediente usa el precio promedio de las compras del último año. Si no hay compras recientes de algún ingrediente, se usa el último precio registrado.</li>
+              <li><b>Precio de venta:</b> promedio de los precios reales cobrados en los últimos 30 días. Si el producto no tuvo ventas recientes, se usa el precio actual del catálogo.</li>
+              <li><b>Ganancia por pieza:</b> precio de venta menos el costo de producción.</li>
+              <li><b>Margen:</b> qué porcentaje del precio de venta queda como ganancia.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
 
     {% if productos %}
-    <table id="costoTable">
+    <table class="cu-tbl">
       <thead>
         <tr>
           <th>Producto</th>
-          <th>Rendimiento</th>
-          <th>Costo / pza</th>
-          <th>Precio Venta</th>
-          <th>Utilidad / pza</th>
+          <th style="text-align:right;">Costo / pza</th>
+          <th style="text-align:right;">Precio venta</th>
+          <th style="text-align:right;">Ganancia / pza</th>
           <th>Margen</th>
         </tr>
       </thead>
-      <tbody id="tabla-body">
+      <tbody id="cu-tbody">
         {% for p in productos %}
-        {% set margen   = p.margen_pct|float %}
-        {% set cls_bar  = 'mbar-high' if margen >= 30 else ('mbar-mid' if margen >= 20 else 'mbar-low') %}
-        {% set cls_txt  = 'high'     if margen >= 30 else ('mid'     if margen >= 20 else 'low') %}
-        <tr class="prod-row {% if loop.first %}fila-activa{% endif %}"
+        {% set margen  = p.margen_pct|float %}
+        {% set cls_bar = 'high' if margen >= 30 else ('mid' if margen >= 20 else 'low') %}
+        <tr class="{% if loop.first %}fila-activa{% endif %}"
             onclick="selectProducto(this)"
             data-id-receta="{{ p.id_receta }}"
             data-nombre="{{ p.nombre_producto | e }}"
@@ -170,32 +200,29 @@
             data-rendimiento="{{ p.rendimiento }}"
             data-unidad="{{ p.unidad_rendimiento }}">
           <td>
-            <div class="prod-cell">
-              <div class="prod-emoji-box">🍞</div>
-              <span class="prod-nm">{{ p.nombre_producto }}</span>
+            <div class="cu-prod-cell">
+              <div class="cu-prod-icon">🍞</div>
+              <span class="cu-prod-nm">{{ p.nombre_producto }}</span>
             </div>
           </td>
-          <td style="color:var(--brown-lt); font-size:12px;">
-            {{ p.rendimiento }} {{ p.unidad_rendimiento }}
+          <td style="text-align:right;">
+            <span class="cu-money">${{ "%.2f"|format(p.costo_unitario|float) }}</span>
           </td>
-          <td>
-            <span class="money">${{ "%.2f"|format(p.costo_unitario|float) }}</span>
+          <td style="text-align:right;">
+            <span class="cu-money">${{ "%.2f"|format(p.precio_venta|float) }}</span>
           </td>
-          <td>
-            <span class="money">${{ "%.2f"|format(p.precio_venta|float) }}</span>
-          </td>
-          <td>
-            <span class="money {{ 'pos' if p.utilidad_unitaria|float >= 0 else 'neg' }}">
+          <td style="text-align:right;">
+            <span class="cu-money {{ 'cu-pos' if p.utilidad_unitaria|float >= 0 else 'cu-neg' }}">
               ${{ "%.2f"|format(p.utilidad_unitaria|float) }}
             </span>
           </td>
           <td>
-            <div class="margen-wrap">
-              <div class="mbar">
-                <div class="mbar-fill {{ cls_bar }}"
+            <div class="cu-margen-wrap">
+              <div class="cu-mbar">
+                <div class="cu-mbar-fill {{ cls_bar }}"
                      style="width:{{ [margen, 100]|min }}%"></div>
               </div>
-              <span class="mbar-pct {{ cls_txt }}">{{ "%.1f"|format(margen) }}%</span>
+              <span class="cu-pct {{ cls_bar }}">{{ "%.1f"|format(margen) }}%</span>
             </div>
           </td>
         </tr>
@@ -203,75 +230,93 @@
       </tbody>
     </table>
 
-    <div class="paginador">
-      <div class="pag-info">
-        Mostrando
-        <strong id="pag-desde">1</strong>–<strong id="pag-hasta">10</strong>
-        de <strong id="pag-total">{{ productos|length }}</strong>
-        producto{{ 's' if productos|length != 1 else '' }}
-      </div>
-      <div class="pag-controles" id="pag-controles"></div>
+    <div class="cu-paginador">
+      <span class="cu-pag-info" id="cu-pag-info"></span>
+      <div class="cu-pag-controles" id="cu-pag-controles"></div>
     </div>
 
     {% else %}
-    {# Estado vacío #}
-    <div class="empty-state">
-      <span>🔍</span>
+    <div class="cu-empty">
+      <div class="cu-empty-icon">🔍</div>
       <p>No se encontraron productos con los filtros aplicados.</p>
       {% if buscar or util_min is not none or util_max is not none %}
-      <br>
       <a href="{{ url_for('costoUtilidad.index_costo_utilidad') }}"
-         class="btn-limpiar" style="margin-top:8px; display:inline-flex;">
-        ✕ Limpiar filtros
-      </a>
+         class="cu-btn-limpiar" style="margin-top:12px;">✕ Limpiar filtros</a>
       {% endif %}
     </div>
     {% endif %}
   </div>
 
-  <div class="desglose-card" id="desglose-panel">
-    <div class="des-header">
-      <div class="des-title" id="des-titulo">Desglose de Costos</div>
+  {# ── PANEL DESGLOSE ── #}
+  <div class="cu-desglose-card">
+    <div class="cu-des-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div>
+          <div class="cu-des-title" id="cu-des-titulo">Desglose de Costos</div>
+          <div class="cu-des-subtitle" id="cu-des-subtitle">Selecciona un producto</div>
+        </div>
+        <div class="dm-info-wrap">
+          <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+          <div class="dm-info-pop">
+            <strong>Desglose por Ingrediente</strong>
+            <span class="dm-info-tag">Qué parte del costo aporta cada insumo</span>
+            Muestra cuánto cuesta cada ingrediente de la receta y qué porcentaje representa sobre el costo total del producto.
+            <ul>
+              <li><b>Costo por pieza:</b> total de ingredientes dividido entre el rendimiento de la receta (cuántas piezas produce un lote).</li>
+              <li><b>Costo por lote:</b> costo total de hacer un lote completo de la receta.</li>
+              <li><b>La barra de porcentaje</b> muestra visualmente qué ingredientes pesan más en el costo — útil para identificar dónde se puede optimizar.</li>
+              <li>Los costos de ingredientes se calculan con el precio promedio de compras del último año.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="des-placeholder" id="des-placeholder">
-      <span>👈</span>
-      <p>Selecciona un producto de la tabla para ver el desglose por insumo y simular precios.</p>
+    <div id="cu-des-placeholder" class="cu-des-placeholder">
+      <div class="cu-des-placeholder-icon">👈</div>
+      <p>Selecciona un producto de la tabla para ver el costo ingrediente por ingrediente.</p>
     </div>
 
-    <div class="des-spinner" id="des-spinner">
-      <div class="spinner"></div>
-      <span>Cargando…</span>
+    <div id="cu-des-spinner" class="cu-des-spinner" style="display:none;">
+      <div class="cu-spin-circle"></div> Cargando ingredientes…
     </div>
 
-    <div id="des-content" style="display:none">
-
-      <div class="des-kpis">
-        <div class="des-kpi">
-          <div class="des-kpi-lbl">Costo / pieza</div>
-          <div class="des-kpi-val" id="des-costo">—</div>
+    <div id="cu-des-content" style="display:none;">
+      <div class="cu-des-kpis">
+        <div class="cu-des-kpi">
+          <div class="cu-des-kpi-lbl">Costo / pieza</div>
+          <div class="cu-des-kpi-val" id="cu-des-costo">—</div>
         </div>
-        <div class="des-kpi">
-          <div class="des-kpi-lbl">Costo / lote</div>
-          <div class="des-kpi-val" id="des-lote">—</div>
+        <div class="cu-des-kpi">
+          <div class="cu-des-kpi-lbl">Costo / lote</div>
+          <div class="cu-des-kpi-val" id="cu-des-lote">—</div>
         </div>
-        <div class="des-kpi">
-          <div class="des-kpi-lbl">Utilidad / pieza</div>
-          <div class="des-kpi-val" id="des-util">—</div>
+        <div class="cu-des-kpi">
+          <div class="cu-des-kpi-lbl">Ganancia / pieza</div>
+          <div class="cu-des-kpi-val" id="cu-des-util">—</div>
         </div>
-        <div class="des-kpi">
-          <div class="des-kpi-lbl">Margen</div>
-          <div class="des-kpi-val" id="des-margen">—</div>
+        <div class="cu-des-kpi">
+          <div class="cu-des-kpi-lbl">Margen</div>
+          <div class="cu-des-kpi-val" id="cu-des-margen">—</div>
         </div>
       </div>
 
+      <table class="cu-ing-tbl">
+        <thead>
+          <tr>
+            <th>Ingrediente</th>
+            <th style="text-align:right;">Costo</th>
+            <th>% del total</th>
+          </tr>
+        </thead>
+        <tbody id="cu-ing-tbody"></tbody>
+      </table>
+    </div>
+  </div>
 
-    </div>{# /des-content #}
-  </div>{# /desglose-card #}
+</div>
 
-</div>{# /cu-layout #}
+<div style="height:36px;"></div>
 
-<div style="height:32px"></div>
-
-<script src="{{ url_for('costoUtilidad.static', filename='js/costoUtilidad.js') }}"></script>
+<script src="{{ url_for('static', filename='js/costoUtilidad.js') }}"></script>
 {% endblock %}

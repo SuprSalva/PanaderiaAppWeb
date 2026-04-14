@@ -58,52 +58,72 @@ DELIMITER $$
 
 CREATE PROCEDURE sp_kpi_costo_utilidad()
 BEGIN
+    -- Precio real: promedio de ventas últimos 30 días; fallback precio catálogo
+    DROP TEMPORARY TABLE IF EXISTS _tmp_kpi_precio_real;
+    CREATE TEMPORARY TABLE _tmp_kpi_precio_real AS
+    SELECT dv.id_producto, ROUND(AVG(dv.precio_unitario), 2) AS precio_real
+    FROM detalle_ventas dv
+    INNER JOIN ventas v ON v.id_venta = dv.id_venta
+    WHERE v.estado = 'completada'
+      AND DATE(v.fecha_venta) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    GROUP BY dv.id_producto;
+
+    -- MySQL no permite referenciar la misma tabla temporal dos veces en un SELECT.
+    -- Se crea una copia para usarla dentro de la subconsulta interna (mc).
+    DROP TEMPORARY TABLE IF EXISTS _tmp_kpi_precio_real2;
+    CREATE TEMPORARY TABLE _tmp_kpi_precio_real2 AS
+    SELECT * FROM _tmp_kpi_precio_real;
+
     SELECT
-        COUNT(DISTINCT p.id_producto)                           AS total_productos,
-        ROUND(AVG(mc.margen_pct), 2)                           AS margen_prom,
-        ROUND(AVG(mc.costo_unitario), 2)                       AS costo_prom,
-        ROUND(AVG(p.precio_venta), 2)                          AS precio_prom,
-        SUM(CASE WHEN mc.margen_pct < 20 THEN 1 ELSE 0 END)   AS productos_margen_bajo
+        COUNT(DISTINCT p.id_producto)                             AS total_productos,
+        ROUND(AVG(mc.margen_pct), 2)                             AS margen_prom,
+        ROUND(AVG(mc.costo_unitario), 2)                         AS costo_prom,
+        ROUND(AVG(COALESCE(pvr.precio_real, p.precio_venta)), 2) AS precio_prom,
+        SUM(CASE WHEN mc.margen_pct < 20 THEN 1 ELSE 0 END)     AS productos_margen_bajo
     FROM productos p
     INNER JOIN recetas r
            ON  r.id_producto = p.id_producto
            AND r.estatus     = 'activo'
+    LEFT JOIN _tmp_kpi_precio_real pvr ON pvr.id_producto = p.id_producto
     INNER JOIN (
-        -- Calcula margen y costo unitario por receta activa
         SELECT
             r2.id_receta,
             r2.id_producto,
             ROUND(
                 COALESCE(tcr.costo_total_lote, 0) / r2.rendimiento,
                 4
-            )                                                       AS costo_unitario,
+            )                                                         AS costo_unitario,
             CASE
-                WHEN p2.precio_venta > 0 THEN
+                WHEN COALESCE(pvr2.precio_real, p2.precio_venta) > 0 THEN
                     ROUND(
-                        (p2.precio_venta
+                        (COALESCE(pvr2.precio_real, p2.precio_venta)
                             - COALESCE(tcr.costo_total_lote, 0) / r2.rendimiento)
-                        / p2.precio_venta * 100,
+                        / COALESCE(pvr2.precio_real, p2.precio_venta) * 100,
                         2
                     )
                 ELSE 0
-            END                                                     AS margen_pct
+            END                                                       AS margen_pct
         FROM recetas r2
         INNER JOIN productos p2
                ON  p2.id_producto = r2.id_producto
                AND p2.estatus     = 'activo'
+        LEFT JOIN _tmp_kpi_precio_real2 pvr2 ON pvr2.id_producto = p2.id_producto
         LEFT JOIN (
             SELECT
                 dr.id_receta,
-                ROUND(SUM(dr.cantidad_requerida * COALESCE(ucm.costo_base, 0)), 4)
+                ROUND(SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)), 4)
                     AS costo_total_lote
             FROM detalle_recetas dr
-            LEFT JOIN v_ultimo_costo_materia ucm
-                   ON ucm.id_materia = dr.id_materia
+            LEFT JOIN v_costo_promedio_materia cpm
+                   ON cpm.id_materia = dr.id_materia
             GROUP BY dr.id_receta
         ) tcr ON tcr.id_receta = r2.id_receta
         WHERE r2.estatus = 'activo'
     ) mc ON mc.id_receta = r.id_receta
     WHERE p.estatus = 'activo';
+
+    DROP TEMPORARY TABLE IF EXISTS _tmp_kpi_precio_real;
+    DROP TEMPORARY TABLE IF EXISTS _tmp_kpi_precio_real2;
 END$$
 
 DELIMITER ;
@@ -122,19 +142,29 @@ CREATE PROCEDURE sp_reporte_costo_utilidad(
     IN p_util_max  DECIMAL(12,4)
 )
 BEGIN
-    -- Paso 1: Costo total de insumos por receta
+    -- Paso 1: Costo total de insumos por receta — promedio ponderado histórico
     DROP TEMPORARY TABLE IF EXISTS tmp_costo_receta;
 
     CREATE TEMPORARY TABLE tmp_costo_receta AS
     SELECT
         dr.id_receta,
         ROUND(
-            SUM(dr.cantidad_requerida * COALESCE(ucm.costo_base, 0)),
+            SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)),
             4
         ) AS costo_total_lote
     FROM detalle_recetas dr
-    LEFT JOIN v_ultimo_costo_materia ucm ON ucm.id_materia = dr.id_materia
+    LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
     GROUP BY dr.id_receta;
+
+    -- Precio real: promedio ventas últimos 30 días; fallback precio catálogo
+    DROP TEMPORARY TABLE IF EXISTS tmp_precio_real;
+    CREATE TEMPORARY TABLE tmp_precio_real AS
+    SELECT dv.id_producto, ROUND(AVG(dv.precio_unitario), 2) AS precio_real
+    FROM detalle_ventas dv
+    INNER JOIN ventas v ON v.id_venta = dv.id_venta
+    WHERE v.estado = 'completada'
+      AND DATE(v.fecha_venta) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    GROUP BY dv.id_producto;
 
     -- Paso 2: Resultado completo en tabla temporal (permite filtrar por utilidad)
     DROP TEMPORARY TABLE IF EXISTS tmp_resultado_cu;
@@ -143,7 +173,7 @@ BEGIN
     SELECT
         p.id_producto,
         p.nombre                                                    AS nombre_producto,
-        p.precio_venta,
+        COALESCE(pvr.precio_real, p.precio_venta)                  AS precio_venta,
         r.id_receta,
         r.nombre                                                    AS nombre_receta,
         r.rendimiento,
@@ -153,16 +183,16 @@ BEGIN
             4
         )                                                           AS costo_unitario,
         ROUND(
-            p.precio_venta
+            COALESCE(pvr.precio_real, p.precio_venta)
                 - (COALESCE(tcr.costo_total_lote, 0) / r.rendimiento),
             4
         )                                                           AS utilidad_unitaria,
         CASE
-            WHEN p.precio_venta > 0 THEN
+            WHEN COALESCE(pvr.precio_real, p.precio_venta) > 0 THEN
                 ROUND(
-                    (p.precio_venta
+                    (COALESCE(pvr.precio_real, p.precio_venta)
                         - (COALESCE(tcr.costo_total_lote, 0) / r.rendimiento))
-                    / p.precio_venta * 100,
+                    / COALESCE(pvr.precio_real, p.precio_venta) * 100,
                     2
                 )
             ELSE 0
@@ -172,6 +202,7 @@ BEGIN
            ON  r.id_producto = p.id_producto
            AND r.estatus     = 'activo'
     LEFT JOIN tmp_costo_receta tcr ON tcr.id_receta = r.id_receta
+    LEFT JOIN tmp_precio_real  pvr ON pvr.id_producto = p.id_producto
     WHERE p.estatus = 'activo'
       AND (
           p_buscar IS NULL
@@ -194,6 +225,7 @@ BEGIN
     -- Limpieza
     DROP TEMPORARY TABLE IF EXISTS tmp_resultado_cu;
     DROP TEMPORARY TABLE IF EXISTS tmp_costo_receta;
+    DROP TEMPORARY TABLE IF EXISTS tmp_precio_real;
 END$$
 
 DELIMITER ;
@@ -211,24 +243,24 @@ CREATE PROCEDURE sp_detalle_costo_producto(
 )
 BEGIN
     SELECT
-        mp.nombre                              AS materia_nombre,
+        mp.nombre                                   AS materia_nombre,
         mp.unidad_base,
         dr.cantidad_requerida,
-        COALESCE(ucm.costo_base, 0)           AS costo_base_unitario,
-        ROUND(dr.cantidad_requerida * COALESCE(ucm.costo_base, 0), 4) AS subtotal_costo,
+        COALESCE(cpm.costo_base_promedio, 0)       AS costo_base_unitario,
+        ROUND(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0), 4) AS subtotal_costo,
         -- Peso % sobre el total
         ROUND(
-            (dr.cantidad_requerida * COALESCE(ucm.costo_base, 0))
+            (dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0))
             / NULLIF(
-                (SELECT SUM(dr2.cantidad_requerida * COALESCE(ucm2.costo_base, 0))
+                (SELECT SUM(dr2.cantidad_requerida * COALESCE(cpm2.costo_base_promedio, 0))
                  FROM detalle_recetas dr2
-                 LEFT JOIN v_ultimo_costo_materia ucm2 ON ucm2.id_materia = dr2.id_materia
+                 LEFT JOIN v_costo_promedio_materia cpm2 ON cpm2.id_materia = dr2.id_materia
                  WHERE dr2.id_receta = p_id_receta),
             0) * 100, 2
-        )                                     AS pct_del_costo
+        )                                           AS pct_del_costo
     FROM detalle_recetas dr
     INNER JOIN materias_primas mp ON mp.id_materia = dr.id_materia
-    LEFT JOIN v_ultimo_costo_materia ucm ON ucm.id_materia = dr.id_materia
+    LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
     WHERE dr.id_receta = p_id_receta
     ORDER BY subtotal_costo DESC;
 END$$

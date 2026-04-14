@@ -1,426 +1,390 @@
 {% extends "layout.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Inicio › Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
 
 {% block container %}
-<style>
-  /* ── PAGE ANIMATIONS ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .anim { animation: fadeUp .4s ease both; }
-  .anim-1 { animation-delay: .05s; }
-  .anim-2 { animation-delay: .10s; }
-  .anim-3 { animation-delay: .15s; }
-  .anim-4 { animation-delay: .20s; }
-  .anim-5 { animation-delay: .25s; }
-  .anim-6 { animation-delay: .30s; }
-  .anim-7 { animation-delay: .35s; }
 
-  /* ── TOPBAR ── */
-  .db-topbar {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
-  }
-  .db-page-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px; font-weight: 700; color: var(--brown-dk);
-    display: flex; align-items: center; gap: 10px; line-height: 1.2;
-  }
-  .db-breadcrumb {
-    font-size: 12px; color: var(--brown-lt);
-    margin-top: 5px; display: flex; align-items: center; gap: 5px;
-  }
-  .db-breadcrumb span { color: var(--tan); }
-  .topbar-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-
-  /* ── STAT CARDS ── */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
-
-  .stat-card-v2 {
-    background: var(--white);
-    border: 1px solid var(--tan);
-    border-radius: 14px;
-    padding: 20px 22px;
-    box-shadow: 0 2px 10px var(--shadow);
-    transition: transform .2s, box-shadow .2s;
-    position: relative; overflow: hidden;
-  }
-  .stat-card-v2:hover { transform: translateY(-3px); box-shadow: 0 6px 20px var(--shadow); }
-
-  .stat-card-v2::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    border-radius: 14px 14px 0 0;
-  }
-  .stat-card-v2.accent-brown::before { background: var(--brown-dk); }
-  .stat-card-v2.accent-green::before { background: #5a7a52; }
-  .stat-card-v2.accent-rust::before  { background: var(--rust); }
-  .stat-card-v2.accent-gold::before  { background: #c9950a; }
-
-  .sc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .sc-icon {
-    width: 42px; height: 42px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center; font-size: 20px;
-  }
-  .sc-icon.brown { background: #f3e8d8; }
-  .sc-icon.green { background: #e2eede; }
-  .sc-icon.rust  { background: #fce8df; }
-  .sc-icon.gold  { background: #fef3d0; }
-
-  .sc-trend {
-    font-size: 11px; font-weight: 700; padding: 3px 8px;
-    border-radius: 20px;
-  }
-  .sc-trend.up   { background: #e2eede; color: #3a6034; }
-  .sc-trend.down { background: #fce8df; color: #9c3a1a; }
-  .sc-trend.warn { background: #fef3d0; color: #8a6200; }
-
-  .sc-val {
-    font-family: 'Playfair Display', serif;
-    font-size: 30px; font-weight: 700; color: var(--brown-dk); line-height: 1;
-  }
-  .sc-lbl { font-size: 12px; color: var(--brown-lt); margin-top: 5px; font-weight: 600; letter-spacing: .4px; }
-
-  /* ── MAIN GRID ── */
-  .db-grid-2-1 {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-  .db-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  @media (max-width: 1000px) {
-    .db-grid-2-1, .db-grid-2 { grid-template-columns: 1fr; }
-  }
-
-  /* ── PANEL CARD ── */
-  .panel {
-    background: var(--white);
-    border: 1px solid var(--tan);
-    border-radius: 14px;
-    box-shadow: 0 2px 10px var(--shadow);
-    overflow: hidden;
-  }
-  .panel-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 22px;
-    border-bottom: 1px solid var(--tan);
-    background: var(--warm-bg);
-  }
-  .panel-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 15px; font-weight: 700; color: var(--brown-dk);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .panel-body { padding: 20px 22px; }
-  .panel-body-flush { padding: 0; }
-
-  /* ── ALERT ITEMS ── */
-  .alert-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 14px; border-radius: 10px;
-    margin-bottom: 10px;
-    transition: transform .15s;
-  }
-  .alert-item:last-child { margin-bottom: 0; }
-  .alert-item:hover { transform: translateX(3px); }
-  .alert-item.critical {
-    background: #fef0ec;
-    border-left: 3px solid var(--rust);
-  }
-  .alert-item.warning {
-    background: #fefae8;
-    border-left: 3px solid #c9950a;
-  }
-  .alert-emoji { font-size: 24px; flex-shrink: 0; }
-  .alert-info { flex: 1; min-width: 0; }
-  .alert-name { font-size: 13px; font-weight: 700; color: var(--brown-dk); }
-  .alert-desc { font-size: 11.5px; margin-top: 2px; }
-  .alert-desc.critical { color: var(--rust); }
-  .alert-desc.warning  { color: #a07800; }
-
-  .alert-link {
-    display: block; text-align: center;
-    margin-top: 16px; padding-top: 14px;
-    border-top: 1px solid var(--tan);
-    font-size: 12.5px; font-weight: 700;
-    color: var(--brown); text-decoration: none;
-    transition: color .2s;
-  }
-  .alert-link:hover { color: var(--rust); }
-
-  .prod-table { width: 100%; border-collapse: collapse; }
-  .prod-table thead { background: var(--warm-bg); }
-  .prod-table thead th {
-    padding: 11px 18px;
-    font-size: 10.5px; font-weight: 700;
-    letter-spacing: 1.2px; text-transform: uppercase;
-    color: var(--brown); text-align: left;
-  }
-  .prod-table tbody tr {
-    border-top: 1px solid var(--tan);
-    transition: background .15s;
-  }
-  .prod-table tbody tr:hover { background: #fdf3e6; }
-  .prod-table tbody td { padding: 12px 18px; font-size: 13px; color: var(--text); vertical-align: middle; }
-  .prod-name { font-weight: 700; color: var(--brown-dk); }
-  .prod-qty  { color: var(--brown); font-weight: 600; }
-</style>
-
-<!-- TOPBAR -->
+{# ── TOPBAR ─────────────────────────────────────────────────── #}
 <div class="db-topbar anim">
   <div>
     <div class="db-page-title">
-      <span>📊</span> Dashboard 
+      <animated-icons
+                src="/static/icons/report-v2-1869947d.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="50" width="50">
+      </animated-icons>
+    Dashboard</div>
+    <div class="db-breadcrumb">
+      Inicio <span>›</span> Panel de indicadores &nbsp;·&nbsp;
+      <span style="font-size:11px;" id="ult-actualizacion">—</span>
     </div>
   </div>
-  <div class="topbar-right">
-    <button class="btn btn-outline btn-sm">📅 {{ now }}</button>
-    <button class="btn btn-primary btn-sm">📥 Descargar Reporte</button>
-  </div>
-</div>
-
-<!-- STAT CARDS -->
-<div class="stats-grid">
-  <div class="stat-card-v2 accent-brown anim anim-1">
-    <div class="sc-top">
-      <div class="sc-icon brown">🌾</div>
-      <span class="sc-trend up">↑ 2 nuevos</span>
-    </div>
-    <div class="sc-val">24</div>
-    <div class="sc-lbl">Materias Primas</div>
-  </div>
-
-  <div class="stat-card-v2 accent-green anim anim-2">
-    <div class="sc-top">
-      <div class="sc-icon green">🥐</div>
-      <span class="sc-trend up">↑ 5 hoy</span>
-    </div>
-    <div class="sc-val">12</div>
-    <div class="sc-lbl">Productos Terminados</div>
-  </div>
-
-  <div class="stat-card-v2 accent-rust anim anim-3">
-    <div class="sc-top">
-      <div class="sc-icon rust">⚠️</div>
-      <span class="sc-trend down">↓ Crítico</span>
-    </div>
-    <div class="sc-val">3</div>
-    <div class="sc-lbl">Insumos Críticos</div>
-  </div>
-
-  <div class="stat-card-v2 accent-gold anim anim-4">
-    <div class="sc-top">
-      <div class="sc-icon gold">💰</div>
-      <span class="sc-trend up">↑ 12%</span>
-    </div>
-    <div class="sc-val">$4,250</div>
-    <div class="sc-lbl">Ventas del Día</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <button id="btn-refresh" class="btn btn-outline" style="font-size:12px;display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
+      <span id="ico-refresh">
+        <animated-icons
+          src="/static/icons/sync-e9dea012.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="25"
+          width="25"
+        ></animated-icons>
+      </span> Actualizar
+    </button>
   </div>
 </div>
 
-<div class="db-grid-2-1">
+{# ══════════════════════════════════════════════════════════════
+   BLOQUE A — VENTAS TOTALES  (admin + empleado)
+   Filtro propio: Hoy / Semanal / Mensual / Anual
+   KPIs: total período actual + comparación vs período anterior
+   Gráfica: serie diaria del período seleccionado
+══════════════════════════════════════════════════════════════ #}
+{% if current_user.rol.clave_rol in ('admin', 'empleado') %}
+<div class="dm-sec-label anim anim-1"> 
+  <animated-icons
+    src="/static/icons/marketplace-64371c87.json"
+    trigger="loop"
+    attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+    height="30"
+    width="30"
+  ></animated-icons>
+  Ventas Totales
+</div>
 
-  <div class="panel anim anim-5">
-    <div class="panel-header">
-      <div class="panel-title">📦 Disponibilidad de Insumos</div>
-      <span class="badge badge-active">Actualizado hace 5 min</span>
-    </div>
-    <div class="panel-body">
-      <div id="chart-inventario"></div>
-    </div>
-  </div>
+{# Filtro de periodo — compartido con salidas #}
+<div class="dm-filtro-periodo anim anim-1" id="filtro-periodo">
+  <button class="dm-p-btn" data-periodo="hoy">Hoy</button>
+  <button class="dm-p-btn active" data-periodo="semanal">Semanal</button>
+  <button class="dm-p-btn" data-periodo="mensual">Mensual</button>
+  <button class="dm-p-btn" data-periodo="anual">Anual</button>
+</div>
 
-  <div class="panel anim anim-6">
-    <div class="panel-header">
-      <div class="panel-title">🚨 Alertas de Stock</div>
-    </div>
-    <div class="panel-body">
-      <div class="alert-item critical">
-        <div class="alert-emoji">🥛</div>
-        <div class="alert-info">
-          <div class="alert-name">Leche Entera</div>
-          <div class="alert-desc critical">Stock crítico: 200ml restantes</div>
-        </div>
-        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ordenar">🛒</button>
+<div class="stats-grid anim anim-1" style="grid-template-columns: repeat({% if current_user.rol.clave_rol == 'admin' %}3{% else %}2{% endif %},1fr);">
+
+  {# Card: Ventas período actual #}
+  <div class="stat-card-v2 accent-brown">
+    <div class="sc-top">
+      <div class="sc-icon" style="background:#f5e6d3;">
+        <animated-icons
+          src="/static/icons/conversion-rate-fd11b837.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="40" width="40"
+        ></animated-icons>
       </div>
-      <div class="alert-item warning">
-        <div class="alert-emoji">🍯</div>
-        <div class="alert-info">
-          <div class="alert-name">Azúcar Refinada</div>
-          <div class="alert-desc warning">Stock bajo: 5.6 kg restantes</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="dm-badge neutral" id="badge-ventas">—</span>
+        <div class="dm-info-wrap">
+          <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+          <div class="dm-info-pop">
+            <strong>Ingresos del Período</strong>
+            <span class="dm-info-tag">Ventas en mostrador + Pedidos entregados</span>
+            Es el dinero total que entró a la panadería durante el período que tienes seleccionado.
+            <ul>
+              <li>Incluye tanto las ventas hechas en mostrador como los pedidos que ya fueron entregados al cliente.</li>
+              <li>La flecha indica si se vendió más o menos que en el período anterior del mismo tamaño.</li>
+              <li>Puedes cambiar el período con los botones: Hoy, Esta semana, Este mes o Este año.</li>
+            </ul>
+          </div>
         </div>
-        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ordenar">🛒</button>
       </div>
-      <div class="alert-item warning">
-        <div class="alert-emoji">🧈</div>
-        <div class="alert-info">
-          <div class="alert-name">Mantequilla</div>
-          <div class="alert-desc warning">Stock bajo: 1.2 kg restantes</div>
-        </div>
-        <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Ordenar">🛒</button>
-      </div>
-      <a href="#" class="alert-link">Ver todo el inventario →</a>
     </div>
+    <div class="sc-val" id="kpi-ventas-total">—</div>
+    <div class="sc-lbl">Ingresos del período</div>
+    <div class="sc-sub" id="kpi-ventas-tickets"></div>
   </div>
+
+  {# Card: Ventas período anterior (comparación) #}
+  <div class="stat-card-v2 accent-gold">
+    <div class="sc-top">
+      <div class="sc-icon" style="background:#fef3d0;">
+        <animated-icons
+          src="/static/icons/income-ca37a84b.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="40" width="40"
+        ></animated-icons>
+      </div>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Período Anterior</strong>
+          <span class="dm-info-tag">Para comparar si estás vendiendo más o menos</span>
+          Muestra cuánto se vendió en el período inmediatamente anterior, para que puedas ver si hay mejoría.
+          <ul>
+            <li><b>Hoy seleccionado:</b> muestra lo de ayer.</li>
+            <li><b>Esta semana:</b> muestra la semana pasada.</li>
+            <li><b>Este mes:</b> muestra el mes pasado.</li>
+            <li><b>Este año:</b> muestra el año pasado.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="sc-val" id="kpi-ventas-anterior">—</div>
+    <div class="sc-lbl">Período anterior</div>
+    <div class="sc-sub">Para comparación directa</div>
+  </div>
+
+  {% if current_user.rol.clave_rol == 'admin' %}
+  {# Card: Salidas de efectivo (solo admin, mismo período) #}
+  <div class="stat-card-v2 accent-rust">
+    <div class="sc-top">
+      <div class="sc-icon" style="background:#fce8df;">
+        <animated-icons
+                src="/static/icons/withdraw-bbc79435.json"
+                trigger="loop"
+                attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
+                height="40" width="40">
+        </animated-icons>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="dm-badge neutral" id="badge-salidas">—</span>
+        <div class="dm-info-wrap">
+          <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+          <div class="dm-info-pop">
+            <strong>Salidas de Efectivo</strong>
+            <span class="dm-info-tag">Solo gastos ya autorizados</span>
+            Es el total de dinero que salió de caja para cubrir gastos de la panadería durante el período.
+            <ul>
+              <li>Solo se cuentan los gastos que ya fueron autorizados. Los pendientes de revisión no aparecen.</li>
+              <li>Puede incluir: pago de servicios, mantenimiento, compras urgentes u otros gastos operativos.</li>
+              <li>La flecha indica si se gastó más o menos que en el período anterior.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sc-val" id="kpi-salidas-total">—</div>
+    <div class="sc-lbl">Salidas de efectivo aprobadas</div>
+    <div class="sc-sub" id="kpi-salidas-movs"></div>
+  </div>
+  {% endif %}
 
 </div>
 
-<div class="db-grid-2">
-
-  <div class="panel anim anim-6">
-    <div class="panel-header">
-      <div class="panel-title">🥧 Distribución de Ventas</div>
+{# Gráfica de ingresos diarios #}
+<div class="panel-card anim anim-2" style="margin-bottom:24px;">
+  <div class="panel-header">
+    <div class="panel-title">
+      <animated-icons
+        src="/static/icons/prices-continue-to-rise-2df62946.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30"
+        width="30"
+      ></animated-icons>
+      Ingresos por Día
     </div>
-    <div class="panel-body">
-      <div id="chart-ventas"></div>
-    </div>
-  </div>
-
-  <div class="panel anim anim-7">
-    <div class="panel-header">
-      <div class="panel-title">⚙️ Últimas Producciones</div>
-      <a href="#" class="btn btn-outline btn-sm">Ver todo</a>
-    </div>
-    <div class="panel-body-flush">
-      <table class="prod-table">
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Estatus</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="prod-name">Pan de Chocolate</span></td>
-            <td><span class="prod-qty">50 pza</span></td>
-            <td><span class="badge badge-active">Terminado</span></td>
-          </tr>
-          <tr>
-            <td><span class="prod-name">Bolillo Relleno</span></td>
-            <td><span class="prod-qty">120 pza</span></td>
-            <td><span class="badge badge-warning">En horno</span></td>
-          </tr>
-          <tr>
-            <td><span class="prod-name">Concha de Vainilla</span></td>
-            <td><span class="prod-qty">80 pza</span></td>
-            <td><span class="badge badge-active">Terminado</span></td>
-          </tr>
-          <tr>
-            <td><span class="prod-name">Cuernito de Mantequilla</span></td>
-            <td><span class="prod-qty">35 pza</span></td>
-            <td><span class="badge badge-inactive">Pendiente</span></td>
-          </tr>
-          <tr>
-            <td><span class="prod-name">Dona Glaseada</span></td>
-            <td><span class="prod-qty">60 pza</span></td>
-            <td><span class="badge badge-warning">En horno</span></td>
-          </tr>
-        </tbody>
-      </table>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;color:var(--brown-lt);" id="label-periodo-grafica">Esta semana</span>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Ingresos por Día</strong>
+          <span class="dm-info-tag">Cuánto entró cada día</span>
+          Cada barra de la gráfica muestra el dinero que ingresó a la panadería en ese día.
+          <ul>
+            <li>Se suman las ventas de mostrador y los pedidos entregados en cada día.</li>
+            <li>Cambia el rango con el filtro de período para ver hoy, la semana, el mes o el año.</li>
+            <li>Es útil para identificar los días con más y menos movimiento.</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
+  <div class="panel-body">
+    <div style="position:relative;height:200px;">
+      <canvas id="chart-ventas"></canvas>
+    </div>
+  </div>
+</div>
+{% endif %}
 
+{# ══════════════════════════════════════════════════════════════
+   BLOQUE B — UTILIDAD BRUTA POR PRODUCTO  (solo admin)
+   Costo = promedio últimos 30 días de compras por insumo
+   Tabla paginada (5 por página): Producto | Precio | Costo | Utilidad | Margen %
+══════════════════════════════════════════════════════════════ #}
+{% if current_user.rol.clave_rol == 'admin' %}
+<div class="dm-sec-label anim anim-3">
+  <animated-icons
+    src="/static/icons/tax-17427ea4.json"
+    trigger="loop"
+    attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+    height="30"
+    width="30"
+  ></animated-icons> 
+  Utilidad Bruta por Producto
+</div>
+<div class="panel-card anim anim-3">
+  <div class="panel-header">
+    <div class="panel-title">Rentabilidad por Producto</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;color:var(--brown-lt);">Precio promedio últimos 30 días · Costo promedio anual</span>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Rentabilidad por Producto</strong>
+          <span class="dm-info-tag">Qué tan rentable es cada producto</span>
+          Aparecen todos los productos activos que tienen receta registrada, hayan tenido ventas recientes o no.
+          <ul>
+            <li><b>Costo:</b> calculado con el precio promedio al que se compraron los ingredientes durante el último año. Si algún ingrediente no tiene compras recientes, se usa el último precio que se registró.</li>
+            <li><b>Precio de venta:</b> promedio de los precios reales de los últimos 30 días. Si el producto no tuvo ventas recientes, se usa el precio actual del catálogo.</li>
+            <li><b>Ganancia por pieza:</b> lo que queda después de restar lo que costó producir el producto.</li>
+            <li><b>Margen:</b> qué porcentaje del precio de venta es ganancia real.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-body" style="padding:0;">
+    <table class="dm-tbl">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th style="text-align:right;">Precio de venta</th>
+          <th style="text-align:right;">Costo unitario</th>
+          <th style="text-align:right;">Utilidad / pza</th>
+          <th style="text-align:right;">Margen</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-utilidad">
+        <tr><td colspan="5" class="dm-empty">Cargando…</td></tr>
+      </tbody>
+    </table>
+    {# Paginación de la tabla de utilidad #}
+    <div class="dm-paginador" id="pag-utilidad" style="display:none;">
+      <button class="btn btn-outline dm-pag-btn" id="pag-util-ant" style="font-size:12px;">‹ Anterior</button>
+      <span id="pag-util-info" style="font-size:12px;color:var(--brown-lt);"></span>
+      <button class="btn btn-outline dm-pag-btn" id="pag-util-sig" style="font-size:12px;">Siguiente ›</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ══════════════════════════════════════════════════════════════
+   BLOQUE C — TOP 5 PRODUCTOS MÁS VENDIDOS  (todos los roles)
+   Fijo: últimos 7 días · ventas por pieza
+   Tabla: Nombre · Piezas vendidas · Ingresos
+══════════════════════════════════════════════════════════════ #}
+<div class="dm-sec-label anim anim-4">
+  <animated-icons
+    src="/static/icons/advantage-240003ce.json"
+    trigger="loop"
+    attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+    height="30"
+    width="30"
+  ></animated-icons>
+  Top 5 Productos Más Vendidos
+</div>
+<div class="panel-card anim anim-4">
+  <div class="panel-header">
+    <div class="panel-title">Productos más vendidos</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;color:var(--brown-lt);">Últimos 7 días · por piezas despachadas</span>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Top 5 Productos Más Vendidos</strong>
+          <span class="dm-info-tag">Últimos 7 días</span>
+          Los cinco productos que más piezas se vendieron en los últimos 7 días, de mayor a menor.
+          <ul>
+            <li>Se cuentan las ventas en mostrador y los pedidos entregados al cliente.</li>
+            <li>Si un pedido se convirtió en venta, se registra una sola vez para no duplicar.</li>
+            <li>Los ingresos corresponden al dinero real que generó cada producto en esas ventas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-body" style="padding:0;">
+    <table class="dm-tbl">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th style="text-align:right;">Piezas vendidas</th>
+          <th style="text-align:right;">Ingresos generados</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-top">
+        <tr><td colspan="3" class="dm-empty">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script>
-  const brown   = '#6b4423';
-  const brownMd = '#9c6f3e';
-  const brownLt = '#c8a97e';
-  const tan     = '#e8d5b7';
-  const cream   = '#fdf6ec';
-  const rust    = '#c0522a';
-  const green   = '#5a7a52';
-  const gold    = '#c9950a';
+{# ══════════════════════════════════════════════════════════════
+   BLOQUE D — INSUMOS BAJO STOCK MÍNIMO  (todos los roles)
+   Tabla: Materia Prima · Categoría · Stock actual · Stock mínimo · Estado
+══════════════════════════════════════════════════════════════ #}
+<div class="dm-sec-label anim anim-5">
+  <animated-icons
+    src="/static/icons/alert-240003ce.json"
+    trigger="loop"
+    attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+    height="30"
+    width="30"
+  ></animated-icons> 
+  Insumos Bajo Stock Mínimo
+</div>
+<div class="panel-card anim anim-5">
+  <div class="panel-header">
+    <div class="panel-title">Materias primas que requieren reabastecimiento</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Insumos Bajo Stock Mínimo</strong>
+          <span class="dm-info-tag">Insumos que necesitan reabastecerse</span>
+          Solo aparecen los ingredientes cuya existencia actual está por debajo del mínimo requerido.
+          <ul>
+            <li><b>Crítico:</b> no quedan existencias del insumo.</li>
+            <li><b>Bajo:</b> queda menos de la mitad del mínimo requerido.</li>
+            <li><b>Advertencia:</b> queda entre la mitad y el mínimo requerido — conviene reordenar pronto.</li>
+            <li>La barra de color muestra visualmente qué tan cerca está del agotamiento.</li>
+            <li>Las existencias se actualizan automáticamente cada vez que se registra producción.</li>
+          </ul>
+        </div>
+      </div>
+      <a href="/materias-primas" style="font-size:12px;color:var(--brown-dk);text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
+        Ver inventario completo
+        <animated-icons
+          src="/static/icons/arrow-70afdd31.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30"
+          width="30"
+        ></animated-icons>
+      </a>
+    </div>
+  </div>
+  <div class="panel-body" style="padding:0;">
+    <table class="dm-tbl">
+      <thead>
+        <tr>
+          <th>Materia Prima</th>
+          <th>Categoría</th>
+          <th style="text-align:right;">Stock actual</th>
+          <th style="text-align:right;">Stock mínimo</th>
+          <th style="text-align:center;">Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-stock">
+        <tr><td colspan="5" class="dm-empty">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-  // ── Bar chart: inventario ──
-  new ApexCharts(document.querySelector("#chart-inventario"), {
-    chart: {
-      type: 'bar', height: 280,
-      toolbar: { show: false },
-      fontFamily: 'Lato, sans-serif',
-      background: 'transparent',
-      animations: { enabled: true, easing: 'easeinout', speed: 600 }
-    },
-    series: [{ name: 'Existencia (kg/L)', data: [40, 28, 65, 4, 55, 18, 32] }],
-    xaxis: {
-      categories: ['Harina', 'Azúcar', 'Mantequilla', 'Leche', 'Levadura', 'Huevo', 'Sal'],
-      labels: { style: { colors: brownMd, fontSize: '12px' } },
-      axisBorder: { color: tan }, axisTicks: { color: tan }
-    },
-    yaxis: { labels: { style: { colors: brownLt, fontSize: '11px' } } },
-    colors: [brown],
-    plotOptions: {
-      bar: {
-        borderRadius: 6, columnWidth: '52%',
-        colors: {
-          ranges: [
-            { from: 0,  to: 5,  color: rust },
-            { from: 6,  to: 20, color: gold },
-            { from: 21, to: 999, color: brown }
-          ]
-        }
-      }
-    },
-    dataLabels: { enabled: false },
-    grid: { borderColor: tan, strokeDashArray: 4 },
-    tooltip: {
-      theme: 'light',
-      style: { fontFamily: 'Lato, sans-serif', fontSize: '12px' }
-    }
-  }).render();
+<div style="height:32px;"></div>
 
-  // ── Donut chart: ventas ──
-  new ApexCharts(document.querySelector("#chart-ventas"), {
-    chart: {
-      type: 'donut', height: 280,
-      fontFamily: 'Lato, sans-serif',
-      background: 'transparent',
-      animations: { enabled: true, easing: 'easeinout', speed: 700 }
-    },
-    series: [44, 32, 24],
-    labels: ['Pan Dulce', 'Pan Salado', 'Repostería'],
-    colors: [brown, brownMd, brownLt],
-    dataLabels: {
-      style: { fontFamily: 'Lato, sans-serif', fontSize: '12px', fontWeight: '700' }
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: '62%',
-          labels: {
-            show: true,
-            total: {
-              show: true, label: 'Total ventas',
-              color: brownMd,
-              formatter: () => '$4,250'
-            }
-          }
-        }
-      }
-    },
-    legend: {
-      position: 'bottom',
-      fontFamily: 'Lato, sans-serif', fontSize: '12px',
-      labels: { colors: brown }
-    },
-    stroke: { width: 2, colors: [cream] },
-    tooltip: {
-      theme: 'light',
-      style: { fontFamily: 'Lato, sans-serif', fontSize: '12px' }
-    }
-  }).render();
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
 {% endblock %}

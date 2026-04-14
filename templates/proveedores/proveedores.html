@@ -7,24 +7,45 @@
 
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title">🏭 Proveedores</div>
+    <div class="db-page-title"><animated-icons src="/static/icons/retail-7b7f631c.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="50" width="50"></animated-icons> Proveedores</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Catálogos <span>›</span> Proveedores</div>
   </div>
-  <a href="?modal=nuevo" class="btn btn-primary">＋ Nuevo Proveedor</a>
+  <a href="?modal=nuevo" class="btn btn-primary">
+    <animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30" width="30"></animated-icons> Nuevo Proveedor
+  </a>
 </div>
 
 <div class="prov-stats anim anim-1">
   <button class="prov-stat" onclick="aplicarFiltroEstadistica('todos')">
-    <div class="prov-stat-icon brown">🏭</div>
-    <div><div class="prov-stat-val">{{ total_proveedores }}</div><div class="prov-stat-lbl">Proveedores Registrados</div></div>
+    <div class="prov-stat-icon brown"><animated-icons src="/static/icons/retail-7b7f631c.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="prov-stat-val">{{ total_proveedores }}</div>
+      <div class="prov-stat-lbl">Proveedores Registrados</div>
+    </div>
   </button>
   <button class="prov-stat" onclick="aplicarFiltroEstadistica('activo')">
-    <div class="prov-stat-icon green">✅</div>
-    <div><div class="prov-stat-val">{{ total_activos }}</div><div class="prov-stat-lbl">Activos</div></div>
+    <div class="prov-stat-icon green"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="prov-stat-val">{{ total_activos }}</div>
+      <div class="prov-stat-lbl">Activos</div>
+    </div>
   </button>
   <button class="prov-stat" onclick="aplicarFiltroEstadistica('inactivo')">
-    <div class="prov-stat-icon rust">🚫</div>
-    <div><div class="prov-stat-val">{{ total_inactivos }}</div><div class="prov-stat-lbl">Inactivos</div></div>
+    <div class="prov-stat-icon rust"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="prov-stat-val">{{ total_inactivos }}</div>
+      <div class="prov-stat-lbl">Inactivos</div>
+    </div>
   </button>
 </div>
 
@@ -32,13 +53,15 @@
   <input type="hidden" name="pagina" value="1">
   <div class="toolbar anim anim-2">
     <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" name="buscar" placeholder="Buscar por nombre, RFC o contacto…"
-             value="{{ buscar }}" autocomplete="off" oninput="debounceSubmit()">
+      <span class="search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons></span>
+      <input type="text" name="buscar" placeholder="Buscar por nombre, RFC o contacto…" value="{{ buscar }}"
+        autocomplete="off" oninput="debounceSubmit()">
     </div>
     <select name="estatus" class="filter-select" onchange="this.form.submit()">
-      <option value="todos"    {% if estatus_sel=='todos'    %}selected{% endif %}>Todos los estatus</option>
-      <option value="activo"   {% if estatus_sel=='activo'   %}selected{% endif %}>Activos</option>
+      <option value="todos" {% if estatus_sel=='todos' %}selected{% endif %}>Todos los estatus</option>
+      <option value="activo" {% if estatus_sel=='activo' %}selected{% endif %}>Activos</option>
       <option value="inactivo" {% if estatus_sel=='inactivo' %}selected{% endif %}>Inactivos</option>
     </select>
   </div>
@@ -62,7 +85,7 @@
       {% set words = p.nombre.split() %}
       {% set initials = (words[0][0] + (words[1][0] if words|length > 1 else ''))|upper %}
       {% set color = palette[loop.index0 % palette|length] %}
-      <tr {% if p.estatus=='inactivo' %}style="opacity:.65"{% endif %}>
+      <tr {% if p.estatus=='inactivo' %}style="opacity:.65" {% endif %}>
         <td style="color:var(--brown-lt);font-weight:700;font-size:12px;">{{ (pagina - 1) * 10 + loop.index }}</td>
         <td>
           <div class="prov-cell">
@@ -76,8 +99,20 @@
         <td style="color:var(--brown-dk);">{{ p.contacto or '—' }}</td>
         <td>
           <div class="contact-cell">
-            {% if p.telefono %}<div class="contact-line"><span>📞</span> {{ p.telefono }}</div>{% endif %}
-            {% if p.email    %}<div class="contact-line"><span>✉️</span> {{ p.email }}</div>{% endif %}
+            {% if p.telefono %}<div class="contact-line"><span>
+                <animated-icons
+                  src="/static/icons/calling-v3-fd11b837.json"
+                  trigger="loop"
+                  attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#000000","background":"#FFFFFF"}}'
+                  height="15" width="15"></animated-icons>
+              </span> {{ p.telefono }}</div>{% endif %}
+            {% if p.email %}<div class="contact-line"><span>
+                <animated-icons
+                  src="/static/icons/mail-v3-fd11b837.json"
+                  trigger="loop"
+                  attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#000000","background":"#FFFFFF"}}'
+                  height="15" width="15"></animated-icons>
+              </span> {{ p.email }}</div>{% endif %}
             {% if not p.telefono and not p.email %}<span style="color:var(--brown-lt)">—</span>{% endif %}
           </div>
         </td>
@@ -89,13 +124,31 @@
         <td>
           <div class="actions-cell">
             <a href="?modal=detalle&id={{ p.id_proveedor }}&pagina={{ pagina }}&buscar={{ buscar }}&estatus={{ estatus_sel }}"
-               class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle">📋</a>
+              class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" title="Ver detalle">
+              <animated-icons src="/static/icons/information-b3a68157.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+            </a>
             <a href="?modal=editar&id={{ p.id_proveedor }}&pagina={{ pagina }}&buscar={{ buscar }}&estatus={{ estatus_sel }}"
-               class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar">✏️</a>
+              class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" title="Editar">
+              <animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+            </a>
             <button class="btn btn-outline btn-sm btn-icon"
-                    data-tooltip="{{ 'Desactivar' if p.estatus=='activo' else 'Activar' }}"
-                    onclick="abrirToggleProv({{ p.id_proveedor }}, '{{ p.nombre|replace("'","\\'")|replace('"','\\"') }}', '{{ p.estatus }}')">
-              {{ '🚫' if p.estatus=='activo' else '✅' }}
+              data-tooltip="{{ 'Desactivar' if p.estatus=='activo' else 'Activar' }}"
+              title="{{ 'Desactivar' if p.estatus=='activo' else 'Activar' }}"
+              onclick="abrirToggleProv({{ p.id_proveedor }}, '{{ p.nombre|replace("'","\\'")|replace('"',' \\"')
+              }}', '{{ p.estatus }}' )">
+              {% if p.estatus == 'activo' %}
+              <animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+              {% else %}
+              <animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+              {% endif %}
             </button>
           </div>
         </td>
@@ -122,32 +175,35 @@
     </div>
     <div class="pag-controles">
       {% if paginacion.has_prev %}
-        <a href="{{ url_for('proveedores.index_proveedores', pagina=paginacion.prev_num, buscar=buscar, estatus=estatus_sel) }}" class="pag-btn">‹</a>
+      <a href="{{ url_for('proveedores.index_proveedores', pagina=paginacion.prev_num, buscar=buscar, estatus=estatus_sel) }}"
+        class="pag-btn">‹</a>
       {% else %}<span class="pag-btn disabled">‹</span>{% endif %}
 
       {% set p_actual = paginacion.page %}
-      {% set p_total  = paginacion.pages %}
+      {% set p_total = paginacion.pages %}
       {% for num in range(1, p_total + 1) %}
-        {% if num == 1 or num == p_total or (num >= p_actual - 2 and num <= p_actual + 2) %}
-          {% if not loop.first and num > 2 and not (num - 1 >= p_actual - 2 and num - 1 <= p_actual + 2) and num - 1 != 1 %}
-            <span class="pag-puntos">…</span>
+      {% if num == 1 or num == p_total or (num >= p_actual - 2 and num <= p_actual + 2) %} {% if not loop.first and num>
+        2 and not (num - 1 >= p_actual - 2 and num - 1 <= p_actual + 2) and num - 1 !=1 %} <span class="pag-puntos">
+          …</span>
           {% endif %}
           <a href="{{ url_for('proveedores.index_proveedores', pagina=num, buscar=buscar, estatus=estatus_sel) }}"
-             class="pag-btn {% if num == p_actual %}activo{% endif %}">{{ num }}</a>
-          {% if num < p_total - 1 and not (num + 1 >= p_actual - 2 and num + 1 <= p_actual + 2) and num + 1 != p_total %}
-            <span class="pag-puntos">…</span>
-          {% endif %}
-        {% endif %}
-      {% endfor %}
+            class="pag-btn {% if num == p_actual %}activo{% endif %}">{{ num }}</a>
+          {% if num < p_total - 1 and not (num + 1>= p_actual - 2 and num + 1 <= p_actual + 2) and num + 1 !=p_total %}
+              <span class="pag-puntos">…</span>
+              {% endif %}
+              {% endif %}
+              {% endfor %}
 
-      {% if paginacion.has_next %}
-        <a href="{{ url_for('proveedores.index_proveedores', pagina=paginacion.next_num, buscar=buscar, estatus=estatus_sel) }}" class="pag-btn">›</a>
-      {% else %}<span class="pag-btn disabled">›</span>{% endif %}
+              {% if paginacion.has_next %}
+              <a href="{{ url_for('proveedores.index_proveedores', pagina=paginacion.next_num, buscar=buscar, estatus=estatus_sel) }}"
+                class="pag-btn">›</a>
+              {% else %}<span class="pag-btn disabled">›</span>{% endif %}
     </div>
   </div>
   {% elif paginacion.total > 0 %}
   <div class="paginador">
-    <div class="pag-info"><strong>{{ paginacion.total }}</strong> proveedor{{ 'es' if paginacion.total != 1 else '' }} en total</div>
+    <div class="pag-info"><strong>{{ paginacion.total }}</strong> proveedor{{ 'es' if paginacion.total != 1 else '' }}
+      en total</div>
   </div>
   {% endif %}
 </div>
@@ -157,9 +213,11 @@
 <div class="modal-overlay {% if request.args.get('modal')=='nuevo' %}open{% endif %}">
   <div class="modal">
     <div class="modal-header">
-      <h2>➕ Nuevo Proveedor</h2>
+      <h2><animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Nuevo Proveedor</h2>
       <a href="{{ url_for('proveedores.index_proveedores', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
-         class="modal-close-link">✕</a>
+        class="modal-close-link">✕</a>
     </div>
     <form method="POST" action="{{ url_for('proveedores.proveedores_nuevo') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -169,49 +227,46 @@
 
           <div class="form-group" style="grid-column:1/-1">
             <label class="form-label">Nombre / Razón Social *</label>
-            <input type="text" name="nombre" class="form-input"
-                   placeholder="Ej. Harinera del Molino S.A." required>
+            <input type="text" name="nombre" class="form-input" placeholder="Ej. Harinera del Molino S.A." required>
           </div>
 
           <div class="form-group">
             <label class="form-label">RFC</label>
-            <input type="text" name="rfc" class="form-input"
-                   placeholder="Ej. HMO820315AA1" maxlength="13"
-                   oninput="this.value=this.value.toUpperCase()">
+            <input type="text" name="rfc" class="form-input" placeholder="Ej. HMO820315AA1" maxlength="13"
+              oninput="this.value=this.value.toUpperCase()">
             <span class="form-hint">Máx. 13 caracteres (opcional, único)</span>
           </div>
 
           <div class="form-group">
             <label class="form-label">Persona de Contacto</label>
-            <input type="text" name="contacto" class="form-input"
-                   placeholder="Ej. Roberto Sánchez">
+            <input type="text" name="contacto" class="form-input" placeholder="Ej. Roberto Sánchez">
           </div>
 
           <div class="section-divider">Información de Contacto</div>
 
           <div class="form-group">
             <label class="form-label">Teléfono</label>
-            <input type="text" name="telefono" class="form-input"
-                   placeholder="Ej. 477-123-4567">
+            <input type="text" name="telefono" class="form-input" placeholder="Ej. 477-123-4567">
           </div>
 
           <div class="form-group">
             <label class="form-label">Correo Electrónico</label>
-            <input type="email" name="email" class="form-input"
-                   placeholder="ventas@proveedor.mx">
+            <input type="email" name="email" class="form-input" placeholder="ventas@proveedor.mx">
           </div>
 
           <div class="form-group" style="grid-column:1/-1">
             <label class="form-label">Dirección</label>
-            <textarea name="direccion" class="form-textarea"
-                      placeholder="Calle, número, colonia, ciudad…"></textarea>
+            <textarea name="direccion" class="form-textarea" placeholder="Calle, número, colonia, ciudad…"></textarea>
           </div>
         </div>
       </div>
       <div class="modal-footer">
         <a href="{{ url_for('proveedores.index_proveedores', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
-           class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">💾 Guardar Proveedor</button>
+          class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><animated-icons src="/static/icons/save-0c38d9a8.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30" width="30"></animated-icons> Guardar Proveedor</button>
       </div>
     </form>
   </div>
@@ -226,9 +281,11 @@
 <div class="modal-overlay {% if request.args.get('modal')=='editar' and prov_edit.obj %}open{% endif %}">
   <div class="modal">
     <div class="modal-header">
-      <h2>✏️ Editar Proveedor</h2>
+      <h2><animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Editar Proveedor</h2>
       <a href="{{ url_for('proveedores.index_proveedores', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
-         class="modal-close-link">✕</a>
+        class="modal-close-link">✕</a>
     </div>
     {% if prov_edit.obj %}{% set pe = prov_edit.obj %}
     <form method="POST" action="{{ url_for('proveedores.proveedores_editar', id_proveedor=pe.id_proveedor) }}">
@@ -239,35 +296,30 @@
 
           <div class="form-group" style="grid-column:1/-1">
             <label class="form-label">Nombre / Razón Social *</label>
-            <input type="text" name="nombre" class="form-input"
-                   value="{{ pe.nombre }}" required>
+            <input type="text" name="nombre" class="form-input" value="{{ pe.nombre }}" required>
           </div>
 
           <div class="form-group">
             <label class="form-label">RFC</label>
-            <input type="text" name="rfc" class="form-input"
-                   value="{{ pe.rfc or '' }}" maxlength="13"
-                   oninput="this.value=this.value.toUpperCase()">
+            <input type="text" name="rfc" class="form-input" value="{{ pe.rfc or '' }}" maxlength="13"
+              oninput="this.value=this.value.toUpperCase()">
           </div>
 
           <div class="form-group">
             <label class="form-label">Persona de Contacto</label>
-            <input type="text" name="contacto" class="form-input"
-                   value="{{ pe.contacto or '' }}">
+            <input type="text" name="contacto" class="form-input" value="{{ pe.contacto or '' }}">
           </div>
 
           <div class="section-divider">Información de Contacto</div>
 
           <div class="form-group">
             <label class="form-label">Teléfono</label>
-            <input type="text" name="telefono" class="form-input"
-                   value="{{ pe.telefono or '' }}">
+            <input type="text" name="telefono" class="form-input" value="{{ pe.telefono or '' }}">
           </div>
 
           <div class="form-group">
             <label class="form-label">Correo Electrónico</label>
-            <input type="email" name="email" class="form-input"
-                   value="{{ pe.email or '' }}">
+            <input type="email" name="email" class="form-input" value="{{ pe.email or '' }}">
           </div>
 
           <div class="form-group" style="grid-column:1/-1">
@@ -278,8 +330,11 @@
       </div>
       <div class="modal-footer">
         <a href="{{ url_for('proveedores.index_proveedores', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
-           class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+          class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><animated-icons src="/static/icons/save-0c38d9a8.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30" width="30"></animated-icons> Guardar Cambios</button>
       </div>
     </form>
     {% endif %}
@@ -303,35 +358,48 @@
         <div class="detail-title">{{ pd.nombre }}</div>
         {% if pd.rfc %}<div class="detail-rfc">{{ pd.rfc }}</div>{% endif %}
         <span class="badge {% if pd.estatus=='activo' %}badge-active{% else %}badge-inactive{% endif %}"
-              style="margin-top:6px;display:inline-block;">
+          style="margin-top:6px;display:inline-block;">
           {{ 'Activo' if pd.estatus=='activo' else 'Inactivo' }}
         </span>
       </div>
     </div>
     <div class="detail-body">
       <div class="detail-row">
-        <span class="detail-icon">👤</span>
+        <span class="detail-icon"><animated-icons src="/static/icons/user-profile-defd54f5.json" trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="24" width="24"></animated-icons></span>
         <div>
           <div class="detail-label">Persona de Contacto</div>
           <div class="detail-val">{{ pd.contacto or '—' }}</div>
         </div>
       </div>
       <div class="detail-row">
-        <span class="detail-icon">📞</span>
+        <span class="detail-icon"><animated-icons
+            src="/static/icons/calling-v3-fd11b837.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="24" width="24"></animated-icons></span>
         <div>
           <div class="detail-label">Teléfono</div>
           <div class="detail-val">{{ pd.telefono or '—' }}</div>
         </div>
       </div>
       <div class="detail-row">
-        <span class="detail-icon">✉️</span>
+        <span class="detail-icon"><animated-icons src="/static/icons/mail-97ae0ebf.json" trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="24" width="24"></animated-icons></span>
         <div>
           <div class="detail-label">Correo Electrónico</div>
           <div class="detail-val">{{ pd.email or '—' }}</div>
         </div>
       </div>
       <div class="detail-row">
-        <span class="detail-icon">📍</span>
+        <span class="detail-icon"><animated-icons
+            src="/static/icons/location-fd11b837.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="24" width="24"></animated-icons>
+        </span>
         <div>
           <div class="detail-label">Dirección</div>
           <div class="detail-val" style="white-space:pre-line">{{ pd.direccion or '—' }}</div>
@@ -340,9 +408,11 @@
     </div>
     <div class="detail-footer">
       <a href="{{ url_for('proveedores.index_proveedores', pagina=pagina, buscar=buscar, estatus=estatus_sel) }}"
-         class="btn btn-outline">Cerrar</a>
+        class="btn btn-outline">Cerrar</a>
       <a href="?modal=editar&id={{ pd.id_proveedor }}&pagina={{ pagina }}&buscar={{ buscar }}&estatus={{ estatus_sel }}"
-         class="btn btn-primary">✏️ Editar</a>
+        class="btn btn-primary"><animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Editar</a>
     </div>
     {% endif %}
   </div>
@@ -352,15 +422,15 @@
 <div class="modal-overlay" id="modal-toggle-prov">
   <div class="modal" style="max-width:420px">
     <div class="modal-header" id="toggle-prov-header" style="background:var(--rust);">
-      <h2 id="toggle-prov-title">🚫 Desactivar Proveedor</h2>
-      <button type="button" class="modal-close-link"
-              onclick="cerrarToggleProv()"
-              style="background:rgba(255,255,255,.15);border:none;cursor:pointer;color:var(--cream);font-size:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;">✕</button>
+      <h2 id="toggle-prov-title">Desactivar Proveedor</h2>
+      <button type="button" class="modal-close-link" onclick="cerrarToggleProv()"
+        style="background:rgba(255,255,255,.15);border:none;cursor:pointer;color:var(--cream);font-size:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <form id="form-toggle-prov" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:28px 26px 10px;text-align:center;">
-        <div id="toggle-prov-icon" style="font-size:42px;margin-bottom:12px;"></div>
+        <div id="toggle-prov-icon"
+          style="margin-bottom:12px; display:inline-flex; justify-content:center; align-items:center;"></div>
         <p id="toggle-prov-msg" style="font-size:14px;color:var(--brown-dk);line-height:1.7;margin:0;"></p>
       </div>
       <div class="modal-footer">
@@ -376,6 +446,6 @@
 {% block extra_scripts %}
 <script src="{{ url_for('static', filename='js/proveedores.js') }}">
 
-  
+
 </script>
 {% endblock %}
