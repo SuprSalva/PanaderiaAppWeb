@@ -10,74 +10,70 @@
 <!-- TOPBAR -->
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title"><animated-icons
-      src="/static/icons/team-9c840f28.json"
-      trigger="loop"
-      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-      height="50"
-      width="50"
-    ></animated-icons> Gestión de Usuarios</div>
+    <div class="db-page-title"><animated-icons src="/static/icons/team-9c840f28.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="50" width="50"></animated-icons> Gestión de Usuarios</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Administración <span>›</span> Usuarios</div>
   </div>
   <button class="btn btn-primary" onclick="abrirModalNuevo()">
-    <animated-icons
-      src="/static/icons/plus-0c38d9a8.json"
-      trigger="loop"
+    <animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop"
       attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-      height="30"
-      width="30"
-    ></animated-icons> Nuevo Usuario
+      height="30" width="30"></animated-icons> Nuevo Usuario
   </button>
 </div>
 
 <!-- STATS -->
 <div class="usr-stats anim anim-1">
   <div class="usr-stat">
-    <div class="usr-stat-icon brown"><animated-icons
-      src="/static/icons/team-9c840f28.json"
-      trigger="loop"
-      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-      height="30"
-      width="30"
-    ></animated-icons></div>
-    <div><div class="usr-stat-val">{{ total }}</div><div class="usr-stat-lbl">Total Usuarios</div></div>
+    <div class="usr-stat-icon brown"><animated-icons src="/static/icons/team-9c840f28.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="usr-stat-val">{{ total }}</div>
+      <div class="usr-stat-lbl">Total Usuarios</div>
+    </div>
   </div>
   <div class="usr-stat">
-    <div class="usr-stat-icon green"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
-    <div><div class="usr-stat-val">{{ activos }}</div><div class="usr-stat-lbl">Activos</div></div>
+    <div class="usr-stat-icon green"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="usr-stat-val">{{ activos }}</div>
+      <div class="usr-stat-lbl">Activos</div>
+    </div>
   </div>
   <div class="usr-stat">
-    <div class="usr-stat-icon rust"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
-    <div><div class="usr-stat-val">{{ inactivos }}</div><div class="usr-stat-lbl">Inactivos</div></div>
+    <div class="usr-stat-icon rust"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></div>
+    <div>
+      <div class="usr-stat-val">{{ inactivos }}</div>
+      <div class="usr-stat-lbl">Inactivos</div>
+    </div>
   </div>
   <div class="usr-stat">
-    <div class="usr-stat-icon tan"><animated-icons
-      src="/static/icons/dynamic-role-0c38d9a8.json"
-      trigger="loop"
-      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-      height="40"
-      width="40"
-    ></animated-icons></div>
-    <div><div class="usr-stat-val">{{ num_roles }}</div><div class="usr-stat-lbl">Roles Distintos</div></div>
+    <div class="usr-stat-icon tan"><animated-icons src="/static/icons/dynamic-role-0c38d9a8.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="40" width="40"></animated-icons></div>
+    <div>
+      <div class="usr-stat-val">{{ num_roles }}</div>
+      <div class="usr-stat-lbl">Roles Distintos</div>
+    </div>
   </div>
 </div>
 
 <!-- TOOLBAR -->
 <div class="usr-toolbar anim anim-2">
   <div class="search-wrap">
-    <span class="search-icon"><animated-icons
-      src="/static/icons/search-9c840f28.json"
-      trigger="loop"
-      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-      height="30"
-      width="30"
-    ></animated-icons></span>
+    <span class="search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></span>
     <input type="text" placeholder="Buscar por nombre, correo o rol…" id="searchInput" oninput="filterTable()">
   </div>
   <select class="filter-select" id="filterRol" onchange="filterTable()">
     <option value="">Todos los roles</option>
     {% for r in roles %}
-      <option value="{{ r.clave_rol }}">{{ r.nombre_rol }}</option>
+    <option value="{{ r.clave_rol }}">{{ r.nombre_rol }}</option>
     {% endfor %}
   </select>
   <select class="filter-select" id="filterEstatus" onchange="filterTable()">
@@ -107,14 +103,14 @@
       {% set iniciales = partes[0][0] ~ (partes[-1][0] if partes|length > 1 else '') %}
       {% set clave = u.clave_rol if u.clave_rol else '' %}
       {% if clave == 'admin' %}
-        {% set avatar_color = 'var(--brown)' %}
-        {% set badge_class  = 'badge-adm' %}
+      {% set avatar_color = 'var(--brown)' %}
+      {% set badge_class = 'badge-adm' %}
       {% elif clave == 'panadero' %}
-        {% set avatar_color = '#5a7a52' %}
-        {% set badge_class  = 'badge-prod' %}
+      {% set avatar_color = '#5a7a52' %}
+      {% set badge_class = 'badge-prod' %}
       {% else %}
-        {% set avatar_color = 'var(--rust)' %}
-        {% set badge_class  = 'badge-ven' %}
+      {% set avatar_color = 'var(--rust)' %}
+      {% set badge_class = 'badge-ven' %}
       {% endif %}
       <tr data-rol="{{ clave }}" data-estatus="{{ u.estatus }}">
         <td>{{ loop.index }}</td>
@@ -130,50 +126,42 @@
         <td><span class="badge {{ badge_class }}">{{ u.nombre_rol if u.nombre_rol else '—' }}</span></td>
         <td>
           {% if u.estatus == 'activo' %}
-            <span class="badge badge-active">Activo</span>
+          <span class="badge badge-active">Activo</span>
           {% elif u.estatus == 'bloqueado' %}
-            <span class="badge" style="background:#fce8df;color:#7a2a1a">Bloqueado</span>
+          <span class="badge" style="background:#fce8df;color:#7a2a1a">Bloqueado</span>
           {% else %}
-            <span class="badge badge-inactive">Inactivo</span>
+          <span class="badge badge-inactive">Inactivo</span>
           {% endif %}
         </td>
         <td>{{ u.ultimo_login.strftime('%d/%m/%Y %H:%M') if u.ultimo_login else 'Nunca' }}</td>
         <td>
           <div class="actions-cell">
-            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar"
+            <button class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" title="Editar"
               onclick="openEdit({{ u.id_usuario }},'{{ u.nombre_completo }}','{{ u.username }}',{{ u.id_rol }},'{{ u.estatus }}')"><animated-icons
-              src="/static/icons/edit-0c38d9a8.json"
-              trigger="loop"
-              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-              height="30"
-              width="30"
-            ></animated-icons></button>
+                src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></button>
             <button class="btn btn-outline btn-sm btn-icon"
               data-tooltip="{{ 'Reactivar' if u.estatus != 'activo' else 'Desactivar' }}"
+              title="{{ 'Reactivar' if u.estatus != 'activo' else 'Desactivar' }}"
               onclick="openDelete({{ u.id_usuario }}, '{{ u.nombre_completo|replace("'", "\\'") }}', '{{ u.estatus }}')">
               {% if u.estatus != 'activo' %}
-                <animated-icons
-                  src="/static/icons/play-8e4bd16d.json"
-                  trigger="loop"
-                  attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-                  height="30"
-                  width="30"
-                ></animated-icons>
+              <animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
               {% else %}
-                <animated-icons
-                  src="/static/icons/minus-8e4bd16d.json"
-                  trigger="loop"
-                  attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-                  height="30"
-                  width="30"
-                ></animated-icons>
+              <animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
               {% endif %}
             </button>
           </div>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--brown-lt)">No hay usuarios registrados.</td></tr>
+      <tr>
+        <td colspan="6" style="text-align:center;padding:24px;color:var(--brown-lt)">No hay usuarios registrados.</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -190,13 +178,9 @@
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-header">
-      <h2><animated-icons
-        src="/static/icons/plus-0c38d9a8.json"
-        trigger="loop"
-        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-        height="30"
-        width="30"
-      ></animated-icons> Nuevo Usuario</h2>
+      <h2><animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Nuevo Usuario</h2>
       <button type="button" class="modal-close" onclick="closeModal('modal-add')">✕</button>
     </div>
     <form id="form-add" method="POST" action="{{ url_for('registrar_usuario.crear_usuario') }}">
@@ -217,18 +201,20 @@
             <select name="id_rol" class="form-select" required>
               <option value="0">— Seleccionar —</option>
               {% for r in roles %}
-                <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+              <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="form-group">
             <label class="form-label">Contraseña</label>
-            <input type="password" name="password" id="add-password" class="form-input" placeholder="Mín. 8 caracteres" required>
+            <input type="password" name="password" id="add-password" class="form-input" placeholder="Mín. 8 caracteres"
+              required>
             <span class="form-hint">Debe incluir mayúscula, número y símbolo</span>
           </div>
           <div class="form-group">
             <label class="form-label">Confirmar Contraseña</label>
-            <input type="password" name="confirmar" id="add-confirmar" class="form-input" placeholder="Repetir contraseña" required>
+            <input type="password" name="confirmar" id="add-confirmar" class="form-input"
+              placeholder="Repetir contraseña" required>
             <span class="form-hint" id="add-match-msg"></span>
           </div>
           <div class="form-group" style="grid-column: 1/-1;">
@@ -242,13 +228,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-add')">Cancelar</button>
-        <button type="submit" class="btn btn-primary"><animated-icons
-          src="/static/icons/save-0c38d9a8.json"
-          trigger="loop"
-          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-          height="30"
-          width="30"
-        ></animated-icons> Guardar Usuario</button>
+        <button type="submit" class="btn btn-primary"><animated-icons src="/static/icons/save-0c38d9a8.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30" width="30"></animated-icons> Guardar Usuario</button>
       </div>
     </form>
   </div>
@@ -260,13 +243,9 @@
 <div class="modal-overlay" id="modal-edit">
   <div class="modal">
     <div class="modal-header">
-      <h2><animated-icons
-        src="/static/icons/edit-0c38d9a8.json"
-        trigger="loop"
-        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-        height="30"
-        width="30"
-      ></animated-icons> Editar Usuario</h2>
+      <h2><animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> Editar Usuario</h2>
       <button type="button" class="modal-close" onclick="closeModal('modal-edit')">✕</button>
     </div>
     <form id="form-edit" method="POST">
@@ -285,18 +264,20 @@
             <label class="form-label">Rol</label>
             <select name="id_rol" class="form-select" id="edit-rol" required>
               {% for r in roles %}
-                <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
+              <option value="{{ r.id_rol }}">{{ r.nombre_rol }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="form-group">
             <label class="form-label">Nueva Contraseña</label>
-            <input type="password" name="password" class="form-input" id="edit-password" placeholder="Dejar vacío para no cambiar">
+            <input type="password" name="password" class="form-input" id="edit-password"
+              placeholder="Dejar vacío para no cambiar">
             <span class="form-hint">Solo completar si deseas cambiarla</span>
           </div>
           <div class="form-group">
             <label class="form-label">Confirmar Contraseña</label>
-            <input type="password" name="confirmar" id="edit-confirmar" class="form-input" placeholder="Repetir nueva contraseña">
+            <input type="password" name="confirmar" id="edit-confirmar" class="form-input"
+              placeholder="Repetir nueva contraseña">
             <span class="form-hint" id="edit-match-msg"></span>
           </div>
           <div class="form-group" style="grid-column: 1/-1;">
@@ -311,13 +292,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit')">Cancelar</button>
-        <button type="submit" class="btn btn-primary"><animated-icons
-          src="/static/icons/save-0c38d9a8.json"
-          trigger="loop"
-          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-          height="30"
-          width="30"
-        ></animated-icons>Guardar Cambios</button>
+        <button type="submit" class="btn btn-primary"><animated-icons src="/static/icons/save-0c38d9a8.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30" width="30"></animated-icons>Guardar Cambios</button>
       </div>
     </form>
   </div>
@@ -329,20 +307,28 @@
 <div class="modal-overlay" id="modal-delete">
   <div class="modal" style="max-width:420px">
     <div class="modal-header danger" id="delete-header">
-      <h2 id="delete-header-title">🚫 Desactivar Usuario</h2>
+      <h2 id="delete-header-title">
+        Desactivar Usuario
+      </h2>
       <button type="button" class="modal-close" onclick="closeModal('modal-delete')">✕</button>
     </div>
     <form id="form-delete" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="estatus" id="delete-estatus-input">
       <div class="delete-body">
-        <div class="delete-icon" id="delete-icon">🚫</div>
+        <div class="delete-icon" id="delete-icon">
+        </div>
         <h3 id="delete-title">¿Desactivar este usuario?</h3>
-        <p id="delete-msg">El usuario <strong id="delete-name">—</strong> no podrá iniciar sesión.<br>Esta acción es reversible desde la misma pantalla.</p>
+        <p id="delete-msg">El usuario <strong id="delete-name">—</strong> no podrá iniciar sesión.<br>Esta acción es
+          reversible desde la misma pantalla.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button>
-        <button type="submit" class="btn btn-danger" id="delete-confirm-btn">🚫 Desactivar</button>
+        <button type="submit" class="btn btn-danger" id="delete-confirm-btn">
+          <animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+            height="30" width="30"></animated-icons>
+          Desactivar</button>
       </div>
     </form>
   </div>
@@ -366,9 +352,8 @@
         </p>
         <div class="form-group">
           <label class="form-label">Código de verificación</label>
-          <input type="text" name="codigo" id="verify-codigo" class="form-input"
-                 placeholder="Ej. 482917" maxlength="6" autocomplete="off" required
-                 style="letter-spacing:6px;font-size:22px;text-align:center;">
+          <input type="text" name="codigo" id="verify-codigo" class="form-input" placeholder="Ej. 482917" maxlength="6"
+            autocomplete="off" required style="letter-spacing:6px;font-size:22px;text-align:center;">
         </div>
       </div>
       <div class="modal-footer">

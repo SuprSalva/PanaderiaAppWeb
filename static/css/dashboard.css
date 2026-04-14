@@ -141,8 +141,9 @@
 
 /* ── Chips de estado de stock ────────────────────────────────── */
 .chip-estado {
-  display:inline-block; padding:3px 10px; border-radius:999px;
-  font-size:11px; font-weight:700;
+  padding:3px 10px; border-radius:999px;
+  font-size:11px; font-weight:700; display: inline-flex; justify-content: center !important; 
+  text-align: center !important; align-items: center;
 }
 .chip-critico     { background:#fee2e2; color:#991b1b; }
 .chip-bajo        { background:#fef3c7; color:#92400e; }
