@@ -227,72 +227,71 @@ DELIMITER $$
 CREATE DEFINER=`root`@`localhost`
 PROCEDURE sp_dash_utilidad_por_producto()
 BEGIN
-    DROP TEMPORARY TABLE IF EXISTS _tmp_costo_prom_mes;
-    CREATE TEMPORARY TABLE _tmp_costo_prom_mes AS
-    SELECT
-        dc.id_materia,
-        ROUND(
-            AVG(dc.costo_unitario / dc.factor_conversion),
-            6
-        ) AS costo_prom_base
-    FROM detalle_compras dc
-    JOIN compras c ON c.id_compra = dc.id_compra
-    WHERE c.estatus      = 'finalizado'
-      AND c.fecha_compra >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-      AND dc.factor_conversion > 0
-    GROUP BY dc.id_materia;
+    -- ── Costo: CPP 12 meses vía v_costo_promedio_materia
+    --          (fallback automático al último precio histórico si no hay compras recientes)
     DROP TEMPORARY TABLE IF EXISTS _tmp_costo_receta;
     CREATE TEMPORARY TABLE _tmp_costo_receta AS
     SELECT
         dr.id_receta,
         ROUND(
-            SUM(
-                dr.cantidad_requerida
-                * COALESCE(cpm.costo_prom_base, ucm.costo_base, 0)
-            ),
+            SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)),
             4
         ) AS costo_total_lote
     FROM detalle_recetas dr
-    LEFT JOIN _tmp_costo_prom_mes      cpm ON cpm.id_materia = dr.id_materia
-    LEFT JOIN v_ultimo_costo_materia   ucm ON ucm.id_materia = dr.id_materia
+    LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
     GROUP BY dr.id_receta;
+
+    -- ── Precio de venta: promedio real de los últimos 30 días de ventas.
+    --    Si el producto no se vendió en ese período, usa precio_venta del catálogo.
+    DROP TEMPORARY TABLE IF EXISTS _tmp_precio_venta_real;
+    CREATE TEMPORARY TABLE _tmp_precio_venta_real AS
+    SELECT
+        dv.id_producto,
+        ROUND(AVG(dv.precio_unitario), 2) AS precio_real
+    FROM detalle_ventas dv
+    INNER JOIN ventas v ON v.id_venta = dv.id_venta
+    WHERE v.estado = 'completada'
+      AND DATE(v.fecha_venta) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    GROUP BY dv.id_producto;
 
     SELECT
         p.id_producto,
-        p.nombre                                            AS nombre_producto,
-        p.precio_venta,
+        p.nombre                                                    AS nombre_producto,
+        -- precio efectivo: real de ventas o, si no hay ventas recientes, precio catálogo
+        COALESCE(pvr.precio_real, p.precio_venta)                  AS precio_venta,
         r.id_receta,
-        r.nombre                                            AS nombre_receta,
+        r.nombre                                                    AS nombre_receta,
         r.rendimiento,
         ROUND(
             COALESCE(tcr.costo_total_lote, 0) / r.rendimiento,
             4
-        )                                                   AS costo_unitario,
+        )                                                           AS costo_unitario,
         ROUND(
-            p.precio_venta
+            COALESCE(pvr.precio_real, p.precio_venta)
                 - (COALESCE(tcr.costo_total_lote, 0) / r.rendimiento),
             4
-        )                                                   AS utilidad_unitaria,
+        )                                                           AS utilidad_unitaria,
         CASE
-            WHEN p.precio_venta > 0 THEN
+            WHEN COALESCE(pvr.precio_real, p.precio_venta) > 0 THEN
                 ROUND(
-                    (p.precio_venta
+                    (COALESCE(pvr.precio_real, p.precio_venta)
                         - COALESCE(tcr.costo_total_lote, 0) / r.rendimiento)
-                    / p.precio_venta * 100,
+                    / COALESCE(pvr.precio_real, p.precio_venta) * 100,
                     2
                 )
             ELSE 0
-        END                                                 AS margen_pct
+        END                                                         AS margen_pct
     FROM productos p
     INNER JOIN recetas r
             ON r.id_producto = p.id_producto
            AND r.estatus     = 'activo'
-    LEFT JOIN _tmp_costo_receta tcr ON tcr.id_receta = r.id_receta
+    LEFT JOIN _tmp_costo_receta        tcr ON tcr.id_receta   = r.id_receta
+    LEFT JOIN _tmp_precio_venta_real   pvr ON pvr.id_producto = p.id_producto
     WHERE p.estatus = 'activo'
     ORDER BY utilidad_unitaria DESC;
 
-    DROP TEMPORARY TABLE IF EXISTS _tmp_costo_prom_mes;
     DROP TEMPORARY TABLE IF EXISTS _tmp_costo_receta;
+    DROP TEMPORARY TABLE IF EXISTS _tmp_precio_venta_real;
 END$$
 DELIMITER ;
 

@@ -1,0 +1,295 @@
+{% extends "layout.html" %}
+{% block title %}Respaldo y Restauración{% endblock %}
+{% block breadcrumb %}Inicio › Administración › Respaldo y Restauración{% endblock %}
+
+{% block container %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/backup.css') }}">
+
+{# ── TOPBAR ── #}
+<div class="bk-topbar anim">
+  <div>
+    <div class="bk-page-title">
+      <animated-icons
+        src="/static/icons/sync-e9dea012.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="46" width="46">
+      </animated-icons>
+      Respaldo y Restauración
+    </div>
+    <div class="bk-breadcrumb">
+      Inicio <span>›</span> Administración <span>›</span> Respaldo y Restauración
+    </div>
+  </div>
+
+  {# Botón crear respaldo #}
+  <form method="POST" action="{{ url_for('backup.crear') }}" id="form-crear"
+        onsubmit="return confirmarCrear(this)">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="bk-btn-crear" id="btn-crear">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Crear Respaldo
+    </button>
+  </form>
+</div>
+
+{# ── FLASH MESSAGES ── #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for cat, msg in messages %}
+    <div class="bk-alert bk-alert-{{ 'ok' if cat == 'success' else 'err' }} anim">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        {% if cat == 'success' %}
+        <polyline points="20 6 9 17 4 12"/>
+        {% else %}
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+        {% endif %}
+      </svg>
+      {{ msg }}
+    </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+{# ── INFO CARD ── #}
+<div class="bk-info-card anim anim-1">
+  <div class="bk-info-icon">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+  </div>
+  <div class="bk-info-txt">
+    <strong>¿Qué hace el respaldo?</strong>
+    Genera una copia completa de la base de datos <em>dulce_migaja</em> (tablas, datos, vistas,
+    procedimientos y triggers) comprimida en formato <code>.sql.gz</code>.
+    Para restaurar, selecciona un archivo de la lista o sube uno desde tu computadora.
+    <span style="color:var(--rust);font-weight:600;">⚠ La restauración reemplaza todos los datos actuales.</span>
+  </div>
+</div>
+
+{# ── LAYOUT DOS COLUMNAS ── #}
+<div class="bk-layout anim anim-2">
+
+  {# ── LISTA DE RESPALDOS ── #}
+  <div class="bk-card">
+    <div class="bk-card-hdr">
+      <div class="bk-card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        Respaldos Guardados
+      </div>
+      <span class="bk-count">{{ backups|length }} archivo{{ 's' if backups|length != 1 else '' }}</span>
+    </div>
+
+    {% if backups %}
+    <div class="bk-list">
+      {% for b in backups %}
+      <div class="bk-item">
+        <div class="bk-item-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="bk-item-info">
+          <div class="bk-item-nm">{{ b.nombre }}</div>
+          <div class="bk-item-meta">
+            {{ b.fecha.strftime('%d/%m/%Y %H:%M') }} &nbsp;·&nbsp; {{ b.tamaño_fmt }}
+            {% if b.comprimido %}<span class="bk-badge-gz">GZ</span>{% endif %}
+          </div>
+        </div>
+        <div class="bk-item-actions">
+          {# Descargar #}
+          <a href="{{ url_for('backup.descargar', nombre=b.nombre) }}"
+             class="bk-icon-btn" title="Descargar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </a>
+          {# Restaurar #}
+          <form method="POST"
+                action="{{ url_for('backup.restaurar', nombre=b.nombre) }}"
+                onsubmit="return confirmarRestore('{{ b.nombre }}')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="bk-icon-btn bk-icon-restore" title="Restaurar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+              </svg>
+            </button>
+          </form>
+          {# Eliminar #}
+          <form method="POST"
+                action="{{ url_for('backup.eliminar', nombre=b.nombre) }}"
+                onsubmit="return confirmarEliminar('{{ b.nombre }}')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="bk-icon-btn bk-icon-del" title="Eliminar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="bk-empty">
+      <div class="bk-empty-icon">📂</div>
+      <p>No hay respaldos guardados.</p>
+      <p style="font-size:13px;color:var(--brown-lt);">Haz clic en "Crear Respaldo" para generar el primero.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── PANEL RESTAURAR DESDE ARCHIVO ── #}
+  <div class="bk-card bk-upload-card">
+    <div class="bk-card-hdr">
+      <div class="bk-card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Restaurar desde Archivo
+      </div>
+    </div>
+
+    <div class="bk-upload-body">
+      <p class="bk-upload-desc">
+        Sube un archivo de respaldo (<code>.sql</code> o <code>.sql.gz</code>) desde tu computadora
+        para restaurar la base de datos. El archivo no se guardará en la lista de respaldos.
+      </p>
+
+      <form method="POST" action="{{ url_for('backup.subir') }}"
+            enctype="multipart/form-data"
+            onsubmit="return confirmarSubir()">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="bk-dropzone" id="bk-dropzone"
+             onclick="document.getElementById('bk-file-input').click()">
+          <div class="bk-dz-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="bk-dz-txt" id="bk-dz-txt">Haz clic o arrastra un archivo aquí</div>
+          <div class="bk-dz-hint">.sql o .sql.gz · máx. 200 MB</div>
+          <input type="file" name="archivo" id="bk-file-input"
+                 accept=".sql,.gz" style="display:none;"
+                 onchange="actualizarDropzone(this)">
+        </div>
+
+        <button type="submit" class="bk-btn-subir" id="btn-subir" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+          </svg>
+          Restaurar Archivo
+        </button>
+      </form>
+    </div>
+
+    {# Advertencia destacada #}
+    <div class="bk-warn-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      Restaurar reemplaza <strong>todos los datos actuales</strong> de la base de datos de forma
+      permanente. Crea un respaldo antes de continuar.
+    </div>
+  </div>
+
+</div>
+
+<div style="height:40px;"></div>
+
+<script>
+/* ── Dropzone ─────────────────────────────────────────────── */
+function actualizarDropzone(input) {
+  const txt  = document.getElementById('bk-dz-txt');
+  const btn  = document.getElementById('btn-subir');
+  const zona = document.getElementById('bk-dropzone');
+  if (input.files && input.files[0]) {
+    txt.textContent = input.files[0].name;
+    zona.classList.add('selected');
+    btn.disabled = false;
+  } else {
+    txt.textContent = 'Haz clic o arrastra un archivo aquí';
+    zona.classList.remove('selected');
+    btn.disabled = true;
+  }
+}
+
+/* Drag & drop */
+(function () {
+  const zona = document.getElementById('bk-dropzone');
+  if (!zona) return;
+  zona.addEventListener('dragover', e => { e.preventDefault(); zona.classList.add('drag-over'); });
+  zona.addEventListener('dragleave', () => zona.classList.remove('drag-over'));
+  zona.addEventListener('drop', e => {
+    e.preventDefault();
+    zona.classList.remove('drag-over');
+    const fi = document.getElementById('bk-file-input');
+    if (e.dataTransfer.files.length) {
+      fi.files = e.dataTransfer.files;
+      actualizarDropzone(fi);
+    }
+  });
+})();
+
+/* ── Confirmaciones ────────────────────────────────────────── */
+function confirmarCrear(form) {
+  const btn = document.getElementById('btn-crear');
+  if (!confirm('¿Crear un respaldo completo de la base de datos ahora?\nEsto puede tardar unos segundos.')) return false;
+  btn.disabled = true;
+  btn.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+         style="animation:bk-spin 1s linear infinite;">
+      <polyline points="23 4 23 10 17 10"/>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+    </svg>
+    Creando…`;
+  return true;
+}
+
+function confirmarRestore(nombre) {
+  return confirm(`¿Restaurar la base de datos desde "${nombre}"?\n\n⚠ Esto reemplazará TODOS los datos actuales. Esta acción no se puede deshacer.`);
+}
+
+function confirmarEliminar(nombre) {
+  return confirm(`¿Eliminar el archivo "${nombre}"?\nEsta acción no se puede deshacer.`);
+}
+
+function confirmarSubir() {
+  const fi = document.getElementById('bk-file-input');
+  if (!fi.files || !fi.files[0]) { alert('Selecciona un archivo primero.'); return false; }
+  return confirm(`¿Restaurar la base de datos desde "${fi.files[0].name}"?\n\n⚠ Esto reemplazará TODOS los datos actuales. Esta acción no se puede deshacer.`);
+}
+</script>
+{% endblock %}

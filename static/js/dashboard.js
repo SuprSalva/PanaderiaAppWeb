@@ -298,6 +298,7 @@ function cargarTodo() {
   cargarMPCriticas();
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
   // Filtros de periodo (ventas + salidas comparten estado)
   document.querySelectorAll('.dm-p-btn').forEach(b => {

@@ -1,522 +1,212 @@
 {% extends "layout.html" %}
+{% block title %}Utilidad por Ventas{% endblock %}
+{% block breadcrumb %}Inicio › Reportes › Utilidad por Ventas{% endblock %}
 
 {% block container %}
-<style>
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .anim   { animation: fadeUp .35s ease both; }
-  .anim-1 { animation-delay: .05s; }
-  .anim-2 { animation-delay: .10s; }
-  .anim-3 { animation-delay: .15s; }
+<link rel="stylesheet" href="{{ url_for('static', filename='css/utilidad.css') }}">
 
-  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
-  .db-page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
-  .db-breadcrumb { font-size: 12px; color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-  .db-breadcrumb span { color: var(--tan); }
-
-  /* ── DATE NAV ── */
-  .date-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-  .date-nav-btn { width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
-  .date-nav-btn:hover { background: var(--warm-bg); border-color: var(--brown); }
-  .date-label { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--brown-dk); }
-  .date-sub   { font-size: 11px; color: var(--brown-lt); margin-left: 4px; }
-  .period-btns { display: flex; gap: 6px; margin-left: auto; }
-  .period-btn  { padding: 7px 14px; border-radius: 7px; border: 1.5px solid var(--tan); background: var(--white); font-family: 'Lato',sans-serif; font-size: 12px; font-weight: 700; color: var(--brown-lt); cursor: pointer; transition: all .2s; }
-  .period-btn:hover  { background: var(--warm-bg); }
-  .period-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
-
-  /* ── HERO METRICS ── */
-  .hero-metrics { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-bottom: 20px; }
-  .hm-card { border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 10px var(--shadow); transition: transform .2s; }
-  .hm-card:hover { transform: translateY(-2px); }
-  .hm-card.ingresos  { background: linear-gradient(135deg,#e8f5e4,#d4edcd); border: 1px solid #b2d4aa; }
-  .hm-card.costos    { background: linear-gradient(135deg,#fce8df,#f5d5c8); border: 1px solid #e8b09a; }
-  .hm-card.egresos   { background: linear-gradient(135deg,#fef3d0,#fde8a8); border: 1px solid #f0c842; }
-  .hm-card.utilidad  { background: linear-gradient(135deg,var(--brown-dk),#8b5e3c); border: 1px solid var(--brown); }
-  .hm-card.margen    { background: linear-gradient(135deg,#e8f0fe,#d0e0fa); border: 1px solid #a8c4f0; }
-  .hm-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
-  .hm-card.ingresos .hm-label  { color: #3a6034; }
-  .hm-card.costos   .hm-label  { color: #9c3a1a; }
-  .hm-card.egresos  .hm-label  { color: #8a6200; }
-  .hm-card.utilidad .hm-label  { color: rgba(255,255,255,.7); }
-  .hm-card.margen   .hm-label  { color: #1a56a0; }
-  .hm-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; line-height: 1; }
-  .hm-card.ingresos .hm-val  { color: #2a5024; }
-  .hm-card.costos   .hm-val  { color: var(--rust); }
-  .hm-card.egresos  .hm-val  { color: #6a4800; }
-  .hm-card.utilidad .hm-val  { color: var(--cream); }
-  .hm-card.margen   .hm-val  { color: #1a3a80; }
-  .hm-sub { font-size: 11px; margin-top: 4px; }
-  .hm-card.ingresos .hm-sub  { color: #3a6034; }
-  .hm-card.costos   .hm-sub  { color: #9c3a1a; }
-  .hm-card.egresos  .hm-sub  { color: #8a6200; }
-  .hm-card.utilidad .hm-sub  { color: rgba(255,255,255,.6); }
-  .hm-card.margen   .hm-sub  { color: #2a56a0; }
-
-  /* ── MAIN GRID ── */
-  .main-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 18px; margin-bottom: 18px; }
-  .main-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
-  @media(max-width:1050px){ .main-grid,.main-grid-3 { grid-template-columns:1fr; } }
-
-  /* ── PANEL ── */
-  .panel-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 3px 12px var(--shadow); overflow: hidden; }
-  .panel-header { padding: 15px 20px; background: var(--warm-bg); border-bottom: 1px solid var(--tan); display: flex; align-items: center; justify-content: space-between; }
-  .panel-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 8px; }
-  .panel-body { padding: 18px 20px; }
-
-  /* ── CASCADA FINANCIERA ── */
-  .cascada { display: flex; flex-direction: column; gap: 0; }
-  .casc-row { display: flex; align-items: center; padding: 11px 14px; border-bottom: 1px solid var(--tan); }
-  .casc-row:last-child { border-bottom: none; }
-  .casc-icon { font-size: 18px; width: 34px; flex-shrink: 0; }
-  .casc-label { flex: 1; font-size: 13px; color: var(--brown); font-weight: 600; }
-  .casc-bar-wrap { flex: 2; height: 10px; border-radius: 5px; background: var(--tan); overflow: hidden; margin: 0 14px; }
-  .casc-bar-fill { height: 100%; border-radius: 5px; }
-  .casc-bar-fill.ingr  { background: #5a7a52; }
-  .casc-bar-fill.costo { background: var(--rust); }
-  .casc-bar-fill.egr   { background: #c9950a; }
-  .casc-bar-fill.util  { background: var(--brown-dk); }
-  .casc-val { min-width: 80px; text-align: right; font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; }
-  .casc-val.pos { color: #3a6034; }
-  .casc-val.neg { color: var(--rust); }
-  .casc-val.gold { color: #8a6200; }
-  .casc-val.main { color: var(--brown-dk); }
-  .casc-pct { font-size: 11px; color: var(--brown-lt); min-width: 35px; text-align: right; }
-
-  .casc-row.utilidad-row { background: #f3e8d8; }
-  .casc-row.utilidad-row .casc-label { font-weight: 800; color: var(--brown-dk); font-size: 14px; }
-
-  /* ── PRODUCTO RENTABILIDAD ── */
-  .rent-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--tan); }
-  .rent-row:last-child { border-bottom: none; }
-  .rent-emoji { font-size: 18px; flex-shrink: 0; }
-  .rent-name  { font-weight: 700; color: var(--brown-dk); font-size: 12.5px; flex: 1; }
-  .rent-piezas { font-size: 11px; color: var(--brown-lt); }
-  .rent-bar-wrap { width: 70px; height: 7px; border-radius: 4px; background: var(--tan); overflow: hidden; }
-  .rent-bar-fill { height: 100%; border-radius: 4px; }
-  .rent-bar-high { background: #5a7a52; }
-  .rent-bar-mid  { background: #c9950a; }
-  .rent-bar-low  { background: var(--rust); }
-  .rent-util { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; min-width: 65px; text-align: right; }
-  .rent-util.high { color: #3a6034; }
-  .rent-util.mid  { color: #8a6200; }
-  .rent-util.low  { color: var(--rust); }
-
-  /* ── HISTORIAL TABLE ── */
-  .hist-table { width: 100%; border-collapse: collapse; }
-  .hist-table thead { background: var(--warm-bg); }
-  .hist-table thead th { padding: 10px 16px; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown); text-align: left; }
-  .hist-table thead th:first-child { padding-left: 20px; }
-  .hist-table tbody tr { border-top: 1px solid var(--tan); transition: background .15s; }
-  .hist-table tbody tr:hover { background: #fdf3e6; }
-  .hist-table tbody td { padding: 10px 16px; font-size: 13px; }
-  .hist-table tbody td:first-child { padding-left: 20px; }
-  .money { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--brown-dk); }
-  .money.pos  { color: #3a6034; }
-  .money.neg  { color: var(--rust); }
-
-  .margen-chip { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .margen-high { background: #e2eede; color: #3a6034; }
-  .margen-mid  { background: #fef3d0; color: #8a6200; }
-  .margen-low  { background: #fce8df; color: var(--rust); }
-
-  .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
-  .table-footer p { font-size: 12px; color: var(--brown-lt); }
-  .pagination { display: flex; gap: 4px; }
-  .page-btn { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); transition: all .15s; }
-  .page-btn:hover { background: var(--warm-bg); }
-  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
-
-  /* ── TENDENCIA BARRAS ── */
-  .tend-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
-  .tend-fecha { font-size: 11px; color: var(--brown-lt); min-width: 60px; font-weight: 600; }
-  .tend-track { flex: 1; height: 20px; border-radius: 4px; background: var(--tan); overflow: hidden; }
-  .tend-fill  { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 7px; }
-  .tend-fill.great { background: linear-gradient(90deg,#5a7a52,#7aaa72); }
-  .tend-fill.good  { background: linear-gradient(90deg,var(--brown),#c8a97e); }
-  .tend-fill.low   { background: linear-gradient(90deg,#c9950a,#f0c842); }
-  .tend-fill span  { font-size: 10px; font-weight: 700; color: #fff; white-space: nowrap; }
-
-  /* ── MODAL ── */
-  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 620px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
-  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
-  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); display: flex; align-items: center; gap: 10px; }
-  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
-  .modal-close:hover { background: rgba(255,255,255,.25); }
-  .modal-body { padding: 26px; max-height: 78vh; overflow-y: auto; }
-  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
-
-  /* ── DETALLE MODAL ── */
-  .det-cascada { background: var(--warm-bg); border: 1px solid var(--tan); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
-  .dc-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--tan); font-size: 13px; }
-  .dc-row:last-child { border-bottom: none; }
-  .dc-label { color: var(--brown-lt); }
-  .dc-row.subtotal { background: var(--warm-bg); font-weight: 700; }
-  .dc-row.subtotal .dc-label { color: var(--brown-dk); }
-  .dc-row.total-util { background: var(--brown-dk); }
-  .dc-row.total-util .dc-label { color: rgba(255,255,255,.75); font-weight: 700; }
-  .dc-row.total-util .money { color: var(--cream); font-size: 20px; }
-</style>
-
-<!-- TOPBAR -->
-<div class="db-topbar anim">
+{# ── TOPBAR ── #}
+<div class="uv-topbar anim">
   <div>
-    <div class="db-page-title">📈 Utilidad Diaria</div>
-    <div class="db-breadcrumb">Inicio <span>›</span> Reportes <span>›</span> Utilidad Diaria</div>
+    <div class="uv-page-title">
+      <animated-icons
+        src="/static/icons/income-ca37a84b.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="46" width="46">
+      </animated-icons>
+      Utilidad por Ventas
+    </div>
+    <div class="uv-breadcrumb">
+      Inicio <span>›</span> Reportes <span>›</span> Utilidad por Ventas
+    </div>
   </div>
-  <button class="btn btn-primary" onclick="openModal('modal-detalle-hoy')">📋 Ver Reporte Completo</button>
-</div>
-
-<!-- DATE NAV -->
-<div class="date-nav anim">
-  <button class="date-nav-btn">‹</button>
-  <div>
-    <span class="date-label">Miércoles 4 de Marzo, 2026</span>
-    <span class="date-sub">— Hoy</span>
-  </div>
-  <button class="date-nav-btn" style="opacity:.4;cursor:not-allowed">›</button>
-  <div class="period-btns">
-    <button class="period-btn active">Día</button>
-    <button class="period-btn">Semana</button>
-    <button class="period-btn">Mes</button>
-  </div>
-</div>
-
-<!-- HERO METRICS -->
-<div class="hero-metrics anim anim-1">
-  <div class="hm-card ingresos">
-    <div class="hm-label">💵 Ingresos (Ventas)</div>
-    <div class="hm-val">$4,250</div>
-    <div class="hm-sub">38 tickets · 287 piezas</div>
-  </div>
-  <div class="hm-card costos">
-    <div class="hm-label">🌾 Costo de Producción</div>
-    <div class="hm-val">$1,640</div>
-    <div class="hm-sub">materiales + mermas</div>
-  </div>
-  <div class="hm-card egresos">
-    <div class="hm-label">💸 Otros Egresos</div>
-    <div class="hm-val">$1,840</div>
-    <div class="hm-sub">servicios, mantenimiento…</div>
-  </div>
-  <div class="hm-card utilidad">
-    <div class="hm-label">📈 Utilidad Neta</div>
-    <div class="hm-val">$770</div>
-    <div class="hm-sub" style="color:rgba(255,255,255,.65)">↑ vs ayer $590</div>
-  </div>
-  <div class="hm-card margen">
-    <div class="hm-label">% Margen Neto</div>
-    <div class="hm-val">18%</div>
-    <div class="hm-sub">meta: 20% · ⚠️ bajo meta</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <a id="btn-exportar"
+       href="#"
+       class="btn btn-outline uv-export-btn"
+       title="Exportar a Excel">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           style="flex-shrink:0;">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      Exportar Excel
+    </a>
   </div>
 </div>
 
-<!-- MAIN GRID -->
-<div class="main-grid anim anim-2">
-
-  <!-- CASCADA FINANCIERA -->
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">🪜 Cascada de Utilidad</div>
-      <span style="font-size:11px;color:var(--brown-lt)">Ingresos → Costos → Egresos → Utilidad</span>
+{# ── FILTRO DE FECHAS ── #}
+<div class="uv-filtro-card anim anim-1">
+  <div class="uv-filtro-body">
+    <div class="uv-filtro-group">
+      <label class="uv-filtro-lbl">Fecha inicio</label>
+      <input type="date" id="fecha-inicio"
+             class="uv-date-input"
+             value="{{ fecha_inicio_default }}"
+             max="{{ fecha_fin_default }}">
     </div>
-    <div class="cascada">
-      <div class="casc-row">
-        <span class="casc-icon">💵</span>
-        <span class="casc-label">Ingresos por Ventas</span>
-        <div class="casc-bar-wrap"><div class="casc-bar-fill ingr" style="width:100%"></div></div>
-        <span class="casc-val pos">+$4,250</span>
-        <span class="casc-pct">100%</span>
-      </div>
-      <div class="casc-row">
-        <span class="casc-icon">🌾</span>
-        <span class="casc-label">− Costo de Materiales</span>
-        <div class="casc-bar-wrap"><div class="casc-bar-fill costo" style="width:38%"></div></div>
-        <span class="casc-val neg">−$1,540</span>
-        <span class="casc-pct">36%</span>
-      </div>
-      <div class="casc-row">
-        <span class="casc-icon">⚠️</span>
-        <span class="casc-label">− Mermas aplicadas</span>
-        <div class="casc-bar-wrap"><div class="casc-bar-fill costo" style="width:5%;opacity:.6"></div></div>
-        <span class="casc-val neg">−$100</span>
-        <span class="casc-pct">2%</span>
-      </div>
-      <div class="casc-row" style="background:#fff8f0">
-        <span class="casc-icon">📊</span>
-        <span class="casc-label" style="font-weight:800;color:var(--brown-dk)">= Utilidad Bruta</span>
-        <div class="casc-bar-wrap"><div class="casc-bar-fill util" style="width:62%"></div></div>
-        <span class="casc-val main">$2,610</span>
-        <span class="casc-pct">61%</span>
-      </div>
-      <div class="casc-row">
-        <span class="casc-icon">⚡</span>
-        <span class="casc-label">− Servicios / Utilities</span>
-        <div class="casc-bar-wrap"><div class="casc-bar-fill egr" style="width:9%"></div></div>
-        <span class="casc-val gold">−$400</span>
-        <span class="casc-pct">9%</span>
-      </div>
-      <div class="casc-row">
-        <span class="casc-icon">🔧</span>
-        <span class="casc-label">− Mantenimiento</span>
-        <div class="casc-bar-wrap"><div class="casc-bar-fill egr" style="width:6%"></div></div>
-        <span class="casc-val gold">−$240</span>
-        <span class="casc-pct">6%</span>
-      </div>
-      <div class="casc-row">
-        <span class="casc-icon">🛒</span>
-        <span class="casc-label">− Otros egresos</span>
-        <div class="casc-bar-wrap"><div class="casc-bar-fill egr" style="width:28%"></div></div>
-        <span class="casc-val gold">−$1,200</span>
-        <span class="casc-pct">28%</span>
-      </div>
-      <div class="casc-row utilidad-row">
-        <span class="casc-icon">🏆</span>
-        <span class="casc-label">= UTILIDAD NETA</span>
-        <div class="casc-bar-wrap"><div class="casc-bar-fill util" style="width:18%"></div></div>
-        <span class="casc-val pos" style="font-size:18px">$770</span>
-        <span class="casc-pct" style="color:var(--brown);font-weight:700">18%</span>
-      </div>
+    <span class="uv-filtro-sep">—</span>
+    <div class="uv-filtro-group">
+      <label class="uv-filtro-lbl">Fecha fin</label>
+      <input type="date" id="fecha-fin"
+             class="uv-date-input"
+             value="{{ fecha_fin_default }}"
+             max="{{ fecha_fin_default }}">
+    </div>
+    <button id="btn-consultar" class="btn btn-primary uv-consultar-btn">
+      Consultar
+    </button>
+    <div class="uv-shortcuts">
+      <button class="uv-sc-btn" data-dias="7">7 días</button>
+      <button class="uv-sc-btn" data-dias="30">30 días</button>
+      <button class="uv-sc-btn" data-dias="90">90 días</button>
     </div>
   </div>
+  <div id="uv-estado" class="uv-estado"></div>
+</div>
 
-  <!-- POR PRODUCTO -->
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">🍞 Utilidad por Producto</div>
-    </div>
-    <div class="panel-body">
-      <div class="rent-row">
-        <span class="rent-emoji">🍞</span>
-        <div style="flex:1">
-          <div class="rent-name">Concha de Vainilla</div>
-          <div class="rent-piezas">96 pzas × $7.80</div>
-          <div class="rent-bar-wrap" style="margin-top:4px"><div class="rent-bar-fill rent-bar-high" style="width:100%"></div></div>
-        </div>
-        <span class="rent-util high">$748.80</span>
-      </div>
-      <div class="rent-row">
-        <span class="rent-emoji">🥖</span>
-        <div style="flex:1">
-          <div class="rent-name">Bolillo Relleno</div>
-          <div class="rent-piezas">72 pzas × $9.50</div>
-          <div class="rent-bar-wrap" style="margin-top:4px"><div class="rent-bar-fill rent-bar-high" style="width:91%"></div></div>
-        </div>
-        <span class="rent-util high">$684.00</span>
-      </div>
-      <div class="rent-row">
-        <span class="rent-emoji">🥐</span>
-        <div style="flex:1">
-          <div class="rent-name">Cuernito Mantequilla</div>
-          <div class="rent-piezas">48 pzas × $5.90</div>
-          <div class="rent-bar-wrap" style="margin-top:4px"><div class="rent-bar-fill rent-bar-mid" style="width:38%"></div></div>
-        </div>
-        <span class="rent-util mid">$283.20</span>
-      </div>
-      <div class="rent-row">
-        <span class="rent-emoji">🍫</span>
-        <div style="flex:1">
-          <div class="rent-name">Pan de Chocolate</div>
-          <div class="rent-piezas">42 pzas × $7.20</div>
-          <div class="rent-bar-wrap" style="margin-top:4px"><div class="rent-bar-fill rent-bar-mid" style="width:40%"></div></div>
-        </div>
-        <span class="rent-util mid">$302.40</span>
-      </div>
-      <div class="rent-row">
-        <span class="rent-emoji">🍩</span>
-        <div style="flex:1">
-          <div class="rent-name">Dona Glaseada</div>
-          <div class="rent-piezas">29 pzas × $7.40</div>
-          <div class="rent-bar-wrap" style="margin-top:4px"><div class="rent-bar-fill rent-bar-mid" style="width:28%"></div></div>
-        </div>
-        <span class="rent-util mid">$214.60</span>
-      </div>
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--tan);display:flex;justify-content:space-between;">
-        <span style="font-size:11px;font-weight:700;color:var(--brown-lt);text-transform:uppercase;letter-spacing:.8px;">Utilidad Bruta Total</span>
-        <span style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#3a6034;">$2,610.00</span>
-      </div>
-    </div>
+{# ── KPI CARDS ── #}
+<div class="uv-kpis anim anim-2">
+
+  <div class="uv-kpi-card kpi-ingresos">
+    <div class="uv-kpi-lbl">Ingresos</div>
+    <div class="uv-kpi-val" id="kpi-ingresos">—</div>
+    <div class="uv-kpi-sub" id="kpi-ventas-count">— ventas</div>
+  </div>
+
+  <div class="uv-kpi-card kpi-costo">
+    <div class="uv-kpi-lbl">Costo de Producción</div>
+    <div class="uv-kpi-val" id="kpi-costo">—</div>
+    <div class="uv-kpi-sub" id="kpi-productos-count">— productos</div>
+  </div>
+
+  <div class="uv-kpi-card kpi-utilidad">
+    <div class="uv-kpi-lbl">Utilidad Bruta</div>
+    <div class="uv-kpi-val" id="kpi-utilidad">—</div>
+    <div class="uv-kpi-sub">Ingresos − Costos de receta</div>
+  </div>
+
+  <div class="uv-kpi-card kpi-margen">
+    <div class="uv-kpi-lbl">Margen Promedio</div>
+    <div class="uv-kpi-val" id="kpi-margen">—</div>
+    <div class="uv-kpi-sub">Utilidad / Precio de venta</div>
   </div>
 
 </div>
 
-<!-- TENDENCIA 7 DÍAS -->
-<div class="main-grid-3 anim anim-3">
+{# ── TABLA: RESUMEN POR PRODUCTO ── #}
+<div class="uv-sec-label anim anim-3">Rentabilidad por Producto</div>
 
-  <div class="panel-card" style="grid-column:1/3">
-    <div class="panel-header">
-      <div class="panel-title">📅 Tendencia — Últimos 7 días</div>
-      <span style="font-size:11px;color:var(--brown-lt)">Utilidad neta diaria</span>
-    </div>
-    <div class="panel-body">
-      <div class="tend-row"><span class="tend-fecha">Jue 26/02</span><div class="tend-track"><div class="tend-fill good" style="width:62%"><span>$650</span></div></div></div>
-      <div class="tend-row"><span class="tend-fecha">Vie 27/02</span><div class="tend-track"><div class="tend-fill great" style="width:88%"><span>$920</span></div></div></div>
-      <div class="tend-row"><span class="tend-fecha">Sáb 28/02</span><div class="tend-track"><div class="tend-fill great" style="width:100%"><span>$1,050 🏆</span></div></div></div>
-      <div class="tend-row"><span class="tend-fecha">Dom 01/03</span><div class="tend-track"><div class="tend-fill great" style="width:94%"><span>$980</span></div></div></div>
-      <div class="tend-row"><span class="tend-fecha">Lun 02/03</span><div class="tend-track"><div class="tend-fill good" style="width:52%"><span>$540</span></div></div></div>
-      <div class="tend-row"><span class="tend-fecha">Mar 03/03</span><div class="tend-track"><div class="tend-fill good" style="width:56%"><span>$590</span></div></div></div>
-      <div class="tend-row"><span class="tend-fecha">Hoy</span><div class="tend-track"><div class="tend-fill low" style="width:73%"><span>$770 ⚠️</span></div></div></div>
-    </div>
-  </div>
-
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">🎯 Indicadores Clave</div>
-    </div>
-    <div class="panel-body" style="display:flex;flex-direction:column;gap:12px;">
-      <div style="background:var(--warm-bg);border-radius:9px;padding:12px 14px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Mejor día (7 días)</div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--brown-dk);">$1,050</div>
-        <div style="font-size:11px;color:var(--brown-lt)">Sábado 28/02</div>
-      </div>
-      <div style="background:var(--warm-bg);border-radius:9px;padding:12px 14px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Promedio 7 días</div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--brown-dk);">$786</div>
-        <div style="font-size:11px;color:#8a6200">Hoy está −2% del promedio</div>
-      </div>
-      <div style="background:#fce8df;border-radius:9px;padding:12px 14px;border:1px solid #e8b09a;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9c3a1a;margin-bottom:4px;">⚠️ Alerta de Margen</div>
-        <div style="font-size:12.5px;color:var(--rust);font-weight:700;">18% &lt; meta 20%</div>
-        <div style="font-size:11px;color:#9c3a1a;margin-top:2px">Reducir egresos o aumentar precio de Cuernito</div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- HISTORIAL -->
 <div class="panel-card anim anim-3">
   <div class="panel-header">
-    <div class="panel-title">📅 Historial de Utilidad Diaria</div>
-  </div>
-  <table class="hist-table">
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Ingresos</th>
-        <th>Costo Prod.</th>
-        <th>Otros Egresos</th>
-        <th>Utilidad Bruta</th>
-        <th>Utilidad Neta</th>
-        <th>Margen</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr style="background:#f3e8d8;font-weight:700" onclick="openModal('modal-detalle-hoy')">
-        <td>Hoy 04/03</td>
-        <td><span class="money pos">$4,250</span></td>
-        <td><span class="money neg">$1,640</span></td>
-        <td><span class="money" style="color:#8a6200">$1,840</span></td>
-        <td><span class="money">$2,610</span></td>
-        <td><span class="money pos">$770</span></td>
-        <td><span class="margen-chip margen-low">18%</span></td>
-        <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openModal('modal-detalle-hoy')">👁️</button></td>
-      </tr>
-      <tr onclick="openModal('modal-detalle-hoy')">
-        <td>Mar 03/03</td>
-        <td><span class="money pos">$4,360</span></td>
-        <td><span class="money neg">$1,720</span></td>
-        <td><span class="money" style="color:#8a6200">$2,050</span></td>
-        <td><span class="money">$2,640</span></td>
-        <td><span class="money pos">$590</span></td>
-        <td><span class="margen-chip margen-low">14%</span></td>
-        <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openModal('modal-detalle-hoy')">👁️</button></td>
-      </tr>
-      <tr onclick="openModal('modal-detalle-hoy')">
-        <td>Dom 01/03</td>
-        <td><span class="money pos">$5,600</span></td>
-        <td><span class="money neg">$2,100</span></td>
-        <td><span class="money" style="color:#8a6200">$1,520</span></td>
-        <td><span class="money">$3,500</span></td>
-        <td><span class="money pos">$980</span></td>
-        <td><span class="margen-chip margen-high">18%</span></td>
-        <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openModal('modal-detalle-hoy')">👁️</button></td>
-      </tr>
-      <tr onclick="openModal('modal-detalle-hoy')">
-        <td>Sáb 28/02</td>
-        <td><span class="money pos">$6,600</span></td>
-        <td><span class="money neg">$2,480</span></td>
-        <td><span class="money" style="color:#8a6200">$2,070</span></td>
-        <td><span class="money">$4,120</span></td>
-        <td><span class="money pos">$1,050</span></td>
-        <td><span class="margen-chip margen-high">16%</span></td>
-        <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openModal('modal-detalle-hoy')">👁️</button></td>
-      </tr>
-    </tbody>
-  </table>
-  <div class="table-footer">
-    <p>Mostrando 4 de 30 días</p>
-    <div class="pagination">
-      <div class="page-btn active">1</div>
-      <div class="page-btn">2</div>
-      <div class="page-btn">3</div>
-      <div class="page-btn">›</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     MODAL: REPORTE COMPLETO DEL DÍA
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-detalle-hoy">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>📋 Reporte de Utilidad — 04/03/2026</h2>
-      <button class="modal-close" onclick="closeModal('modal-detalle-hoy')">✕</button>
-    </div>
-    <div class="modal-body">
-
-      <div style="background:linear-gradient(135deg,var(--brown-dk),#8b5e3c);border-radius:12px;padding:18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-size:11px;color:rgba(255,255,255,.65);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Utilidad Neta del Día</div>
-          <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--cream);">$770.00</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px;">Margen neto: 18% · Meta: 20%</div>
+    <div class="panel-title">Resumen agrupado por producto en el período</div>
+    <div style="display:flex;align-items:center;gap:8px;position:relative;">
+      <span style="font-size:11px;color:var(--brown-lt);">Costo promedio anual · precio real de venta</span>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Resumen por Producto</strong>
+          <span class="dm-info-tag">Solo productos que se vendieron en el período</span>
+          Agrupa todas las ventas del período por producto y muestra cuánto ganó la panadería con cada uno.
+          <ul>
+            <li><b>Costo:</b> calculado con el precio promedio al que se compraron los ingredientes en el último año. Si algún ingrediente no tiene compras recientes, se usa el último precio registrado.</li>
+            <li><b>Precio promedio de venta:</b> el promedio de los precios reales cobrados al cliente durante el período — no el precio del catálogo.</li>
+            <li><b>Ganancia total:</b> lo que generó el producto en ese período, descontando lo que costó hacerlo.</li>
+            <li><b>Margen:</b> qué porcentaje del precio de venta quedó como ganancia.</li>
+          </ul>
         </div>
-        <div style="font-size:48px;opacity:.6">📈</div>
       </div>
-
-      <div class="det-cascada">
-        <div class="dc-row"><span class="dc-label">💵 Ingresos por Ventas</span><span class="money pos">$4,250.00</span></div>
-        <div class="dc-row"><span class="dc-label">🌾 Costo de Materiales</span><span class="money neg">−$1,540.00</span></div>
-        <div class="dc-row"><span class="dc-label">⚠️ Mermas</span><span class="money neg">−$100.00</span></div>
-        <div class="dc-row subtotal"><span class="dc-label">= Utilidad Bruta</span><span class="money">$2,610.00 (61%)</span></div>
-        <div class="dc-row"><span class="dc-label">⚡ Servicios</span><span class="money" style="color:#8a6200">−$400.00</span></div>
-        <div class="dc-row"><span class="dc-label">🔧 Mantenimiento</span><span class="money" style="color:#8a6200">−$240.00</span></div>
-        <div class="dc-row"><span class="dc-label">🛒 Otros egresos</span><span class="money" style="color:#8a6200">−$1,200.00</span></div>
-        <div class="dc-row total-util"><span class="dc-label">= UTILIDAD NETA</span><span class="money">$770.00</span></div>
-      </div>
-
-      <div style="background:var(--warm-bg);border-radius:9px;padding:13px 16px;font-size:12.5px;color:var(--brown-dk);">
-        <strong>💡 Recomendación:</strong> El margen de hoy (18%) está por debajo de la meta del 20%. Se sugiere revisar los egresos de "Compra de Insumos" o ajustar el precio de venta del Cuernito de Mantequilla.
-      </div>
-
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-detalle-hoy')">Cerrar</button>
-      <button class="btn btn-primary">🖨️ Exportar Reporte</button>
+  </div>
+  <div class="panel-body" style="padding:0;">
+    <div id="spinner-prod" class="uv-spinner" style="display:none;">
+      <div class="uv-spin-circle"></div> Cargando…
+    </div>
+    <table class="uv-tbl" id="tbl-prod" style="display:none;">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th style="text-align:right;">Piezas</th>
+          <th style="text-align:right;">Precio prom. venta</th>
+          <th style="text-align:right;">Costo unitario</th>
+          <th style="text-align:right;">Utilidad / pza</th>
+          <th style="text-align:right;">Margen %</th>
+          <th style="text-align:right;">Utilidad Total</th>
+          <th style="text-align:right;">Ingresos</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-prod"></tbody>
+    </table>
+    <div id="empty-prod" class="uv-empty" style="display:none;">
+      Sin ventas en el período seleccionado.
     </div>
   </div>
 </div>
 
-<script>
-  function openModal(id)  { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-  });
+{# ── TABLA: DETALLE POR VENTA ── #}
+<div class="uv-sec-label anim anim-4" style="margin-top:24px;">
+  Detalle de Ventas — línea a línea
+</div>
 
-  document.querySelectorAll('.period-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-</script>
+<div class="panel-card anim anim-4">
+  <div class="panel-header">
+    <div class="panel-title">Ganancia por cada línea de venta</div>
+    <div style="display:flex;align-items:center;gap:8px;position:relative;">
+      <span style="font-size:11px;color:var(--brown-lt);">Precio al momento de la venta</span>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Detalle de Ventas</strong>
+          <span class="dm-info-tag">Cada fila es un producto de una venta</span>
+          Muestra cada producto vendido en cada transacción, con el precio al que se cobró en ese momento.
+          <ul>
+            <li><b>Precio de venta:</b> el precio real al que se vendió ese producto en esa venta. Nunca se actualiza con el precio actual del catálogo, así que refleja exactamente lo que pagó el cliente.</li>
+            <li><b>Costo:</b> calculado con el precio promedio al que se compraron los ingredientes en el último año.</li>
+            <li><b>Ganancia total:</b> lo que quedó después de restar el costo a lo que se cobró.</li>
+            <li>Solo aparecen ventas que ya fueron completadas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-body" style="padding:0;">
+    <div id="spinner-det" class="uv-spinner">
+      <div class="uv-spin-circle"></div> Cargando…
+    </div>
+    <table class="uv-tbl" id="tbl-det" style="display:none;">
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Fecha</th>
+          <th>Producto</th>
+          <th style="text-align:right;">Cant.</th>
+          <th style="text-align:right;">Precio venta</th>
+          <th style="text-align:right;">Costo unit.</th>
+          <th style="text-align:right;">Utilidad / pza</th>
+          <th style="text-align:right;">Utilidad total</th>
+          <th style="text-align:right;">Ingreso</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-det"></tbody>
+    </table>
+    <div id="empty-det" class="uv-empty" style="display:none;">
+      Sin datos en el período seleccionado.
+    </div>
+    {# Paginación #}
+    <div class="uv-paginador" id="pag-det" style="display:none;">
+      <button class="btn btn-outline uv-pag-btn" id="pag-det-ant">‹ Anterior</button>
+      <span id="pag-det-info" class="uv-pag-info"></span>
+      <button class="btn btn-outline uv-pag-btn" id="pag-det-sig">Siguiente ›</button>
+    </div>
+  </div>
+</div>
 
-<div style="height:40px"></div>
+<div style="height:36px;"></div>
+
+<script src="{{ url_for('static', filename='js/utilidad.js') }}"></script>
 {% endblock %}

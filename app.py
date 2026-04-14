@@ -28,6 +28,7 @@ from produccionDiaria import produccion_diaria as pd_bp
 from ventas.routes import ventas
 from efectivo.routes import efectivo
 from costoUtilidad.routes import costoUtilidad
+from backup.routes import backup_bp
 from usuarios.routes import registrar_usuario_bp
 from productos.routes import productos_bp
 from pedidos import pedidos_bp
@@ -89,6 +90,7 @@ app.register_blueprint(recetas_bp)
 app.register_blueprint(ventas, url_prefix='/ventas')
 app.register_blueprint(efectivo)
 app.register_blueprint(costoUtilidad)
+app.register_blueprint(backup_bp)
 app.register_blueprint(registrar_usuario_bp)
 app.register_blueprint(productos_bp)
 app.register_blueprint(pedidos_bp)  

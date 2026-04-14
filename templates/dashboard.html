@@ -75,11 +75,25 @@
           src="/static/icons/conversion-rate-fd11b837.json"
           trigger="loop"
           attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-          height="40"
-          width="40"
+          height="40" width="40"
         ></animated-icons>
       </div>
-      <span class="dm-badge neutral" id="badge-ventas">—</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="dm-badge neutral" id="badge-ventas">—</span>
+        <div class="dm-info-wrap">
+          <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+          <div class="dm-info-pop">
+            <strong>Ingresos del Período</strong>
+            <span class="dm-info-tag">Ventas en mostrador + Pedidos entregados</span>
+            Es el dinero total que entró a la panadería durante el período que tienes seleccionado.
+            <ul>
+              <li>Incluye tanto las ventas hechas en mostrador como los pedidos que ya fueron entregados al cliente.</li>
+              <li>La flecha indica si se vendió más o menos que en el período anterior del mismo tamaño.</li>
+              <li>Puedes cambiar el período con los botones: Hoy, Esta semana, Este mes o Este año.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="sc-val" id="kpi-ventas-total">—</div>
     <div class="sc-lbl">Ingresos del período</div>
@@ -94,9 +108,22 @@
           src="/static/icons/income-ca37a84b.json"
           trigger="loop"
           attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-          height="40"
-          width="40"
+          height="40" width="40"
         ></animated-icons>
+      </div>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Período Anterior</strong>
+          <span class="dm-info-tag">Para comparar si estás vendiendo más o menos</span>
+          Muestra cuánto se vendió en el período inmediatamente anterior, para que puedas ver si hay mejoría.
+          <ul>
+            <li><b>Hoy seleccionado:</b> muestra lo de ayer.</li>
+            <li><b>Esta semana:</b> muestra la semana pasada.</li>
+            <li><b>Este mes:</b> muestra el mes pasado.</li>
+            <li><b>Este año:</b> muestra el año pasado.</li>
+          </ul>
+        </div>
       </div>
     </div>
     <div class="sc-val" id="kpi-ventas-anterior">—</div>
@@ -116,7 +143,22 @@
                 height="40" width="40">
         </animated-icons>
       </div>
-      <span class="dm-badge neutral" id="badge-salidas">—</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="dm-badge neutral" id="badge-salidas">—</span>
+        <div class="dm-info-wrap">
+          <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+          <div class="dm-info-pop">
+            <strong>Salidas de Efectivo</strong>
+            <span class="dm-info-tag">Solo gastos ya autorizados</span>
+            Es el total de dinero que salió de caja para cubrir gastos de la panadería durante el período.
+            <ul>
+              <li>Solo se cuentan los gastos que ya fueron autorizados. Los pendientes de revisión no aparecen.</li>
+              <li>Puede incluir: pago de servicios, mantenimiento, compras urgentes u otros gastos operativos.</li>
+              <li>La flecha indica si se gastó más o menos que en el período anterior.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="sc-val" id="kpi-salidas-total">—</div>
     <div class="sc-lbl">Salidas de efectivo aprobadas</div>
@@ -129,7 +171,7 @@
 {# Gráfica de ingresos diarios #}
 <div class="panel-card anim anim-2" style="margin-bottom:24px;">
   <div class="panel-header">
-    <div class="panel-title"> 
+    <div class="panel-title">
       <animated-icons
         src="/static/icons/prices-continue-to-rise-2df62946.json"
         trigger="loop"
@@ -139,7 +181,22 @@
       ></animated-icons>
       Ingresos por Día
     </div>
-    <span style="font-size:11px;color:var(--brown-lt);" id="label-periodo-grafica">Esta semana</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;color:var(--brown-lt);" id="label-periodo-grafica">Esta semana</span>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Ingresos por Día</strong>
+          <span class="dm-info-tag">Cuánto entró cada día</span>
+          Cada barra de la gráfica muestra el dinero que ingresó a la panadería en ese día.
+          <ul>
+            <li>Se suman las ventas de mostrador y los pedidos entregados en cada día.</li>
+            <li>Cambia el rango con el filtro de período para ver hoy, la semana, el mes o el año.</li>
+            <li>Es útil para identificar los días con más y menos movimiento.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="panel-body">
     <div style="position:relative;height:200px;">
@@ -168,9 +225,23 @@
 <div class="panel-card anim anim-3">
   <div class="panel-header">
     <div class="panel-title">Rentabilidad por Producto</div>
-    <span style="font-size:11px;color:var(--brown-lt);">
-      Costo calculado con precios promedio de compras del último mes
-    </span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;color:var(--brown-lt);">Precio promedio últimos 30 días · Costo promedio anual</span>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Rentabilidad por Producto</strong>
+          <span class="dm-info-tag">Qué tan rentable es cada producto</span>
+          Aparecen todos los productos activos que tienen receta registrada, hayan tenido ventas recientes o no.
+          <ul>
+            <li><b>Costo:</b> calculado con el precio promedio al que se compraron los ingredientes durante el último año. Si algún ingrediente no tiene compras recientes, se usa el último precio que se registró.</li>
+            <li><b>Precio de venta:</b> promedio de los precios reales de los últimos 30 días. Si el producto no tuvo ventas recientes, se usa el precio actual del catálogo.</li>
+            <li><b>Ganancia por pieza:</b> lo que queda después de restar lo que costó producir el producto.</li>
+            <li><b>Margen:</b> qué porcentaje del precio de venta es ganancia real.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="panel-body" style="padding:0;">
     <table class="dm-tbl">
@@ -215,7 +286,22 @@
 <div class="panel-card anim anim-4">
   <div class="panel-header">
     <div class="panel-title">Productos más vendidos</div>
-    <span style="font-size:11px;color:var(--brown-lt);">Últimos 7 días · por piezas despachadas</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:11px;color:var(--brown-lt);">Últimos 7 días · por piezas despachadas</span>
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Top 5 Productos Más Vendidos</strong>
+          <span class="dm-info-tag">Últimos 7 días</span>
+          Los cinco productos que más piezas se vendieron en los últimos 7 días, de mayor a menor.
+          <ul>
+            <li>Se cuentan las ventas en mostrador y los pedidos entregados al cliente.</li>
+            <li>Si un pedido se convirtió en venta, se registra una sola vez para no duplicar.</li>
+            <li>Los ingresos corresponden al dinero real que generó cada producto en esas ventas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="panel-body" style="padding:0;">
     <table class="dm-tbl">
@@ -250,16 +336,33 @@
 <div class="panel-card anim anim-5">
   <div class="panel-header">
     <div class="panel-title">Materias primas que requieren reabastecimiento</div>
-    <a href="/materias-primas" style="font-size:12px;color:var(--brown-dk);text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
-      Ver inventario completo
-      <animated-icons
-        src="/static/icons/arrow-70afdd31.json"
-        trigger="loop"
-        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-        height="30"
-        width="30"
-      ></animated-icons>
-    </a>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="dm-info-wrap">
+        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+        <div class="dm-info-pop">
+          <strong>Insumos Bajo Stock Mínimo</strong>
+          <span class="dm-info-tag">Insumos que necesitan reabastecerse</span>
+          Solo aparecen los ingredientes cuya existencia actual está por debajo del mínimo requerido.
+          <ul>
+            <li><b>Crítico:</b> no quedan existencias del insumo.</li>
+            <li><b>Bajo:</b> queda menos de la mitad del mínimo requerido.</li>
+            <li><b>Advertencia:</b> queda entre la mitad y el mínimo requerido — conviene reordenar pronto.</li>
+            <li>La barra de color muestra visualmente qué tan cerca está del agotamiento.</li>
+            <li>Las existencias se actualizan automáticamente cada vez que se registra producción.</li>
+          </ul>
+        </div>
+      </div>
+      <a href="/materias-primas" style="font-size:12px;color:var(--brown-dk);text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
+        Ver inventario completo
+        <animated-icons
+          src="/static/icons/arrow-70afdd31.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30"
+          width="30"
+        ></animated-icons>
+      </a>
+    </div>
   </div>
   <div class="panel-body" style="padding:0;">
     <table class="dm-tbl">

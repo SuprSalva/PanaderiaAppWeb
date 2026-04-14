@@ -171,3 +171,24 @@
 /* ── Refresh spin ────────────────────────────────────────────── */
 @keyframes dm-spin { to { transform:rotate(360deg); } }
 .spinning { animation:dm-spin .8s linear infinite; }
+
+/* ── Botón de información (ⓘ) ───────────────────────────────── */
+.dm-info-btn {
+  width:20px; height:20px; border-radius:50%;
+  border:1.5px solid var(--tan);
+  background:var(--white); color:var(--brown-lt);
+  font-size:11px; font-weight:700; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all .15s; line-height:1;
+  font-family:'Lato',sans-serif;
+}
+.dm-info-btn:hover {
+  background:var(--brown-dk); color:var(--cream);
+  border-color:var(--brown-dk);
+}
+.dm-info-wrap {
+  display:inline-flex; align-items:center;
+}
+
+/* .dm-info-pop actúa solo como contenedor de datos; el modal en layout.html lo muestra */
+.dm-info-pop { display:none !important; }
