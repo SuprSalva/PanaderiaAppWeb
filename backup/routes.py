@@ -10,6 +10,7 @@ Rutas:
 """
 
 import os
+import re
 import gzip
 import shutil
 import subprocess
@@ -17,11 +18,12 @@ import datetime
 
 from flask import (
     Blueprint, render_template, redirect, url_for,
-    flash, send_file, request, current_app, jsonify
+    flash, send_file, request, current_app
 )
 from flask_login import login_required
 from werkzeug.utils import secure_filename
 from auth import roles_required
+from models import db
 
 backup_bp = Blueprint('backup', __name__, url_prefix='/backup')
 
@@ -34,7 +36,7 @@ BKP_PASS  = 'Bkp!DulceMigaja2024#'
 RST_USER  = 'dm_restore'
 RST_PASS  = 'Rst!DulceMigaja2024#'
 
-BACKUP_DIR   = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'backups')
+BACKUP_DIR   = r'C:\backups'
 MAX_UPLOAD   = 200 * 1024 * 1024   # 200 MB
 ALLOWED_EXT  = {'.sql', '.gz'}
 
@@ -130,8 +132,7 @@ def crear():
         '--single-transaction',
         '--routines',
         '--triggers',
-        '--events',
-        '--set-gtid-purged=OFF',
+        '--no-tablespaces',
         '--column-statistics=0',
         DB_NAME,
     ]
@@ -259,15 +260,34 @@ def eliminar(nombre):
 
 # ── Lógica de restauración ────────────────────────────────────────────────────
 
+_RE_DEFINER = re.compile(
+    r'DEFINER\s*=\s*`[^`]*`\s*@\s*`[^`]*`\s*',
+    re.IGNORECASE,
+)
+
+def _strip_definers(sql_bytes):
+    """
+    Elimina las cláusulas DEFINER=`user`@`host` del SQL.
+    Necesario cuando el usuario de restauración no tiene SUPER
+    y el dump fue creado con un definer distinto.
+    """
+    texto = sql_bytes.decode('utf-8', errors='replace')
+    texto = _RE_DEFINER.sub('', texto)
+    return texto.encode('utf-8')
+
+
 def _ejecutar_restauracion(ruta_archivo, comprimido):
     mysql_bin = _find_bin(_MYSQL_CANDIDATES)
 
+    # dm_restore tiene ALL PRIVILEGES en dulce_migaja (DROP, CREATE, ALTER, etc.)
+    # Los DEFINER ya se eliminan del SQL, así no requiere SUPER.
     cmd = [
         mysql_bin,
         f'--host={DB_HOST}',
         f'--port={DB_PORT}',
         f'--user={RST_USER}',
         f'--password={RST_PASS}',
+        '--default-character-set=utf8mb4',
         DB_NAME,
     ]
 
@@ -279,6 +299,24 @@ def _ejecutar_restauracion(ruta_archivo, comprimido):
             with open(ruta_archivo, 'rb') as f:
                 datos_sql = f.read()
 
+        # Eliminar DEFINER para evitar errores de permisos con vistas/SPs/triggers
+        datos_sql = _strip_definers(datos_sql)
+
+        # Habilitar la creación de SPs/triggers con binary logging activo.
+        # Se restaura al valor 0 al terminar para no dejar el servidor inseguro.
+        preambulo = b'SET GLOBAL log_bin_trust_function_creators = 1;\n'
+        epilogo   = b'\nSET GLOBAL log_bin_trust_function_creators = 0;\n'
+        datos_sql = preambulo + datos_sql + epilogo
+
+        # ── Cerrar todas las conexiones activas de SQLAlchemy ─────────────────
+        # Si no se hace esto, MySQL puede rechazar el DROP TABLE porque Flask
+        # tiene transacciones abiertas sobre las mismas tablas.
+        try:
+            db.session.remove()
+            db.engine.dispose()
+        except Exception:
+            pass
+
         resultado = subprocess.run(
             cmd,
             input=datos_sql,
@@ -286,19 +324,31 @@ def _ejecutar_restauracion(ruta_archivo, comprimido):
             timeout=600,
         )
 
-        if resultado.returncode != 0:
-            stderr = resultado.stderr.decode('utf-8', errors='replace')
-            lineas_error = [l for l in stderr.splitlines()
-                            if 'password' not in l.lower() and l.strip()]
-            if lineas_error:
-                flash(f'Error al restaurar: {" | ".join(lineas_error[:3])}', 'error')
-                return
+        stderr = resultado.stderr.decode('utf-8', errors='replace')
+        lineas_error = [
+            l for l in stderr.splitlines()
+            if l.strip() and 'password' not in l.lower()
+        ]
+
+        if resultado.returncode != 0 and lineas_error:
+            flash(f'Error al restaurar: {" | ".join(lineas_error[:3])}', 'error')
+            return
+
+        # ── Reabrir el pool de conexiones ──────────────────────────────────────
+        # dispose() lo cerró; la primera consulta siguiente lo recreará sola,
+        # pero llamamos connect() para verificar que la BD quedó operativa.
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(db.text('SELECT 1'))
+        except Exception:
+            pass
 
         nombre = os.path.basename(ruta_archivo)
         flash(f'Base de datos restaurada exitosamente desde "{nombre}".', 'success')
 
     except FileNotFoundError:
-        flash('No se encontró el cliente mysql en el sistema.', 'error')
+        flash('No se encontró el cliente mysql en el sistema. '
+              'Verifica que MySQL esté instalado y en el PATH.', 'error')
     except gzip.BadGzipFile:
         flash('El archivo .gz está corrupto o no es un gzip válido.', 'error')
     except subprocess.TimeoutExpired:

@@ -37,24 +37,42 @@
   </form>
 </div>
 
-{# ── FLASH MESSAGES ── #}
+{# ── MODAL DE NOTIFICACIONES ── #}
 {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for cat, msg in messages %}
-    <div class="bk-alert bk-alert-{{ 'ok' if cat == 'success' else 'err' }} anim">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+{% if messages %}
+{%   set cat, msg = messages[-1] %}
+{%   set es_ok = (cat == 'success') %}
+<div class="bk-notif-backdrop" id="bk-notif-backdrop" onclick="bkCerrarModal()">
+  <div class="bk-notif-modal bk-notif-{{ 'ok' if es_ok else 'err' }}" onclick="event.stopPropagation()">
+    <div class="bk-notif-icon">
+      {% if es_ok %}
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        {% if cat == 'success' %}
+        <circle cx="12" cy="12" r="10"/>
         <polyline points="20 6 9 17 4 12"/>
-        {% else %}
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-        {% endif %}
       </svg>
-      {{ msg }}
+      {% else %}
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      {% endif %}
     </div>
-    {% endfor %}
-  {% endif %}
+    <div class="bk-notif-titulo">{{ 'Operación exitosa' if es_ok else 'Error' }}</div>
+    <div class="bk-notif-msg">{{ msg }}</div>
+    {% if messages|length > 1 %}
+    <div class="bk-notif-extra">
+      {% for c2, m2 in messages[:-1] %}
+      <div class="bk-notif-extra-item bk-notif-{{ 'ok' if c2 == 'success' else 'err' }}-lt">{{ m2 }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <button class="bk-notif-close" onclick="bkCerrarModal()">Aceptar</button>
+  </div>
+</div>
+{% endif %}
 {% endwith %}
 
 {# ── INFO CARD ── #}
@@ -123,7 +141,7 @@
           {# Restaurar #}
           <form method="POST"
                 action="{{ url_for('backup.restaurar', nombre=b.nombre) }}"
-                onsubmit="return confirmarRestore('{{ b.nombre }}')">
+                onsubmit="return confirmarRestore('{{ b.nombre }}', this)">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="bk-icon-btn bk-icon-restore" title="Restaurar">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -136,7 +154,7 @@
           {# Eliminar #}
           <form method="POST"
                 action="{{ url_for('backup.eliminar', nombre=b.nombre) }}"
-                onsubmit="return confirmarEliminar('{{ b.nombre }}')">
+                onsubmit="return confirmarEliminar('{{ b.nombre }}', this)">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="bk-icon-btn bk-icon-del" title="Eliminar">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -288,8 +306,104 @@ function confirmarEliminar(nombre) {
 
 function confirmarSubir() {
   const fi = document.getElementById('bk-file-input');
-  if (!fi.files || !fi.files[0]) { alert('Selecciona un archivo primero.'); return false; }
-  return confirm(`¿Restaurar la base de datos desde "${fi.files[0].name}"?\n\n⚠ Esto reemplazará TODOS los datos actuales. Esta acción no se puede deshacer.`);
+  if (!fi.files || !fi.files[0]) { bkAlerta('Selecciona un archivo primero.', false); return false; }
+  return bkConfirmar(`¿Restaurar la base de datos desde "${fi.files[0].name}"?\n\nEsto reemplazará TODOS los datos actuales y no se puede deshacer.`);
 }
+
+/* ── Modal de notificación (reemplaza alert/confirm nativos del navegador) ── */
+function bkCerrarModal() {
+  const el = document.getElementById('bk-notif-backdrop');
+  if (el) { el.classList.add('bk-notif-salir'); setTimeout(() => el.remove(), 250); }
+}
+
+/* Abrir modal de notificación programáticamente (para validaciones JS) */
+function bkAlerta(msg, esOk = false) {
+  const old = document.getElementById('bk-notif-backdrop');
+  if (old) old.remove();
+  const tipo = esOk ? 'ok' : 'err';
+  const icono = esOk
+    ? `<circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/>`
+    : `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`;
+  const div = document.createElement('div');
+  div.id = 'bk-notif-backdrop';
+  div.className = 'bk-notif-backdrop';
+  div.onclick = bkCerrarModal;
+  div.innerHTML = `
+    <div class="bk-notif-modal bk-notif-${tipo}" onclick="event.stopPropagation()">
+      <div class="bk-notif-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${icono}</svg>
+      </div>
+      <div class="bk-notif-titulo">${esOk ? 'Operación exitosa' : 'Atención'}</div>
+      <div class="bk-notif-msg">${msg}</div>
+      <button class="bk-notif-close" onclick="bkCerrarModal()">Aceptar</button>
+    </div>`;
+  document.body.appendChild(div);
+}
+
+/* Modal de confirmación (reemplaza confirm() nativo) — devuelve Promise */
+function bkConfirmar(msg) {
+  return new Promise(resolve => {
+    const old = document.getElementById('bk-notif-backdrop');
+    if (old) old.remove();
+    const div = document.createElement('div');
+    div.id = 'bk-notif-backdrop';
+    div.className = 'bk-notif-backdrop';
+    div.innerHTML = `
+      <div class="bk-notif-modal bk-notif-warn" onclick="event.stopPropagation()">
+        <div class="bk-notif-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="bk-notif-titulo">¿Confirmar acción?</div>
+        <div class="bk-notif-msg">${msg}</div>
+        <div class="bk-notif-btns">
+          <button class="bk-notif-cancel" id="bk-conf-no">Cancelar</button>
+          <button class="bk-notif-close bk-notif-close-warn" id="bk-conf-si">Continuar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(div);
+    document.getElementById('bk-conf-si').onclick = () => { div.remove(); resolve(true); };
+    document.getElementById('bk-conf-no').onclick = () => { div.remove(); resolve(false); };
+  });
+}
+
+/* Sobrescribir las confirmaciones para usar el modal en vez de confirm() nativo */
+function confirmarCrear(form) {
+  const btn = document.getElementById('btn-crear');
+  bkConfirmar('¿Crear un respaldo completo de la base de datos ahora?\nEsto puede tardar unos segundos.')
+    .then(ok => {
+      if (!ok) return;
+      btn.disabled = true;
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        style="animation:bk-spin 1s linear infinite;"><polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Creando…`;
+      form.submit();
+    });
+  return false;  /* siempre false — el Promise decide si enviar */
+}
+
+function confirmarRestore(nombre, formEl) {
+  bkConfirmar(`¿Restaurar la base de datos desde "${nombre}"?\n\nEsto reemplazará TODOS los datos actuales y no se puede deshacer.`)
+    .then(ok => { if (ok) formEl.submit(); });
+  return false;
+}
+
+function confirmarEliminar(nombre, formEl) {
+  bkConfirmar(`¿Eliminar el archivo "${nombre}"?\nEsta acción no se puede deshacer.`)
+    .then(ok => { if (ok) formEl.submit(); });
+  return false;
+}
+
+/* Auto-mostrar el modal si viene del servidor */
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('bk-notif-backdrop');
+  if (modal) modal.classList.add('bk-notif-entrar');
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') bkCerrarModal(); });
+});
 </script>
 {% endblock %}

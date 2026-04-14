@@ -13,6 +13,13 @@ DROP USER IF EXISTS 'dm_backup'@'localhost';
 CREATE USER 'dm_backup'@'localhost'
     IDENTIFIED BY 'Bkp!DulceMigaja2024#';
 
+-- SELECT: leer todos los datos
+-- SHOW VIEW: exportar vistas
+-- TRIGGER: exportar triggers
+-- LOCK TABLES: consistencia durante el dump
+-- RELOAD: FLUSH TABLES
+-- PROCESS: ver estado del servidor
+-- (EVENT no es necesario — mysqldump usa --no-tablespaces, no --events)
 GRANT SELECT, SHOW VIEW, TRIGGER, LOCK TABLES, RELOAD, PROCESS
     ON *.*
     TO 'dm_backup'@'localhost';
@@ -30,7 +37,13 @@ GRANT ALL PRIVILEGES
     ON dulce_migaja.*
     TO 'dm_restore'@'localhost';
 
-GRANT RELOAD, PROCESS
+-- RELOAD, PROCESS: necesarios para operaciones de servidor
+-- SYSTEM_VARIABLES_ADMIN: permite SET GLOBAL log_bin_trust_function_creators
+--   que es necesario para restaurar stored procedures/triggers con binary log activo
+-- RELOAD, PROCESS: operaciones de servidor
+-- SYSTEM_VARIABLES_ADMIN: SET GLOBAL log_bin_trust_function_creators
+-- SYSTEM_USER: restaurar objetos cuyo DEFINER tiene ese privilegio (MySQL 8+)
+GRANT RELOAD, PROCESS, SYSTEM_VARIABLES_ADMIN, SYSTEM_USER
     ON *.*
     TO 'dm_restore'@'localhost';
 
