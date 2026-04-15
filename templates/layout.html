@@ -439,6 +439,32 @@
 
         <div class="topbar-spacer"></div>
 
+        <div class="topbar-actions">
+           {% if request.endpoint not in ['login', 'entrar', 'registrar_usuario', 'login_cliente', 'registrar_cliente',
+            'pedidos.tienda', 'pedidos.mis_pedidos'] %}
+            <!-- Botón flotante de mermas -->
+            <button class="topbar-btn" id="btnMerma" onclick="abrirModalMerma()" title="Registrar Merma">
+              <span><animated-icons
+                src="/static/icons/from-deleted-3b251ac0.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30"
+                width="30"
+              ></animated-icons></span>
+            </button>
+
+            <button class="topbar-btn" id="btnMerma" onclick="abrirModalHistorialMermas()" title="Historial de Merma">
+              <span><animated-icons
+                src="/static/icons/reports-ff77881b.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30"
+                width="30"
+              ></animated-icons></span>
+            </button>
+          {% endif %}
+        </div>
+
         <div class="topbar-search">
           <span class="topbar-search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span>
           <input type="text" id="menuSearch" placeholder="Buscar en menú…" autocomplete="off"
@@ -746,26 +772,6 @@
 
   {% if request.endpoint not in ['login', 'entrar', 'registrar_usuario', 'login_cliente', 'registrar_cliente',
   'pedidos.tienda', 'pedidos.mis_pedidos'] %}
-  <!-- Botón flotante de mermas -->
-  <button class="merma-float-btn" id="btnMerma" onclick="abrirModalMerma()" title="Registrar Merma">
-    <span><animated-icons
-      src="/static/icons/from-deleted-3b251ac0.json"
-      trigger="loop"
-      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-      height="30"
-      width="30"
-    ></animated-icons></span>
-  </button>
-
-  <button class="merma-his-float-btn" id="btnMerma" onclick="abrirModalHistorialMermas()" title="Historial de Merma">
-    <span><animated-icons
-      src="/static/icons/reports-ff77881b.json"
-      trigger="loop"
-      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-      height="30"
-      width="30"
-    ></animated-icons></span>
-  </button>
 
   <!-- Modal de Mermas -->
   <div class="modal-overlay" id="modal-merma">
@@ -777,6 +783,22 @@
       <div class="modal-body" style="padding: 24px;">
         <form id="formMerma">
           <div class="form-group" style="margin-bottom: 18px;">
+              <label style="display: block; font-size: 12px; font-weight: 700; color: var(--brown-lt); margin-bottom: 6px;">Tipo de Merma *</label>
+              <div style="display: flex; gap: 10px;">
+                  <button type="button" id="btnTipoMateria" class="tipo-merma-btn active" 
+                          onclick="cambiarTipoMerma('materia')" 
+                          style="flex:1; padding: 10px; border-radius: 8px; border: 1.5px solid var(--tan); background: var(--brown-dk); color: white; font-weight: 600; cursor: pointer;">
+                      📦 Materia Prima
+                  </button>
+                  <button type="button" id="btnTipoProducto" class="tipo-merma-btn" 
+                          onclick="cambiarTipoMerma('producto')" 
+                          style="flex:1; padding: 10px; border-radius: 8px; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown-dk); font-weight: 600; cursor: pointer;">
+                      🥐 Producto Terminado
+                  </button>
+              </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 18px;">
             <label
               style="display: block; font-size: 12px; font-weight: 700; color: var(--brown-lt); margin-bottom: 6px;">Materia
               Prima *</label>
@@ -785,6 +807,11 @@
               <option value="">Selecciona una materia prima...</option>
             </select>
           </div>
+
+          <select id="merma_producto" class="form-control" required
+            style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--tan); border-radius: 8px; display: none;">
+            <option value="">Selecciona un producto...</option>
+        </select>
 
           <div class="form-group" style="margin-bottom: 18px;">
             <label
@@ -903,10 +930,28 @@
     // ============================================================
     // FUNCIONES PARA MERMAS
     // ============================================================
+    let tipoMermaActual = 'materia';
 
     function abrirModalMerma() {
-      cargarMateriasPrimas();
+      // Asegurar que los selects existan
       const modal = document.getElementById('modal-merma');
+      const selectMateria = document.getElementById('merma_materia');
+      const selectProducto = document.getElementById('merma_producto');
+      
+      // Crear select de productos si no existe
+      if (!selectProducto) {
+          const formGroup = document.querySelector('#formMerma .form-group:first-child');
+          if (formGroup) {
+              const newSelect = document.createElement('select');
+              newSelect.id = 'merma_producto';
+              newSelect.className = 'form-control';
+              newSelect.style.cssText = 'width: 100%; padding: 10px 12px; border: 1.5px solid var(--tan); border-radius: 8px; display: none;';
+              newSelect.innerHTML = '<option value="">Selecciona un producto...</option>';
+              formGroup.appendChild(newSelect);
+          }
+      }
+      
+      cambiarTipoMerma('materia');
       modal.classList.add('open');
       document.getElementById('formMerma').reset();
       document.getElementById('merma_unidad').textContent = '';
@@ -926,134 +971,178 @@
       document.getElementById('modal-historial-mermas').classList.remove('open');
     }
 
-    async function cargarMateriasPrimas() {
-      try {
-        const response = await fetch('/api/mermas/materias');
-        const data = await response.json();
-
-        if (data.success) {
-          const select = document.getElementById('merma_materia');
-          select.innerHTML = '<option value="">Selecciona una materia prima...</option>';
-
-          data.materias.forEach(materia => {
-            const option = document.createElement('option');
-            option.value = materia.id_materia;
-            option.textContent = `${materia.nombre} (Stock: ${materia.stock_actual} ${materia.unidad_base})`;
-            option.dataset.unidad = materia.unidad_base;
-            option.dataset.stock = materia.stock_actual;
-            select.appendChild(option);
-          });
-
-          select.onchange = function () {
-            const selected = select.options[select.selectedIndex];
-            const unidad = selected.dataset.unidad || '';
-            document.getElementById('merma_unidad').textContent = `Unidad: ${unidad}`;
-          };
+    function cambiarTipoMerma(tipo) {
+        tipoMermaActual = tipo;
+        
+        const btnMateria = document.getElementById('btnTipoMateria');
+        const btnProducto = document.getElementById('btnTipoProducto');
+        const selectMateria = document.getElementById('merma_materia');
+        const selectProducto = document.getElementById('merma_producto');
+        const unidadLabel = document.getElementById('merma_unidad');
+        
+        if (tipo === 'materia') {
+            btnMateria.style.background = 'var(--brown-dk)';
+            btnMateria.style.color = 'white';
+            btnProducto.style.background = 'var(--white)';
+            btnProducto.style.color = 'var(--brown-dk)';
+            
+            if (selectMateria) selectMateria.style.display = 'block';
+            if (selectProducto) selectProducto.style.display = 'none';
+            
+            cargarMateriasPrimas();
+            unidadLabel.textContent = 'Unidad: ';
+        } else {
+            btnProducto.style.background = 'var(--brown-dk)';
+            btnProducto.style.color = 'white';
+            btnMateria.style.background = 'var(--white)';
+            btnMateria.style.color = 'var(--brown-dk)';
+            
+            if (selectMateria) selectMateria.style.display = 'none';
+            if (selectProducto) selectProducto.style.display = 'block';
+            
+            cargarProductosMerma();
+            unidadLabel.textContent = 'Unidad: piezas';
         }
-      } catch (error) {
-        console.error('Error cargando materias primas:', error);
-        DM.toast('Error cargando materias primas', 'error');
-      }
     }
+
+    async function cargarMateriasPrimas() {
+        try {
+            const response = await fetch('/api/mermas/materias');
+            const data = await response.json();
+
+            if (data.success) {
+                const select = document.getElementById('merma_materia');
+                if (!select) return;
+                
+                select.innerHTML = '<option value="">Selecciona una materia prima...</option>';
+
+                data.materias.forEach(materia => {
+                    const option = document.createElement('option');
+                    option.value = materia.id_materia;
+                    option.textContent = `${materia.nombre} (Stock: ${materia.stock_actual} ${materia.unidad_base})`;
+                    option.dataset.unidad = materia.unidad_base;
+                    option.dataset.stock = materia.stock_actual;
+                    select.appendChild(option);
+                });
+
+                select.onchange = function () {
+                    const selected = select.options[select.selectedIndex];
+                    const unidad = selected.dataset.unidad || '';
+                    document.getElementById('merma_unidad').textContent = `Unidad: ${unidad}`;
+                };
+            }
+        } catch (error) {
+            console.error('Error cargando materias primas:', error);
+            if (typeof DM !== 'undefined') DM.toast('Error cargando materias primas', 'error');
+        }
+    }
+
+    async function cargarProductosMerma() {
+        try {
+            const response = await fetch('/api/mermas/productos');
+            const data = await response.json();
+
+            if (data.success) {
+                const select = document.getElementById('merma_producto');
+                if (!select) return;
+                
+                select.innerHTML = '<option value="">Selecciona un producto...</option>';
+
+                data.productos.forEach(producto => {
+                    const option = document.createElement('option');
+                    option.value = producto.id_producto;
+                    option.textContent = `${producto.nombre} (Stock: ${producto.stock_actual} piezas)`;
+                    option.dataset.stock = producto.stock_actual;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error cargando productos:', error);
+            if (typeof DM !== 'undefined') DM.toast('Error cargando productos', 'error');
+        }
+    }
+
+
 
     async function registrarMerma() {
-      const id_materia = document.getElementById('merma_materia').value;
-      const cantidad = document.getElementById('merma_cantidad').value;
-      const causa = document.getElementById('merma_causa').value;
-      const descripcion = document.getElementById('merma_descripcion').value;
-
-      if (!id_materia) {
-        if (typeof DM !== 'undefined' && DM.toast) {
-          DM.toast('Selecciona una materia prima', 'warning');
+        const id_materia = document.getElementById('merma_materia').value;
+        const id_producto = document.getElementById('merma_producto')?.value;
+        const cantidad = document.getElementById('merma_cantidad').value;
+        const causa = document.getElementById('merma_causa').value;
+        const descripcion = document.getElementById('merma_descripcion').value;
+        
+        let idReferencia;
+        let url;
+        
+        if (tipoMermaActual === 'materia') {
+            idReferencia = id_materia;
+            url = '/api/mermas/registrar';
+            if (!idReferencia) {
+                DM.toast('Selecciona una materia prima', 'warning');
+                return;
+            }
         } else {
-          alert('Selecciona una materia prima');
+            idReferencia = id_producto;
+            url = '/api/mermas/registrar-producto';
+            if (!idReferencia) {
+                DM.toast('Selecciona un producto', 'warning');
+                return;
+            }
         }
-        return;
-      }
-
-      if (!cantidad || parseFloat(cantidad) <= 0) {
-        if (typeof DM !== 'undefined' && DM.toast) {
-          DM.toast('Ingresa una cantidad válida', 'warning');
-        } else {
-          alert('Ingresa una cantidad válida');
+        
+        if (!cantidad || parseFloat(cantidad) <= 0) {
+            DM.toast('Ingresa una cantidad válida', 'warning');
+            return;
         }
-        return;
-      }
-
-      if (!causa) {
-        if (typeof DM !== 'undefined' && DM.toast) {
-          DM.toast('Selecciona una causa', 'warning');
-        } else {
-          alert('Selecciona una causa');
+        
+        if (!causa) {
+            DM.toast('Selecciona una causa', 'warning');
+            return;
         }
-        return;
-      }
-
-      // Mostrar loading
-      const btn = event.target;
-      const originalText = btn.textContent;
-      btn.textContent = 'Registrando...';
-      btn.disabled = true;
-
-      try {
-        const response = await fetch('/api/mermas/registrar', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-          },
-          body: JSON.stringify({
-            id_materia: parseInt(id_materia),
-            cantidad: parseFloat(cantidad),
-            causa: causa,
-            descripcion: descripcion
-          })
-        });
-
-        // Verificar si la respuesta es JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await response.text();
-          console.error('Respuesta no JSON:', text.substring(0, 500));
-          throw new Error('El servidor devolvió una respuesta no válida');
+        
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Registrando...';
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    id_materia: tipoMermaActual === 'materia' ? parseInt(idReferencia) : undefined,
+                    id_producto: tipoMermaActual === 'producto' ? parseInt(idReferencia) : undefined,
+                    cantidad: parseFloat(cantidad),
+                    causa: causa,
+                    descripcion: descripcion
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                DM.toast('Merma registrada exitosamente', 'success');
+                cerrarModalMerma();
+                document.getElementById('formMerma').reset();
+                document.getElementById('merma_unidad').textContent = '';
+                if (typeof cargarHistorialMermas === 'function') {
+                    cargarHistorialMermas();
+                }
+            } else {
+                DM.toast('Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error registrando merma:', error);
+            DM.toast('Error al registrar la merma: ' + error.message, 'error');
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
         }
-
-        const data = await response.json();
-
-        if (data.success) {
-          if (typeof DM !== 'undefined' && DM.toast) {
-            DM.toast('Merma registrada exitosamente', 'success');
-          } else {
-            alert('Merma registrada exitosamente');
-          }
-          cerrarModalMerma();
-          // Limpiar formulario
-          document.getElementById('formMerma').reset();
-          document.getElementById('merma_unidad').textContent = '';
-          // Recargar historial si está abierto
-          if (typeof cargarHistorialMermas === 'function') {
-            cargarHistorialMermas();
-          }
-        } else {
-          if (typeof DM !== 'undefined' && DM.toast) {
-            DM.toast('Error: ' + data.error, 'error');
-          } else {
-            alert('Error: ' + data.error);
-          }
-        }
-      } catch (error) {
-        console.error('Error registrando merma:', error);
-        if (typeof DM !== 'undefined' && DM.toast) {
-          DM.toast('Error al registrar la merma: ' + error.message, 'error');
-        } else {
-          alert('Error al registrar la merma: ' + error.message);
-        }
-      } finally {
-        btn.textContent = originalText;
-        btn.disabled = false;
-      }
     }
-
+    
     let historialOffset = 0;
     let historialLimit = 20;
     let historialTotal = 0;

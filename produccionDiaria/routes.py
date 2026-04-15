@@ -57,7 +57,7 @@ def index_pd():
 
     # Productos agrupados con sus recetas (sin cálculo de stock en tarjetas)
     prods_rows = db.session.execute(text("""
-        SELECT DISTINCT p.id_producto, p.nombre AS nombre_producto,
+        SELECT p.id_producto, p.nombre AS nombre_producto,
                r.id_receta, r.nombre AS nombre_receta,
                CAST(r.rendimiento AS UNSIGNED) AS rendimiento
         FROM  productos p
@@ -91,7 +91,7 @@ def index_pd():
     """)).mappings().all()
 
     plantillas = db.session.execute(text("""
-        SELECT pp.id_plantilla, pp.nombre, pp.descripcion,
+        SELECT DISTINCT pp.id_plantilla, pp.nombre, pp.descripcion,
                COUNT(ppd.id_ppd) AS total_lineas
         FROM   plantillas_produccion pp
         LEFT JOIN plantillas_produccion_detalle ppd
