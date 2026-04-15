@@ -25,6 +25,16 @@
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <a href="/dashboard/exportar-excel?periodo=semanal" id="btn-export-excel" class="btn btn-outline" style="font-size:12px;display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;" title="Exportar a Excel">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-right: 5px;">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      Exportar Excel
+    </a>
     <button id="btn-refresh" class="btn btn-outline" style="font-size:12px;display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
       <span id="ico-refresh">
         <animated-icons
@@ -96,7 +106,7 @@
       </div>
     </div>
     <div class="sc-val" id="kpi-ventas-total">—</div>
-    <div class="sc-lbl">Ingresos del período</div>
+    <div class="sc-lbl">Ingresos del período seleccionado</div>
     <div class="sc-sub" id="kpi-ventas-tickets"></div>
   </div>
 
@@ -127,8 +137,8 @@
       </div>
     </div>
     <div class="sc-val" id="kpi-ventas-anterior">—</div>
-    <div class="sc-lbl">Período anterior</div>
-    <div class="sc-sub">Para comparación directa</div>
+    <div class="sc-lbl">Ingresos del período anterior seleccionado</div>
+    <div class="sc-sub">Para comparación</div>
   </div>
 
   {% if current_user.rol.clave_rol == 'admin' %}
@@ -162,7 +172,11 @@
     </div>
     <div class="sc-val" id="kpi-salidas-total">—</div>
     <div class="sc-lbl">Salidas de efectivo aprobadas</div>
-    <div class="sc-sub" id="kpi-salidas-movs"></div>
+    <div class="sc-sub" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+      <span id="kpi-salidas-movs"></span>
+      <span style="color: var(--tan);">|</span>
+      <span>Anterior: <strong id="kpi-salidas-anterior">—</strong></span>
+    </div>
   </div>
   {% endif %}
 

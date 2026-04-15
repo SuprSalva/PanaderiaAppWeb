@@ -51,6 +51,10 @@ function setPeriodo(p) {
     b.classList.toggle('active', b.dataset.periodo === p);
   });
   txt('label-periodo-grafica', labelPeriodo(p));
+
+  const btnExcel = document.getElementById('btn-export-excel');
+  if (btnExcel) btnExcel.href = '/dashboard/exportar-excel?periodo=' + p;
+  
   cargarVentas();
   cargarSalidas();
 }
@@ -66,7 +70,7 @@ async function cargarVentas() {
     const d = await apiFetch('/dashboard/api/ventas?periodo=' + DM.periodo);
 
     txt('kpi-ventas-total',    P(d.total_actual));
-    txt('kpi-ventas-tickets',  N(d.tickets_actual) + ' transacción(es)');
+    txt('kpi-ventas-tickets',  N(d.tickets_actual) + ' venta(s)');
     txt('kpi-ventas-anterior', P(d.total_anterior));
     renderBadge('badge-ventas', d.pct_cambio);
 
@@ -127,11 +131,14 @@ async function cargarVentas() {
 async function cargarSalidas() {
   const eTotal = el('kpi-salidas-total'); if (!eTotal) return;
   eTotal.textContent = '…';
+  txt('kpi-salidas-anterior', '…');
+
   try {
     const d = await apiFetch('/dashboard/api/salidas?periodo=' + DM.periodo);
 
     txt('kpi-salidas-total', P(d.total_actual));
     txt('kpi-salidas-movs',  N(d.movimientos_actual) + ' salida(s) aprobada(s)');
+    txt('kpi-salidas-anterior', P(d.total_anterior));
     renderBadge('badge-salidas', d.pct_cambio);
 
     DM._salidasActual = d.total_actual;
@@ -241,7 +248,7 @@ async function cargarMPCriticas() {
   try {
     const d = await apiFetch('/dashboard/api/mp-criticas');
     if (!d.items || !d.items.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--brown-lt);">✅ Todos los insumos están sobre el stock mínimo.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--brown-lt);">Todos los insumos están sobre el stock mínimo.</td></tr>';
       return;
     }
     const labels = {
