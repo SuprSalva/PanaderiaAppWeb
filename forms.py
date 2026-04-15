@@ -53,6 +53,7 @@ def _validar_imagen(form, field):
         if contenido[:len(magic_inicio)] == magic_inicio:
             if magic_riff is None:
                 coincide = True
+            else:
                 coincide = (contenido[8:12] == magic_riff)
             break
     if not coincide:

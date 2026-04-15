@@ -104,13 +104,43 @@ def index_pd():
     form.operario_id.choices = [(0,'— Sin asignar —')] + [
         (o['id_usuario'],o['nombre_completo']) for o in operarios]
 
+    try:
+        _conn_hoy = db.session.connection()
+        _cur_hoy  = _conn_hoy.connection.cursor()
+        _cur_hoy.execute("CALL sp_pedidos_hoy_produccion(NULL)")
+    
+        pedidos_hoy_prods = []
+        for _r in _cur_hoy.fetchall():
+            pedidos_hoy_prods.append({
+                'producto':        _r[1],
+                'total_piezas':    int(_r[2] or 0),
+                'num_pedidos':     int(_r[3] or 0),
+                'primera_entrega': _r[4],
+            })
+    
+        _cur_hoy.nextset()
+        _rh              = _cur_hoy.fetchone()
+        pedidos_hoy_total = int(_rh[0]) if _rh and _rh[0] else 0
+        pedidos_hoy_pzas  = int(_rh[1]) if _rh and _rh[1] else 0
+        primera_entrega   = _rh[2]      if _rh and _rh[2] else None
+        _cur_hoy.close()
+    except Exception:
+        pedidos_hoy_prods = []
+        pedidos_hoy_total = 0
+        pedidos_hoy_pzas  = 0
+        primera_entrega   = None
+        
     return render_template('produccion_diaria/index.html',
         producciones=producciones, conteos=conteos, productos=productos_agrupados,
         operarios=operarios, plantillas=plantillas, pagina=pagina,
         tiene_mas=len(producciones)==POR_PAGINA, estado_sel=estado,
-        fecha_ini=fecha_ini, fecha_fin=fecha_fin, form=form)
+        fecha_ini=fecha_ini, fecha_fin=fecha_fin, form=form,
+        pedidos_hoy_prods=pedidos_hoy_prods,
+        pedidos_hoy_total=pedidos_hoy_total,
+        pedidos_hoy_pzas=pedidos_hoy_pzas,
+        primera_entrega=primera_entrega,
+    )
 
-# ─── Nueva ───────────────────────────────────────────────────────────────────
 
 @produccion_diaria.route('/produccion-diaria/nueva', methods=['POST'])
 @login_required

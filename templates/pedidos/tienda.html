@@ -1,12 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}Tienda del Día — DulceMigaja{% endblock %}
+{% block title %}Tienda — DulceMigaja{% endblock %}
 
 {% block extra_head %}
 <style>
-/* ═══════════════════════════════════════════════════════════
-   TIENDA EXPRESS  ·  DulceMigaja  (drawer edition)
-   ═══════════════════════════════════════════════════════════ */
-
 :root {
   --dm-cafe-dk:   #3d1f0d;
   --dm-cafe-md:   #5c2e14;
@@ -17,432 +13,153 @@
   --dm-text-dk:   #2a1507;
   --dm-muted:     #8a6a52;
 }
-
-.tx-page { display:flex; flex-direction:column; gap:0; min-height:100vh; }
-.tx-main { display:flex; flex-direction:column; gap:20px; }
-
-/* ── Hero ─────────────────────────────────────────────────── */
-.tx-hero {
-  background: var(--dm-cafe-dk);
-  border-radius: 18px; padding: 30px 36px;
-  position: relative; overflow: hidden;
-  border: 1px solid var(--dm-cafe-md);
-  margin-bottom: 20px;
-}
-.tx-hero::after {
-  content:''; position:absolute; inset:0; pointer-events:none; opacity:.04;
-  background-image: repeating-linear-gradient(
-    45deg,#fff 0px,#fff 1px,transparent 1px,transparent 9px);
-}
-.tx-hero-deco {
-  position:absolute; right:-8px; top:-18px;
-  font-size:120px; opacity:.06; pointer-events:none; line-height:1; z-index:0;
-}
-.tx-hero > * { position:relative; z-index:1; }
-.tx-hero-badge {
-  display:inline-flex; align-items:center; gap:7px;
-  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
-  border-radius:20px; padding:4px 13px;
-  font-size:11px; color:rgba(245,230,208,.75); font-weight:700;
-  letter-spacing:.03em; margin-bottom:14px;
-}
-.tx-hero-badge-dot {
-  width:6px; height:6px; border-radius:50%; background:#7ec87e; flex-shrink:0;
-  box-shadow:0 0 0 2px rgba(126,200,126,.25);
-}
-.tx-hero h1 {
-  font-family:'Playfair Display',serif; font-size:28px; font-weight:700;
-  color:var(--dm-cream); line-height:1.25; margin:0 0 10px;
-}
-.tx-hero p {
-  font-size:13px; color:rgba(245,230,208,.55);
-  line-height:1.7; max-width:480px; margin:0 0 18px;
-}
-.tx-hero-actions { display:flex; gap:9px; flex-wrap:wrap; }
-.tx-hero-actions a {
-  display:inline-flex; align-items:center; gap:6px;
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18);
-  border-radius:10px; padding:9px 16px; color:var(--dm-cream);
-  text-decoration:none; font-weight:700; font-size:12px; transition:background .2s;
-}
-.tx-hero-actions a:hover { background:rgba(255,255,255,.2); }
-.tx-hero-stats {
-  display:flex; gap:24px; margin-top:22px; padding-top:18px;
-  border-top:1px solid rgba(255,255,255,.1);
-}
-.tx-hero-stat { display:flex; flex-direction:column; gap:3px; }
-.tx-hero-stat-num {
-  font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--dm-cream);
-}
-.tx-hero-stat-lbl { font-size:11px; color:rgba(245,230,208,.42); }
-
-/* ── Toolbar ──────────────────────────────────────────────── */
-.tx-toolbar {
-  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-  background:var(--white); border:1.5px solid var(--tan);
-  border-radius:13px; padding:10px 12px;
-}
-.tx-search { flex:1; min-width:180px; position:relative; }
-.tx-search-icon {
-  position:absolute; left:11px; top:50%; transform:translateY(-50%);
-  font-size:14px; pointer-events:none; opacity:.5;
-}
-.tx-search input {
-  width:100%; padding:9px 12px 9px 34px;
-  border:1.5px solid var(--tan); border-radius:9px;
-  font-family:inherit; font-size:13px;
-  background:var(--warm-bg); outline:none; box-sizing:border-box;
-  transition:border-color .2s; color:var(--brown-dk);
-}
-.tx-search input:focus { border-color:var(--dm-terracota); }
-.tx-toolbar-divider { width:1px; height:22px; background:var(--tan); flex-shrink:0; }
-.tx-filters { display:flex; gap:6px; flex-wrap:wrap; }
-.tx-chip {
-  padding:6px 14px; border-radius:20px; border:1.5px solid var(--tan);
-  background:var(--white); font-family:inherit; font-size:12px; font-weight:700;
-  color:var(--brown-lt); cursor:pointer; transition:all .18s; white-space:nowrap;
-}
-.tx-chip:hover  { border-color:var(--dm-terracota); color:var(--dm-terracota); }
-.tx-chip.active { border-color:var(--dm-terracota); background:#fdf0e8; color:var(--dm-terracota); }
-.tx-sort {
-  padding:7px 11px; border-radius:9px; border:1.5px solid var(--tan);
-  background:var(--white); font-family:inherit; font-size:12px;
-  color:var(--brown-lt); cursor:pointer; outline:none;
-}
-.tx-count { font-size:12px; color:var(--brown-lt); padding:0 4px; }
-
-/* ── Grid ─────────────────────────────────────────────────── */
-.tx-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; }
-
-/* ── Tarjeta ──────────────────────────────────────────────── */
-.tx-card {
-  background:var(--white); border:1.5px solid var(--tan);
-  border-radius:16px; overflow:hidden;
-  transition:all .22s; display:flex; flex-direction:column; position:relative;
-}
-.tx-card:hover:not(.agotado) {
-  transform:translateY(-4px);
-  box-shadow:0 12px 32px rgba(61,31,13,.14);
-  border-color:var(--dm-warm-bdr);
-}
-.tx-card.agotado    { opacity:.6; }
-.tx-card.en-carrito { border-color:var(--dm-terracota); box-shadow:0 0 0 3px rgba(184,92,42,.12); }
-.tx-card-img {
-  height:150px; background:var(--dm-warm-bg);
-  display:flex; align-items:center; justify-content:center;
-  position:relative; overflow:hidden;
-}
-.tx-card-img img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
-.tx-card:hover:not(.agotado) .tx-card-img img { transform:scale(1.04); }
-.tx-card-placeholder {
-  display:flex; flex-direction:column; align-items:center; gap:6px;
-  color:var(--dm-muted); font-size:13px;
-}
-.tx-card-placeholder span:first-child { font-size:44px; }
-.tx-stock-badge {
-  position:absolute; top:10px; right:10px;
-  border-radius:20px; padding:3px 10px;
-  font-size:10px; font-weight:800; letter-spacing:.3px;
-  border:1px solid transparent; backdrop-filter:blur(6px);
-}
-.tx-stock-badge.ok      { background:rgba(58,96,52,.85);  color:#fff; }
-.tx-stock-badge.bajo    { background:rgba(180,130,0,.85); color:#fff; }
-.tx-stock-badge.critico { background:rgba(184,92,42,.88); color:#fff; }
-.tx-stock-badge.agotado { background:rgba(80,80,80,.85);  color:#fff; }
-.tx-card-body { padding:12px 14px 14px; display:flex; flex-direction:column; flex:1; gap:6px; }
-.tx-card-name {
-  font-family:'Playfair Display',serif; font-size:14px; font-weight:700;
-  color:var(--dm-text-dk); line-height:1.3;
-}
-.tx-card-desc {
-  font-size:11px; color:var(--dm-muted); line-height:1.5;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-  overflow:hidden; flex:1;
-}
-.tx-card-footer {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-top:auto; padding-top:10px; border-top:1px solid var(--tan);
-}
-.tx-card-price {
-  font-family:'Playfair Display',serif; font-size:17px; font-weight:900;
-  color:var(--dm-terracota);
-}
-.tx-card-price span { font-size:11px; font-weight:400; color:var(--dm-muted); }
-.tx-stepper {
-  display:flex; align-items:center;
-  border:1.5px solid var(--tan); border-radius:9px; overflow:hidden;
-}
-.tx-stepper button {
-  background:var(--dm-warm-bg); border:none; width:30px; height:30px;
-  font-size:16px; font-weight:700; color:var(--dm-text-dk);
-  cursor:pointer; transition:background .15s;
-  display:flex; align-items:center; justify-content:center; flex-shrink:0;
-}
-.tx-stepper button:hover    { background:var(--tan); }
-.tx-stepper button:disabled { opacity:.35; cursor:not-allowed; }
-.tx-stepper .qty-val { min-width:30px; text-align:center; font-weight:800; font-size:13px; color:var(--dm-text-dk); }
-.btn-tx-add {
-  padding:7px 14px; border-radius:9px; border:none;
-  background:var(--dm-cafe-dk); color:var(--dm-cream);
-  font-family:inherit; font-size:12px; font-weight:800;
-  cursor:pointer; transition:all .2s;
-}
-.btn-tx-add:hover    { background:var(--dm-terracota); }
-.btn-tx-add:disabled { background:var(--tan); cursor:not-allowed; }
-.tx-empty     { grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--brown-lt); }
-.tx-empty .ico{ font-size:52px; margin-bottom:12px; }
-.tx-empty p   { font-size:14px; }
-
-/* ══════════════════════════════════════════════════════════
-   BOTÓN FLOTANTE DE CARRITO
-   ══════════════════════════════════════════════════════════ */
-.tx-cart-fab {
-  position: fixed; bottom: 28px; right: 28px; z-index: 900;
-  display: flex; align-items: center; gap: 10px;
-  background: var(--dm-cafe-dk); color: var(--dm-cream);
-  border: none; border-radius: 50px;
-  padding: 14px 22px 14px 18px;
-  font-family: inherit; font-size: 14px; font-weight: 800;
-  cursor: pointer; box-shadow: 0 8px 28px rgba(61,31,13,.35);
-  transition: transform .25s, background .2s, box-shadow .25s;
-  white-space: nowrap;
-}
-.tx-cart-fab:hover {
-  background: var(--dm-cafe-md);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 36px rgba(61,31,13,.4);
-}
-.tx-cart-fab-ico   { font-size: 18px; line-height: 1; }
-.tx-cart-fab-qty   {
-  background: var(--dm-terracota); color: #fff;
-  border-radius: 20px; padding: 1px 8px;
-  font-size: 11px; font-weight: 800; display: none;
-}
-.tx-cart-fab-label { font-family: 'Playfair Display', serif; font-size: 15px; }
-
-/* ══════════════════════════════════════════════════════════
-   OVERLAY
-   ══════════════════════════════════════════════════════════ */
-.tx-overlay {
-  position: fixed; inset: 0; z-index: 1000;
-  background: rgba(42,21,7,.45);
-  opacity: 0; pointer-events: none;
-  transition: opacity .3s ease;
-}
-.tx-overlay.open { opacity: 1; pointer-events: all; }
-
-/* ══════════════════════════════════════════════════════════
-   DRAWER
-   ══════════════════════════════════════════════════════════ */
-.tx-drawer {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 1001;
-  width: 400px; max-width: 100vw;
-  background: var(--white);
-  display: flex; flex-direction: column;
-  transform: translateX(100%);
-  transition: transform .32s cubic-bezier(.4,0,.2,1);
-  box-shadow: -8px 0 40px rgba(42,21,7,.18);
-}
-.tx-drawer.open { transform: translateX(0); }
-
-.tx-drawer-handle {
-  position: absolute; left: -14px; top: 50%; transform: translateY(-50%);
-  width: 5px; height: 52px; border-radius: 3px;
-  background: var(--dm-warm-bdr); pointer-events: none;
-}
-
-.tx-drawer-header {
-  padding: 18px 20px 16px;
-  border-bottom: 1px solid var(--tan);
-  display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0;
-}
-.tx-drawer-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 18px; font-weight: 700; color: var(--dm-text-dk);
-  display: flex; align-items: center; gap: 8px; margin: 0;
-}
-#cartQtyBadge {
-  background: var(--dm-terracota); color: #fff;
-  border-radius: 20px; padding: 2px 9px;
-  font-size: 11px; font-weight: 800; display: none;
-}
-.tx-drawer-close {
-  width: 32px; height: 32px; border-radius: 50%;
-  border: 1.5px solid var(--tan); background: var(--white);
-  font-size: 16px; color: var(--dm-muted); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .18s; flex-shrink: 0; line-height: 1;
-}
-.tx-drawer-close:hover {
-  border-color: var(--dm-terracota); color: var(--dm-terracota); background: #fdf0e8;
-}
-
-.tx-drawer-body { flex: 1; overflow-y: auto; padding: 14px 20px; min-height: 0; }
-
-.tx-drawer-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--tan);
-  background: var(--dm-warm-bg);
-  flex-shrink: 0;
-}
-
-.tx-cart-item {
-  display:flex; align-items:center; gap:10px;
-  padding:10px 0; border-bottom:1px dashed var(--tan);
-}
-.tx-cart-item:last-child { border-bottom:none; }
-.tx-cart-thumb {
-  width:44px; height:44px; border-radius:9px;
-  background:var(--dm-warm-bg); flex-shrink:0;
-  display:flex; align-items:center; justify-content:center;
-  font-size:20px; overflow:hidden; border:1px solid var(--dm-warm-bdr);
-}
-.tx-cart-thumb img { width:100%; height:100%; object-fit:cover; }
-.tx-cart-info  { flex:1; min-width:0; }
-.tx-cart-name  {
-  font-weight:700; font-size:12px; color:var(--dm-text-dk);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.tx-cart-sub   { font-size:11px; color:var(--dm-muted); }
-.tx-cart-price {
-  font-family:'Playfair Display',serif; font-size:14px; font-weight:700;
-  color:var(--dm-terracota); white-space:nowrap;
-}
-.tx-cart-remove {
-  background:none; border:none; color:var(--dm-muted);
-  cursor:pointer; font-size:14px; padding:4px; line-height:1; transition:color .15s;
-}
-.tx-cart-remove:hover { color:var(--dm-terracota); }
-.tx-cart-empty     { text-align:center; padding:48px 10px; color:var(--dm-muted); }
-.tx-cart-empty .ico{ font-size:42px; margin-bottom:10px; }
-.tx-cart-empty p   { font-size:13px; line-height:1.6; }
-
-.tx-hoy-badge {
-  display:flex; align-items:center; gap:6px;
-  background:#edf6e8; border:1px solid #b4d9ac;
-  border-radius:9px; padding:7px 12px; margin-bottom:14px;
-  font-size:11px; color:#3a6034; font-weight:700;
-}
-
-.tx-foot-label {
-  display:block; font-size:10px; font-weight:800;
-  color:var(--dm-muted); letter-spacing:.6px;
-  text-transform:uppercase; margin-bottom:7px;
-}
-
-.pago-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:8px; }
-.pago-opt  {
-  display:flex; flex-direction:column; align-items:center; gap:4px;
-  padding:10px 4px; border-radius:10px;
-  border:1.5px solid var(--tan); background:var(--white);
-  cursor:pointer; transition:all .18s; text-align:center; user-select:none;
-}
-.pago-opt:hover           { border-color:var(--dm-muted); background:var(--dm-warm-bg); }
-.pago-opt.active          { border-color:var(--dm-terracota); background:#fdf0e8; }
-.pago-opt .pago-ico       { font-size:20px; line-height:1; }
-.pago-opt .pago-lbl       { font-size:11px; font-weight:700; color:var(--dm-text-dk); }
-.pago-opt.active .pago-lbl{ color:var(--dm-terracota); }
-.pago-info { font-size:11px; color:var(--dm-muted); text-align:center; margin-bottom:14px; }
-
-.tx-hora-wrap { margin-bottom:12px; }
-.tx-hora-wrap label {
-  display:block; font-size:10px; font-weight:800;
-  color:var(--dm-muted); letter-spacing:.6px; text-transform:uppercase; margin-bottom:6px;
-}
-.tx-hora-wrap select {
-  width:100%; padding:9px 10px; border-radius:9px;
-  border:1.5px solid var(--tan); font-family:inherit;
-  font-size:13px; outline:none; background:var(--white);
-  color:var(--dm-text-dk); transition:border-color .2s;
-}
-.tx-hora-wrap select:focus { border-color:var(--dm-terracota); }
-
-.tx-notas-wrap { margin-bottom:14px; }
-.tx-notas-wrap label {
-  display:block; font-size:10px; font-weight:800;
-  color:var(--dm-muted); letter-spacing:.6px; text-transform:uppercase; margin-bottom:6px;
-}
-.tx-notas-wrap textarea {
-  width:100%; padding:9px 10px; border-radius:9px;
-  border:1.5px solid var(--tan); font-family:inherit;
-  font-size:12px; resize:none; outline:none; box-sizing:border-box;
-  background:var(--white); transition:border-color .2s;
-}
-.tx-notas-wrap textarea:focus { border-color:var(--dm-terracota); }
-
-.tx-total-row {
-  display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px;
-}
-.tx-total-row span:first-child { font-size:13px; color:var(--dm-muted); }
-.tx-total-amount {
-  font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:var(--dm-text-dk);
-}
-
-.btn-tx-confirm {
-  width:100%; padding:14px; border-radius:12px; border:none;
-  background:var(--dm-cafe-dk); color:var(--dm-cream);
-  font-family:inherit; font-size:14px; font-weight:800;
-  cursor:pointer; transition:all .2s;
-  display:flex; align-items:center; justify-content:center; gap:8px;
-}
-.btn-tx-confirm:hover    { background:var(--dm-cafe-md); transform:translateY(-1px); }
-.btn-tx-confirm:disabled { background:var(--tan); cursor:not-allowed; transform:none; }
-
-@media (max-width: 520px) {
-  .tx-drawer        { width: 100vw; }
-  .tx-drawer-handle { display: none; }
-  .tx-grid { grid-template-columns: repeat(2, 1fr); }
-  .tx-toolbar-divider { display: none; }
-  .tx-cart-fab      { bottom:20px; right:16px; padding:12px 18px 12px 14px; }
+.tx-page{display:flex;flex-direction:column;gap:0}
+.tx-main{display:flex;flex-direction:column;gap:20px}
+.tx-hero{background:var(--dm-cafe-dk);border-radius:18px;padding:30px 36px;position:relative;overflow:hidden;border:1px solid var(--dm-cafe-md);margin-bottom:20px}
+.tx-hero::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.04;background-image:repeating-linear-gradient(45deg,#fff 0px,#fff 1px,transparent 1px,transparent 9px)}
+.tx-hero-deco{position:absolute;right:-8px;top:-18px;font-size:120px;opacity:.06;pointer-events:none;line-height:1;z-index:0}
+.tx-hero>*{position:relative;z-index:1}
+.tx-hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:20px;padding:4px 13px;font-size:11px;color:rgba(245,230,208,.75);font-weight:700;letter-spacing:.03em;margin-bottom:14px}
+.tx-hero-badge-dot{width:6px;height:6px;border-radius:50%;background:#7ec87e;flex-shrink:0}
+.tx-hero h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--dm-cream);line-height:1.25;margin:0 0 10px}
+.tx-hero p{font-size:13px;color:rgba(245,230,208,.55);line-height:1.7;max-width:480px;margin:0 0 18px}
+.tx-hero-actions{display:flex;gap:9px;flex-wrap:wrap}
+.tx-hero-actions a{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:9px 16px;color:var(--dm-cream);text-decoration:none;font-weight:700;font-size:12px;transition:background .2s}
+.tx-hero-actions a:hover{background:rgba(255,255,255,.2)}
+.tx-hero-stats{display:flex;gap:24px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.tx-hero-stat{display:flex;flex-direction:column;gap:3px}
+.tx-hero-stat-num{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--dm-cream)}
+.tx-hero-stat-lbl{font-size:11px;color:rgba(245,230,208,.42)}
+.tx-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--white);border:1.5px solid var(--tan);border-radius:13px;padding:10px 12px}
+.tx-search{flex:1;min-width:180px;position:relative}
+.tx-search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;opacity:.5}
+.tx-search input{width:100%;padding:9px 12px 9px 34px;border:1.5px solid var(--tan);border-radius:9px;font-family:inherit;font-size:13px;background:var(--warm-bg);outline:none;box-sizing:border-box;transition:border-color .2s;color:var(--brown-dk)}
+.tx-search input:focus{border-color:var(--dm-terracota)}
+.tx-toolbar-divider{width:1px;height:22px;background:var(--tan);flex-shrink:0}
+.tx-filters{display:flex;gap:6px;flex-wrap:wrap}
+.tx-chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--tan);background:var(--white);font-family:inherit;font-size:12px;font-weight:700;color:var(--brown-lt);cursor:pointer;transition:all .18s;white-space:nowrap}
+.tx-chip:hover{border-color:var(--dm-terracota);color:var(--dm-terracota)}
+.tx-chip.active{border-color:var(--dm-terracota);background:#fdf0e8;color:var(--dm-terracota)}
+.tx-sort{padding:7px 11px;border-radius:9px;border:1.5px solid var(--tan);background:var(--white);font-family:inherit;font-size:12px;color:var(--brown-lt);cursor:pointer;outline:none}
+.tx-count{font-size:12px;color:var(--brown-lt);padding:0 4px}
+.tx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.tx-card{background:var(--white);border:1.5px solid var(--tan);border-radius:16px;overflow:hidden;transition:all .22s;display:flex;flex-direction:column;position:relative}
+.tx-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(61,31,13,.14);border-color:var(--dm-warm-bdr)}
+.tx-card.en-carrito{border-color:var(--dm-terracota);box-shadow:0 0 0 3px rgba(184,92,42,.12)}
+.tx-card-img{height:150px;background:var(--dm-warm-bg);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.tx-card-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.tx-card:hover .tx-card-img img{transform:scale(1.04)}
+.tx-card-placeholder{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--dm-muted);font-size:13px}
+.tx-card-placeholder span:first-child{font-size:44px}
+.tx-stock-badge{position:absolute;top:10px;right:10px;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;letter-spacing:.3px;border:1px solid transparent;backdrop-filter:blur(6px)}
+.tx-stock-badge.ok{background:rgba(58,96,52,.85);color:#fff}
+.tx-stock-badge.bajo{background:rgba(180,130,0,.85);color:#fff}
+.tx-stock-badge.critico{background:rgba(184,92,42,.88);color:#fff}
+.tx-stock-badge.encargo{background:rgba(92,46,20,.80);color:#fff}
+.tx-card-body{padding:12px 14px 14px;display:flex;flex-direction:column;flex:1;gap:6px}
+.tx-card-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--dm-text-dk);line-height:1.3}
+.tx-card-desc{font-size:11px;color:var(--dm-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.tx-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px;border-top:1px solid var(--tan)}
+.tx-card-price{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:var(--dm-terracota)}
+.tx-card-price span{font-size:11px;font-weight:400;color:var(--dm-muted)}
+.tx-stepper{display:flex;align-items:center;border:1.5px solid var(--tan);border-radius:9px;overflow:hidden}
+.tx-stepper button{background:var(--dm-warm-bg);border:none;width:30px;height:30px;font-size:16px;font-weight:700;color:var(--dm-text-dk);cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tx-stepper button:hover{background:var(--tan)}
+.tx-stepper .qty-val{min-width:30px;text-align:center;font-weight:800;font-size:13px;color:var(--dm-text-dk)}
+.btn-tx-add{padding:7px 14px;border-radius:9px;border:none;background:var(--dm-cafe-dk);color:var(--dm-cream);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s}
+.btn-tx-add:hover{background:var(--dm-terracota)}
+.tx-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--brown-lt)}
+.tx-empty .ico{font-size:52px;margin-bottom:12px}
+.tx-empty p{font-size:14px}
+.tx-cart-fab{position:fixed;bottom:28px;right:28px;z-index:900;display:flex;align-items:center;gap:10px;background:var(--dm-cafe-dk);color:var(--dm-cream);border:none;border-radius:50px;padding:14px 22px 14px 18px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 8px 28px rgba(61,31,13,.35);transition:transform .25s,background .2s,box-shadow .25s;white-space:nowrap}
+.tx-cart-fab:hover{background:var(--dm-cafe-md);transform:translateY(-2px);box-shadow:0 12px 36px rgba(61,31,13,.4)}
+.tx-cart-fab-ico{font-size:18px;line-height:1}
+.tx-cart-fab-qty{background:var(--dm-terracota);color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:800;display:none}
+.tx-cart-fab-label{font-family:'Playfair Display',serif;font-size:15px}
+.tx-overlay{position:fixed;inset:0;z-index:1000;background:rgba(42,21,7,.45);opacity:0;pointer-events:none;transition:opacity .3s ease}
+.tx-overlay.open{opacity:1;pointer-events:all}
+.tx-drawer{position:fixed;top:0;right:0;bottom:0;z-index:1001;width:420px;max-width:100vw;background:var(--white);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);box-shadow:-8px 0 40px rgba(42,21,7,.18)}
+.tx-drawer.open{transform:translateX(0)}
+.tx-drawer-handle{position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:5px;height:52px;border-radius:3px;background:var(--dm-warm-bdr);pointer-events:none}
+.tx-drawer-header{padding:18px 20px 16px;border-bottom:1px solid var(--tan);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tx-drawer-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--dm-text-dk);display:flex;align-items:center;gap:8px;margin:0}
+#cartQtyBadge{background:var(--dm-terracota);color:#fff;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:800;display:none}
+.tx-drawer-close{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--tan);background:var(--white);font-size:16px;color:var(--dm-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.tx-drawer-close:hover{border-color:var(--dm-terracota);color:var(--dm-terracota);background:#fdf0e8}
+.tx-drawer-body{flex:1;overflow-y:auto;padding:14px 20px;min-height:0}
+.tx-drawer-footer{padding:16px 20px;border-top:1px solid var(--tan);background:var(--dm-warm-bg);flex-shrink:0;overflow-y:auto;max-height:65vh}
+.tx-cart-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--tan)}
+.tx-cart-item:last-child{border-bottom:none}
+.tx-cart-thumb{width:44px;height:44px;border-radius:9px;background:var(--dm-warm-bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;border:1px solid var(--dm-warm-bdr)}
+.tx-cart-thumb img{width:100%;height:100%;object-fit:cover}
+.tx-cart-info{flex:1;min-width:0}
+.tx-cart-name{font-weight:700;font-size:12px;color:var(--dm-text-dk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-cart-sub{font-size:11px;color:var(--dm-muted)}
+.tx-cart-price{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--dm-terracota);white-space:nowrap}
+.tx-cart-remove{background:none;border:none;color:var(--dm-muted);cursor:pointer;font-size:14px;padding:4px;line-height:1;transition:color .15s}
+.tx-cart-remove:hover{color:var(--dm-terracota)}
+.tx-cart-empty{text-align:center;padding:48px 10px;color:var(--dm-muted)}
+.tx-cart-empty .ico{font-size:42px;margin-bottom:10px}
+.tx-cart-empty p{font-size:13px;line-height:1.6}
+.tx-foot-label{display:block;font-size:10px;font-weight:800;color:var(--dm-muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:7px}
+.tx-modo-banner{display:flex;align-items:flex-start;gap:10px;border-radius:9px;padding:10px 13px;margin-bottom:12px;font-size:12px;font-weight:700;line-height:1.5}
+.tx-modo-banner .modo-ico{font-size:18px;flex-shrink:0}
+.tx-modo-inmediato{background:#d1fae5;border:1px solid #6ee7b7;color:#065f46}
+.tx-modo-futuro{background:#fef3d0;border:1px solid #f6d860;color:#92640a}
+.tx-fecha-wrap{margin-bottom:12px}
+.tx-fecha-wrap label{display:block;font-size:10px;font-weight:800;color:var(--dm-muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
+.tx-fecha-row{display:flex;gap:8px}
+.tx-fecha-row input[type=date],.tx-fecha-row select{flex:1;padding:9px 10px;border-radius:9px;border:1.5px solid var(--tan);font-family:inherit;font-size:13px;outline:none;background:var(--white);color:var(--dm-text-dk);transition:border-color .2s}
+.tx-fecha-row input[type=date]:focus,.tx-fecha-row select:focus{border-color:var(--dm-terracota)}
+.tx-fecha-warn{font-size:11px;color:#c05621;font-weight:700;margin-top:4px;display:none}
+.pago-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px}
+.pago-opt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:10px;border:1.5px solid var(--tan);background:var(--white);cursor:pointer;transition:all .18s;text-align:center;user-select:none}
+.pago-opt:hover{border-color:var(--dm-muted);background:var(--dm-warm-bg)}
+.pago-opt.active{border-color:var(--dm-terracota);background:#fdf0e8}
+.pago-opt .pago-ico{font-size:20px;line-height:1}
+.pago-opt .pago-lbl{font-size:11px;font-weight:700;color:var(--dm-text-dk)}
+.pago-opt.active .pago-lbl{color:var(--dm-terracota)}
+.pago-info{font-size:11px;color:var(--dm-muted);text-align:center;margin-bottom:12px}
+.tx-total-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.tx-total-row span:first-child{font-size:13px;color:var(--dm-muted)}
+.tx-total-amount{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--dm-text-dk)}
+.btn-tx-confirm{width:100%;padding:14px;border-radius:12px;border:none;background:var(--dm-cafe-dk);color:var(--dm-cream);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-tx-confirm:hover{background:var(--dm-cafe-md);transform:translateY(-1px)}
+.btn-tx-confirm:disabled{background:var(--tan);cursor:not-allowed;transform:none}
+@media(max-width:520px){
+  .tx-drawer{width:100vw}.tx-drawer-handle{display:none}
+  .tx-grid{grid-template-columns:repeat(2,1fr)}
+  .tx-toolbar-divider{display:none}
+  .tx-cart-fab{bottom:20px;right:16px;padding:12px 18px 12px 14px}
 }
 </style>
 {% endblock %}
 
 {% block breadcrumb %}
-<span style="color:var(--brown-lt); font-size:13px;">
-  <a href="{{ url_for('pedidos.mis_pedidos') }}" style="color:var(--brown-lt); text-decoration:none;">Mis Pedidos</a>
-  &rsaquo; Tienda del Día
+<span style="color:var(--brown-lt);font-size:13px;">
+  <a href="{{ url_for('pedidos.mis_pedidos') }}" style="color:var(--brown-lt);text-decoration:none;">Mis Pedidos</a>
+  &rsaquo; Tienda
 </span>
 {% endblock %}
 
 {% block container %}
 <div class="tx-page">
-
-  <!-- ── Hero ─────────────────────────────────────────── -->
   <div class="tx-hero">
     <div class="tx-hero-deco">🥐</div>
-    <div class="tx-hero-badge">
-      <span class="tx-hero-badge-dot"></span>
-      Disponible hoy
-    </div>
-    <h1>Pan fresco<br>del día</h1>
-    <p>
-      Elige los panes que quieras y recógelos hoy mismo en nuestra tienda.
-      Hechos en pequeñas tandas diarias — ¡no te quedes sin el tuyo!
-    </p>
+    <div class="tx-hero-badge"><span class="tx-hero-badge-dot"></span>Tienda Dulce Migaja</div>
+    <h1>Pide tu pan<br>con tiempo</h1>
+    <p>Elige los panes que quieras. Si están en bodega los puedes recoger hoy mismo — los demás los preparamos especialmente para ti.</p>
     <div class="tx-hero-actions">
       <a href="{{ url_for('pedidos.mis_pedidos') }}">📋 Mis Pedidos</a>
     </div>
     <div class="tx-hero-stats">
-      <div class="tx-hero-stat">
-        <span class="tx-hero-stat-num">{{ productos | length }}</span>
-        <span class="tx-hero-stat-lbl">variedades hoy</span>
-      </div>
-      <div class="tx-hero-stat">
-        <span class="tx-hero-stat-num">9 AM</span>
-        <span class="tx-hero-stat-lbl">abrimos</span>
-      </div>
-      <div class="tx-hero-stat">
-        <span class="tx-hero-stat-num">9 PM</span>
-        <span class="tx-hero-stat-lbl">cerramos</span>
-      </div>
+      <div class="tx-hero-stat"><span class="tx-hero-stat-num">{{ productos|length }}</span><span class="tx-hero-stat-lbl">variedades</span></div>
+      <div class="tx-hero-stat"><span class="tx-hero-stat-num">9 AM</span><span class="tx-hero-stat-lbl">abrimos</span></div>
+      <div class="tx-hero-stat"><span class="tx-hero-stat-num">9 PM</span><span class="tx-hero-stat-lbl">cerramos</span></div>
     </div>
   </div>
 
-  <!-- ── Catálogo ───────────────────────────────────────── -->
   <div class="tx-main">
-
     <div class="tx-toolbar">
       <div class="tx-search">
         <span class="tx-search-icon">🔍</span>
@@ -450,10 +167,9 @@
       </div>
       <div class="tx-toolbar-divider"></div>
       <div class="tx-filters">
-        <button class="tx-chip active" id="fBtn-todos"
-                onclick="setFiltro('todos', this)">Todos</button>
-        <button class="tx-chip" id="fBtn-disponibles"
-                onclick="setFiltro('disponibles', this)">Disponibles</button>
+        <button class="tx-chip active" onclick="setFiltro('todos',this)">Todos</button>
+        <button class="tx-chip" onclick="setFiltro('disponibles',this)">✅ En bodega</button>
+        <button class="tx-chip" onclick="setFiltro('encargo',this)">📅 Por encargo</button>
       </div>
       <select class="tx-sort" onchange="setOrden(this.value)">
         <option value="">Ordenar…</option>
@@ -462,380 +178,452 @@
         <option value="nombre">Nombre</option>
       </select>
     </div>
-
     <div class="tx-count" id="txCount"></div>
-
     <div class="tx-grid" id="txGrid">
       {% for p in productos %}
-      <div class="tx-card {% if p.nivel_stock == 'agotado' %}agotado{% endif %}"
+      <div class="tx-card"
            id="txcard-{{ p.id_producto }}"
            data-id="{{ p.id_producto }}"
-           data-name="{{ p.nombre | lower }}"
+           data-name="{{ p.nombre|lower }}"
            data-nivel="{{ p.nivel_stock }}"
            data-precio="{{ p.precio_venta }}"
-           data-stock="{{ p.stock_actual | int }}">
-
+           data-stock="{{ p.stock_actual|int }}">
         <div class="tx-card-img">
-          {# ── Imagen del producto ──────────────────────────── #}
           {% if p.imagen_url %}
-            <img src="{{ url_for('static', filename=p.imagen_url) }}"
-                 alt="{{ p.nombre }}"
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                 style="display:block;">
-            <div class="tx-card-placeholder" style="display:none;">
-              <span>🥐</span>
-              <span style="font-size:11px;">sin imagen</span>
-            </div>
+            <img src="{{ url_for('static',filename=p.imagen_url) }}" alt="{{ p.nombre }}"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" style="display:block;">
+            <div class="tx-card-placeholder" style="display:none;"><span>🥐</span><span style="font-size:11px;">sin imagen</span></div>
           {% else %}
-            <div class="tx-card-placeholder" style="display:flex;">
-              <span>🥐</span>
-              <span style="font-size:11px;">sin imagen</span>
-            </div>
+            <div class="tx-card-placeholder" style="display:flex;"><span>🥐</span><span style="font-size:11px;">sin imagen</span></div>
           {% endif %}
-
-          {# ── Badge de stock ───────────────────────────────── #}
           {% if p.nivel_stock == 'agotado' %}
-            <div class="tx-stock-badge agotado">AGOTADO</div>
+            <div class="tx-stock-badge encargo">📅 Por encargo</div>
           {% elif p.nivel_stock == 'critico' %}
-            <div class="tx-stock-badge critico">🔥 ¡Últimas {{ p.stock_actual | int }}!</div>
+            <div class="tx-stock-badge critico">🔥 Últimas {{ p.stock_actual|int }} pzas</div>
           {% elif p.nivel_stock == 'bajo' %}
-            <div class="tx-stock-badge bajo">⚠️ Pocas — {{ p.stock_actual | int }} pzas</div>
+            <div class="tx-stock-badge bajo">⚠️ Pocas — {{ p.stock_actual|int }} pzas</div>
           {% else %}
-            <div class="tx-stock-badge ok">{{ p.stock_actual | int }} disponibles</div>
+            <div class="tx-stock-badge ok">✅ {{ p.stock_actual|int }} en bodega</div>
           {% endif %}
         </div>
-
         <div class="tx-card-body">
           <div class="tx-card-name">{{ p.nombre }}</div>
-          <div class="tx-card-desc">{{ p.descripcion or 'Pan recién horneado del día.' }}</div>
-
+          <div class="tx-card-desc">{{ p.descripcion or 'Pan recién horneado.' }}</div>
           <div class="tx-card-footer">
-            <div class="tx-card-price">
-              ${{ "%.2f"|format(p.precio_venta) }}
-              <span>/ pieza</span>
+            <div class="tx-card-price">${{ "%.2f"|format(p.precio_venta) }}<span>/ pieza</span></div>
+            <div class="tx-stepper" id="step-{{ p.id_producto }}" style="display:none;">
+              <button type="button" onclick="cambiarQty({{ p.id_producto }},-1)">−</button>
+              <span class="qty-val" id="qty-{{ p.id_producto }}">0</span>
+              <button type="button" onclick="cambiarQty({{ p.id_producto }},+1)">+</button>
             </div>
-
-            {% if p.nivel_stock == 'agotado' %}
-              <button class="btn-tx-add" disabled>Agotado</button>
-            {% else %}
-              <div class="tx-stepper" id="step-{{ p.id_producto }}" style="display:none;">
-                <button type="button"
-                        onclick="cambiarQty({{ p.id_producto }}, -1, {{ p.stock_actual | int }}, {{ p.precio_venta }})">−</button>
-                <span class="qty-val" id="qty-{{ p.id_producto }}">0</span>
-                <button type="button"
-                        onclick="cambiarQty({{ p.id_producto }}, +1, {{ p.stock_actual | int }}, {{ p.precio_venta }})">+</button>
-              </div>
-              {# FIX: se pasa imagen_url en vez de uuid_producto #}
-              <button class="btn-tx-add" id="addBtn-{{ p.id_producto }}"
-                      onclick="agregarProducto({{ p.id_producto }}, {{ p.precio_venta }}, '{{ p.nombre | e }}', '{{ p.imagen_url or '' }}', {{ p.stock_actual | int }})">
-                + Agregar
-              </button>
-            {% endif %}
+            <button class="btn-tx-add" id="addBtn-{{ p.id_producto }}"
+                    onclick="agregarProducto({{ p.id_producto }},{{ p.precio_venta }},'{{ p.nombre|e }}','{{ p.imagen_url or '' }}')">
+              + Agregar
+            </button>
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
-
     <div class="tx-empty" id="txEmpty" style="display:none;">
       <div class="ico">🔍</div>
       <p>No hay panes que coincidan con tu búsqueda.</p>
     </div>
   </div>
+</div>
 
-</div><!-- /.tx-page -->
-
-<!-- ══════════════════════════════════════════════════════════
-     BOTÓN FLOTANTE
-     ══════════════════════════════════════════════════════════ -->
-<button class="tx-cart-fab" id="fabCarrito" onclick="abrirDrawer()" aria-label="Ver carrito">
+<button class="tx-cart-fab" id="fabCarrito" onclick="abrirDrawer()">
   <span class="tx-cart-fab-ico">🛒</span>
   <span class="tx-cart-fab-qty" id="fabQty">0</span>
   <span class="tx-cart-fab-label" id="fabTotal">Ver pedido</span>
 </button>
 
-<!-- OVERLAY -->
 <div class="tx-overlay" id="txOverlay" onclick="cerrarDrawer()"></div>
 
-<!-- ══════════════════════════════════════════════════════════
-     DRAWER
-     ══════════════════════════════════════════════════════════ -->
-<div class="tx-drawer" id="txDrawer" role="dialog" aria-modal="true" aria-label="Tu pedido">
+<div class="tx-drawer" id="txDrawer" role="dialog" aria-modal="true">
   <div class="tx-drawer-handle"></div>
-
   <div class="tx-drawer-header">
-    <h2 class="tx-drawer-title">
-      🛒 Tu pedido
-      <span id="cartQtyBadge">0</span>
-    </h2>
-    <button class="tx-drawer-close" onclick="cerrarDrawer()" aria-label="Cerrar">✕</button>
+    <h2 class="tx-drawer-title">🛒 Tu pedido <span id="cartQtyBadge">0</span></h2>
+    <button class="tx-drawer-close" onclick="cerrarDrawer()">✕</button>
   </div>
 
-  <form method="post" action="{{ url_for('pedidos.crear_pedido_express') }}"
-        id="formExpress"
-        style="display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0;">
+  <form method="post" action="{{ url_for('pedidos.crear_pedido_futuro') }}"
+        id="formPedido" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
     <input type="hidden" name="csrf_token"    value="{{ csrf_token() }}">
     <input type="hidden" name="carrito_json"  id="hCarrito">
+    <input type="hidden" name="fecha_entrega" id="hFecha">
     <input type="hidden" name="hora_recogida" id="hHora">
     <input type="hidden" name="metodo_pago"   id="hMetodoPago" value="efectivo">
+    <input type="hidden" name="es_inmediato"  id="hEsInmediato" value="0">
 
     <div class="tx-drawer-body" id="cartBody"></div>
 
     <div class="tx-drawer-footer">
 
-      <div class="tx-hoy-badge">
-        📅 Recogida hoy —
-        <span id="fechaHoy" style="font-weight:900;"></span>
+      <!-- Banner informativo (solo aparece cuando hay items) -->
+      <div id="modoBanner" class="tx-modo-banner" style="display:none;">
+        <span id="modoIco" class="modo-ico"></span>
+        <div>
+          <strong id="modoBannerTitulo"></strong>
+          <div id="modoBannerDesc" style="font-size:11px;margin-top:2px;opacity:.85;"></div>
+        </div>
       </div>
 
-      <span class="tx-foot-label">Método de pago</span>
+      <!-- Picker unificado: siempre visible cuando hay items -->
+      <div id="seccionFecha" style="display:none;">
+        <div class="tx-fecha-wrap">
+          <label id="labelFecha">📅 ¿Cuándo quieres recoger?</label>
+          <div class="tx-fecha-row">
+            <input type="date" id="uiFecha" onchange="onFechaChange()">
+            <select id="uiHora" onchange="onFechaChange()">
+              <option value="">— Hora —</option>
+            </select>
+          </div>
+          <div class="tx-fecha-warn" id="fechaWarn"></div>
+        </div>
+      </div>
+
+      <span class="tx-foot-label">Método de pago al recoger</span>
       <div class="pago-grid">
-        <div class="pago-opt active" id="pago-efectivo" onclick="seleccionarPago('efectivo')">
-          <span class="pago-ico">💵</span>
-          <span class="pago-lbl">Efectivo</span>
-        </div>
-        <div class="pago-opt" id="pago-tarjeta" onclick="seleccionarPago('tarjeta')">
-          <span class="pago-ico">💳</span>
-          <span class="pago-lbl">Tarjeta</span>
-        </div>
-        <div class="pago-opt" id="pago-transferencia" onclick="seleccionarPago('transferencia')">
-          <span class="pago-ico">🏦</span>
-          <span class="pago-lbl">Transf.</span>
-        </div>
+        <div class="pago-opt active" id="pago-efectivo" onclick="seleccionarPago('efectivo')"><span class="pago-ico">💵</span><span class="pago-lbl">Efectivo</span></div>
+        <div class="pago-opt" id="pago-tarjeta" onclick="seleccionarPago('tarjeta')"><span class="pago-ico">💳</span><span class="pago-lbl">Tarjeta</span></div>
+        <div class="pago-opt" id="pago-transferencia" onclick="seleccionarPago('transferencia')"><span class="pago-ico">🏦</span><span class="pago-lbl">Transf.</span></div>
       </div>
-      <div class="pago-info">Pagarás con <strong id="pagoTexto">efectivo</strong></div>
+      <div class="pago-info">Pagarás con <strong id="pagoTexto">efectivo</strong> al recoger</div>
 
-      <div class="tx-hora-wrap">
-        <label>Hora de recogida</label>
-        <select id="uiHora" onchange="actualizarHora()" required>
-          <option value="">— elige una hora —</option>
-        </select>
-      </div>
-
-      <div class="tx-notas-wrap">
-        <label>Notas (opcional)</label>
-        <textarea name="notas" rows="2" placeholder="Ej: Sin cacahuate, con factura…"></textarea>
-      </div>
 
       <div class="tx-total-row">
-        <span>Total <small style="font-size:10px; color:var(--dm-muted);">(estimado)</small></span>
+        <span>Total estimado</span>
         <span class="tx-total-amount" id="cartTotal">$0.00</span>
       </div>
-
-      <button type="submit" class="btn-tx-confirm" id="btnConfirmar" disabled>
-        Confirmar pedido →
+      <button type="button" class="btn-tx-confirm" id="btnConfirmar"
+              disabled onclick="confirmarPedido()">
+        📦 Confirmar pedido →
       </button>
     </div>
   </form>
 </div>
 
-<script type="application/json" id="data-productos">{{ productos_json | safe }}</script>
-
+<script type="application/json" id="data-productos">{{ productos_json|safe }}</script>
 <script>
-const PRODS   = JSON.parse(document.getElementById('data-productos').textContent);
+const PRODS = JSON.parse(document.getElementById('data-productos').textContent);
+const STOCK_MAP = {};
+PRODS.forEach(p => { STOCK_MAP[p.id] = p.stock; });
+
 const carrito = {};
 let filtroActivo = 'todos', busqueda = '', ordenActivo = '';
 
-/* ── Drawer ─────────────────────────────────────────────── */
-function abrirDrawer() {
+/* ── Drawer ─────────────────────────────────────────────────── */
+function abrirDrawer(){
   document.getElementById('txDrawer').classList.add('open');
   document.getElementById('txOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  actualizarModo();
 }
-function cerrarDrawer() {
+function cerrarDrawer(){
   document.getElementById('txDrawer').classList.remove('open');
   document.getElementById('txOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDrawer(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarDrawer(); });
 
-/* ── Método de pago ─────────────────────────────────────── */
-function seleccionarPago(metodo) {
-  ['efectivo','tarjeta','transferencia'].forEach(m =>
-    document.getElementById('pago-' + m).classList.remove('active')
-  );
-  document.getElementById('pago-' + metodo).classList.add('active');
-  document.getElementById('hMetodoPago').value     = metodo;
-  document.getElementById('pagoTexto').textContent = metodo;
+/* ── Pago ───────────────────────────────────────────────────── */
+function seleccionarPago(m){
+  ['efectivo','tarjeta','transferencia'].forEach(x =>
+    document.getElementById('pago-'+x).classList.remove('active'));
+  document.getElementById('pago-'+m).classList.add('active');
+  document.getElementById('hMetodoPago').value = m;
+  document.getElementById('pagoTexto').textContent = m;
 }
 
-/* ── Catálogo ───────────────────────────────────────────── */
-// FIX: parámetro renombrado a imagenUrl (antes era uuid y se usaba imagenUrl sin definir)
-function agregarProducto(id, precio, nombre, imagenUrl, maxStock) {
-  carrito[id] = { id, nombre, imagen_url: imagenUrl, precio, qty: 1, max: maxStock };
-  document.getElementById('addBtn-' + id).style.display = 'none';
-  document.getElementById('step-'   + id).style.display = 'flex';
-  document.getElementById('qty-'    + id).textContent   = '1';
-  document.getElementById('txcard-' + id).classList.add('en-carrito');
+/* ── Carrito ─────────────────────────────────────────────────── */
+function agregarProducto(id, precio, nombre, imgUrl){
+  carrito[id] = { id, nombre, imagen_url: imgUrl, precio, qty: 1 };
+  document.getElementById('addBtn-'+id).style.display = 'none';
+  document.getElementById('step-'+id).style.display   = 'flex';
+  document.getElementById('qty-'+id).textContent      = '1';
+  document.getElementById('txcard-'+id).classList.add('en-carrito');
   renderCarrito();
+  actualizarModo();
   const fab = document.getElementById('fabCarrito');
   fab.style.transform = 'translateY(-4px) scale(1.07)';
   setTimeout(() => fab.style.transform = '', 240);
 }
 
-function cambiarQty(id, delta, maxStock, precio) {
-  if (!carrito[id]) return;
+function cambiarQty(id, delta){
+  if(!carrito[id]) return;
   const nuevo = carrito[id].qty + delta;
-  if (nuevo <= 0) {
+  if(nuevo <= 0){
     delete carrito[id];
-    document.getElementById('step-'   + id).style.display = 'none';
-    document.getElementById('addBtn-' + id).style.display = 'inline-flex';
-    document.getElementById('qty-'    + id).textContent   = '0';
-    document.getElementById('txcard-' + id).classList.remove('en-carrito');
-  } else if (nuevo > maxStock) {
-    window.DM && window.DM.toast('No hay más disponibles de este pan.', 'warning');
-    return;
+    document.getElementById('step-'+id).style.display   = 'none';
+    document.getElementById('addBtn-'+id).style.display = 'inline-flex';
+    document.getElementById('qty-'+id).textContent      = '0';
+    document.getElementById('txcard-'+id).classList.remove('en-carrito');
   } else {
     carrito[id].qty = nuevo;
-    document.getElementById('qty-' + id).textContent = nuevo;
+    document.getElementById('qty-'+id).textContent = nuevo;
   }
   renderCarrito();
+  actualizarModo();
 }
 
-function quitarDelCarrito(id) {
+function quitarDelCarrito(id){
   delete carrito[id];
-  const s = document.getElementById('step-'   + id); if (s) s.style.display = 'none';
-  const b = document.getElementById('addBtn-' + id); if (b) b.style.display = 'inline-flex';
-  const q = document.getElementById('qty-'    + id); if (q) q.textContent   = '0';
-  const c = document.getElementById('txcard-' + id); if (c) c.classList.remove('en-carrito');
+  const s = document.getElementById('step-'+id);    if(s) s.style.display   = 'none';
+  const b = document.getElementById('addBtn-'+id);  if(b) b.style.display   = 'inline-flex';
+  const q = document.getElementById('qty-'+id);     if(q) q.textContent     = '0';
+  const c = document.getElementById('txcard-'+id);  if(c) c.classList.remove('en-carrito');
   renderCarrito();
+  actualizarModo();
 }
 
-/* ── Render carrito ─────────────────────────────────────── */
-function renderCarrito() {
-  const items    = Object.values(carrito);
-  const total    = items.reduce((s, i) => s + i.precio * i.qty, 0);
-  const totalQty = items.reduce((s, i) => s + i.qty, 0);
-
-  const badge = document.getElementById('cartQtyBadge');
-  badge.textContent   = totalQty;
-  badge.style.display = totalQty > 0 ? 'inline-block' : 'none';
-
-  const fabQty   = document.getElementById('fabQty');
-  const fabLabel = document.getElementById('fabTotal');
-  fabQty.textContent   = totalQty;
-  fabQty.style.display = totalQty > 0 ? 'inline-block' : 'none';
-  fabLabel.textContent = totalQty > 0
-    ? '$' + total.toFixed(2) + ' · Ver pedido'
-    : 'Ver pedido';
-
-  document.getElementById('btnConfirmar').disabled = (totalQty === 0);
-  document.getElementById('hCarrito').value = JSON.stringify(
-    items.map(i => ({ id: i.id, qty: i.qty, precio: i.precio }))
-  );
-  document.getElementById('cartTotal').textContent = '$' + total.toFixed(2);
+function renderCarrito(){
+  const items = Object.values(carrito);
+  const total = items.reduce((s, i) => s + i.precio * i.qty, 0);
+  const qty   = items.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cartQtyBadge').textContent    = qty;
+  document.getElementById('cartQtyBadge').style.display  = qty > 0 ? 'inline-block' : 'none';
+  document.getElementById('fabQty').textContent          = qty;
+  document.getElementById('fabQty').style.display        = qty > 0 ? 'inline-block' : 'none';
+  document.getElementById('fabTotal').textContent        = qty > 0 ? '$'+total.toFixed(2)+' · Ver pedido' : 'Ver pedido';
+  document.getElementById('hCarrito').value              = JSON.stringify(items.map(i => ({id:i.id,qty:i.qty,precio:i.precio})));
+  document.getElementById('cartTotal').textContent       = '$'+total.toFixed(2);
 
   const body = document.getElementById('cartBody');
-  if (!items.length) {
-    body.innerHTML = `
-      <div class="tx-cart-empty">
-        <div class="ico">🛒</div>
-        <p>Tu carrito está vacío.<br>Elige un pan del catálogo para empezar.</p>
-      </div>`;
+  if(!items.length){
+    body.innerHTML = `<div class="tx-cart-empty"><div class="ico">🛒</div>
+      <p>Tu carrito está vacío.<br>Elige un pan del catálogo para empezar.</p></div>`;
     return;
   }
-
-  // FIX: usa i.imagen_url con la ruta correcta /static/
   body.innerHTML = items.map(i => `
     <div class="tx-cart-item">
-      <div class="tx-cart-thumb">
-        ${i.imagen_url
-          ? `<img src="/static/${i.imagen_url}" alt="${i.nombre}"
-                  onerror="this.style.display='none'; this.parentElement.textContent='🥐';">`
-          : '🥐'}
-      </div>
+      <div class="tx-cart-thumb">${i.imagen_url
+        ? `<img src="/static/${i.imagen_url}" alt="${i.nombre}"
+                onerror="this.style.display='none';this.parentElement.textContent='🥐';">`
+        : '🥐'}</div>
       <div class="tx-cart-info">
         <div class="tx-cart-name">${i.nombre}</div>
         <div class="tx-cart-sub">${i.qty} pza${i.qty>1?'s':''} × $${i.precio.toFixed(2)}</div>
       </div>
-      <span class="tx-cart-price">$${(i.qty * i.precio).toFixed(2)}</span>
-      <button type="button" class="tx-cart-remove"
-              onclick="quitarDelCarrito(${i.id})" title="Quitar">✕</button>
-    </div>`
-  ).join('');
+      <span class="tx-cart-price">$${(i.qty*i.precio).toFixed(2)}</span>
+      <button type="button" class="tx-cart-remove" onclick="quitarDelCarrito(${i.id})">✕</button>
+    </div>`).join('');
 }
 
-/* ── Filtros ────────────────────────────────────────────── */
-function setFiltro(filtro, btn) {
+/* ══════════════════════════════════════════════════════════════
+   LÓGICA DE MODO
+   - Si hay stock para todo el carrito → min fecha = HOY
+     El cliente puede elegir hoy mismo O mañana O cualquier día.
+   - Si falta stock en alguno → min fecha = +24h (solo futuro)
+   - es_inmediato se determina dinámicamente: fecha elegida = hoy
+   ══════════════════════════════════════════════════════════════ */
+
+function todosConStock(){
+  return Object.entries(carrito).every(([id, item]) => {
+    const s = STOCK_MAP[parseInt(id)];
+    return typeof s === 'number' && s >= item.qty;
+  });
+}
+
+function hoyISO(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function actualizarModo(){
+  const hayCart  = Object.keys(carrito).length > 0;
+  const conStock = hayCart && todosConStock();
+
+  document.getElementById('modoBanner').style.display  = hayCart ? 'flex' : 'none';
+  document.getElementById('seccionFecha').style.display = hayCart ? 'block' : 'none';
+
+  if(!hayCart){ actualizarBtn(); return; }
+
+  const fechaInput = document.getElementById('uiFecha');
+  const fechaActual = fechaInput.value;
+
+  if(conStock){
+    // Con stock: puede pedir para HOY o para cuando quiera
+    document.getElementById('modoBanner').className  = 'tx-modo-banner tx-modo-inmediato';
+    document.getElementById('modoIco').textContent   = '✅';
+    document.getElementById('modoBannerTitulo').textContent = 'Todo disponible en bodega';
+    document.getElementById('modoBannerDesc').textContent   =
+      'Puedes recoger hoy o elegir cualquier otro día.';
+    document.getElementById('labelFecha').textContent = '📅 ¿Cuándo quieres recoger?';
+    fechaInput.min = hoyISO();   // ← permite seleccionar hoy
+  } else {
+    // Sin stock completo: mínimo 24h
+    document.getElementById('modoBanner').className  = 'tx-modo-banner tx-modo-futuro';
+    document.getElementById('modoIco').textContent   = '📅';
+    document.getElementById('modoBannerTitulo').textContent = 'Pedido por encargo';
+    document.getElementById('modoBannerDesc').textContent   =
+      'Algunos productos se prepararán especialmente. Se requieren mínimo 24 h de anticipación.';
+    document.getElementById('labelFecha').textContent = '📅 Fecha de recogida (+24 h mínimo)';
+    const min24 = new Date(); min24.setHours(min24.getHours() + 24);
+    const min24ISO = `${min24.getFullYear()}-${String(min24.getMonth()+1).padStart(2,'0')}-${String(min24.getDate()).padStart(2,'0')}`;
+    fechaInput.min = min24ISO;
+    // Si ya tenían hoy seleccionado, limpiar
+    if(fechaActual && fechaActual < min24ISO){
+      fechaInput.value = '';
+      document.getElementById('hFecha').value = '';
+      document.getElementById('hHora').value  = '';
+    }
+  }
+
+  poblarHoras(conStock);
+  onFechaChange();
+}
+
+function poblarHoras(conStock){
+  const fechaInput = document.getElementById('uiFecha');
+  const sel        = document.getElementById('uiHora');
+  const fechaSel   = fechaInput.value;
+  const esHoy      = fechaSel === hoyISO();
+  const prevVal    = sel.value;
+
+  sel.innerHTML = '<option value="">— Hora —</option>';
+
+  // Si es hoy y hay stock: empezar desde próxima hora disponible (+30 min)
+  // En cualquier otro caso: todas las horas de 9 a 21
+  let horaMin = 9;
+  if(esHoy && conStock){
+    const ahora = new Date();
+    horaMin = ahora.getHours() + (ahora.getMinutes() >= 30 ? 2 : 1);
+    horaMin = Math.max(9, horaMin);
+  }
+
+  for(let h = horaMin; h <= 21; h++){
+    const opt  = document.createElement('option');
+    const hh   = String(h).padStart(2, '0');
+    opt.value  = `${hh}:00`;
+    const h12  = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+    opt.textContent = `${h12}:00 ${h >= 12 ? 'PM' : 'AM'}`;
+    sel.appendChild(opt);
+  }
+
+  if(sel.options.length === 1){
+    // No hay horarios disponibles hoy — sugerir mañana
+    sel.innerHTML = '<option value="">Sin horarios disponibles hoy</option>';
+    if(esHoy){
+      const manana = new Date(); manana.setDate(manana.getDate() + 1);
+      fechaInput.value = `${manana.getFullYear()}-${String(manana.getMonth()+1).padStart(2,'0')}-${String(manana.getDate()).padStart(2,'0')}`;
+      poblarHoras(conStock);
+    }
+    return;
+  }
+
+  // Restaurar selección previa si sigue siendo válida
+  if(prevVal && [...sel.options].some(o => o.value === prevVal)) sel.value = prevVal;
+}
+
+function onFechaChange(){
+  const conStock = todosConStock();
+  poblarHoras(conStock);
+
+  const fecha  = document.getElementById('uiFecha').value;
+  const hora   = document.getElementById('uiHora').value;
+  const warn   = document.getElementById('fechaWarn');
+  warn.style.display = 'none';
+
+  // Limpiar campos ocultos primero
+  document.getElementById('hFecha').value = '';
+  document.getElementById('hHora').value  = '';
+  document.getElementById('hEsInmediato').value = '0';
+
+  if(!fecha || !hora){ actualizarBtn(); return; }
+
+  const esHoy  = fecha === hoyISO();
+  const selDt  = new Date(`${fecha}T${hora}:00`);
+  const ahora  = new Date();
+  let valido   = true;
+
+  if(esHoy && conStock){
+    // Compra del día: solo verificar que la hora no haya pasado
+    if(selDt <= ahora){
+      warn.style.display = 'block';
+      warn.textContent   = '⚠️ Esa hora ya pasó. Elige una hora disponible.';
+      valido = false;
+    }
+  } else {
+    // Pedido futuro: mínimo 24h desde ahora
+    const minDt = new Date(); minDt.setHours(minDt.getHours() + 24);
+    if(selDt < minDt){
+      warn.style.display = 'block';
+      warn.textContent   = '⚠️ Elige una fecha con al menos 24 h de anticipación.';
+      valido = false;
+    }
+  }
+
+  if(valido){
+    document.getElementById('hFecha').value        = fecha;
+    document.getElementById('hHora').value         = hora;
+    // es_inmediato = 1 solo si la fecha es hoy Y hay stock suficiente
+    document.getElementById('hEsInmediato').value  = (esHoy && conStock) ? '1' : '0';
+  }
+  actualizarBtn();
+}
+
+function actualizarBtn(){
+  const hayCart = Object.keys(carrito).length > 0;
+  const fecha   = document.getElementById('hFecha').value;
+  const hora    = document.getElementById('hHora').value;
+  document.getElementById('btnConfirmar').disabled = !(hayCart && fecha && hora);
+}
+
+function confirmarPedido(){
+  if(!Object.keys(carrito).length){
+    window.DM && window.DM.toast('Tu carrito está vacío.', 'warning'); return;
+  }
+  const fecha = document.getElementById('hFecha').value;
+  const hora  = document.getElementById('hHora').value;
+  if(!fecha || !hora){
+    window.DM && window.DM.toast('Selecciona fecha y hora de recogida.', 'warning'); return;
+  }
+  document.getElementById('btnConfirmar').disabled  = true;
+  document.getElementById('btnConfirmar').innerHTML = '⏳ Enviando…';
+  document.getElementById('formPedido').submit();
+}
+
+/* ── Filtros del catálogo ───────────────────────────────────── */
+function setFiltro(filtro, btn){
   filtroActivo = filtro;
   document.querySelectorAll('.tx-chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   aplicarFiltros();
 }
-function setOrden(orden) { ordenActivo = orden; aplicarFiltros(); }
-function filtrar(q)       { busqueda = q.toLowerCase(); aplicarFiltros(); }
+function setOrden(o){ ordenActivo = o; aplicarFiltros(); }
+function filtrar(q){ busqueda = q.toLowerCase(); aplicarFiltros(); }
 
-function aplicarFiltros() {
+function aplicarFiltros(){
   const grid  = document.getElementById('txGrid');
   const cards = Array.from(grid.querySelectorAll('.tx-card'));
-
-  if (ordenActivo === 'precio-asc')
+  if(ordenActivo === 'precio-asc')
     cards.sort((a,b) => parseFloat(a.dataset.precio) - parseFloat(b.dataset.precio));
-  else if (ordenActivo === 'precio-desc')
+  else if(ordenActivo === 'precio-desc')
     cards.sort((a,b) => parseFloat(b.dataset.precio) - parseFloat(a.dataset.precio));
-  else if (ordenActivo === 'nombre')
+  else if(ordenActivo === 'nombre')
     cards.sort((a,b) => a.dataset.name.localeCompare(b.dataset.name));
   cards.forEach(c => grid.appendChild(c));
-
   let visible = 0;
   cards.forEach(card => {
-    const show = card.dataset.name.includes(busqueda) &&
-                 (filtroActivo === 'todos' ||
-                 (filtroActivo === 'disponibles' && card.dataset.nivel !== 'agotado'));
+    const nivel   = card.dataset.nivel;
+    const nameOk  = card.dataset.name.includes(busqueda);
+    const filtroOk = filtroActivo === 'todos'
+      || (filtroActivo === 'disponibles' && nivel !== 'agotado')
+      || (filtroActivo === 'encargo'     && nivel === 'agotado');
+    const show = nameOk && filtroOk;
     card.style.display = show ? '' : 'none';
-    if (show) visible++;
+    if(show) visible++;
   });
-
-  document.getElementById('txEmpty').style.display = visible === 0 ? 'grid' : 'none';
+  document.getElementById('txEmpty').style.display =
+    visible === 0 ? 'grid' : 'none';
   document.getElementById('txCount').textContent =
     `${visible} producto${visible!==1?'s':''} encontrado${visible!==1?'s':''}`;
 }
 
-/* ── Hora ───────────────────────────────────────────────── */
-function poblarHoras() {
-  const sel    = document.getElementById('uiHora');
-  const ahora  = new Date();
-  const minima = new Date(ahora.getTime() + 30 * 60000);
-
-  for (let h = 9; h <= 21; h++) {
-    for (let m = 0; m < 60; m += 15) {
-      if (h === 21 && m > 0) break;
-      const candidata = new Date(ahora);
-      candidata.setHours(h, m, 0, 0);
-      if (candidata <= minima) continue;
-      const opt = document.createElement('option');
-      opt.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-      const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-      opt.textContent = `${h12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
-      sel.appendChild(opt);
-    }
-  }
-
-  if (sel.options.length === 1) {
-    sel.innerHTML = '<option value="">Tienda cerrada por hoy</option>';
-  } else {
-    sel.selectedIndex = 1;
-    actualizarHora();
-  }
-}
-
-function actualizarHora() {
-  document.getElementById('hHora').value = document.getElementById('uiHora').value;
-}
-
-function mostrarFechaHoy() {
-  const dias  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const meses = ['enero','febrero','marzo','abril','mayo','junio',
-                 'julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const hoy   = new Date();
-  document.getElementById('fechaHoy').textContent =
-    `${dias[hoy.getDay()]} ${hoy.getDate()} de ${meses[hoy.getMonth()]}`;
-}
-
-/* ── Init ───────────────────────────────────────────────── */
-poblarHoras();
-mostrarFechaHoy();
+/* ── Init ────────────────────────────────────────────────────── */
 aplicarFiltros();
 renderCarrito();
+actualizarModo();
 </script>
 {% endblock %}

@@ -1,7 +1,7 @@
 import os
 from urllib.parse import quote_plus
 
-_BASE = 'mysql+pymysql://{user}:{pwd}@127.0.0.1/dulce_migaja'
+_BASE = 'mysql+pymysql://{user}:{pwd}@127.0.0.1/dulce_migaja?charset=utf8mb4'
 
 def _uri(user, pwd):
     return _BASE.format(user=user, pwd=quote_plus(pwd))

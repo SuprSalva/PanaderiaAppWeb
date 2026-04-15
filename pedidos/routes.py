@@ -627,7 +627,6 @@ def api_faltantes_compra(folio):
         db.session.rollback()
         return jsonify({'ok': False, 'mensaje': str(exc)}), 500
 
-# ── Aprobar pedido ──────────────────────────────────────────
 @pedidos_bp.route('/<folio>/aprobar', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado')
@@ -649,7 +648,7 @@ def aprobar_pedido(folio):
                 current_user.username, folio,
                 datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             )
-            flash(f'Pedido {folio} aprobado ✅. Stock descontado.', 'success')
+            flash(f'Pedido {folio} aprobado. El stock se descontará al marcarlo listo.', 'success')
         else:
             db.session.rollback()
             flash(f'No se pudo aprobar: {row["err"] or "Error desconocido"}', 'error')
@@ -942,11 +941,11 @@ def marcar_entregado(folio):
  
 @pedidos_bp.route('/tienda')
 @login_required
-@roles_required('admin', 'cliente')
+@roles_required('admin', 'empleado', 'cliente')
 def tienda():
-    """Catálogo de la tienda express — muestra productos con stock real."""
+    """Catálogo: permite pedir aunque no haya stock (por encargo)."""
     current_app.logger.info(
-        'Vista de tienda express accesada | usuario: %s | fecha: %s',
+        'Vista tienda accesada | usuario: %s | fecha: %s',
         current_user.username,
         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     )
@@ -955,34 +954,33 @@ def tienda():
     cur.execute("CALL sp_catalogo_tienda()")
     rows = cur.fetchall()
     cur.close()
-
-    Producto = namedtuple(
-        'Producto',
-        ['id_producto', 'uuid_producto', 'nombre', 'descripcion',
+ 
+    Producto = namedtuple('Producto', [
+        'id_producto', 'uuid_producto', 'nombre', 'descripcion',
         'precio_venta', 'stock_actual', 'stock_minimo', 'nivel_stock',
-        'imagen_url']
-    )
+        'imagen_url'
+    ])
     productos = [Producto(*r) for r in rows]
-
+ 
     productos_json = Markup(json.dumps([
         {
-            'id':           p.id_producto,
-            'uuid':         p.uuid_producto,
-            'nombre':       p.nombre,
-            'descripcion':  p.descripcion or '',
-            'precio':       float(p.precio_venta),
-            'stock':        int(p.stock_actual),
-            'nivel':        p.nivel_stock,
+            'id':          p.id_producto,
+            'uuid':        p.uuid_producto,
+            'nombre':      p.nombre,
+            'descripcion': p.descripcion or '',
+            'precio':      float(p.precio_venta),
+            'stock':       int(p.stock_actual),
+            'nivel':       p.nivel_stock,
+            'imagen_url':  p.imagen_url or '',
         }
         for p in productos
     ]))
-
+ 
     return render_template(
         'pedidos/tienda.html',
         productos=productos,
         productos_json=productos_json,
     )
-
 
 @pedidos_bp.route('/tienda/crear', methods=['POST'])
 @login_required
@@ -1073,6 +1071,150 @@ def crear_pedido_express():
         current_app.logger.error(
             'Error general al crear pedido express | usuario: %s | error: %s | fecha: %s',
             current_user.username, str(exc),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
+        flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+
+@pedidos_bp.route('/tienda/futuro', methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado', 'cliente')
+def crear_pedido_futuro():
+    import re as _re
+
+    carrito_raw   = request.form.get('carrito_json',   '').strip()
+    fecha_str     = request.form.get('fecha_entrega',  '').strip()
+    hora_str      = request.form.get('hora_recogida',  '').strip()
+    metodo_pago   = request.form.get('metodo_pago',    'efectivo').strip()
+    notas         = request.form.get('notas',          '').strip() or None
+    es_inmediato  = request.form.get('es_inmediato',   '0').strip()  # '1' = compra del día
+
+    if not carrito_raw:
+        flash('No se recibieron productos en el pedido.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    try:
+        carrito_data = json.loads(carrito_raw)
+    except (ValueError, TypeError):
+        flash('Error al leer los datos del carrito.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    if not isinstance(carrito_data, list) or len(carrito_data) == 0:
+        flash('Agrega al menos un producto al pedido.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    if not fecha_str or not hora_str:
+        flash('Selecciona la fecha y hora de recogida.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    if not _re.match(r'^\d{4}-\d{2}-\d{2}$', fecha_str):
+        flash('Formato de fecha inválido.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    if not _re.match(r'^\d{2}:\d{2}$', hora_str):
+        flash('Formato de hora inválido.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    if metodo_pago not in ('efectivo', 'tarjeta', 'transferencia'):
+        flash('Método de pago inválido.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    es_inmediato_int = 1 if es_inmediato == '1' else 0
+
+    fecha_dt_str = f"{fecha_str} {hora_str}:00"
+    try:
+        fecha_dt = datetime.datetime.strptime(fecha_dt_str, '%Y-%m-%d %H:%M:%S')
+    except ValueError:
+        flash('Fecha u hora inválida.', 'error')
+        return redirect(url_for('pedidos.tienda'))
+
+    # Validación 24h solo para pedidos futuros
+    if es_inmediato_int == 0:
+        if fecha_dt < datetime.datetime.now() + datetime.timedelta(hours=24):
+            flash('La fecha de recogida debe ser al menos 24 horas desde ahora.', 'error')
+            return redirect(url_for('pedidos.tienda'))
+    else:
+        # Compra inmediata: solo verificar que no sea en el pasado
+        if fecha_dt < datetime.datetime.now():
+            flash('La hora de recogida no puede ser en el pasado.', 'error')
+            return redirect(url_for('pedidos.tienda'))
+
+    productos_json_str = json.dumps([
+        {'id': item['id'], 'qty': item['qty'], 'precio': item['precio']}
+        for item in carrito_data
+    ])
+
+    try:
+        db.session.execute(text(
+            "SET @p_id_pedido = NULL, @p_folio = NULL, @p_error = NULL"
+        ))
+        db.session.execute(
+            text("""
+                CALL sp_pedido_futuro(
+                    :cliente, :fecha_dt, :metodo, :notas, :inmediato, :prods,
+                    @p_id_pedido, @p_folio, @p_error
+                )
+            """),
+            {
+                'cliente':   current_user.id_usuario,
+                'fecha_dt':  fecha_dt_str,
+                'metodo':    metodo_pago,
+                'notas':     notas,
+                'inmediato': es_inmediato_int,
+                'prods':     productos_json_str,
+            }
+        )
+        row = db.session.execute(
+            text("SELECT @p_id_pedido, @p_folio, @p_error")
+        ).fetchone()
+
+        if row[2]:
+            db.session.rollback()
+            current_app.logger.warning(
+                'Pedido rechazado por SP | usuario: %s | error: %s | fecha: %s',
+                current_user.username, row[2],
+                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            flash(f'No se pudo crear el pedido: {row[2]}', 'error')
+            return redirect(url_for('pedidos.tienda'))
+
+        db.session.commit()
+        p_folio = row[1]
+        n_pzas  = sum(item['qty'] for item in carrito_data)
+
+        tipo_msg = 'del día' if es_inmediato_int else 'programado'
+        current_app.logger.info(
+            'Pedido %s creado | usuario: %s | folio: %s | piezas: %d | entrega: %s | fecha: %s',
+            tipo_msg, current_user.username, p_folio, int(n_pzas), fecha_dt_str,
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
+
+        if es_inmediato_int:
+            flash(
+                f'¡Pedido {p_folio} enviado — {int(n_pzas)} '
+                f'pieza{"s" if n_pzas != 1 else ""}! '
+                f'Recogida hoy a las {hora_str}. Pago al recoger.',
+                'success'
+            )
+        else:
+            flash(
+                f'¡Pedido {p_folio} enviado — {int(n_pzas)} '
+                f'pieza{"s" if n_pzas != 1 else ""}! '
+                f'Recogida el {fecha_str} a las {hora_str}. Pago al recoger.',
+                'success'
+            )
+        return redirect(url_for('pedidos.mis_pedidos'))
+
+    except Exception as exc:
+        db.session.rollback()
+        orig = getattr(exc, 'orig', None)
+        msg  = (orig.args[1]
+                if orig and hasattr(orig, 'args') and len(orig.args) >= 2
+                else str(exc))
+        current_app.logger.error(
+            'Error al crear pedido | usuario: %s | error: %s | fecha: %s',
+            current_user.username, msg,
             datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
         flash('Ocurrió un error al guardar tu pedido. Intenta de nuevo.', 'error')

@@ -51,6 +51,42 @@
 .stat-lbl { font-size:11px;color:var(--brown-lt);font-weight:700;
             text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
 
+/* ── Banner Pedidos del Día ─────────────────────────────────── */
+.bph-banner {
+  display:flex; align-items:flex-start; gap:14px;
+  background:linear-gradient(135deg,#fef3d0 0%,#fff8e7 100%);
+  border:1.5px solid #f6d860; border-radius:13px;
+  padding:15px 18px;
+}
+.bph-ico { font-size:28px; flex-shrink:0; padding-top:2px; }
+.bph-body { flex:1; min-width:0; }
+.bph-title {
+  font-size:13px; font-weight:800; color:#92640a; margin:0 0 9px;
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.bph-total-chip {
+  background:#f6d860; color:#7a5208;
+  border-radius:20px; padding:2px 10px;
+  font-size:11px; font-weight:800;
+}
+.bph-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.bph-chip {
+  background:#fff; border:1.5px solid #f6d860; border-radius:20px;
+  padding:4px 12px; font-size:12px; font-weight:700; color:#7a5208;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.bph-chip strong { color:#92640a; font-size:13px; }
+.bph-meta { margin-top:8px; font-size:11px; color:#b07d1a; font-weight:600; }
+.bph-close {
+  background:none; border:none; cursor:pointer; color:#b07d1a;
+  font-size:18px; padding:0; flex-shrink:0; align-self:flex-start;
+  border-radius:6px; width:26px; height:26px;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s;
+}
+.bph-close:hover { background:rgba(0,0,0,.06); }
+/* ─────────────────────────────────────────────────────────── */
+
 .filter-bar { background:#fff;border:1px solid var(--tan);border-radius:12px;
               padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .filter-bar label { font-size:12px;font-weight:700;color:var(--brown);white-space:nowrap;}
@@ -134,16 +170,12 @@
 .row-2 { display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 @media(max-width:600px){ .row-2 { grid-template-columns:1fr;}}
 
-/* Builder de productos */
 .builder-section { background:var(--warm-bg);border:1px solid var(--tan);
                    border-radius:11px;padding:14px 16px;}
 .builder-title { font-size:12px;font-weight:800;color:var(--brown);
                  text-transform:uppercase;letter-spacing:.5px;
                  margin-bottom:10px;display:flex;align-items:center;
                  justify-content:space-between;gap:8px;}
-
-/* Capacidad máxima chip */
-/* Tarjetas de receta */
 .recetas-area { display:none;flex-direction:column;gap:7px;margin-top:10px;}
 .recetas-area.visible { display:flex;}
 .receta-card { background:#fff;border:2px solid var(--tan);border-radius:10px;
@@ -151,7 +183,6 @@
                display:flex;align-items:center;gap:12px;}
 .receta-card:hover { border-color:var(--brown);background:var(--warm-bg);}
 .receta-card.sel { border-color:var(--brown-dk);background:#fdf6ec;}
-
 .receta-rend { font-size:22px;font-weight:900;color:var(--brown-dk);
                min-width:52px;text-align:center;line-height:1;}
 .receta-rend small { font-size:10px;font-weight:700;color:var(--brown-lt);display:block;}
@@ -160,8 +191,6 @@
 .receta-stock { font-size:11px;margin-top:2px;color:var(--brown-lt);}
 .receta-sel-icon { font-size:18px;opacity:0;}
 .receta-card.sel .receta-sel-icon { opacity:1;}
-
-/* Lista de líneas agregadas */
 .lineas-lista { display:flex;flex-direction:column;gap:7px;min-height:40px;}
 .linea-item { background:#fff;border:1.5px solid var(--tan);border-radius:9px;
               padding:10px 14px;display:flex;align-items:center;gap:10px;}
@@ -174,8 +203,6 @@
 .linea-del { background:none;border:none;color:#dc2626;cursor:pointer;
              font-size:17px;line-height:1;padding:2px 5px;border-radius:5px;flex-shrink:0;}
 .linea-del:hover { background:#fee2e2;}
-
-/* Tabla de insumos */
 .ins-tbl { width:100%;border-collapse:collapse;font-size:12px;}
 .ins-tbl th { background:var(--warm-bg);padding:7px 10px;font-size:10px;
               font-weight:800;text-transform:uppercase;color:var(--brown);text-align:left;}
@@ -186,15 +213,12 @@
 .bar-mini { display:inline-block;width:48px;height:4px;background:var(--tan);
             border-radius:3px;vertical-align:middle;margin-left:4px;overflow:hidden;}
 .bar-fill { height:100%;border-radius:3px;}
-
-/* Plantillas */
 .plant-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
 .plant-card { background:#fff;border:1.5px solid var(--tan);border-radius:9px;
               padding:10px 12px;cursor:pointer;transition:border-color .15s;}
 .plant-card:hover { border-color:var(--brown);background:var(--warm-bg);}
 .plant-name { font-weight:700;font-size:12px;color:var(--brown-dk);}
 .plant-lineas { font-size:11px;color:var(--brown-lt);margin-top:3px;}
-
 @keyframes slideIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
 .empty-lineas { text-align:center;padding:18px;font-size:12px;color:var(--brown-lt);
                 font-style:italic;}
@@ -223,36 +247,62 @@
     <div class="stat-card {% if estado_sel=='pendiente' %}active{% endif %}"
          onclick="filtrarEstado('pendiente')">
       <div class="stat-icon si-pending">📋</div>
-      <div>
-        <div class="stat-num">{{ conteos.pendiente }}</div>
-        <div class="stat-lbl">Pendiente</div>
-      </div>
+      <div><div class="stat-num">{{ conteos.pendiente }}</div><div class="stat-lbl">Pendiente</div></div>
     </div>
     <div class="stat-card {% if estado_sel=='en_proceso' %}active{% endif %}"
          onclick="filtrarEstado('en_proceso')">
       <div class="stat-icon si-process">⚙️</div>
-      <div>
-        <div class="stat-num">{{ conteos.en_proceso }}</div>
-        <div class="stat-lbl">En Proceso</div>
-      </div>
+      <div><div class="stat-num">{{ conteos.en_proceso }}</div><div class="stat-lbl">En Proceso</div></div>
     </div>
     <div class="stat-card {% if estado_sel=='finalizado' %}active{% endif %}"
          onclick="filtrarEstado('finalizado')">
       <div class="stat-icon si-done">✅</div>
-      <div>
-        <div class="stat-num">{{ conteos.finalizado }}</div>
-        <div class="stat-lbl">Finalizado</div>
-      </div>
+      <div><div class="stat-num">{{ conteos.finalizado }}</div><div class="stat-lbl">Finalizado</div></div>
     </div>
     <div class="stat-card {% if estado_sel=='cancelado' %}active{% endif %}"
          onclick="filtrarEstado('cancelado')">
       <div class="stat-icon si-cancel">❌</div>
-      <div>
-        <div class="stat-num">{{ conteos.cancelado }}</div>
-        <div class="stat-lbl">Cancelado</div>
-      </div>
+      <div><div class="stat-num">{{ conteos.cancelado }}</div><div class="stat-lbl">Cancelado</div></div>
     </div>
   </div>
+
+  {# ═══════════════════════════════════════════════════════════════
+     BANNER — Pedidos del día pendientes de producir
+     Solo se muestra si hay pedidos pendientes para hoy
+     ═══════════════════════════════════════════════════════════════ #}
+  {% if pedidos_hoy_total and pedidos_hoy_total > 0 %}
+  <div class="bph-banner" id="bphBanner">
+    <div class="bph-ico">📦</div>
+    <div class="bph-body">
+      <div class="bph-title">
+        ¡Para hoy hay pedidos en línea pendientes!
+        <span class="bph-total-chip">
+          {{ pedidos_hoy_total }} pedido{{ 's' if pedidos_hoy_total != 1 else '' }}
+          · {{ pedidos_hoy_pzas }} piezas
+        </span>
+      </div>
+      <div class="bph-chips">
+        {% for p in pedidos_hoy_prods %}
+        <span class="bph-chip">
+          {{ p.producto }}:
+          <strong>{{ p.total_piezas }} pzas</strong>
+          <span style="font-size:10px;opacity:.7;">({{ p.num_pedidos }} ped.)</span>
+        </span>
+        {% endfor %}
+      </div>
+      {% if primera_entrega %}
+      <div class="bph-meta">
+        ⏰ Primera recogida a las {{ primera_entrega.strftime('%H:%M') }} h
+        — asegúrate de tener stock antes de esa hora.
+      </div>
+      {% endif %}
+    </div>
+    <button class="bph-close"
+            onclick="document.getElementById('bphBanner').style.display='none'"
+            title="Cerrar">✕</button>
+  </div>
+  {% endif %}
+  {# ═══════════════════════════════════════════════════════════════ #}
 
   <!-- Filtros -->
   <form id="form-filtro" method="GET" action="{{ url_for('produccion_diaria.index_pd') }}">
@@ -422,7 +472,6 @@
 
       <div class="m-body">
 
-        <!-- Nombre + operario -->
         <div class="row-2">
           <div class="fg">
             <label>Nombre de la producción *</label>
@@ -446,7 +495,6 @@
                     placeholder="Turno, prioridades, notas especiales…"></textarea>
         </div>
 
-        <!-- Plantillas -->
         {% if plantillas %}
         <div class="builder-section">
           <div class="builder-title">📁 Usar plantilla guardada</div>
@@ -462,14 +510,12 @@
         </div>
         {% endif %}
 
-        <!-- Constructor: agregar producto -->
         <div class="builder-section">
           <div class="builder-title">
             <span>🍞 Agregar producto</span>
             <span id="resumen-lbl" style="font-size:12px;color:var(--brown);font-weight:700;"></span>
           </div>
 
-          <!-- Paso 1: seleccionar producto -->
           <div class="fg" style="margin-bottom:4px;">
             <label>Producto</label>
             <select id="sel-producto" onchange="onProductoChange()">
@@ -480,7 +526,6 @@
             </select>
           </div>
 
-          <!-- Paso 2: recetas disponibles (rendimiento fijo) -->
           <div class="recetas-area" id="recetas-area">
             <label style="font-size:11px;font-weight:700;color:var(--brown);
                    text-transform:uppercase;letter-spacing:.4px;">
@@ -495,19 +540,16 @@
           </button>
         </div>
 
-        <!-- Lista de líneas -->
         <div class="builder-section">
           <div class="builder-title">
             <span>📋 Lista de producción</span>
           </div>
-          <!-- empty-lineas está FUERA de lineas-lista para evitar el bug de appendChild -->
           <div id="empty-lineas" class="empty-lineas">
             Aún no has agregado productos. Selecciona arriba y presiona "Agregar".
           </div>
           <div class="lineas-lista" id="lineas-lista"></div>
         </div>
 
-        <!-- Verificar insumos -->
         <div id="ins-section" style="display:none;">
           <div style="font-size:11px;font-weight:800;color:var(--brown);
                text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">
@@ -535,7 +577,6 @@
           </div>
         </div>
 
-        <!-- Guardar como plantilla -->
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;
                  cursor:pointer;font-weight:600;color:var(--brown);">
@@ -550,7 +591,7 @@
                  placeholder="Ej. Surtido clásico mañanero" maxlength="120">
         </div>
 
-      </div><!-- m-body -->
+      </div>
 
       <div class="m-footer">
         <button type="button" class="btn btn-outline" onclick="cerrarModal('modalNueva')">Cancelar</button>
@@ -564,7 +605,6 @@
 
 {% block extra_scripts %}
 <script>
-/* ── Sistema de notificaciones flotantes ── */
 function toast(msg, tipo) {
   const container = document.getElementById('toast-container') || (() => {
     const c = document.createElement('div');
@@ -593,7 +633,6 @@ function toast(msg, tipo) {
   setTimeout(() => el.remove(), 5000);
 }
 
-/* ── Datos desde Jinja (productos agrupados con recetas) ── */
 const PRODUCTOS_ARR = [
   {% for p in productos %}
   {
@@ -608,12 +647,8 @@ const PRODUCTOS_ARR = [
   {% endfor %}
 ];
 
-/* ── Estado ── */
-let LINEAS     = [];   // [{ id_producto, nombre_prod, id_receta, nombre_receta, cantidad_piezas }]
-let REC_SEL    = null; // receta actualmente seleccionada en el builder
-let PROD_SEL   = null; // producto actualmente seleccionado
+let LINEAS = [], REC_SEL = null, PROD_SEL = null;
 
-/* ── Modales ── */
 window.cerrarModal = id => {
   document.getElementById(id).classList.remove('open');
   document.body.style.overflow = '';
@@ -630,8 +665,7 @@ document.querySelectorAll('.modal-bd').forEach(m =>
 
 window.abrirModalNueva = () => {
   LINEAS = []; REC_SEL = null; PROD_SEL = null;
-  renderLista();
-  resetBuilder();
+  renderLista(); resetBuilder();
   document.getElementById('ins-section').style.display = 'none';
   document.getElementById('chk-plantilla').checked = false;
   document.getElementById('inp-guardar-plant').value = '0';
@@ -646,36 +680,29 @@ function resetBuilder() {
   REC_SEL = null; PROD_SEL = null;
 }
 
-/* ── Filtrar por estado ── */
 window.filtrarEstado = est => {
   const f = document.getElementById('form-filtro');
   f.querySelector('[name=estado]').value = est;
   f.submit();
 };
 
-/* ── Confirm modal de inicio ── */
 window.abrirConfirm = (folio, url) => {
   document.getElementById('confirm-folio').textContent = folio;
   document.getElementById('form-confirm-iniciar').action = url;
   abrirModal('modalConfirm');
 };
 
-/* ── Paso 1: cambio de producto → mostrar recetas ── */
 window.onProductoChange = () => {
   const sel  = document.getElementById('sel-producto');
   const area = document.getElementById('recetas-area');
   const cards = document.getElementById('recetas-cards');
   REC_SEL = null; PROD_SEL = null;
   cards.innerHTML = '';
-
   const pid = parseInt(sel.value);
   if (!pid) { area.className = 'recetas-area'; return; }
-
   PROD_SEL = PRODUCTOS_ARR.find(p => p.id_producto === pid);
   if (!PROD_SEL) { area.className = 'recetas-area'; return; }
-
   area.className = 'recetas-area visible';
-
   PROD_SEL.recetas.forEach(r => {
     const card = document.createElement('div');
     card.className = 'receta-card';
@@ -692,47 +719,30 @@ window.onProductoChange = () => {
   });
 };
 
-/* ── Paso 2: seleccionar receta ── */
 function selReceta(receta, cardEl) {
   REC_SEL = receta;
-  document.querySelectorAll('#recetas-cards .receta-card')
-    .forEach(c => c.classList.remove('sel'));
+  document.querySelectorAll('#recetas-cards .receta-card').forEach(c => c.classList.remove('sel'));
   cardEl.classList.add('sel');
 }
 
-/* ── Agregar línea (piezas = rendimiento, fijo) ── */
 window.agregarLinea = () => {
   if (!PROD_SEL) { toast('Selecciona un producto.', 'warn'); return; }
   if (!REC_SEL)  { toast('Selecciona una receta/rendimiento.', 'warn'); return; }
-
   LINEAS.push({
-    id_producto:    PROD_SEL.id_producto,
-    nombre_prod:    PROD_SEL.nombre,
-    id_receta:      REC_SEL.id_receta,
-    nombre_receta:  REC_SEL.nombre,
-    cantidad_piezas: REC_SEL.rendimiento,  // fijo, no editable
+    id_producto: PROD_SEL.id_producto, nombre_prod: PROD_SEL.nombre,
+    id_receta: REC_SEL.id_receta, nombre_receta: REC_SEL.nombre,
+    cantidad_piezas: REC_SEL.rendimiento,
   });
-
-  renderLista();
-  resetBuilder();
+  renderLista(); resetBuilder();
 };
 
-/* ── Render lista ── */
 function renderLista() {
   const lista   = document.getElementById('lineas-lista');
   const emptyEl = document.getElementById('empty-lineas');
   const resumEl = document.getElementById('resumen-lbl');
-
   lista.innerHTML = '';
-
-  if (!LINEAS.length) {
-    emptyEl.style.display = 'block';
-    resumEl.textContent   = '';
-    return;
-  }
-
+  if (!LINEAS.length) { emptyEl.style.display='block'; resumEl.textContent=''; return; }
   emptyEl.style.display = 'none';
-
   LINEAS.forEach((l, idx) => {
     const div = document.createElement('div');
     div.className = 'linea-item';
@@ -742,130 +752,85 @@ function renderLista() {
         <div class="linea-receta">${l.nombre_receta}</div>
       </div>
       <div class="linea-badge">${l.cantidad_piezas} pzas</div>
-      <button class="linea-del" type="button"
-              onclick="eliminarLinea(${idx})" title="Eliminar">✕</button>`;
+      <button class="linea-del" type="button" onclick="eliminarLinea(${idx})">✕</button>`;
     lista.appendChild(div);
   });
-
-  const totalPzs = LINEAS.reduce((s, l) => s + l.cantidad_piezas, 0);
+  const totalPzs = LINEAS.reduce((s,l)=>s+l.cantidad_piezas,0);
   resumEl.textContent = `${LINEAS.length} producto(s) · ${totalPzs} piezas`;
 }
 
-window.eliminarLinea = idx => {
-  LINEAS.splice(idx, 1);
-  renderLista();
-};
+window.eliminarLinea = idx => { LINEAS.splice(idx,1); renderLista(); };
 
-/* ── Verificar insumos ── */
 window.verificarInsumos = async () => {
   if (!LINEAS.length) { toast('Agrega al menos un producto.', 'warn'); return; }
-
-  const items = LINEAS.map(l => ({ id_receta: l.id_receta, piezas: l.cantidad_piezas }));
-  const sec  = document.getElementById('ins-section');
-  const load = document.getElementById('ins-loading');
-  const res  = document.getElementById('ins-result');
-  sec.style.display  = 'block';
-  load.style.display = 'block';
-  res.style.display  = 'none';
-
+  const items = LINEAS.map(l=>({ id_receta:l.id_receta, piezas:l.cantidad_piezas }));
+  const sec=document.getElementById('ins-section');
+  const load=document.getElementById('ins-loading');
+  const res=document.getElementById('ins-result');
+  sec.style.display='block'; load.style.display='block'; res.style.display='none';
   try {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     const r = await fetch('/produccion-diaria/api/verificar-insumos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-      body: JSON.stringify({ items }),
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},
+      body:JSON.stringify({items}),
     });
     const d = await r.json();
-    load.style.display = 'none';
-    res.style.display  = 'block';
-
-    const alertEl = document.getElementById('ins-alerta');
-    const okEl    = document.getElementById('ins-ok-msg');
-    const tbody   = document.getElementById('ins-tbody');
-
-    if (!d.ok) {
-      alertEl.style.display = 'block';
-      alertEl.textContent   = '⚠ ' + d.mensaje;
-      okEl.style.display    = 'none';
-      tbody.innerHTML       = '';
-      return;
-    }
-
+    load.style.display='none'; res.style.display='block';
+    const alertEl=document.getElementById('ins-alerta');
+    const okEl=document.getElementById('ins-ok-msg');
+    const tbody=document.getElementById('ins-tbody');
+    if (!d.ok) { alertEl.style.display='block'; alertEl.textContent='⚠ '+d.mensaje; okEl.style.display='none'; tbody.innerHTML=''; return; }
     if (d.hay_faltantes) {
-      alertEl.style.display = 'block';
-      alertEl.innerHTML = `⛔ Stock insuficiente: ${d.insumos_ok} de ${d.total_insumos} insumos OK. Se registrará con alerta.`;
-      okEl.style.display = 'none';
+      alertEl.style.display='block';
+      alertEl.innerHTML=`⛔ Stock insuficiente: ${d.insumos_ok} de ${d.total_insumos} insumos OK. Se registrará con alerta.`;
+      okEl.style.display='none';
     } else {
-      okEl.style.display  = 'block';
-      okEl.textContent    = `✅ Stock suficiente para todos los insumos (${d.total_insumos}).`;
-      alertEl.style.display = 'none';
+      okEl.style.display='block'; okEl.textContent=`✅ Stock suficiente para todos los insumos (${d.total_insumos}).`;
+      alertEl.style.display='none';
     }
-
-    tbody.innerHTML = d.insumos.map(ins => {
-      const ok  = ins.stock_suficiente;
-      const pct = Math.min(ins.pct_disponible || 0, 100);
-      const col = ok ? '#10b981' : (pct >= 50 ? '#f59e0b' : '#ef4444');
+    tbody.innerHTML=d.insumos.map(ins=>{
+      const ok=ins.stock_suficiente; const pct=Math.min(ins.pct_disponible||0,100);
+      const col=ok?'#10b981':(pct>=50?'#f59e0b':'#ef4444');
       return `<tr>
         <td style="font-weight:700;">${ins.nombre_materia}</td>
         <td style="color:var(--brown-lt);">${ins.unidad_base}</td>
         <td>${ins.cantidad_requerida.toFixed(2)}</td>
-        <td>${ins.stock_actual.toFixed(2)}
-          <span class="bar-mini"><span class="bar-fill"
-            style="width:${pct}%;background:${col};"></span></span>
-        </td>
-        <td class="${ok ? 'ins-ok' : 'ins-ko'}">
-          ${ok ? '✅ OK' : '⛔ Faltan '+(ins.cantidad_requerida-ins.stock_actual).toFixed(2)}
-        </td></tr>`;
+        <td>${ins.stock_actual.toFixed(2)}<span class="bar-mini"><span class="bar-fill" style="width:${pct}%;background:${col};"></span></span></td>
+        <td class="${ok?'ins-ok':'ins-ko'}">${ok?'✅ OK':'⛔ Faltan '+(ins.cantidad_requerida-ins.stock_actual).toFixed(2)}</td></tr>`;
     }).join('');
-
   } catch(e) {
-    load.style.display = 'none';
-    res.style.display  = 'block';
-    document.getElementById('ins-alerta').style.display = 'block';
-    document.getElementById('ins-alerta').textContent   = 'Error: ' + e.message;
+    load.style.display='none'; res.style.display='block';
+    document.getElementById('ins-alerta').style.display='block';
+    document.getElementById('ins-alerta').textContent='Error: '+e.message;
   }
 };
 
-/* ── Plantilla ── */
 window.togglePlantillaNombre = checked => {
-  document.getElementById('plantilla-nombre-fg').style.display = checked ? 'flex':'none';
-  document.getElementById('inp-guardar-plant').value = checked ? '1' : '0';
+  document.getElementById('plantilla-nombre-fg').style.display=checked?'flex':'none';
+  document.getElementById('inp-guardar-plant').value=checked?'1':'0';
 };
 
 window.cargarPlantilla = async (id, nombre) => {
   try {
-    const r = await fetch(`/produccion-diaria/api/plantilla/${id}`);
-    const d = await r.json();
-    if (!d.ok) { toast('Error: ' + d.mensaje, 'error'); return; }
-
-    LINEAS = d.lineas.map(l => ({
-      id_producto:    l.id_producto,
-      nombre_prod:    l.nombre_producto,
-      id_receta:      l.id_receta,
-      nombre_receta:  l.nombre_receta || '',
-      cantidad_piezas: l.cantidad_piezas,
+    const r=await fetch(`/produccion-diaria/api/plantilla/${id}`);
+    const d=await r.json();
+    if (!d.ok) { toast('Error: '+d.mensaje,'error'); return; }
+    LINEAS=d.lineas.map(l=>({
+      id_producto:l.id_producto, nombre_prod:l.nombre_producto,
+      id_receta:l.id_receta, nombre_receta:l.nombre_receta||'',
+      cantidad_piezas:l.cantidad_piezas,
     }));
     renderLista();
-
-    const inpNombre = document.querySelector('[name=nombre]');
-    if (!inpNombre.value) inpNombre.value = nombre;
-  } catch(e) {
-    toast('Error al cargar plantilla: ' + e.message, 'error');
-  }
+    const inpNombre=document.querySelector('[name=nombre]');
+    if (!inpNombre.value) inpNombre.value=nombre;
+  } catch(e) { toast('Error al cargar plantilla: '+e.message,'error'); }
 };
 
-/* ── Submit ── */
 window.prepSubmit = () => {
-  if (!LINEAS.length) {
-    toast('Agrega al menos un producto antes de crear la producción.', 'warn');
-    return false;
-  }
-  document.getElementById('inp-cajas-json').value = JSON.stringify(
-    LINEAS.map(l => ({
-      id_producto:    l.id_producto,
-      id_receta:      l.id_receta,
-      cantidad_piezas: l.cantidad_piezas,
-    }))
+  if (!LINEAS.length) { toast('Agrega al menos un producto antes de crear la producción.','warn'); return false; }
+  document.getElementById('inp-cajas-json').value=JSON.stringify(
+    LINEAS.map(l=>({id_producto:l.id_producto,id_receta:l.id_receta,cantidad_piezas:l.cantidad_piezas}))
   );
   return true;
 };

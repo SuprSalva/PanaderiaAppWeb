@@ -6,7 +6,7 @@ from auth import roles_required
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, IntegrityError
 
-from models import db, Receta, DetalleReceta, MateriaPrima, Producto, UnidadPresentacion
+from models import db, Receta, MateriaPrima, Producto, UnidadPresentacion
 from forms import RecetaForm
 from . import recetas_bp
 
@@ -74,6 +74,38 @@ def _form_con_productos(form_data=None):
         (p.id_producto, p.nombre) for p in productos
     ]
     return form, productos
+
+
+def _cargar_tmp_insumos(insumos):
+    """
+    Crea la tabla temporal tmp_insumos_receta en la sesión actual
+    e inserta los insumos. El SP la lee y la elimina al finalizar.
+    """
+    db.session.execute(text(
+        "DROP TEMPORARY TABLE IF EXISTS tmp_insumos_receta"
+    ))
+    db.session.execute(text("""
+        CREATE TEMPORARY TABLE tmp_insumos_receta (
+            id_materia             INT            NOT NULL,
+            id_unidad_presentacion INT            DEFAULT NULL,
+            cantidad_presentacion  DECIMAL(12,4)  DEFAULT NULL,
+            cantidad_requerida     DECIMAL(10,2)  NOT NULL,
+            orden                  SMALLINT       NOT NULL
+        )
+    """))
+    for orden, ins in enumerate(insumos, start=1):
+        db.session.execute(text("""
+            INSERT INTO tmp_insumos_receta
+                (id_materia, id_unidad_presentacion,
+                 cantidad_presentacion, cantidad_requerida, orden)
+            VALUES (:mat, :up, :cp, :cr, :orden)
+        """), {
+            'mat':   ins['id_materia'],
+            'up':    ins['id_unidad_presentacion'],
+            'cp':    ins['cantidad_presentacion'],
+            'cr':    ins['cantidad_requerida'],
+            'orden': orden,
+        })
 
 
 # ── Unidades disponibles para un insumo ──────────────────────────────
@@ -191,7 +223,6 @@ def index_recetas():
     )
 
 
-# ── Nueva receta ──────────────────────────────────────────────────────
 @recetas_bp.route('/recetas/nueva', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -209,10 +240,13 @@ def recetas_nueva():
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
 
     try:
-        result = db.session.execute(
+        _cargar_tmp_insumos(insumos)
+
+        db.session.execute(
             text("CALL sp_crear_receta("
                  ":uuid, :id_producto, :nombre, :descripcion, "
-                 ":rendimiento, :unidad_rendimiento, :precio_venta, :creado_por)"),
+                 ":rendimiento, :unidad_rendimiento, :precio_venta, "
+                 ":creado_por, @id_receta)"),
             {
                 'uuid':               str(_uuid.uuid4()),
                 'id_producto':        form.id_producto.data or None,
@@ -224,32 +258,40 @@ def recetas_nueva():
                 'creado_por':         _usuario_actual(),
             }
         )
-        id_receta = result.fetchone().id_receta
-        for orden, ins in enumerate(insumos, start=1):
-            db.session.add(DetalleReceta(
-                id_receta=id_receta, id_materia=ins['id_materia'],
-                id_unidad_presentacion=ins['id_unidad_presentacion'],
-                cantidad_presentacion=ins['cantidad_presentacion'],
-                cantidad_requerida=ins['cantidad_requerida'], orden=orden,
-            ))
+
+        id_receta = db.session.execute(text("SELECT @id_receta")).scalar()
         db.session.commit()
+
         nombre = form.nombre.data.strip()
-        current_app.logger.info('Receta creada | usuario: %s | receta: %s | fecha: %s',
-            current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        current_app.logger.info(
+            'Receta creada | usuario: %s | receta: %s | id: %s | fecha: %s',
+            current_user.username, nombre, id_receta,
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(f'Receta "{nombre}" creada correctamente.', 'success')
+
     except (OperationalError, IntegrityError) as e:
         db.session.rollback()
+        current_app.logger.error(
+            'Error db al crear receta | usuario: %s | error: %s | fecha: %s',
+            current_user.username, str(e),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(_msg_error_sp(e), 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error(
+            'Error general al crear receta | usuario: %s | error: %s | fecha: %s',
+            current_user.username, str(e),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(f'Error al crear receta: {str(e)}', 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
 
     return redirect(url_for('recetas_bp.index_recetas'))
 
 
-# ── Editar receta ─────────────────────────────────────────────────────
 @recetas_bp.route('/recetas/editar/<int:id_receta>', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -267,6 +309,8 @@ def recetas_editar(id_receta):
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
 
     try:
+        _cargar_tmp_insumos(insumos)
+
         db.session.execute(
             text("CALL sp_editar_receta("
                  ":id_receta, :id_producto, :nombre, :descripcion, "
@@ -282,25 +326,32 @@ def recetas_editar(id_receta):
                 'ejecutado_por':      _usuario_actual(),
             }
         )
-        DetalleReceta.query.filter_by(id_receta=id_receta).delete()
-        for orden, ins in enumerate(insumos, start=1):
-            db.session.add(DetalleReceta(
-                id_receta=id_receta, id_materia=ins['id_materia'],
-                id_unidad_presentacion=ins['id_unidad_presentacion'],
-                cantidad_presentacion=ins['cantidad_presentacion'],
-                cantidad_requerida=ins['cantidad_requerida'], orden=orden,
-            ))
         db.session.commit()
+
         nombre = form.nombre.data.strip()
-        current_app.logger.info('Receta editada | usuario: %s | receta: %s | fecha: %s',
-            current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        current_app.logger.info(
+            'Receta editada | usuario: %s | receta: %s | id: %s | fecha: %s',
+            current_user.username, nombre, id_receta,
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(f'Receta "{nombre}" actualizada correctamente.', 'success')
+
     except (OperationalError, IntegrityError) as e:
         db.session.rollback()
+        current_app.logger.error(
+            'Error db al editar receta | usuario: %s | id: %s | error: %s | fecha: %s',
+            current_user.username, id_receta, str(e),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(_msg_error_sp(e), 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error(
+            'Error general al editar receta | usuario: %s | id: %s | error: %s | fecha: %s',
+            current_user.username, id_receta, str(e),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(f'Error al actualizar receta: {str(e)}', 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
 
