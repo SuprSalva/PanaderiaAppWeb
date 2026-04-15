@@ -180,8 +180,13 @@
 <!-- TOPBAR -->
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title">🏷️ Ventas</div>
-    <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Ventas</div>
+    <div class="db-page-title">🏷️ Ventas en Línea</div>
+    <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Ventas en Línea</div>
+  </div>
+  <!-- NUEVO: Switcher para ir a Caja -->
+  <div class="mode-switcher" style="display: flex; background: var(--warm-bg); border-radius: 40px; padding: 4px; border: 1px solid var(--tan);">
+    <button class="mode-btn active" style="padding: 8px 20px; border-radius: 30px; font-size: 13px; font-weight: 600; background: var(--brown-dk); color: white; border: none;">📱 Ventas en Línea</button>
+    <button class="mode-btn" onclick="location.href='/ventas/caja'" style="padding: 8px 20px; border-radius: 30px; font-size: 13px; font-weight: 600; background: transparent; border: none; color: var(--brown-lt); cursor: pointer;">🏪 Ventas en Caja</button>
   </div>
 </div>
 
@@ -222,6 +227,7 @@
       <tr>
         <th>Folio</th>
         <th>Fecha / Hora</th>
+        <th>Origen</th>
         <th>Productos</th>
         <th>Total</th>
         <th>Vendedor</th>
@@ -353,25 +359,27 @@ function renderVentasTable(ventas) {
     const tbody = document.getElementById('ventasTableBody');
     
     if (!ventas.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay pedidos entregados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay ventas registradas</td></tr>';
         document.getElementById('visibleCount').textContent = '0';
         return;
     }
     
-    tbody.innerHTML = ventas.map(venta => `
+    tbody.innerHTML = ventas.map(venta => {
+        const origenBadge = venta.origen === 'caja' 
+            ? '<span class="badge" style="background:#e2eede; color:#2c5f2d;">🏪 Caja</span>'
+            : '<span class="badge" style="background:#fef3d0; color:#8a6200;">📱 Online</span>';
+        
+        return `
         <tr>
             <td><span class="folio-chip">${escapeHtml(venta.folio_venta)}</span></td>
             <td>${formatearFecha(venta.fecha_venta)}</td>
+            <td>${origenBadge}</td>
             <td><span class="items-pill" title="${escapeHtml(venta.productos_resumen)}">${escapeHtml(resumirProductos(venta.productos_resumen, 40))}</span></td>
             <td><span class="money">$${venta.total.toFixed(2)}</span></td>
             <td>${escapeHtml(venta.vendedor_nombre)}</td>
-            <td>
-                <div class="actions-cell">
-                    <button class="btn btn-outline btn-sm btn-icon" onclick="verDetalleVenta(${venta.id_venta})">🧾</button>
-                </div>
-            </td>
+            <td><div class="actions-cell"><button class="btn btn-outline btn-sm btn-icon" onclick="verDetalleVenta(${venta.id_venta})">🧾</button></div></td>
         </tr>
-    `).join('');
+    `}).join('');
     
     document.getElementById('visibleCount').textContent = ventas.length;
 }
