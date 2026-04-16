@@ -1,0 +1,73 @@
+.ped-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+@media(max-width: 900px) { .ped-layout { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--white); border: 1.5px solid var(--tan); border-radius: 14px;
+  padding: 20px 22px; margin-bottom: 18px; box-shadow: 0 2px 8px var(--shadow);
+}
+.card-title {
+  font-size: var(--text-base); font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  color: var(--brown-lt); margin-bottom: 14px; display: flex; align-items: center; gap: 7px;
+  border-bottom: 1px solid var(--warm-bg); padding-bottom: 10px;
+}
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.info-item label { font-size: var(--text-xs); font-weight: 700; color: var(--brown-lt); display: block; text-transform: uppercase; }
+.info-item span  { font-size: var(--text-md); font-weight: 600; color: var(--brown-dk); }
+
+/* ── CAJA DESTACADA ── */
+.caja-banner {
+  display: flex; align-items: center; gap: 18px;
+  background: linear-gradient(135deg, var(--warm-bg) 0%, #f5ead8 100%);
+  border: 1.5px solid var(--tan); border-radius: 14px; padding: 18px 22px;
+  margin-bottom: 18px;
+}
+.caja-banner .ico { font-size: var(--text-4xl); flex-shrink: 0; }
+.caja-banner .nom { font-family: 'Playfair Display', serif; font-size: var(--text-lg); font-weight: 800; color: var(--brown-dk); margin-bottom: 4px; }
+.caja-banner .meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  background: var(--white); border: 1px solid var(--tan); border-radius: 8px;
+  padding: 4px 10px; font-size: var(--text-sm); font-weight: 700; color: var(--brown-dk);
+}
+.chip.tipo-simple { border-color: #3a6034; color: #3a6034; background: #e2eede; }
+.chip.tipo-mixta  { border-color: #1e40af; color: #1e40af; background: #dbeafe; }
+
+/* ── TABLA DE PANES ── */
+.tbl-det { width: 100%; border-collapse: collapse; font-size: var(--text-base); }
+.tbl-det thead th {
+  padding: 8px 12px; text-align: left; font-size: var(--text-sm); font-weight: 700;
+  color: var(--brown-lt); border-bottom: 1.5px solid var(--tan); text-transform: uppercase;
+}
+.tbl-det tbody td { padding: 12px; border-bottom: 1px solid var(--warm-bg); color: var(--brown-dk); }
+.tbl-det tfoot td { padding: 12px; font-weight: 800; color: var(--brown-dk); border-top: 2px solid var(--tan); font-size: var(--text-md); }
+
+/* ── TIMELINE ── */
+.timeline { list-style: none; padding: 0; margin: 0; }
+.timeline li { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
+.timeline li:not(:last-child)::before {
+  content: ''; position: absolute; left: 7px; top: 16px;
+  width: 2px; height: calc(100% - 2px); background: var(--tan);
+}
+.tl-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; border: 2px solid var(--tan); background: var(--white); }
+.tl-dot.aprobado      { border-color: #3a6034; background: #e2eede; }
+.tl-dot.en_produccion { border-color: #8a6200; background: #fef3d0; }
+.tl-dot.listo         { border-color: #1e40af; background: #dbeafe; }
+.tl-dot.entregado     { border-color: var(--brown-dk); background: var(--warm-bg); }
+.tl-dot.rechazado     { border-color: var(--rust); background: #fce8df; }
+
+/* ── PANEL ACCIONES ── */
+.accion-panel { background: var(--white); border: 1.5px solid var(--tan); border-radius: 14px; padding: 22px; position: sticky; top: 20px; box-shadow: 0 4px 20px var(--shadow); }
+.accion-panel h3 { font-family: 'Playfair Display', serif; font-size: var(--text-lg); color: var(--brown-dk); margin-bottom: 15px; }
+
+.badge-estado { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: var(--text-base); font-weight: 700; margin-bottom: 20px; }
+
+.btn-accion { width: 100%; padding: 12px; border-radius: 10px; font-size: var(--text-base); font-weight: 700; border: none; cursor: pointer; margin-bottom: 10px; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-aprobar  { background: #e2eede; color: #3a6034; border: 1.5px solid #3a6034; }
+.btn-rechazar { background: #fce8df; color: #9c3a1a; border: 1.5px solid var(--rust); }
+.btn-producir { background: #fef3d0; color: #8a6200; border: 1.5px solid #8a6200; }
+.btn-listo    { background: #dbeafe; color: #1e40af; border: 1.5px solid #1e40af; }
+.btn-entregar { background: var(--brown-dk); color: var(--cream); }
+
+.form-textarea { width: 100%; padding: 10px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: inherit; font-size: var(--text-base); resize: none; margin-bottom: 10px; }
+.rechazo-field { display: none; margin-top: 10px; border-top: 1px solid var(--tan); padding-top: 15px; }
+.rechazo-field.show { display: block; }

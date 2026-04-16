@@ -346,14 +346,14 @@
     <form id="form-verify" method="POST" action="{{ url_for('registrar_usuario.crear_usuario') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
-        <p id="verify-desc" style="margin-bottom:16px;color:var(--brown-lt);font-size:14px;">
+        <p id="verify-desc" style="margin-bottom:16px;color:var(--brown-lt);font-size: var(--text-base);">
           Se envió un código de 6 dígitos al correo del nuevo usuario.
           Ingrésalo a continuación para confirmar y crear la cuenta.
         </p>
         <div class="form-group">
           <label class="form-label">Código de verificación</label>
           <input type="text" name="codigo" id="verify-codigo" class="form-input" placeholder="Ej. 482917" maxlength="6"
-            autocomplete="off" required style="letter-spacing:6px;font-size:22px;text-align:center;">
+            autocomplete="off" required style="letter-spacing:6px;font-size: var(--text-lg);text-align:center;">
         </div>
       </div>
       <div class="modal-footer">

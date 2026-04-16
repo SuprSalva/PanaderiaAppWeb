@@ -2,96 +2,22 @@
 {% block title %}Detalle de Pedido - {{ pedido.folio }}{% endblock %}
 
 {% block extra_head %}
-<style>
-  .ped-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
-  @media(max-width: 900px) { .ped-layout { grid-template-columns: 1fr; } }
-
-  .card {
-    background: var(--white); border: 1.5px solid var(--tan); border-radius: 14px;
-    padding: 20px 22px; margin-bottom: 18px; box-shadow: 0 2px 8px var(--shadow);
-  }
-  .card-title {
-    font-size: 13px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
-    color: var(--brown-lt); margin-bottom: 14px; display: flex; align-items: center; gap: 7px;
-    border-bottom: 1px solid var(--warm-bg); padding-bottom: 10px;
-  }
-
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .info-item label { font-size: 10px; font-weight: 700; color: var(--brown-lt); display: block; text-transform: uppercase; }
-  .info-item span  { font-size: 14px; font-weight: 600; color: var(--brown-dk); }
-
-  /* ── CAJA DESTACADA ── */
-  .caja-banner {
-    display: flex; align-items: center; gap: 18px;
-    background: linear-gradient(135deg, var(--warm-bg) 0%, #f5ead8 100%);
-    border: 1.5px solid var(--tan); border-radius: 14px; padding: 18px 22px;
-    margin-bottom: 18px;
-  }
-  .caja-banner .ico { font-size: 48px; flex-shrink: 0; }
-  .caja-banner .nom { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 800; color: var(--brown-dk); margin-bottom: 4px; }
-  .caja-banner .meta { display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip {
-    background: var(--white); border: 1px solid var(--tan); border-radius: 8px;
-    padding: 4px 10px; font-size: 11px; font-weight: 700; color: var(--brown-dk);
-  }
-  .chip.tipo-simple { border-color: #3a6034; color: #3a6034; background: #e2eede; }
-  .chip.tipo-mixta  { border-color: #1e40af; color: #1e40af; background: #dbeafe; }
-
-  /* ── TABLA DE PANES ── */
-  .tbl-det { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .tbl-det thead th {
-    padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 700;
-    color: var(--brown-lt); border-bottom: 1.5px solid var(--tan); text-transform: uppercase;
-  }
-  .tbl-det tbody td { padding: 12px; border-bottom: 1px solid var(--warm-bg); color: var(--brown-dk); }
-  .tbl-det tfoot td { padding: 12px; font-weight: 800; color: var(--brown-dk); border-top: 2px solid var(--tan); font-size: 15px; }
-
-  /* ── TIMELINE ── */
-  .timeline { list-style: none; padding: 0; margin: 0; }
-  .timeline li { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
-  .timeline li:not(:last-child)::before {
-    content: ''; position: absolute; left: 7px; top: 16px;
-    width: 2px; height: calc(100% - 2px); background: var(--tan);
-  }
-  .tl-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; border: 2px solid var(--tan); background: var(--white); }
-  .tl-dot.aprobado      { border-color: #3a6034; background: #e2eede; }
-  .tl-dot.en_produccion { border-color: #8a6200; background: #fef3d0; }
-  .tl-dot.listo         { border-color: #1e40af; background: #dbeafe; }
-  .tl-dot.entregado     { border-color: var(--brown-dk); background: var(--warm-bg); }
-  .tl-dot.rechazado     { border-color: var(--rust); background: #fce8df; }
-
-  /* ── PANEL ACCIONES ── */
-  .accion-panel { background: var(--white); border: 1.5px solid var(--tan); border-radius: 14px; padding: 22px; position: sticky; top: 20px; box-shadow: 0 4px 20px var(--shadow); }
-  .accion-panel h3 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--brown-dk); margin-bottom: 15px; }
-
-  .badge-estado { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 20px; }
-
-  .btn-accion { width: 100%; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; margin-bottom: 10px; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn-aprobar  { background: #e2eede; color: #3a6034; border: 1.5px solid #3a6034; }
-  .btn-rechazar { background: #fce8df; color: #9c3a1a; border: 1.5px solid var(--rust); }
-  .btn-producir { background: #fef3d0; color: #8a6200; border: 1.5px solid #8a6200; }
-  .btn-listo    { background: #dbeafe; color: #1e40af; border: 1.5px solid #1e40af; }
-  .btn-entregar { background: var(--brown-dk); color: var(--cream); }
-
-  .form-textarea { width: 100%; padding: 10px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: inherit; font-size: 13px; resize: none; margin-bottom: 10px; }
-  .rechazo-field { display: none; margin-top: 10px; border-top: 1px solid var(--tan); padding-top: 15px; }
-  .rechazo-field.show { display: block; }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pedidos_detalle.css') }}">
 {% endblock %}
 
 {% block container %}
 
 <div class="db-topbar anim" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
   <div>
-    <div class="db-page-title" style="font-family:'Playfair Display', serif; font-size:24px;">📦 Pedido: {{ pedido.folio }}</div>
-    <div class="db-breadcrumb" style="font-size:12px; color:var(--brown-lt);">
+    <div class="db-page-title" style="font-family:'Playfair Display', serif; font-size: var(--text-xl);">📦 Pedido: {{ pedido.folio }}</div>
+    <div class="db-breadcrumb" style="font-size: var(--text-xs); color:var(--brown-lt);">
       Producción <span>›</span>
       <a href="{{ url_for('pedidos.lista') }}" style="color:var(--rust); text-decoration:none; font-weight:700;">Gestión de Pedidos</a>
       <span>›</span> Detalle
     </div>
   </div>
   <a href="{{ url_for('pedidos.gestion_pedidos') }}" class="btn btn-outline"
-     style="border:1.5px solid var(--tan); padding:8px 16px; border-radius:8px; text-decoration:none; color:var(--brown-dk); font-weight:700; font-size:13px;">
+     style="border:1.5px solid var(--tan); padding:8px 16px; border-radius:8px; text-decoration:none; color:var(--brown-dk); font-weight:700; font-size: var(--text-sm);">
     ← Volver a la lista
   </a>
 </div>
@@ -182,16 +108,16 @@
         <li>
           <div class="tl-dot {{ h.estado_despues }}"></div>
           <div class="tl-body">
-            <div style="font-size:12px; font-weight:700; color:var(--brown-dk);">
+            <div style="font-size: var(--text-xs); font-weight:700; color:var(--brown-dk);">
               {{ h.estado_antes.replace('_',' ').title() if h.estado_antes else 'Nuevo' }}
               → {{ h.estado_despues.replace('_',' ').title() }}
             </div>
-            <div style="font-size:11px; color:var(--brown-lt);">
+            <div style="font-size: var(--text-xs); color:var(--brown-lt);">
               {{ h.creado_en.strftime('%d/%m/%Y %H:%M') }}
               {% if h.usuario_nombre %}• Atendido por: <strong>{{ h.usuario_nombre }}</strong>{% endif %}
             </div>
             {% if h.nota %}
-            <div style="font-size:12px; color:var(--brown-lt); background:var(--warm-bg); padding:6px 10px; border-radius:6px; margin-top:5px; font-style:italic;">
+            <div style="font-size: var(--text-xs); color:var(--brown-lt); background:var(--warm-bg); padding:6px 10px; border-radius:6px; margin-top:5px; font-style:italic;">
               "{{ h.nota }}"
             </div>
             {% endif %}
@@ -226,7 +152,7 @@
         <form method="post" action="{{ url_for('pedidos.cambiar_estado', folio=pedido.folio) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="hidden" name="estado" value="rechazado">
-          <label style="font-size:11px; font-weight:700; margin-bottom:5px; display:block;">MOTIVO DE RECHAZO:</label>
+          <label style="font-size: var(--text-xs); font-weight:700; margin-bottom:5px; display:block;">MOTIVO DE RECHAZO:</label>
           <textarea name="nota" class="form-textarea" rows="3" required placeholder="Explica por qué se rechaza..."></textarea>
           <button type="submit" class="btn-accion btn-rechazar">Confirmar Rechazo</button>
         </form>
@@ -256,7 +182,7 @@
       </form>
 
     {% else %}
-      <div style="text-align:center; padding:20px; color:var(--brown-lt); font-size:13px; border-top:1px dashed var(--tan);">
+      <div style="text-align:center; padding:20px; color:var(--brown-lt); font-size: var(--text-sm); border-top:1px dashed var(--tan);">
         {% if pedido.estado == 'entregado' %}
           La caja ya fue entregada exitosamente.
         {% elif pedido.estado == 'rechazado' %}
@@ -268,16 +194,15 @@
     {% endif %}
 
     {% if pedido.motivo_rechazo %}
-    <div style="margin-top:15px; padding:12px; background:#fff5f2; border:1px solid var(--rust); border-radius:8px; font-size:12px; color:var(--rust);">
+    <div style="margin-top:15px; padding:12px; background:#fff5f2; border:1px solid var(--rust); border-radius:8px; font-size: var(--text-xs); color:var(--rust);">
       <strong>Motivo del rechazo:</strong><br>{{ pedido.motivo_rechazo }}
     </div>
     {% endif %}
   </div>
 
 </div>
-<script>
-function toggleRechazo() {
-  document.getElementById('rechazo-field').classList.toggle('show');
-}
-</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/pedidos_detalle.js') }}"></script>
 {% endblock %}

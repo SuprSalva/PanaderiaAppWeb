@@ -1,0 +1,169 @@
+/* Contenedor principal a pantalla completa */
+.error-page {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    background: var(--cream, #fdf6ec);
+    position: relative;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Lato', sans-serif;
+}
+
+/* Animaciones de fondo (Blobs de Dulce Migaja) */
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(0px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.blob-1 {
+    width: 340px;
+    height: 340px;
+    background: radial-gradient(circle at 40% 40%, #e8c99a, #c0522a88);
+    top: -80px;
+    right: -60px;
+    border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+    animation: morphBlob 8s ease-in-out infinite;
+}
+
+.blob-2 {
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, #e07a5288, #c8a97e44);
+    bottom: 60px;
+    left: 80px;
+    border-radius: 40% 60% 50% 70% / 60% 40% 70% 40%;
+    animation: morphBlob 6s ease-in-out infinite alternate;
+}
+
+.blob-3 {
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle at 70% 30%, #e8d5b7, #c8a97e66);
+    top: 40%;
+    left: -100px;
+    border-radius: 30% 70% 50% 50% / 50% 50% 70% 30%;
+    animation: morphBlob 10s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes morphBlob {
+    0% {
+        border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+    }
+
+    50% {
+        border-radius: 30% 70% 50% 50% / 50% 50% 70% 30%;
+        transform: translate(20px, 20px) scale(1.05);
+    }
+
+    100% {
+        border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+    }
+}
+
+/* Tarjeta 404 central */
+.error-container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.85);
+    /* Fondo semitransparente */
+    backdrop-filter: blur(12px);
+    /* Efecto cristal sobre los blobs */
+    padding: 60px 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(107, 68, 35, 0.1);
+    border: 1px solid var(--tan, #e8d5b7);
+    max-width: 480px;
+    width: 90%;
+    animation: floatUp 0.6s ease-out forwards;
+}
+
+@keyframes floatUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tipografía de Error */
+.error-code {
+    font-family: 'Playfair Display', serif;
+    font-size: var(--text-5xl);
+    font-weight: 900;
+    color: var(--rust, #c0522a);
+    line-height: 1;
+    margin: 0;
+    text-shadow: 4px 4px 0px rgba(192, 82, 42, 0.15);
+}
+
+.error-icon {
+    font-size: var(--text-5xl);
+    display: block;
+    margin-bottom: 20px;
+    animation: bounce 2s infinite ease-in-out;
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.error-title {
+    font-family: 'Playfair Display', serif;
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--brown-dk, #6b4423);
+    margin: 20px 0 10px;
+}
+
+.error-msg {
+    font-size: var(--text-md);
+    color: var(--brown, #9c6f3e);
+    margin: 0 0 35px;
+    line-height: 1.5;
+}
+
+/* Botón de regreso idéntico al estilo .btn-login */
+.btn-home {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--brown-dk, #6b4423);
+    color: var(--cream, #fdf6ec);
+    font-weight: 700;
+    font-size: var(--text-md);
+    padding: 14px 28px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(107, 68, 35, 0.35);
+    letter-spacing: 0.5px;
+}
+
+.btn-home:hover {
+    background: var(--brown, #9c6f3e);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(107, 68, 35, 0.4);
+}
+
+.btn-home:active {
+    transform: translateY(0);
+}

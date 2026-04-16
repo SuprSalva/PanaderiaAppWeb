@@ -2,172 +2,7 @@
 {% block title %}Mis Pedidos{% endblock %}
 
 {% block extra_head %}
-<style>
-/* ═══════════════════════════════════════════
-   MIS PEDIDOS  ·  DulceMigaja
-   ═══════════════════════════════════════════ */
-
-/* Tabs */
-.tabs {
-  display:flex; gap:4px; margin-bottom:20px;
-  border-bottom:2px solid var(--tan);
-}
-.tab {
-  padding:12px 20px; border:none; background:none; cursor:pointer;
-  font-size:14px; font-weight:700; color:var(--brown-lt);
-  border-bottom:2px solid transparent; margin-bottom:-2px;
-  transition:all .15s; font-family:'Lato',sans-serif;
-}
-.tab.active { color:var(--rust); border-bottom-color:var(--rust); }
-.tab:hover  { color:var(--brown-dk); }
-.tab-badge {
-  display:inline-flex; align-items:center; justify-content:center;
-  background:var(--rust); color:#fff; border-radius:10px;
-  font-size:10px; font-weight:800; padding:1px 6px; margin-left:6px;
-}
-.tab-content        { display:none; }
-.tab-content.active { display:block; }
-
-/* Grid de tarjetas */
-.ped-cards {
-  display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
-  gap:16px;
-}
-
-/* Tarjeta */
-.ped-card {
-  background:var(--white); border:1.5px solid var(--tan);
-  border-radius:16px; overflow:hidden;
-  display:flex; flex-direction:column;
-  transition:all .2s; position:relative;
-}
-.ped-card:hover { border-color:var(--brown-lt); transform:translateY(-2px); box-shadow:0 6px 15px var(--shadow); }
-
-/* Barra lateral de color por estado */
-.ped-card-inner { display:flex; flex:1; }
-.ped-card-bar   { width:5px; flex-shrink:0; }
-.ped-card.pendiente  .ped-card-bar { background:#f59e0b; }
-.ped-card.aprobado   .ped-card-bar { background:#3b82f6; }
-.ped-card.listo      .ped-card-bar { background:#22c55e; }
-.ped-card.rechazado  .ped-card-bar { background:#ef4444; }
-.ped-card.entregado  .ped-card-bar { background:#94a3b8; }
-
-.ped-card-body { flex:1; padding:16px 18px; display:flex; flex-direction:column; gap:8px; }
-
-/* Cabecera */
-.ped-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
-.ped-folio     { font-size:11px; font-family:monospace; font-weight:700; color:var(--brown-lt); letter-spacing:1px; }
-
-/* Badge de estado */
-.badge-estado {
-  display:inline-flex; align-items:center; gap:4px;
-  padding:4px 10px; border-radius:20px;
-  font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
-  white-space:nowrap;
-}
-.badge-pendiente { background:#fef3c7; color:#92400e; }
-.badge-aprobado  { background:#dbeafe; color:#1e40af; }
-.badge-listo     { background:#dcfce7; color:#166534; }
-.badge-rechazado { background:#fee2e2; color:#991b1b; }
-.badge-entregado { background:#f1f5f9; color:#64748b; }
-
-/* Método de pago badge */
-.badge-pago {
-  display:inline-flex; align-items:center; gap:4px;
-  border-radius:20px; padding:3px 9px;
-  font-size:10px; font-weight:700;
-  border:1px solid var(--tan); background:var(--warm-bg); color:var(--brown-dk);
-}
-.badge-pago.efectivo      { border-color:#86efac; background:#f0fdf4; color:#166534; }
-.badge-pago.tarjeta       { border-color:#93c5fd; background:#eff6ff; color:#1e40af; }
-.badge-pago.transferencia { border-color:#c4b5fd; background:#faf5ff; color:#6d28d9; }
-
-/* Productos */
-.ped-panes {
-  background:var(--warm-bg); border-radius:10px; padding:10px 12px;
-}
-.ped-panes-title { font-size:10px; font-weight:800; color:var(--brown-lt); letter-spacing:.5px; margin-bottom:6px; }
-.ped-panes-list  { list-style:none; padding:0; margin:0; }
-.ped-panes-list li {
-  font-size:12px; color:var(--brown-dk);
-  padding:3px 0; border-bottom:1px dashed var(--tan);
-  display:flex; justify-content:space-between;
-}
-.ped-panes-list li:last-child { border-bottom:none; }
-
-/* Meta */
-.ped-meta { font-size:12px; color:var(--brown-lt); display:flex; align-items:center; gap:5px; }
-.ped-meta strong { color:var(--brown-dk); }
-
-/* Motivo de rechazo */
-.rechazo-box {
-  background:#fff5f2; border:1px solid #ffcfc2;
-  border-radius:10px; padding:10px 12px;
-  font-size:12px; color:#b33a1b;
-}
-
-/* Listo banner */
-.listo-banner {
-  background:#e8f5e9; border:1px solid #a5d6a7;
-  border-radius:10px; padding:10px; font-size:12px;
-  color:#2e7d32; font-weight:700; text-align:center;
-}
-
-/* Footer de la tarjeta */
-.ped-card-foot {
-  padding:10px 18px; border-top:1px dashed var(--tan);
-  display:flex; align-items:center; justify-content:space-between;
-  background:#fdfaf6;
-}
-.ped-total {
-  font-family:'Playfair Display',serif; font-size:18px;
-  font-weight:900; color:var(--brown-dk);
-}
-.ped-piezas { font-size:11px; color:var(--brown-lt); }
-
-/* Notificaciones */
-.notif-list { display:flex; flex-direction:column; gap:12px; }
-.notif-item {
-  display:flex; gap:14px; padding:14px; border-radius:14px;
-  background:var(--white); border:1.5px solid var(--tan); transition:all .15s;
-}
-.notif-item.unread {
-  border-color:var(--rust); background:#fffcfb;
-  box-shadow:0 4px 10px rgba(188,78,33,.05);
-}
-.notif-dot {
-  width:10px; height:10px; border-radius:50%;
-  background:var(--tan); flex-shrink:0; margin-top:4px;
-}
-.notif-item.unread .notif-dot { background:var(--rust); }
-.notif-body  { flex:1; }
-.notif-msg   { font-size:13.5px; color:var(--brown-dk); line-height:1.4; }
-.notif-meta  { font-size:11px; color:var(--brown-lt); margin-top:5px; font-weight:600; }
-
-/* Vacío */
-.empty-state       { text-align:center; padding:60px 20px; color:var(--brown-lt); }
-.empty-state .ico  { font-size:48px; margin-bottom:15px; opacity:.5; }
-.empty-state p     { font-size:14px; margin-bottom:14px; }
-
-/* Botón marcar leídas */
-.marcar-leidas-btn {
-  display:inline-block; font-size:12px; color:var(--rust); cursor:pointer;
-  font-weight:700; margin-bottom:15px;
-  background:none; border:1px solid var(--rust);
-  padding:6px 14px; border-radius:8px;
-}
-.marcar-leidas-btn:hover { background:var(--rust); color:#fff; }
-
-/* Botón nuevo pedido */
-.btn-nuevo {
-  background:var(--rust); color:#fff; padding:10px 18px;
-  border-radius:10px; text-decoration:none; font-weight:700;
-  font-size:13px; display:inline-flex; align-items:center; gap:6px;
-  transition:background .2s;
-}
-.btn-nuevo:hover { background:#9c3a1a; }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pedidos_mis_pedidos.css') }}">
 {% endblock %}
 
 {% block container %}
@@ -175,10 +10,10 @@
 <!-- ── Encabezado ─────────────────────────────────────────── -->
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
   <div>
-    <h1 style="font-family:'Playfair Display',serif; color:var(--brown-dk); font-size:24px; margin:0 0 4px;">
+    <h1 style="font-family:'Playfair Display',serif; color:var(--brown-dk); font-size: var(--text-xl); margin:0 0 4px;">
       📦 Mis Pedidos
     </h1>
-    <p style="font-size:13px; color:var(--brown-lt); margin:0;">
+    <p style="font-size: var(--text-sm); color:var(--brown-lt); margin:0;">
       Sigue el estado de tus pedidos en tiempo real
     </p>
   </div>
@@ -335,27 +170,12 @@
   {% endif %}
 </div>
 
-<script>
-function switchTab(tabName, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-content-' + tabName).classList.add('active');
-}
+{% endblock %}
 
-function marcarLeidas() {
-  fetch('{{ url_for("pedidos.marcar_leidas") }}', {
-    method: 'POST',
-    headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.ok) {
-      document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
-      document.getElementById('btn-marcar-leidas')?.remove();
-      document.getElementById('badge-notif-count')?.remove();
-    }
-  });
-}
+{% block extra_scripts %}
+<script>
+  window.URL_MARCAR_LEIDAS = '{{ url_for("pedidos.marcar_leidas") }}';
+  window.CSRF_TOKEN = '{{ csrf_token() }}';
 </script>
+<script src="{{ url_for('static', filename='js/pedidos_mis_pedidos.js') }}"></script>
 {% endblock %}

@@ -4,7 +4,7 @@
 {% block extra_head %}
 <style>
 .btn { display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
-       border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;
+       border-radius:9px;font-size: var(--text-base);font-weight:700;cursor:pointer;
        border:none;transition:all .18s;text-decoration:none;font-family:'Lato',sans-serif;}
 .btn-primary { background:var(--brown-dk);color:var(--cream);}
 .btn-primary:hover { background:var(--rust);}
@@ -16,35 +16,35 @@
 .btn-blue:hover    { background:#2563eb;}
 .btn-outline { background:#fff;color:var(--brown-dk);border:1.5px solid var(--tan);}
 .btn-outline:hover { border-color:var(--brown);background:var(--warm-bg);}
-.btn-sm { padding:5px 11px;font-size:12px;border-radius:7px;}
+.btn-sm { padding:5px 11px;font-size: var(--text-base);border-radius:7px;}
 
 .det-wrap { display:flex;flex-direction:column;gap:20px;}
 .db-topbar { display:flex;align-items:flex-start;justify-content:space-between;
              gap:12px;flex-wrap:wrap;margin-bottom:24px;}
-.db-page-title { font-family:'Playfair Display',serif;font-size:24px;
+.db-page-title { font-family:'Playfair Display',serif;font-size:var(--text-2xl);
                  font-weight:700;color:var(--brown-dk);display:flex;align-items:center;gap:10px;}
-.db-breadcrumb { font-size:12px;color:var(--brown-lt);margin-top:5px;
+.db-breadcrumb { font-size:var(--text-base);color:var(--brown-lt);margin-top:5px;
                  display:flex;align-items:center;gap:5px;}
 .db-breadcrumb span { color:var(--tan);}
 
 .card { background:#fff;border:1px solid var(--tan);border-radius:13px;padding:18px 20px;}
-.card-title { font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;
+.card-title { font-size: var(--text-base);font-weight:800;color:var(--brown);text-transform:uppercase;
               letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 
 .info-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
-.info-item label { font-size:10px;font-weight:700;text-transform:uppercase;
+.info-item label { font-size: var(--text-base);font-weight:700;text-transform:uppercase;
                    letter-spacing:.5px;color:var(--brown-lt);display:block;margin-bottom:3px;}
-.info-item .val  { font-size:13px;color:var(--text);font-weight:600;}
+.info-item .val  { font-size: var(--text-base);color:var(--text);font-weight:600;}
 
 .pill { display:inline-flex;align-items:center;gap:4px;padding:4px 12px;
-        border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;}
+        border-radius:20px;font-size: var(--text-base);font-weight:700;white-space:nowrap;}
 .pill-pendiente  { background:#fef3c7;color:#92400e;}
 .pill-en_proceso { background:#dbeafe;color:#1d4ed8;}
 .pill-finalizado { background:#d1fae5;color:#065f46;}
 .pill-cancelado  { background:#f3f4f6;color:#374151;}
 
 .alerta-banner { background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;
-                 padding:11px 16px;font-size:13px;color:#991b1b;font-weight:700;
+                 padding:11px 16px;font-size: var(--text-base);color:#991b1b;font-weight:700;
                  display:flex;align-items:center;gap:8px;}
 
 /* Líneas de productos */
@@ -54,15 +54,15 @@
                display:flex;align-items:center;gap:14px;}
 .linea-icon { font-size:22px;}
 .linea-info { flex:1;}
-.linea-nombre { font-weight:700;font-size:13px;color:var(--brown-dk);}
-.linea-receta { font-size:11px;color:var(--brown-lt);margin-top:2px;}
+.linea-nombre { font-weight:700;font-size: var(--text-base);color:var(--brown-dk);}
+.linea-receta { font-size: var(--text-sm);color:var(--brown-lt);margin-top:2px;}
 .linea-piezas { font-size:20px;font-weight:900;color:var(--brown);
                 white-space:nowrap;}
-.linea-piezas small { font-size:11px;font-weight:600;color:var(--brown-lt);}
+.linea-piezas small { font-size: var(--text-sm);font-weight:600;color:var(--brown-lt);}
 
 /* Tabla insumos */
-.ins-table { width:100%;border-collapse:collapse;font-size:12px;}
-.ins-table th { background:var(--warm-bg);padding:7px 11px;font-size:10px;
+.ins-table { width:100%;border-collapse:collapse;font-size: var(--text-base);}
+.ins-table th { background:var(--warm-bg);padding:7px 11px;font-size: var(--text-xs);
                 font-weight:800;text-transform:uppercase;color:var(--brown);text-align:left;}
 .ins-table td { padding:8px 11px;border-bottom:1px solid var(--tan);vertical-align:middle;}
 .ins-table tr:last-child td { border-bottom:none;}
@@ -83,7 +83,7 @@
 @keyframes fadeUp { from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
 .m-header { padding:18px 22px 14px;border-bottom:1px solid var(--tan);
             display:flex;align-items:center;justify-content:space-between;}
-.m-title  { font-family:'Playfair Display',serif;font-size:17px;
+.m-title  { font-family:'Playfair Display',serif;font-size: var(--text-md);
             font-weight:700;color:var(--brown-dk);}
 .m-close  { background:none;border:none;font-size:20px;cursor:pointer;
             color:var(--brown-lt);border-radius:7px;width:30px;height:30px;
@@ -93,11 +93,11 @@
 .m-footer { padding:12px 22px 18px;border-top:1px solid var(--tan);
             display:flex;justify-content:flex-end;gap:9px;}
 .fg { display:flex;flex-direction:column;gap:4px;}
-.fg label { font-size:11px;font-weight:700;color:var(--brown);
+.fg label { font-size: var(--text-sm);font-weight:700;color:var(--brown);
             text-transform:uppercase;letter-spacing:.4px;}
 .fg input,.fg textarea
   { border:1.5px solid var(--tan);border-radius:9px;padding:8px 12px;
-    font-size:13px;color:var(--text);font-family:'Lato',sans-serif;
+    font-size: var(--text-base);color:var(--text);font-family:'Lato',sans-serif;
     width:100%;box-sizing:border-box;}
 .fg input:focus,.fg textarea:focus
   { outline:none;border-color:var(--brown);box-shadow:0 0 0 3px rgba(156,111,62,.08);}
@@ -248,7 +248,7 @@
         </div>
       </div>
       {% else %}
-      <p style="font-size:13px;color:var(--brown-lt);">Sin líneas de producción.</p>
+      <p style="font-size: var(--text-base);color:var(--brown-lt);">Sin líneas de producción.</p>
       {% endfor %}
     </div>
   </div>
@@ -258,14 +258,14 @@
     <div class="card-title">
       🧪 Insumos requeridos
       {% if pd.insumos_descontados %}
-      <span style="font-size:11px;background:#d1fae5;color:#065f46;
+      <span style="font-size: var(--text-sm);background:#d1fae5;color:#065f46;
             border-radius:7px;padding:2px 8px;font-weight:700;">
         ✅ Ya descontados del almacén
       </span>
       {% elif insumos %}
         {% set hay_ko = insumos | selectattr('stock_suficiente', 'equalto', 0) | list | length %}
         {% if hay_ko %}
-        <span style="font-size:11px;background:#fee2e2;color:#991b1b;
+        <span style="font-size: var(--text-sm);background:#fee2e2;color:#991b1b;
               border-radius:7px;padding:2px 8px;font-weight:700;">
           ⚠ {{ hay_ko }} insuficiente(s)
         </span>
@@ -323,7 +323,7 @@
       </table>
     </div>
     {% else %}
-    <p style="font-size:13px;color:var(--brown-lt);">Insumos aún no calculados.</p>
+    <p style="font-size: var(--text-base);color:var(--brown-lt);">Insumos aún no calculados.</p>
     {% endif %}
   </div>
 
@@ -341,10 +341,10 @@
       <div style="display:flex;gap:14px;align-items:flex-start;">
         <div style="font-size:36px;line-height:1;flex-shrink:0;">⚙️</div>
         <div>
-          <p style="font-size:14px;font-weight:700;color:var(--brown-dk);margin:0 0 6px;">
+          <p style="font-size: var(--text-base);font-weight:700;color:var(--brown-dk);margin:0 0 6px;">
             ¿Iniciar <span style="font-family:monospace;">{{ pd.folio }}</span>?
           </p>
-          <p style="font-size:13px;color:var(--text);line-height:1.5;margin:0;">
+          <p style="font-size: var(--text-base);color:var(--text);line-height:1.5;margin:0;">
             Se descontarán los insumos del almacén al iniciar.
             Esta acción no se puede revertir sin cancelar la producción.
           </p>
@@ -376,16 +376,16 @@
           action="{{ url_for('produccion_diaria.finalizar_pd', id_pd=pd.id_pd) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="m-body">
-        <p style="font-size:13px;color:var(--text);line-height:1.6;">
+        <p style="font-size: var(--text-base);color:var(--text);line-height:1.6;">
           Al finalizar se acreditarán
           <strong>{{ pd.total_piezas_esperadas }} piezas</strong>
           al inventario de producto terminado.
           Esta operación es <strong>irreversible</strong>.
         </p>
         <div style="background:var(--warm-bg);border-radius:10px;padding:12px 15px;">
-          <div style="font-size:12px;color:var(--brown-lt);margin-bottom:6px;font-weight:700;">RESUMEN</div>
+          <div style="font-size: var(--text-base);color:var(--brown-lt);margin-bottom:6px;font-weight:700;">RESUMEN</div>
           {% for l in lineas %}
-          <div style="display:flex;justify-content:space-between;font-size:13px;
+          <div style="display:flex;justify-content:space-between;font-size: var(--text-base);
                       padding:3px 0;border-bottom:1px solid var(--tan);">
             <span>{{ l.nombre_producto }}</span>
             <strong>{{ l.cantidad_piezas }} pzas</strong>
@@ -416,7 +416,7 @@
       <div class="m-body">
         {% if pd.insumos_descontados %}
         <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:9px;
-             padding:10px 14px;font-size:13px;color:#92400e;font-weight:600;">
+             padding:10px 14px;font-size: var(--text-base);color:#92400e;font-weight:600;">
           ⚠️ Esta producción ya fue iniciada. Al cancelar se
           <strong>restaurarán los insumos</strong> al almacén automáticamente.
         </div>
@@ -448,7 +448,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       {{ form_plant.id_pd(value=pd.id_pd) }}
       <div class="m-body">
-        <p style="font-size:13px;color:var(--text);line-height:1.5;">
+        <p style="font-size: var(--text-base);color:var(--text);line-height:1.5;">
           Guarda la lista de productos de esta producción para reutilizarla
           fácilmente en futuras producciones.
         </p>

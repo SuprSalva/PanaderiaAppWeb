@@ -330,7 +330,7 @@
     <div class="delete-body">
       <h3>{% if mat_toggle.obj.estatus=='activo' %}¿Desactivar esta materia prima?{% else %}¿Reactivar esta materia
         prima?{% endif %}</h3>
-      <p style="font-size:14px;color:var(--brown-dk);line-height:1.7;margin:0;"><strong>{{ mat_toggle.obj.nombre
+      <p style="font-size: var(--text-base);color:var(--brown-dk);line-height:1.7;margin:0;"><strong>{{ mat_toggle.obj.nombre
           }}</strong> {% if mat_toggle.obj.estatus=='activo' %}no estará disponible para
         nuevas recetas ni compras.<br>Los movimientos históricos se conservan.{% else %}volverá a estar disponible para
         recetas y compras.{% endif %}</p>

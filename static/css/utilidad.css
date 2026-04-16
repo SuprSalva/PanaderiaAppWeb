@@ -14,7 +14,7 @@
 }
 .uv-page-title {
   font-family: 'Playfair Display', serif;
-  font-size: 24px;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--brown-dk);
   display: flex;
@@ -22,7 +22,7 @@
   gap: 10px;
 }
 .uv-breadcrumb {
-  font-size: 12px;
+  font-size: var(--text-base);
   color: var(--brown-lt);
   margin-top: 4px;
   display: flex;
@@ -33,7 +33,7 @@
 
 /* ── Export button ──────────────────────────────────────── */
 .uv-export-btn {
-  font-size: 12px;
+  font-size: var(--text-base);
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -62,7 +62,7 @@
   gap: 4px;
 }
 .uv-filtro-lbl {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: .8px;
   text-transform: uppercase;
@@ -72,7 +72,7 @@
   border: 1.5px solid var(--tan);
   border-radius: 8px;
   padding: 7px 10px;
-  font-size: 13px;
+  font-size: var(--text-base);
   font-family: 'Lato', sans-serif;
   color: var(--brown-dk);
   background: var(--warm-bg);
@@ -80,9 +80,9 @@
   transition: border-color .2s;
 }
 .uv-date-input:focus { border-color: var(--brown); }
-.uv-filtro-sep { font-size: 18px; color: var(--brown-lt); padding-bottom: 4px; }
+.uv-filtro-sep { font-size: var(--text-lg); color: var(--brown-lt); padding-bottom: 4px; }
 
-.uv-consultar-btn { font-size: 12px; height: 36px; align-self: flex-end; }
+.uv-consultar-btn { font-size: var(--text-base); height: 36px; align-self: flex-end; }
 
 .uv-shortcuts {
   display: flex;
@@ -94,7 +94,7 @@
   border-radius: 7px;
   border: 1.5px solid var(--tan);
   background: var(--white);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--brown-lt);
   cursor: pointer;
@@ -103,7 +103,7 @@
 .uv-sc-btn:hover { background: var(--warm-bg); border-color: var(--brown); color: var(--brown-dk); }
 
 .uv-estado {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--brown-lt);
   margin-top: 8px;
   min-height: 16px;
@@ -125,7 +125,7 @@
   box-shadow: 0 2px 10px var(--shadow);
 }
 .uv-kpi-lbl {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -133,11 +133,11 @@
 }
 .uv-kpi-val {
   font-family: 'Playfair Display', serif;
-  font-size: 26px;
+  font-size: var(--text-2xl);
   font-weight: 700;
   line-height: 1;
 }
-.uv-kpi-sub { font-size: 11px; margin-top: 5px; }
+.uv-kpi-sub { font-size: var(--text-sm); margin-top: 5px; }
 
 .kpi-ingresos {
   background: linear-gradient(135deg, #e8f5e4, #d4edcd);
@@ -174,7 +174,7 @@
 /* ── Section label ──────────────────────────────────────── */
 .uv-sec-label {
   font-family: 'Playfair Display', serif;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--brown-dk);
   margin-bottom: 10px;
@@ -203,7 +203,7 @@
 }
 .panel-title {
   font-family: 'Playfair Display', serif;
-  font-size: 14px;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--brown-dk);
 }
@@ -212,14 +212,14 @@
 .uv-tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 .uv-tbl thead {
   background: var(--warm-bg);
 }
 .uv-tbl thead th {
   padding: 10px 16px;
-  font-size: 10px;
+  font-size: var(--text-base);
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -242,7 +242,7 @@
   display: inline-block;
   padding: 3px 10px;
   border-radius: 20px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 .chip-high { background: #e2eede; color: #3a6034; }
@@ -257,7 +257,7 @@
   gap: 10px;
   padding: 32px;
   color: var(--brown-lt);
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 .uv-spin-circle {
   width: 20px;
@@ -274,7 +274,7 @@
   text-align: center;
   padding: 32px;
   color: var(--brown-lt);
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 /* ── Paginador ──────────────────────────────────────────── */
@@ -287,15 +287,15 @@
   border-top: 1px solid var(--tan);
   background: var(--warm-bg);
 }
-.uv-pag-btn { font-size: 12px; }
-.uv-pag-info { font-size: 12px; color: var(--brown-lt); }
+.uv-pag-btn { font-size: var(--text-base); }
+.uv-pag-info { font-size: var(--text-base); color: var(--brown-lt); }
 
 /* ── Botón de información (ⓘ) ───────────────────────────── */
 .dm-info-btn {
   width: 20px; height: 20px; border-radius: 50%;
   border: 1.5px solid var(--tan);
   background: var(--white); color: var(--brown-lt);
-  font-size: 11px; font-weight: 700; cursor: pointer;
+  font-size: var(--text-sm); font-weight: 700; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0; transition: all .15s; line-height: 1;
   font-family: 'Lato', sans-serif;

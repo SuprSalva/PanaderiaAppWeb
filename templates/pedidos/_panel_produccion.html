@@ -17,12 +17,12 @@
   <!-- Header del panel -->
   <div style="background:var(--warm-bg); padding:13px 18px; border-bottom:1px solid var(--tan);
               display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-    <div style="font-size:12px; font-weight:800; color:var(--brown);
+    <div style="font-size: var(--text-xs); font-weight:800; color:var(--brown);
                 text-transform:uppercase; letter-spacing:.5px;">
       ⚙️ Gestión de Producción
     </div>
     <!-- Flujo visual de estados -->
-    <div style="display:flex; align-items:center; gap:4px; font-size:11px;">
+    <div style="display:flex; align-items:center; gap:4px; font-size: var(--text-xs);">
       {% set pasos = [
         ('pendiente',         '📋', 'Pendiente'),
         ('aprobado',          '✅', 'Aprobado'),
@@ -63,19 +63,19 @@
     <!-- ALERTAS CONTEXTUALES -->
     {% if est == 'pendiente' %}
     <div style="background:#fef3c7; border:1px solid #fcd34d; border-radius:9px;
-                padding:10px 14px; font-size:12px; color:#92400e;">
+                padding:10px 14px; font-size: var(--text-xs); color:#92400e;">
       📋 Este pedido está esperando tu revisión. Apruébalo para poder iniciar la producción,
       o recházalo indicando el motivo.
     </div>
     {% elif est == 'aprobado' %}
     <div style="background:#dbeafe; border:1px solid #93c5fd; border-radius:9px;
-                padding:10px 14px; font-size:12px; color:#1d4ed8;">
+                padding:10px 14px; font-size: var(--text-xs); color:#1d4ed8;">
       ✅ Pedido aprobado. Cuando quieras iniciar la producción, el sistema verificará el stock
       de insumos automáticamente. Si faltan insumos, te indicará exactamente cuánto comprar.
     </div>
     {% elif est == 'pendiente_insumos' %}
     <div style="background:#ede9fe; border:1px solid #c4b5fd; border-radius:9px;
-                padding:10px 14px; font-size:12px; color:#5b21b6;">
+                padding:10px 14px; font-size: var(--text-xs); color:#5b21b6;">
       🛒 <strong>Faltan insumos para iniciar.</strong>
       Haz una compra de los materiales faltantes y después reintenta el inicio.
       <br><br>
@@ -87,14 +87,14 @@
     </div>
     {% elif est == 'en_produccion' %}
     <div style="background:#d1fae5; border:1px solid #6ee7b7; border-radius:9px;
-                padding:10px 14px; font-size:12px; color:#065f46;">
+                padding:10px 14px; font-size: var(--text-xs); color:#065f46;">
       ⚙️ <strong>En producción.</strong>
       Cuando termines de preparar el pedido, márcalo como listo.
       El cliente recibirá una notificación automática.
     </div>
     {% elif est == 'listo' %}
     <div style="background:#ffedd5; border:1px solid #fed7aa; border-radius:9px;
-                padding:10px 14px; font-size:12px; color:#9a3412;">
+                padding:10px 14px; font-size: var(--text-xs); color:#9a3412;">
       🎉 <strong>¡Listo para recoger!</strong>
       El cliente ya fue notificado. Cuando pase a recogerlo, márcalo como entregado.
     </div>
@@ -105,7 +105,7 @@
     <div>
       <button onclick="toggleInsDetalle()" id="btn-toggle-ins"
               style="background:none; border:1.5px solid var(--tan); border-radius:9px;
-                     padding:8px 14px; font-size:12px; font-weight:700; color:var(--brown);
+                     padding:8px 14px; font-size: var(--text-xs); font-weight:700; color:var(--brown);
                      cursor:pointer; display:flex; align-items:center; gap:6px; width:100%;
                      justify-content:space-between;">
         <span>🌾 Ver insumos {{ 'consumidos' if est in ('en_produccion','listo','entregado') else 'requeridos' }}</span>
@@ -115,7 +115,7 @@
       <div id="ins-detalle-panel" style="display:none; margin-top:8px; border:1px solid var(--tan);
            border-radius:9px; overflow:hidden;">
         <div id="ins-detalle-body"
-             style="padding:10px 14px; font-size:12px; color:var(--brown-lt);">
+             style="padding:10px 14px; font-size: var(--text-xs); color:var(--brown-lt);">
           Cargando insumos…
         </div>
       </div>
@@ -179,25 +179,25 @@
               box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s;">
     <div style="padding:16px 20px 12px; border-bottom:1px solid var(--tan);
                 display:flex; align-items:center; justify-content:space-between;">
-      <div style="font-family:'Playfair Display',serif; font-size:16px; font-weight:700;
+      <div style="font-family:'Playfair Display',serif; font-size: var(--text-md); font-weight:700;
                   color:var(--brown-dk);">✅ Aprobar Pedido {{ pedido.folio }}</div>
       <button onclick="document.getElementById('modalAprobarDet').style.display='none'"
-              style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);">✕</button>
+              style="background:none;border:none;font-size: var(--text-lg);cursor:pointer;color:var(--brown-lt);">✕</button>
     </div>
     <form method="POST" action="{{ url_for('pedidos.aprobar_pedido', folio=pedido.folio) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:16px 20px; display:flex; flex-direction:column; gap:10px;">
-        <p style="font-size:13px; color:var(--text);">
+        <p style="font-size: var(--text-sm); color:var(--text);">
           Se notificará al cliente que su pedido fue aceptado. Los insumos se
           descuentan cuando inicies la producción.
         </p>
         <div style="display:flex; flex-direction:column; gap:4px;">
-          <label style="font-size:11px; font-weight:700; color:var(--brown); text-transform:uppercase;">
+          <label style="font-size: var(--text-xs); font-weight:700; color:var(--brown); text-transform:uppercase;">
             Nota (opcional)
           </label>
           <input type="text" name="nota" placeholder="Ej. Lo tendremos listo el viernes"
                  style="border:1.5px solid var(--tan); border-radius:9px; padding:8px 12px;
-                        font-size:13px; width:100%;">
+                        font-size: var(--text-sm); width:100%;">
         </div>
       </div>
       <div style="padding:12px 20px 18px; border-top:1px solid var(--tan);
@@ -218,22 +218,22 @@
               box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s;">
     <div style="padding:16px 20px 12px; border-bottom:1px solid var(--tan);
                 display:flex; align-items:center; justify-content:space-between;">
-      <div style="font-family:'Playfair Display',serif; font-size:16px; font-weight:700;
+      <div style="font-family:'Playfair Display',serif; font-size: var(--text-md); font-weight:700;
                   color:var(--brown-dk);">❌ Rechazar Pedido {{ pedido.folio }}</div>
       <button onclick="document.getElementById('modalRechazarDet').style.display='none'"
-              style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--brown-lt);">✕</button>
+              style="background:none;border:none;font-size: var(--text-lg);cursor:pointer;color:var(--brown-lt);">✕</button>
     </div>
     <form method="POST" action="{{ url_for('pedidos.rechazar_pedido', folio=pedido.folio) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:16px 20px;">
         <div style="display:flex; flex-direction:column; gap:4px;">
-          <label style="font-size:11px; font-weight:700; color:var(--brown); text-transform:uppercase;">
+          <label style="font-size: var(--text-xs); font-weight:700; color:var(--brown); text-transform:uppercase;">
             Motivo del rechazo *
           </label>
           <textarea name="motivo" required rows="3"
                     placeholder="Ej. No hay disponibilidad para esa fecha..."
                     style="border:1.5px solid var(--tan); border-radius:9px; padding:8px 12px;
-                           font-size:13px; width:100%; font-family:'Lato',sans-serif;
+                           font-size: var(--text-sm); width:100%; font-family:'Lato',sans-serif;
                            resize:vertical;"></textarea>
         </div>
       </div>
@@ -250,7 +250,7 @@
 
 <style>
 .btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px;
-       border-radius:9px; font-size:12px; font-weight:700; cursor:pointer;
+       border-radius:9px; font-size: var(--text-xs); font-weight:700; cursor:pointer;
        border:none; transition:all .18s; text-decoration:none; font-family:'Lato',sans-serif; }
 .btn-success { background:#10b981; color:#fff; }
 .btn-success:hover { background:#059669; }
@@ -260,7 +260,7 @@
 .btn-danger:hover { background:#dc2626; }
 .btn-outline { background:#fff; color:var(--brown-dk); border:1.5px solid var(--tan); }
 .btn-outline:hover { border-color:var(--brown); background:var(--warm-bg); }
-.btn-sm { padding:6px 12px; font-size:12px; }
+.btn-sm { padding:6px 12px; font-size: var(--text-xs); }
 @keyframes fadeUp { from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1} }
 </style>
 
@@ -287,19 +287,19 @@ async function cargarInsDetalle() {
     const r = await fetch(`/api/{{ pedido.folio }}/insumos`);
     const d = await r.json();
 
-    if (!d.ok) { body.innerHTML = `<p style="color:#dc2626;font-size:12px;">${d.mensaje}</p>`; return; }
+    if (!d.ok) { body.innerHTML = `<p style="color:#dc2626;font-size: var(--text-xs);">${d.mensaje}</p>`; return; }
 
     const alert = d.hay_faltantes
       ? `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;
-              font-size:12px;color:#991b1b;font-weight:700;margin-bottom:8px;">
+              font-size: var(--text-xs);color:#991b1b;font-weight:700;margin-bottom:8px;">
            ⛔ ${d.total - d.ok_count} insumo(s) con stock insuficiente para completar este pedido.
          </div>`
       : `<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:8px 12px;
-              font-size:12px;color:#065f46;font-weight:700;margin-bottom:8px;">
+              font-size: var(--text-xs);color:#065f46;font-weight:700;margin-bottom:8px;">
            ✅ Todos los insumos disponibles (${d.total}).
          </div>`;
 
-    let html = alert + '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+    let html = alert + '<table style="width:100%;border-collapse:collapse;font-size: var(--text-xs);">' +
       '<thead><tr style="background:var(--warm-bg);">' +
       '<td style="padding:6px 10px;font-weight:800;color:var(--brown);">Insumo</td>' +
       '<td style="padding:6px 10px;font-weight:800;color:var(--brown);">Requerido</td>' +
@@ -330,7 +330,7 @@ async function cargarInsDetalle() {
     html += '</tbody></table>';
     body.innerHTML = html;
   } catch(e) {
-    body.innerHTML = `<p style="color:#dc2626;font-size:12px;">Error: ${e.message}</p>`;
+    body.innerHTML = `<p style="color:#dc2626;font-size: var(--text-xs);">Error: ${e.message}</p>`;
   }
 }
 

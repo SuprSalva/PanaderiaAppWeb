@@ -86,7 +86,7 @@
       {% set initials = (words[0][0] + (words[1][0] if words|length > 1 else ''))|upper %}
       {% set color = palette[loop.index0 % palette|length] %}
       <tr {% if p.estatus=='inactivo' %}style="opacity:.65" {% endif %}>
-        <td style="color:var(--brown-lt);font-weight:700;font-size:12px;">{{ (pagina - 1) * 10 + loop.index }}</td>
+        <td style="color:var(--brown-lt);font-weight:700;font-size: var(--text-xs);">{{ (pagina - 1) * 10 + loop.index }}</td>
         <td>
           <div class="prov-cell">
             <div class="prov-avatar" style="background: {{ color }} ">{{ initials }}</div>
@@ -424,14 +424,14 @@
     <div class="modal-header" id="toggle-prov-header" style="background:var(--rust);">
       <h2 id="toggle-prov-title">Desactivar Proveedor</h2>
       <button type="button" class="modal-close-link" onclick="cerrarToggleProv()"
-        style="background:rgba(255,255,255,.15);border:none;cursor:pointer;color:var(--cream);font-size:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;">✕</button>
+        style="background:rgba(255,255,255,.15);border:none;cursor:pointer;color:var(--cream);font-size: var(--text-md);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <form id="form-toggle-prov" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:28px 26px 10px;text-align:center;">
         <div id="toggle-prov-icon"
           style="margin-bottom:12px; display:inline-flex; justify-content:center; align-items:center;"></div>
-        <p id="toggle-prov-msg" style="font-size:14px;color:var(--brown-dk);line-height:1.7;margin:0;"></p>
+        <p id="toggle-prov-msg" style="font-size: var(--text-base);color:var(--brown-dk);line-height:1.7;margin:0;"></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="cerrarToggleProv()">Cancelar</button>

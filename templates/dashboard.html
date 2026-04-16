@@ -21,11 +21,11 @@
     Dashboard</div>
     <div class="db-breadcrumb">
       Inicio <span>›</span> Panel de indicadores &nbsp;·&nbsp;
-      <span style="font-size:11px;" id="ult-actualizacion">—</span>
+      <span style="font-size: var(--text-base);" id="ult-actualizacion">—</span>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <a href="/dashboard/exportar-excel?periodo=semanal" id="btn-export-excel" class="btn btn-outline" style="font-size:12px;display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;" title="Exportar a Excel">
+    <a href="/dashboard/exportar-excel?periodo=semanal" id="btn-export-excel" class="btn btn-outline" style="font-size: var(--text-xs);display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center; font-size: var(--text-base);" title="Exportar a Excel">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-right: 5px;">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
         <polyline points="14 2 14 8 20 8"/>
@@ -35,7 +35,7 @@
       </svg>
       Exportar Excel
     </a>
-    <button id="btn-refresh" class="btn btn-outline" style="font-size:12px;display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
+    <button id="btn-refresh" class="btn btn-outline" style="font-size: var(--text-xs);display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center; font-size: var(--text-base);">
       <span id="ico-refresh">
         <animated-icons
           src="/static/icons/sync-e9dea012.json"
@@ -196,7 +196,7 @@
       Ingresos por Día
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:11px;color:var(--brown-lt);" id="label-periodo-grafica">Esta semana</span>
+      <span style="font-size: var(--text-base);color:var(--brown-lt);" id="label-periodo-grafica">Esta semana</span>
       <div class="dm-info-wrap">
         <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
         <div class="dm-info-pop">
@@ -240,7 +240,7 @@
   <div class="panel-header">
     <div class="panel-title">Rentabilidad por Producto</div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:11px;color:var(--brown-lt);">Precio promedio últimos 30 días · Costo promedio anual</span>
+      <span style="font-size: var(--text-base);color:var(--brown-lt);">Precio promedio últimos 30 días · Costo promedio anual</span>
       <div class="dm-info-wrap">
         <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
         <div class="dm-info-pop">
@@ -274,9 +274,9 @@
     </table>
     {# Paginación de la tabla de utilidad #}
     <div class="dm-paginador" id="pag-utilidad" style="display:none;">
-      <button class="btn btn-outline dm-pag-btn" id="pag-util-ant" style="font-size:12px;">‹ Anterior</button>
-      <span id="pag-util-info" style="font-size:12px;color:var(--brown-lt);"></span>
-      <button class="btn btn-outline dm-pag-btn" id="pag-util-sig" style="font-size:12px;">Siguiente ›</button>
+      <button class="btn btn-outline dm-pag-btn" id="pag-util-ant" style="font-size: var(--text-xs);">‹ Anterior</button>
+      <span id="pag-util-info" style="font-size: var(--text-xs);color:var(--brown-lt);"></span>
+      <button class="btn btn-outline dm-pag-btn" id="pag-util-sig" style="font-size: var(--text-xs);">Siguiente ›</button>
     </div>
   </div>
 </div>
@@ -301,7 +301,7 @@
   <div class="panel-header">
     <div class="panel-title">Productos más vendidos</div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:11px;color:var(--brown-lt);">Últimos 7 días · por piezas despachadas</span>
+      <span style="font-size: var(--text-base);color:var(--brown-lt);">Últimos 7 días · por piezas despachadas</span>
       <div class="dm-info-wrap">
         <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
         <div class="dm-info-pop">
@@ -366,7 +366,7 @@
           </ul>
         </div>
       </div>
-      <a href="/materias-primas" style="font-size:12px;color:var(--brown-dk);text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
+      <a href="/materias-primas" style="font-size: var(--text-base);color:var(--brown-dk);text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
         Ver inventario completo
         <animated-icons
           src="/static/icons/arrow-70afdd31.json"

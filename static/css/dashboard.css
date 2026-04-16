@@ -16,12 +16,12 @@
   margin-bottom:22px; gap:12px; flex-wrap:wrap;
 }
 .db-page-title {
-  font-family:'Playfair Display',serif; font-size:24px;
+  font-family:'Playfair Display',serif; font-size: var(--text-xl);
   font-weight:700; color:var(--brown-dk);
   display:flex; align-items:center; gap:10px; line-height:1.2;
 }
 .db-breadcrumb {
-  font-size:12px; color:var(--brown-lt); margin-top:4px;
+  font-size: var(--text-base); color:var(--brown-lt); margin-top:4px;
   display:flex; align-items:center; gap:5px;
 }
 .db-breadcrumb span { color:var(--tan); }
@@ -34,7 +34,7 @@
 }
 .dm-p-btn {
   background:transparent; border:none; padding:6px 18px;
-  border-radius:7px; font-size:13px; font-weight:700;
+  border-radius:7px; font-size: var(--text-base); font-weight:700;
   color:var(--brown-lt); cursor:pointer; transition:all .15s;
   font-family:'Lato',sans-serif;
 }
@@ -45,7 +45,7 @@
 
 /* ── Etiqueta de sección ─────────────────────────────────────── */
 .dm-sec-label {
-  font-size:11px; font-weight:700; text-transform:uppercase;
+  font-size: var(--text-base); font-weight:700; text-transform:uppercase;
   letter-spacing:1px; color:var(--brown-lt);
   margin:24px 0 12px; display:flex; align-items:center; gap:8px;
 }
@@ -85,19 +85,19 @@
 .sc-icon {
   width:40px; height:40px; border-radius:10px;
   display:flex; align-items:center; justify-content:center;
-  font-size:19px; flex-shrink:0;
+  font-size: var(--text-lg); flex-shrink:0;
 }
 .sc-val {
-  font-family:'Playfair Display',serif; font-size:26px;
+  font-family:'Playfair Display',serif; font-size: var(--text-2xl);
   font-weight:700; color:var(--brown-dk); line-height:1;
 }
-.sc-lbl { font-size:11.5px; color:var(--brown-lt); margin-top:5px; font-weight:600; }
-.sc-sub { font-size:11px; color:var(--brown-lt); margin-top:3px; }
+.sc-lbl { font-size: var(--text-base); color:var(--brown-lt); margin-top:5px; font-weight:600; }
+.sc-sub { font-size: var(--text-sm); color:var(--brown-lt); margin-top:3px; }
 
 /* Badge de cambio % */
 .dm-badge {
   display:inline-flex; align-items:center; padding:2px 9px;
-  border-radius:999px; font-size:11px; font-weight:700;
+  border-radius:999px; font-size: var(--text-sm); font-weight:700;
 }
 .dm-badge.up      { background:#d1fae5; color:#065f46; }
 .dm-badge.down    { background:#fee2e2; color:#991b1b; }
@@ -115,17 +115,17 @@
   display:flex; align-items:center; justify-content:space-between;
 }
 .panel-title {
-  font-family:'Playfair Display',serif; font-size:15px;
+  font-family:'Playfair Display',serif; font-size: var(--text-md);
   font-weight:700; color:var(--brown-dk);
   display:flex; align-items:center; gap:8px;
 }
 .panel-body { padding:16px 18px; }
 
 /* ── Tabla ───────────────────────────────────────────────────── */
-.dm-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.dm-tbl { width:100%; border-collapse:collapse; font-size: var(--text-base); }
 .dm-tbl thead th {
   background:var(--warm-bg); color:var(--brown-lt);
-  font-size:10px; font-weight:700; text-transform:uppercase;
+  font-size: var(--text-base); font-weight:700; text-transform:uppercase;
   letter-spacing:.6px; padding:9px 14px; text-align:left;
   border-bottom:1px solid var(--tan);
 }
@@ -136,13 +136,13 @@
 .dm-tbl tbody tr:last-child td { border-bottom:none; }
 .dm-tbl tbody tr:hover td { background:var(--warm-bg); }
 .dm-empty {
-  text-align:center; padding:28px; color:var(--brown-lt); font-size:13px;
+  text-align:center; padding:28px; color:var(--brown-lt); font-size: var(--text-base);
 }
 
 /* ── Chips de estado de stock ────────────────────────────────── */
 .chip-estado {
   padding:3px 10px; border-radius:999px;
-  font-size:11px; font-weight:700; display: inline-flex; justify-content: center !important; 
+  font-size: var(--text-sm); font-weight:700; display: inline-flex; justify-content: center !important; 
   text-align: center !important; align-items: center;
 }
 .chip-critico     { background:#fee2e2; color:#991b1b; }
@@ -165,7 +165,7 @@
   display:flex; align-items:center; justify-content:center;
   gap:12px; padding:12px 18px; border-top:1px solid var(--warm-bg);
 }
-.dm-pag-btn { padding:5px 14px !important; font-size:12px !important; }
+.dm-pag-btn { padding:5px 14px !important; font-size: var(--text-base) !important; }
 .dm-pag-btn:disabled { opacity:.4; cursor:not-allowed; }
 
 /* ── Refresh spin ────────────────────────────────────────────── */
@@ -177,7 +177,7 @@
   width:20px; height:20px; border-radius:50%;
   border:1.5px solid var(--tan);
   background:var(--white); color:var(--brown-lt);
-  font-size:11px; font-weight:700; cursor:pointer;
+  font-size: var(--text-sm); font-weight:700; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:center;
   flex-shrink:0; transition:all .15s; line-height:1;
   font-family:'Lato',sans-serif;

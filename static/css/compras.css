@@ -69,7 +69,7 @@
   padding: 11px 14px 11px 16px;
   border-radius: 8px;
   margin-bottom: 12px;
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -103,7 +103,7 @@
 
 .db-page-title {
   font-family: 'Playfair Display', serif;
-  font-size: 26px;
+  font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--brown-dk);
   display: flex;
@@ -112,7 +112,7 @@
 }
 
 .db-breadcrumb {
-  font-size: 12px;
+  font-size: var(--text-base);
   color: var(--brown-lt);
   margin-top: 5px;
   display: flex;
@@ -155,7 +155,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px
+  font-size: var(--text-lg)
 }
 
 .c-stat-icon.brown {
@@ -176,14 +176,14 @@
 
 .c-stat-val {
   font-family: 'Playfair Display', serif;
-  font-size: 24px;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--brown-dk);
   line-height: 1
 }
 
 .c-stat-lbl {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--brown-lt);
   margin-top: 3px;
   font-weight: 600
@@ -210,7 +210,7 @@
   border: 1.5px solid var(--tan);
   border-radius: 8px;
   font-family: 'Lato', sans-serif;
-  font-size: 13.5px;
+  font-size: var(--text-base);
   background: var(--white);
   color: var(--text);
   outline: none;
@@ -228,7 +228,7 @@
   top: 50%;
   transform: translateY(-50%);
   color: var(--brown-lt);
-  font-size: 14px
+  font-size: var(--text-md)
 }
 
 .filter-select {
@@ -236,7 +236,7 @@
   border: 1.5px solid var(--tan);
   border-radius: 8px;
   font-family: 'Lato', sans-serif;
-  font-size: 13px;
+  font-size: var(--text-base);
   background: var(--white);
   color: var(--text);
   outline: none;
@@ -267,7 +267,7 @@ thead {
 
 thead th {
   padding: 12px 16px;
-  font-size: 10.5px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
@@ -291,7 +291,7 @@ tbody tr:hover {
 
 tbody td {
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: var(--text-base);
   color: var(--text);
   vertical-align: middle
 }
@@ -302,7 +302,7 @@ tbody td:first-child {
 
 .folio-chip {
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--text-base);
   font-weight: 700;
   background: var(--warm-bg);
   color: var(--brown-dk);
@@ -317,13 +317,13 @@ tbody td:first-child {
 }
 
 .prov-sub {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--brown-lt)
 }
 
 .monto-val {
   font-family: 'Playfair Display', serif;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--brown-dk)
 }
@@ -332,7 +332,7 @@ tbody td:first-child {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 20px;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700
 }
 
@@ -366,7 +366,7 @@ tbody td:first-child {
 }
 
 .table-footer p {
-  font-size: 12px;
+  font-size: var(--text-base);
   color: var(--brown-lt)
 }
 
@@ -415,7 +415,7 @@ tbody td:first-child {
 
 .modal-header h2 {
   font-family: 'Playfair Display', serif;
-  font-size: 17px;
+  font-size: var(--text-md);
   color: var(--cream);
   display: flex;
   align-items: center;
@@ -438,7 +438,7 @@ tbody td:first-child {
   border: none;
   cursor: pointer;
   color: var(--cream);
-  font-size: 16px;
+  font-size: var(--text-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -485,7 +485,7 @@ tbody td:first-child {
 }
 
 .form-label {
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: .8px;
   text-transform: uppercase;
@@ -498,7 +498,7 @@ tbody td:first-child {
   border: 1.5px solid var(--tan);
   border-radius: 8px;
   font-family: 'Lato', sans-serif;
-  font-size: 13.5px;
+  font-size: var(--text-base);
   color: var(--text);
   background: var(--cream);
   outline: none;
@@ -512,12 +512,12 @@ tbody td:first-child {
 }
 
 .form-hint {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--brown-lt)
 }
 
 .section-divider {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -536,7 +536,7 @@ tbody td:first-child {
   padding: 8px 10px;
   background: var(--warm-bg);
   border-radius: 8px 8px 0 0;
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -568,7 +568,7 @@ tbody td:first-child {
   border: 1.5px solid var(--tan);
   border-radius: 7px;
   font-family: 'Lato', sans-serif;
-  font-size: 12.5px;
+  font-size: var(--text-base);
   color: var(--text);
   background: var(--white);
   outline: none;
@@ -586,7 +586,7 @@ tbody td:first-child {
   border: 1.5px solid var(--tan);
   border-radius: 7px;
   font-family: 'Lato', sans-serif;
-  font-size: 12px;
+  font-size: var(--text-base);
   color: var(--text);
   background: var(--white);
   outline: none;
@@ -600,7 +600,7 @@ tbody td:first-child {
   background: #fce8df;
   border: none;
   color: var(--rust);
-  font-size: 14px;
+  font-size: var(--text-md);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -626,13 +626,13 @@ tbody td:first-child {
 }
 
 .total-bar span {
-  font-size: 13px;
+  font-size: var(--text-base);
   opacity: .8
 }
 
 .total-bar strong {
   font-family: 'Playfair Display', serif;
-  font-size: 22px
+  font-size: var(--text-xl)
 }
 
 .info-box {
@@ -640,7 +640,7 @@ tbody td:first-child {
   border: 1px solid var(--tan);
   border-radius: 10px;
   padding: 11px 14px;
-  font-size: 12px;
+  font-size: var(--text-base);
   color: var(--brown-dk);
   display: flex;
   gap: 8px;
@@ -659,7 +659,7 @@ tbody td:first-child {
   border: 1.5px solid var(--tan);
   border-radius: 7px;
   font-family: 'Lato', sans-serif;
-  font-size: 12.5px;
+  font-size: var(--text-base);
   color: var(--text);
   background: var(--white);
   outline: none;
@@ -679,7 +679,7 @@ tbody td:first-child {
   left: 9px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--brown-lt);
   pointer-events: none
 }
@@ -689,7 +689,7 @@ tbody td:first-child {
   right: 9px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--brown-lt);
   pointer-events: none
 }
@@ -716,7 +716,7 @@ tbody td:first-child {
 
 .insumo-opcion {
   padding: 8px 12px;
-  font-size: 12.5px;
+  font-size: var(--text-base);
   color: var(--text);
   cursor: pointer;
   transition: background .12s
@@ -738,7 +738,7 @@ tbody td:first-child {
 
 .insumo-sin-res {
   padding: 8px 12px;
-  font-size: 12px;
+  font-size: var(--text-base);
   color: var(--brown-lt);
   font-style: italic;
   display: none
@@ -756,7 +756,7 @@ tbody td:first-child {
 
 .det-view-table thead th {
   padding: 9px 12px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -770,7 +770,7 @@ tbody td:first-child {
 
 .det-view-table tbody td {
   padding: 10px 12px;
-  font-size: 12.5px
+  font-size: var(--text-base)
 }
 
 .detail-section {
@@ -779,7 +779,7 @@ tbody td:first-child {
 
 .detail-section h4 {
   font-family: 'Playfair Display', serif;
-  font-size: 14px;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--brown-dk);
   margin-bottom: 12px;
@@ -794,7 +794,7 @@ tbody td:first-child {
 }
 
 .detail-item label {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -804,7 +804,7 @@ tbody td:first-child {
 }
 
 .detail-item span {
-  font-size: 13.5px;
+  font-size: var(--text-base);
   color: var(--brown-dk);
   font-weight: 600
 }
@@ -814,7 +814,7 @@ tbody td:first-child {
   border: 1px solid #f5c6b0;
   border-radius: 8px;
   padding: 12px 14px;
-  font-size: 13px;
+  font-size: var(--text-base);
   color: #9c3a1a;
   margin-top: 10px
 }
