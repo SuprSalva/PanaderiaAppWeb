@@ -2,7 +2,7 @@ import re as _re
 
 from flask_wtf import FlaskForm
 from wtforms import (
-    Form, StringField, PasswordField, SelectField, FileField,
+    DateField, Form, StringField, PasswordField, SelectField, FileField,
     TextAreaField, DecimalField, IntegerField, HiddenField,
     FieldList, FormField, validators, BooleanField
 )
@@ -620,3 +620,11 @@ class PeriodoForm(Form):
         default='7',
         validators=[DataRequired()],
     )
+
+class CorteForm(Form):
+    """Formulario para seleccionar la fecha del corte diario."""
+    fecha = DateField(
+        'Fecha del corte',
+        validators=[DataRequired(message='Selecciona una fecha válida.')],
+    )
+ 
