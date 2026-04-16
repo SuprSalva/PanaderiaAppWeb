@@ -246,17 +246,29 @@ def login_cliente():
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _verificar_recaptcha(token):
-    data = urllib.parse.urlencode({
-        'secret': app.config.get('RECAPTCHA_SECRET_KEY', ''),
-        'response': token,
-    }).encode()
-    req_obj = urllib.request.Request('https://www.google.com/recaptcha/api/siteverify', data=data)
+    import requests
+    
     try:
-        with urllib.request.urlopen(req_obj, timeout=5) as resp:
-            return json.loads(resp.read().decode()).get('success', False)
-    except Exception:
+        response = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': app.config.get('RECAPTCHA_SECRET_KEY', ''),
+                'response': token,
+            },
+            timeout=10
+        )
+        result = response.json()
+        print(f"reCAPTCHA response: {result}")  
+        return result.get('success', False)
+        
+    except requests.exceptions.SSLError as e:
+        print(f"SSL Error: {e}")
+        flash('Error de certificado SSL. Ejecuta: pip install --upgrade certifi', 'error')
         return False
-
+    except Exception as e:
+        print(f"Error: {e}")
+        flash(f'Error de conexión: {str(e)[:100]}', 'error')
+        return False
 
 def _enviar_codigo(destinatario, codigo, asunto, html_cuerpo):
     try:

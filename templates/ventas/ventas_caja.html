@@ -132,4 +132,37 @@
 {% block extra_scripts %}
 <script src="{{ url_for('static', filename='js/ventas_caja.js') }}"></script>
 {% endblock %}
+
+<!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
+<div id="customConfirmModal" class="custom-modal-overlay">
+    <div class="custom-modal">
+        <div class="custom-modal-header confirm">
+            <span>❓</span>
+            <h3 id="confirmTitle">Confirmar</h3>
+        </div>
+        <div class="custom-modal-body">
+            <p id="confirmMessage">¿Estás seguro de realizar esta acción?</p>
+        </div>
+        <div class="custom-modal-footer">
+            <button class="btn-modal btn-modal-secondary" id="confirmCancelBtn">Cancelar</button>
+            <button class="btn-modal btn-modal-primary" id="confirmOkBtn">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PERSONALIZADO DE ALERTA -->
+<div id="customAlertModal" class="custom-modal-overlay">
+    <div class="custom-modal">
+        <div class="custom-modal-header" id="alertHeader">
+            <span id="alertIcon">ℹ️</span>
+            <h3 id="alertTitle">Aviso</h3>
+        </div>
+        <div class="custom-modal-body">
+            <p id="alertMessage"></p>
+        </div>
+        <div class="custom-modal-footer">
+            <button class="btn-modal btn-modal-primary" id="alertOkBtn">Entendido</button>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -754,3 +754,136 @@
     .product-card {
         padding: 14px 10px;
     }
+
+
+    /* MODAL PERSONALIZADO */
+.custom-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(59, 42, 26, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.custom-modal-overlay.open {
+    display: flex;
+}
+
+.custom-modal {
+    background: var(--white);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 380px;
+    overflow: hidden;
+    animation: modalSlideIn 0.25s cubic-bezier(0.21, 1.02, 0.73, 1);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+}
+
+.custom-modal-header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.custom-modal-header.success { background: #0e9f6e; }
+.custom-modal-header.warning { background: #d97706; }
+.custom-modal-header.error { background: #e74c3c; }
+.custom-modal-header.info { background: var(--brown-dk); }
+.custom-modal-header.confirm { background: var(--brown-dk); }
+
+.custom-modal-header span {
+    font-size: 28px;
+}
+
+.custom-modal-header h3 {
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.custom-modal-body {
+    padding: 24px;
+    font-size: 14px;
+    color: var(--brown-dk);
+    line-height: 1.5;
+}
+
+.custom-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--tan);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: var(--warm-bg);
+}
+
+.btn-modal {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-modal-primary {
+    background: var(--brown-dk);
+    color: white;
+}
+
+.btn-modal-primary:hover {
+    background: #8B4513;
+}
+
+.btn-modal-secondary {
+    background: var(--white);
+    border: 1.5px solid var(--tan);
+    color: var(--brown-lt);
+}
+
+.btn-modal-secondary:hover {
+    background: var(--warm-bg);
+}
+
+.btn-modal-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-modal-danger:hover {
+    background: #c0392b;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.low-stock-badge {
+    background: #fef3c7;
+    color: #d97706;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 20px;
+    margin-top: 6px;
+    display: inline-block;
+}
