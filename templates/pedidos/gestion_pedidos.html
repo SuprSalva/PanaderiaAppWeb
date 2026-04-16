@@ -119,6 +119,11 @@
           <span class="badge-pago {{ p.metodo_pago }}">
             {{ pago_ico.get(p.metodo_pago, '💰') }} {{ p.metodo_pago | capitalize }}
           </span>
+          {% if p.referencia_pago %}
+          <div class="muted" style="margin-top:3px; font-size: var(--text-xs);">
+            🔑 Ref: {{ p.referencia_pago }}
+          </div>
+          {% endif %}
         </td>
 
         <td>
@@ -172,11 +177,19 @@
               </button>
 
             {% elif estado == 'listo' %}
-              <form method="post" action="{{ url_for('pedidos.marcar_entregado', folio=p.folio) }}"
-                    style="display:inline; margin:0;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn-accion btn-entregar">📦 Entregar</button>
-              </form>
+              {# Si es tarjeta/transferencia → modal con referencia; si es efectivo → form directo #}
+              {% if p.metodo_pago in ('tarjeta', 'transferencia') %}
+                <button type="button" class="btn-accion btn-entregar"
+                        onclick="abrirEntregarRef('{{ p.folio }}', '{{ p.metodo_pago }}')">
+                  📦 Entregar
+                </button>
+              {% else %}
+                <form method="post" action="{{ url_for('pedidos.marcar_entregado', folio=p.folio) }}"
+                      style="display:inline; margin:0;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn-accion btn-entregar">📦 Entregar</button>
+                </form>
+              {% endif %}
             {% endif %}
 
           </div>
@@ -201,16 +214,12 @@
 <!-- ══════════════════ MODAL APROBAR ═════════════════════ -->
 <div class="modal-bd" id="mAprobar">
   <div style="background:#fff; border-radius:16px; width:100%; max-width:460px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 70px rgba(0,0,0,.3); animation:fadeUpGp .22s ease;">
-
-    <!-- Header -->
     <div style="padding:16px 22px 14px; border-bottom:1px solid var(--tan); display:flex; align-items:center; justify-content:space-between;">
       <div style="font-family:'Playfair Display',serif; font-size: var(--text-md); font-weight:700; color:var(--brown-dk);">
         ✅ Aprobar — <span id="ap-folio" style="font-family:monospace;"></span>
       </div>
-      <button onclick="cerrarModal('mAprobar')"
-              style="background:none; border:none; font-size: var(--text-lg); cursor:pointer; color:var(--brown-lt); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">✕</button>
+      <button onclick="cerrarModal('mAprobar')" style="background:none; border:none; font-size: var(--text-lg); cursor:pointer; color:var(--brown-lt); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">✕</button>
     </div>
-
     <form method="post" id="form-aprobar">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:20px 22px; display:flex; flex-direction:column; gap:14px;">
@@ -219,14 +228,8 @@
         </div>
       </div>
       <div style="padding:14px 22px 20px; border-top:1px solid var(--tan); display:flex; justify-content:flex-end; gap:9px;">
-        <button type="button" onclick="cerrarModal('mAprobar')"
-                style="padding:9px 18px; border-radius:9px; border:1.5px solid var(--tan); background:var(--white); font-family:inherit; font-size: var(--text-sm); font-weight:700; cursor:pointer; color:var(--brown-lt);">
-          Cancelar
-        </button>
-        <button type="submit"
-                style="padding:9px 18px; border-radius:9px; border:none; background:#10b981; color:#fff; font-family:inherit; font-size: var(--text-sm); font-weight:800; cursor:pointer;">
-          Confirmar aprobación
-        </button>
+        <button type="button" onclick="cerrarModal('mAprobar')" style="padding:9px 18px; border-radius:9px; border:1.5px solid var(--tan); background:var(--white); font-family:inherit; font-size: var(--text-sm); font-weight:700; cursor:pointer; color:var(--brown-lt);">Cancelar</button>
+        <button type="submit" style="padding:9px 18px; border-radius:9px; border:none; background:#10b981; color:#fff; font-family:inherit; font-size: var(--text-sm); font-weight:800; cursor:pointer;">Confirmar aprobación</button>
       </div>
     </form>
   </div>
@@ -236,16 +239,12 @@
 <!-- ══════════════════ MODAL RECHAZAR ════════════════════ -->
 <div class="modal-bd" id="mRechazar">
   <div style="background:#fff; border-radius:16px; width:100%; max-width:460px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 70px rgba(0,0,0,.3); animation:fadeUpGp .22s ease;">
-
-    <!-- Header -->
     <div style="padding:16px 22px 14px; border-bottom:1px solid var(--tan); display:flex; align-items:center; justify-content:space-between;">
       <div style="font-family:'Playfair Display',serif; font-size: var(--text-md); font-weight:700; color:var(--brown-dk);">
         ❌ Rechazar — <span id="rch-folio" style="font-family:monospace;"></span>
       </div>
-      <button onclick="cerrarModal('mRechazar')"
-              style="background:none; border:none; font-size: var(--text-lg); cursor:pointer; color:var(--brown-lt); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">✕</button>
+      <button onclick="cerrarModal('mRechazar')" style="background:none; border:none; font-size: var(--text-lg); cursor:pointer; color:var(--brown-lt); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">✕</button>
     </div>
-
     <form method="post" id="form-rechazar">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div style="padding:20px 22px; display:flex; flex-direction:column; gap:14px;">
@@ -253,25 +252,50 @@
           El cliente recibirá una notificación con el motivo del rechazo.
         </div>
         <div style="display:flex; flex-direction:column; gap:4px;">
-          <label style="font-size: var(--text-xs); font-weight:700; color:var(--brown); text-transform:uppercase; letter-spacing:.4px;">
-            Motivo del rechazo *
-          </label>
-          <textarea name="motivo" required
-                    placeholder="Ej. No hay disponibilidad para esa fecha…"
-                    style="border:1.5px solid var(--tan); border-radius:9px; padding:8px 12px; font-size: var(--text-sm); font-family:inherit; width:100%; box-sizing:border-box; resize:vertical; min-height:80px; outline:none; transition:border-color .2s;"
-                    onfocus="this.style.borderColor='var(--rust)'"
-                    onblur="this.style.borderColor='var(--tan)'"></textarea>
+          <label style="font-size: var(--text-xs); font-weight:700; color:var(--brown); text-transform:uppercase; letter-spacing:.4px;">Motivo del rechazo *</label>
+          <textarea name="motivo" required placeholder="Ej. No hay disponibilidad para esa fecha…" style="border:1.5px solid var(--tan); border-radius:9px; padding:8px 12px; font-size: var(--text-sm); font-family:inherit; width:100%; box-sizing:border-box; resize:vertical; min-height:80px; outline:none; transition:border-color .2s;" onfocus="this.style.borderColor='var(--rust)'" onblur="this.style.borderColor='var(--tan)'"></textarea>
         </div>
       </div>
       <div style="padding:14px 22px 20px; border-top:1px solid var(--tan); display:flex; justify-content:flex-end; gap:9px;">
-        <button type="button" onclick="cerrarModal('mRechazar')"
-                style="padding:9px 18px; border-radius:9px; border:1.5px solid var(--tan); background:var(--white); font-family:inherit; font-size: var(--text-sm); font-weight:700; cursor:pointer; color:var(--brown-lt);">
-          Cancelar
-        </button>
-        <button type="submit"
-                style="padding:9px 18px; border-radius:9px; border:none; background:#ef4444; color:#fff; font-family:inherit; font-size: var(--text-sm); font-weight:800; cursor:pointer;">
-          Confirmar rechazo
-        </button>
+        <button type="button" onclick="cerrarModal('mRechazar')" style="padding:9px 18px; border-radius:9px; border:1.5px solid var(--tan); background:var(--white); font-family:inherit; font-size: var(--text-sm); font-weight:700; cursor:pointer; color:var(--brown-lt);">Cancelar</button>
+        <button type="submit" style="padding:9px 18px; border-radius:9px; border:none; background:#ef4444; color:#fff; font-family:inherit; font-size: var(--text-sm); font-weight:800; cursor:pointer;">Confirmar rechazo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ══════════════════ MODAL ENTREGAR CON REFERENCIA ═════ -->
+<div class="modal-bd" id="mEntregarRef">
+  <div style="background:#fff; border-radius:16px; width:100%; max-width:460px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 70px rgba(0,0,0,.3); animation:fadeUpGp .22s ease;">
+    <div style="padding:16px 22px 14px; border-bottom:1px solid var(--tan); display:flex; align-items:center; justify-content:space-between;">
+      <div style="font-family:'Playfair Display',serif; font-size: var(--text-md); font-weight:700; color:var(--brown-dk);">
+        📦 Entregar — <span id="ent-folio" style="font-family:monospace;"></span>
+      </div>
+      <button onclick="cerrarModal('mEntregarRef')" style="background:none; border:none; font-size: var(--text-lg); cursor:pointer; color:var(--brown-lt); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+    <form method="post" id="form-entregar-ref">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="padding:20px 22px; display:flex; flex-direction:column; gap:14px;">
+        <div style="background:#dbeafe; border:1px solid #93c5fd; border-radius:9px; padding:10px 14px; font-size: var(--text-xs); color:#1d4ed8; display:flex; align-items:center; gap:8px;">
+          <span id="ent-pago-ico" style="font-size:18px;"></span>
+          <span>Pago con <strong id="ent-pago-tipo"></strong> — ingresa la referencia del pago para confirmar la entrega.</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size: var(--text-xs); font-weight:700; color:var(--brown); text-transform:uppercase; letter-spacing:.4px;">
+            Referencia de pago *
+          </label>
+          <input type="text" name="referencia_pago" id="ent-ref-input" required
+                 maxlength="100"
+                 placeholder="Ej. Núm. de operación, últimos 4 dígitos…"
+                 style="border:1.5px solid var(--tan); border-radius:9px; padding:10px 12px; font-size: var(--text-sm); font-family:inherit; width:100%; box-sizing:border-box; outline:none; transition:border-color .2s;"
+                 onfocus="this.style.borderColor='var(--rust)'"
+                 onblur="this.style.borderColor='var(--tan)'">
+        </div>
+      </div>
+      <div style="padding:14px 22px 20px; border-top:1px solid var(--tan); display:flex; justify-content:flex-end; gap:9px;">
+        <button type="button" onclick="cerrarModal('mEntregarRef')" style="padding:9px 18px; border-radius:9px; border:1.5px solid var(--tan); background:var(--white); font-family:inherit; font-size: var(--text-sm); font-weight:700; cursor:pointer; color:var(--brown-lt);">Cancelar</button>
+        <button type="submit" style="padding:9px 18px; border-radius:9px; border:none; background:var(--brown-dk); color:#fff; font-family:inherit; font-size: var(--text-sm); font-weight:800; cursor:pointer;">Confirmar entrega 📦</button>
       </div>
     </form>
   </div>
@@ -282,8 +306,25 @@
 
 {% block extra_scripts %}
 <script>
-  window.URL_APROBAR_BASE = '{{ url_for("pedidos.aprobar_pedido", folio="__FOLIO__") }}';
+  window.URL_APROBAR_BASE  = '{{ url_for("pedidos.aprobar_pedido",  folio="__FOLIO__") }}';
   window.URL_RECHAZAR_BASE = '{{ url_for("pedidos.rechazar_pedido", folio="__FOLIO__") }}';
+  window.URL_ENTREGAR_BASE = '{{ url_for("pedidos.marcar_entregado", folio="__FOLIO__") }}';
+
+  /* ══ Modal entregar con referencia de pago ══ */
+  function abrirEntregarRef(folio, metodo) {
+    const icoMap = { tarjeta: '💳', transferencia: '🏦' };
+    document.getElementById('ent-folio').textContent    = folio;
+    document.getElementById('ent-pago-ico').textContent  = icoMap[metodo] || '💰';
+    document.getElementById('ent-pago-tipo').textContent  = metodo.charAt(0).toUpperCase() + metodo.slice(1);
+    document.getElementById('ent-ref-input').value        = '';
+
+    const form = document.getElementById('form-entregar-ref');
+    form.action = window.URL_ENTREGAR_BASE.replace('__FOLIO__', folio);
+
+    const modal = document.getElementById('mEntregarRef');
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('ent-ref-input').focus(), 200);
+  }
 </script>
 <script src="{{ url_for('static', filename='js/pedidos_gestion.js') }}"></script>
 {% endblock %}

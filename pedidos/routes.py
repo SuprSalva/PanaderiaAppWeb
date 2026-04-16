@@ -60,6 +60,7 @@ def catalogo():
     )
 
 
+# ── REVERTIDO: sin referencia_pago, indices 5/6/7 ──────────
 @pedidos_bp.route('/nuevo', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'cliente')
@@ -158,6 +159,7 @@ def crear_pedido():
         return redirect(url_for('pedidos.catalogo'))
 
 
+# ── referencia_pago en SELECT + GROUP BY para mostrar en gestión ──
 @pedidos_bp.route('/gestion')
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
@@ -178,6 +180,7 @@ def gestion_pedidos():
                 p.fecha_recogida,
                 p.total_estimado,
                 p.metodo_pago,
+                p.referencia_pago,
                 p.creado_en,
                 u.nombre_completo              AS cliente_nombre,
                 u.telefono,
@@ -196,7 +199,7 @@ def gestion_pedidos():
               AND (:fecha  IS NULL OR DATE(p.fecha_recogida) = :fecha)
             GROUP BY
                 p.id_pedido, p.folio, p.estado, p.fecha_recogida,
-                p.total_estimado, p.metodo_pago, p.creado_en,
+                p.total_estimado, p.metodo_pago, p.referencia_pago, p.creado_en,
                 u.nombre_completo, u.telefono, a.nombre_completo
             ORDER BY
                 FIELD(p.estado, 'pendiente', 'aprobado', 'listo', 'rechazado'),
@@ -229,6 +232,7 @@ def gestion_pedidos():
     )
 
 
+# ── referencia_pago al final del namedtuple ──
 @pedidos_bp.route('/mis-pedidos')
 @login_required
 @roles_required('cliente')
@@ -253,7 +257,8 @@ def mis_pedidos():
     cols_p = [
         'id_pedido', 'folio', 'estado', 'fecha_recogida',
         'total_estimado', 'motivo_rechazo', 'creado_en',
-        'metodo_pago', 'panes_resumen', 'total_piezas'
+        'metodo_pago', 'panes_resumen', 'total_piezas',
+        'referencia_pago'
     ]
     cols_n = ['id_notif', 'id_pedido', 'folio', 'mensaje', 'leida', 'creado_en']
 
@@ -297,6 +302,7 @@ def lista():
                            filtro_q=buscar      or '')
 
 
+# ── metodo_pago + referencia_pago en namedtuple ──
 @pedidos_bp.route('/<folio>')
 @login_required
 @roles_required('admin', 'empleado', 'panadero', 'cliente')
@@ -313,7 +319,8 @@ def detalle(folio):
 
         cols_ped = ['id_pedido', 'folio', 'estado', 'fecha_recogida', 'total_estimado',
                     'motivo_rechazo', 'creado_en', 'id_cliente', 'cliente_nombre', 'telefono',
-                    'atendido_por_nombre', 'tipo_caja', 'tamanio_nombre', 'capacidad']
+                    'atendido_por_nombre', 'tipo_caja', 'tamanio_nombre', 'capacidad',
+                    'metodo_pago', 'referencia_pago']
         Pedido   = namedtuple('Pedido', cols_ped)
         pedido   = Pedido(*row_pedido)
 
@@ -386,7 +393,7 @@ def cambiar_estado(folio):
 
     except Exception as e:
         current_app.logger.error('Error al cambiar estado de pedido | usuario: %s | folio: %s | error: %s | fecha: %s', current_user.username, folio, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        flash('Error al cambiar el estado. Intenta de nuevo.', 'danger')
+        flash('Error al cambiar el estado. Intenta de nuevo.', 'error')
 
     return redirect(url_for('pedidos.detalle', folio=folio))
 
@@ -758,6 +765,7 @@ def terminar_produccion(folio):
         flash(f'Error: {exc}', 'error')
     return redirect(url_for('pedidos.cola_produccion', folio=folio))
 
+# ── metodo_pago + referencia_pago en dict ──
 @pedidos_bp.route('/api/<folio>/detalle')
 @login_required
 @roles_required('admin', 'empleado', 'panadero', 'cliente')
@@ -783,10 +791,13 @@ def api_detalle_pedido(folio):
                 'creado_en':          row_pedido[6].strftime('%d/%m/%Y %H:%M') if row_pedido[6] else '—',
                 'id_cliente':         row_pedido[7],
                 'cliente_nombre':     row_pedido[8] or '—',
-                'atendido_por':       row_pedido[9] or '—',
-                'tipo_caja':          row_pedido[10] or '—',
-                'tamanio_nombre':     row_pedido[11] or '—',
-                'capacidad':          row_pedido[12],
+                'telefono':           row_pedido[9] or '—',
+                'atendido_por':       row_pedido[10] or '—',
+                'tipo_caja':          row_pedido[11] or '—',
+                'tamanio_nombre':     row_pedido[12] or '—',
+                'capacidad':          row_pedido[13],
+                'metodo_pago':        row_pedido[14] or 'efectivo',
+                'referencia_pago':    row_pedido[15] or '',
             }
 
             cur.nextset()
@@ -907,24 +918,26 @@ def marcar_listo(folio):
         flash(f'Error: {exc}', 'error')
     return redirect(request.referrer or url_for('pedidos.gestion_pedidos'))
 
+# ── ACTUALIZADO: ahora pasa referencia_pago al SP (3 IN + 2 OUT) ──
 @pedidos_bp.route('/<folio>/marcar-entregado', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado')
 def marcar_entregado(folio):
+    referencia_pago = request.form.get('referencia_pago', '').strip() or None
     try:
         with role_connection() as conn:
             conn.execute(text("SET @ok=0, @err=NULL"))
             conn.execute(
-                text("CALL sp_marcar_entregado_pedido(:f, :u, @ok, @err)"),
-                {'f': folio, 'u': current_user.id_usuario}
+                text("CALL sp_marcar_entregado_pedido(:f, :u, :ref, @ok, @err)"),
+                {'f': folio, 'u': current_user.id_usuario, 'ref': referencia_pago}
             )
             row = conn.execute(text("SELECT @ok AS ok, @err AS err")).mappings().one()
 
             if int(row['ok'] or 0) == 1:
                 conn.commit()
                 current_app.logger.info(
-                    'Pedido entregado | usuario: %s | folio: %s | fecha: %s',
-                    current_user.username, folio,
+                    'Pedido entregado | usuario: %s | folio: %s | ref_pago: %s | fecha: %s',
+                    current_user.username, folio, referencia_pago or '—',
                     datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 )
                 flash(f'Pedido {folio} marcado como entregado 📦.', 'success')
@@ -981,6 +994,7 @@ def tienda():
         productos_json=productos_json,
     )
 
+# ── REVERTIDO: sin referencia_pago, indices 4/5/6 (original) ──
 @pedidos_bp.route('/tienda/crear', methods=['POST'])
 @login_required
 @roles_required('admin', 'cliente')
@@ -1078,6 +1092,7 @@ def crear_pedido_express():
         return redirect(url_for('pedidos.tienda'))
 
 
+# ── REVERTIDO: sin referencia_pago, sin :referencia param ──
 @pedidos_bp.route('/tienda/futuro', methods=['POST'])
 @login_required
 @roles_required('admin', 'empleado', 'cliente')

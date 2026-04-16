@@ -608,7 +608,6 @@ class GuardarPlantillaForm(FlaskForm):
     )
 
 class PeriodoForm(Form):
-    """Filtro de periodo para las métricas del dashboard."""
  
     periodo = SelectField(
         'Periodo',
@@ -622,9 +621,29 @@ class PeriodoForm(Form):
     )
 
 class CorteForm(Form):
-    """Formulario para seleccionar la fecha del corte diario."""
     fecha = DateField(
         'Fecha del corte',
         validators=[DataRequired(message='Selecciona una fecha válida.')],
     )
  
+
+class PedidoExpressForm(Form):
+    metodo_pago = SelectField('Método de Pago',
+                              choices=[
+                                  ('efectivo',      '💵 Efectivo'),
+                                  ('tarjeta',       '💳 Tarjeta'),
+                                  ('transferencia', '🏦 Transferencia'),
+                              ],
+                              validators=[DataRequired(message='Selecciona un método de pago.')])
+ 
+    referencia_pago = StringField('Referencia de Pago', [
+        Optional(),
+        Length(max=100, message='Máximo 100 caracteres.'),
+    ])
+ 
+    def validate_referencia_pago(self, field):
+        if self.metodo_pago.data in ('tarjeta', 'transferencia'):
+            if not field.data or not field.data.strip():
+                raise ValidationError(
+                    'La referencia de pago es obligatoria para tarjeta o transferencia.'
+                )
