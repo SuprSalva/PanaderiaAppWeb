@@ -5,17 +5,25 @@ from auth import roles_required
 from sqlalchemy import text
 from models import db
 from decimal import Decimal
+from datetime import date, datetime
 import json
-import datetime
 
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Decimal):
             return float(obj)
-        if isinstance(obj, datetime.datetime):
+        if isinstance(obj, datetime):
             return obj.strftime('%Y-%m-%d %H:%M:%S')
         return super(DecimalEncoder, self).default(obj)
+    
+def fetch_as_dict(cursor):
+    if not cursor.description:
+        return []
+    # Obtenemos los nombres de las columnas
+    column_names = [col[0] for col in cursor.description]
+    # Emparejamos cada nombre de columna con su valor en la fila
+    return [dict(zip(column_names, row)) for row in cursor.fetchall()]
 
 
 # ============================================================
@@ -634,9 +642,150 @@ def api_generar_ticket(id_venta):
         print(f"Error en api_generar_ticket: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
     
+# ─── FUNCIONES DEL CORTE ───────
+ 
 @ventas.route("/corte-ventas")
 @login_required
 @roles_required('admin', 'empleado')
 def corte_ventas():
-    """Vista de corte de ventas (pendiente de implementar)"""
-    return render_template("ventas/corteVentas.html")
+    """Página del corte de ventas diario."""
+    hoy = date.today().isoformat()
+    return render_template("ventas/corteVentas.html", hoy=hoy)
+ 
+ 
+@ventas.route("/api/corte-ventas/resumen")
+@login_required
+@roles_required('admin', 'empleado')
+def api_corte_resumen():
+    """
+    Devuelve el resumen del corte para la fecha indicada.
+    Param: ?fecha=YYYY-MM-DD  (default: hoy)
+    """
+    fecha_str = request.args.get('fecha', date.today().isoformat())
+ 
+    # Validar formato — usa datetime.strptime donde datetime = CLASE ✓
+    try:
+        datetime.strptime(fecha_str, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'ok': False, 'error': 'Fecha inválida.'}), 400
+ 
+    try:
+        conn = db.session.connection()
+        cur  = conn.connection.cursor()
+        cur.callproc('sp_corte_resumen', (fecha_str,))
+ 
+        kpis_raw      = fetch_as_dict(cur); cur.nextset()
+        ventas_raw    = fetch_as_dict(cur); cur.nextset()
+        productos_raw = fetch_as_dict(cur); cur.nextset()
+        corte_raw     = fetch_as_dict(cur)
+        cur.close()
+ 
+        kpi = kpis_raw[0] if kpis_raw else {}
+ 
+        ventas_list = [
+            {
+                'origen'      : r.get('origen', ''),
+                'folio'       : r.get('folio', ''),
+                'hora'        : str(r.get('hora')) if r.get('hora') else '',
+                'total'       : float(r.get('total', 0) or 0),
+                'metodo_pago' : r.get('metodo_pago', ''),
+                'estado'      : r.get('estado', ''),
+                'vendedor'    : r.get('vendedor', ''),
+                'total_piezas': int(r.get('total_piezas', 0) or 0),
+            }
+            for r in ventas_raw
+        ]
+ 
+        productos_list = [
+            {
+                'producto'       : r.get('producto', ''),
+                'piezas_vendidas': int(r.get('piezas_vendidas', 0) or 0),
+                'total_generado' : float(r.get('total_generado', 0) or 0),
+            }
+            for r in productos_raw
+        ]
+ 
+        corte = None
+        if corte_raw:
+            c  = corte_raw[0]
+            ce = c.get('cerrado_en')
+            corte = {
+                'id_corte'          : c.get('id_corte'),
+                'estado'            : c.get('estado', ''),
+                'total_ventas'      : float(c.get('total_ventas', 0) or 0),
+                'total_tickets'     : int(c.get('total_tickets', 0) or 0),
+                'efectivo'          : float(c.get('efectivo', 0) or 0),
+                'tarjeta'           : float(c.get('tarjeta', 0) or 0),
+                'transferencia'     : float(c.get('transferencia', 0) or 0),
+                'cancelaciones'     : int(c.get('cancelaciones', 0) or 0),
+                'cerrado_en'        : ce.strftime('%d/%m/%Y %H:%M') if ce else None,
+                'cerrado_por_nombre': c.get('cerrado_por_nombre', ''),
+            }
+ 
+        return jsonify({
+            'ok'       : True,
+            'kpis'     : {
+                'num_ventas'   : int(kpi.get('num_ventas', 0) or 0),
+                'total_vendido': float(kpi.get('total_vendido', 0) or 0),
+                'total_piezas' : float(kpi.get('total_piezas', 0) or 0),
+                'efectivo'     : float(kpi.get('efectivo', 0) or 0),
+                'tarjeta'      : float(kpi.get('tarjeta', 0) or 0),
+                'transferencia': float(kpi.get('transferencia', 0) or 0),
+                'cancelaciones': int(kpi.get('cancelaciones', 0) or 0),
+            },
+            'ventas'   : ventas_list,
+            'productos': productos_list,
+            'corte'    : corte,
+        })
+ 
+    except Exception as exc:
+        return jsonify({'ok': False, 'error': str(exc)}), 500
+ 
+ 
+@ventas.route("/api/corte-ventas/generar", methods=['POST'])
+@login_required
+@roles_required('admin', 'empleado')
+def api_corte_generar():
+    """
+    Genera (cierra) el corte diario para la fecha indicada.
+    Body: fecha=YYYY-MM-DD  +  X-CSRFToken header
+    """
+    fecha_str = request.form.get('fecha', '').strip()
+    efectivo_declarado = request.form.get('efectivo_declarado', 0) # Nuevo
+    usuario_id = current_user.id_usuario
+ 
+    try:
+        datetime.strptime(fecha_str, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'ok': False, 'mensaje': 'Fecha inválida.'}), 400
+ 
+    try:
+        conn = db.session.connection()
+        cur  = conn.connection.cursor()
+        cur.callproc('sp_corte_generar', (fecha_str, usuario_id, efectivo_declarado, 0, ''))
+        cur.close()
+ 
+        out = conn.connection.cursor()
+        out.execute(
+            'SELECT @_sp_corte_generar_3, @_sp_corte_generar_4'
+        )
+        row     = out.fetchone()
+        out.close()
+ 
+        if row:
+            ok      = int(row[0]) if row[0] is not None else 0
+            mensaje = str(row[1]) if row[1] is not None else ''
+        else:
+            ok      = 0
+            mensaje = "Error al leer la respuesta del procedimiento."
+ 
+        if ok:
+            db.session.commit()
+        else:
+            db.session.rollback()
+ 
+        return jsonify({'ok': bool(ok), 'mensaje': mensaje})
+ 
+    except Exception as exc:
+        db.session.rollback()
+        return jsonify({'ok': False, 'mensaje': str(exc)}), 500

@@ -1,570 +1,185 @@
 {% extends "layout.html" %}
+{% block title %}Corte de Ventas Diario{% endblock %}
+
+{% block extra_head %}
+{{ super() }}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/corteVentas.css') }}">
+{% endblock %}
 
 {% block container %}
-<style>
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .anim   { animation: fadeUp .35s ease both; }
-  .anim-1 { animation-delay: .05s; }
-  .anim-2 { animation-delay: .10s; }
-  .anim-3 { animation-delay: .15s; }
 
-  .db-topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
-  .db-page-title { font-family: 'Playfair Display', serif; font-size: var(--text-xl); font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 10px; }
-  .db-breadcrumb { font-size: var(--text-xs); color: var(--brown-lt); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-  .db-breadcrumb span { color: var(--tan); }
-
-  /* ── BANNER DÍA ACTUAL ── */
-  .day-banner {
-    background: linear-gradient(135deg, var(--brown-dk) 0%, #8b5e3c 100%);
-    border-radius: 16px; padding: 22px 28px;
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 20px; box-shadow: 0 6px 24px rgba(107,68,35,.35);
-    flex-wrap: wrap; gap: 16px;
-  }
-  .day-banner-left h2 { font-family: 'Playfair Display', serif; font-size: var(--text-lg); font-weight: 700; color: var(--cream); }
-  .day-banner-left p  { font-size: var(--text-xs); color: rgba(255,255,255,.65); margin-top: 4px; }
-  .day-banner-status  { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); border-radius: 20px; padding: 5px 14px; font-size: var(--text-xs); font-weight: 700; color: var(--cream); margin-top: 8px; }
-  .day-banner-status .dot { width: 7px; height: 7px; border-radius: 50%; background: #7cfc00; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
-  .day-banner-right { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-
-  /* ── STATS ── */
-  .c-stats { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-bottom: 20px; }
-  .c-stat { background: var(--white); border: 1px solid var(--tan); border-radius: 12px; padding: 14px 16px; box-shadow: 0 2px 8px var(--shadow); display: flex; align-items: center; gap: 10px; transition: transform .2s; }
-  .c-stat:hover { transform: translateY(-2px); }
-  .c-stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: var(--text-md); flex-shrink: 0; }
-  .c-stat-icon.green { background: #e2eede; }
-  .c-stat-icon.brown { background: #f3e8d8; }
-  .c-stat-icon.gold  { background: #fef3d0; }
-  .c-stat-icon.blue  { background: #e8f0fe; }
-  .c-stat-icon.rust  { background: #fce8df; }
-  .c-stat-val { font-family: 'Playfair Display', serif; font-size: var(--text-lg); font-weight: 700; color: var(--brown-dk); line-height: 1; }
-  .c-stat-lbl { font-size: var(--text-xs); color: var(--brown-lt); margin-top: 2px; font-weight: 600; }
-
-  /* ── MAIN GRID ── */
-  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
-  .main-grid-3 { display: grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 18px; margin-bottom: 18px; }
-  @media(max-width:1050px){ .main-grid,.main-grid-3 { grid-template-columns:1fr; } }
-
-  /* ── PANEL CARD ── */
-  .panel-card { background: var(--white); border: 1px solid var(--tan); border-radius: 14px; box-shadow: 0 3px 12px var(--shadow); overflow: hidden; }
-  .panel-header { padding: 15px 20px; background: var(--warm-bg); border-bottom: 1px solid var(--tan); display: flex; align-items: center; justify-content: space-between; }
-  .panel-title { font-family: 'Playfair Display', serif; font-size: var(--text-base); font-weight: 700; color: var(--brown-dk); display: flex; align-items: center; gap: 8px; }
-  .panel-body { padding: 18px 20px; }
-
-  /* ── FORMA DE PAGO ── */
-  .pago-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--tan); }
-  .pago-row:last-child { border-bottom: none; }
-  .pago-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: var(--text-md); flex-shrink: 0; }
-  .pago-name  { font-weight: 700; color: var(--brown-dk); font-size: var(--text-sm); flex: 1; }
-  .pago-count { font-size: var(--text-xs); color: var(--brown-lt); }
-  .pago-monto { font-family: 'Playfair Display', serif; font-size: var(--text-md); font-weight: 700; color: var(--brown-dk); }
-  .pago-bar-wrap { width: 80px; height: 6px; border-radius: 3px; background: var(--tan); overflow: hidden; }
-  .pago-bar-fill { height: 100%; border-radius: 3px; background: var(--brown); }
-
-  /* ── PRODUCTO TOP ── */
-  .top-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--tan); }
-  .top-row:last-child { border-bottom: none; }
-  .top-rank { font-family: 'Playfair Display', serif; font-size: var(--text-md); font-weight: 700; color: var(--brown-lt); min-width: 20px; }
-  .top-emoji { font-size: var(--text-lg); }
-  .top-name  { font-weight: 700; color: var(--brown-dk); font-size: var(--text-sm); flex: 1; }
-  .top-qty   { font-size: var(--text-xs); color: var(--brown-lt); }
-  .top-total { font-family: 'Playfair Display', serif; font-size: var(--text-base); font-weight: 700; color: var(--brown-dk); }
-
-  /* ── VENDEDOR ── */
-  .vend-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--tan); }
-  .vend-row:last-child { border-bottom: none; }
-  .vend-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--brown); display: flex; align-items: center; justify-content: center; font-size: var(--text-xs); font-weight: 700; color: var(--cream); flex-shrink: 0; }
-  .vend-name  { font-weight: 700; color: var(--brown-dk); font-size: var(--text-sm); }
-  .vend-count { font-size: var(--text-xs); color: var(--brown-lt); }
-  .vend-monto { font-family: 'Playfair Display', serif; font-size: var(--text-base); font-weight: 700; color: var(--brown-dk); margin-left: auto; }
-  .vend-bar-wrap { width: 60px; height: 5px; border-radius: 3px; background: var(--tan); overflow: hidden; margin-top: 3px; }
-  .vend-bar-fill { height: 100%; border-radius: 3px; background: var(--brown-lt); }
-
-  /* ── HORA A HORA ── */
-  .hora-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
-  .hora-lbl { font-size: var(--text-xs); color: var(--brown-lt); min-width: 52px; font-weight: 700; }
-  .hora-bar-track { flex: 1; height: 18px; border-radius: 4px; background: var(--tan); overflow: hidden; }
-  .hora-bar-fill  { height: 100%; border-radius: 4px; background: var(--brown-lt); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; transition: width .4s; }
-  .hora-bar-fill span { font-size: var(--text-xs); font-weight: 700; color: var(--cream); white-space: nowrap; }
-  .hora-bar-fill.peak { background: var(--brown-dk); }
-
-  /* ── HISTORIAL TABLE ── */
-  .hist-table { width: 100%; border-collapse: collapse; }
-  .hist-table thead { background: var(--warm-bg); }
-  .hist-table thead th { padding: 10px 16px; font-size: var(--text-xs); font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brown); text-align: left; }
-  .hist-table thead th:first-child { padding-left: 20px; }
-  .hist-table tbody tr { border-top: 1px solid var(--tan); cursor: pointer; transition: background .15s; }
-  .hist-table tbody tr:hover { background: #fdf3e6; }
-  .hist-table tbody td { padding: 11px 16px; font-size: var(--text-sm); }
-  .hist-table tbody td:first-child { padding-left: 20px; }
-  .money { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--brown-dk); }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: var(--text-xs); font-weight: 700; }
-  .badge-abierto { background: #e2eede; color: #3a6034; }
-  .badge-cerrado { background: #f3e8d8; color: var(--brown-dk); }
-  .table-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
-  .table-footer p { font-size: var(--text-xs); color: var(--brown-lt); }
-  .pagination { display: flex; gap: 4px; }
-  .page-btn { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: var(--text-xs); font-weight: 700; cursor: pointer; border: 1.5px solid var(--tan); background: var(--white); color: var(--brown); transition: all .15s; }
-  .page-btn:hover { background: var(--warm-bg); }
-  .page-btn.active { background: var(--brown-dk); color: var(--cream); border-color: var(--brown-dk); }
-
-  /* ── MODAL ── */
-  .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(59,42,26,.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 560px; box-shadow: 0 20px 60px rgba(59,42,26,.3); overflow: hidden; animation: fadeUp .25s ease; }
-  .modal-xl { max-width: 700px; }
-  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; background: var(--brown-dk); }
-  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: var(--text-md); color: var(--cream); display: flex; align-items: center; gap: 10px; }
-  .modal-close { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,.15); border: none; cursor: pointer; color: var(--cream); font-size: var(--text-md); display: flex; align-items: center; justify-content: center; transition: background .2s; }
-  .modal-close:hover { background: rgba(255,255,255,.25); }
-  .modal-body { padding: 26px; max-height: 78vh; overflow-y: auto; }
-  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--tan); background: var(--warm-bg); }
-
-  .form-row { display: grid; gap: 14px; }
-  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-label { font-size: var(--text-xs); font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--brown); }
-  .form-input, .form-textarea { padding: 9px 13px; border: 1.5px solid var(--tan); border-radius: 8px; font-family: 'Lato', sans-serif; font-size: var(--text-sm); color: var(--text); background: var(--cream); outline: none; transition: border .2s; }
-  .form-input:focus, .form-textarea:focus { border-color: var(--brown); background: var(--white); }
-  .form-hint { font-size: var(--text-xs); color: var(--brown-lt); }
-  .form-textarea { resize: vertical; min-height: 60px; }
-  .section-divider { font-size: var(--text-xs); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brown-lt); padding: 6px 0 2px; border-bottom: 1px solid var(--tan); margin-bottom: 2px; grid-column: 1/-1; }
-
-  /* ── CIERRE RESUMEN ── */
-  .cierre-resumen { background: var(--warm-bg); border: 1px solid var(--tan); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
-  .cr-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--tan); font-size: var(--text-sm); }
-  .cr-row:last-child { border-bottom: none; }
-  .cr-label { color: var(--brown-lt); }
-  .cr-row.total { background: var(--brown-dk); color: var(--cream); }
-  .cr-row.total .cr-label { color: rgba(255,255,255,.75); font-weight: 700; }
-  .cr-row.total .money { color: var(--cream); font-size: var(--text-md); }
-
-  .warn-box { background: #fce8df; border: 1px solid #e07a52; border-radius: 10px; padding: 11px 14px; font-size: var(--text-xs); color: #9c3a1a; display: flex; gap: 8px; align-items: flex-start; margin-bottom: 14px; }
-  .warn-box .ii { flex-shrink: 0; font-size: var(--text-base); }
-
-  /* ── DETALLE CORTE ── */
-  .det-corte-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
-  .det-corte-item label { font-size: var(--text-xs); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--brown-lt); display: block; margin-bottom: 3px; }
-  .det-corte-item span  { font-size: var(--text-sm); color: var(--brown-dk); font-weight: 600; }
-</style>
-
-<!-- TOPBAR -->
+<!-- ── Topbar ── -->
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title">📊 Corte de Ventas Diario</div>
-    <div class="db-breadcrumb">Inicio <span>›</span> Reportes <span>›</span> Corte Diario</div>
+    <div class="db-page-title"> Corte de Ventas Diario</div>
+    <div class="db-breadcrumb">
+      Inicio<span>›</span> Ventas <span>›</span> Corte Diario
+    </div>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <button id="btnImprimir" class="btn btn-outline btn-sm">Exportar PDF</button>
+    <button id="btnGenerar"  class="btn btn-rust"> Generar Corte</button>
   </div>
 </div>
 
-<!-- BANNER DÍA -->
-<div class="day-banner anim">
+<!-- ── Date toolbar ── -->
+<div class="date-toolbar anim anim-1">
+  <label for="inputFecha">Fecha:</label>
+  <input type="date" id="inputFecha" value="{{ hoy }}" max="{{ hoy }}">
+  <button id="btnBuscar" class="btn btn-primary btn-sm">Consultar</button>
+  <span id="corteEstadoBadge"></span>
+</div>
+
+<!-- ── Banner del día ── -->
+<div class="day-banner anim anim-1">
   <div class="day-banner-left">
-    <h2>Miércoles 4 de Marzo, 2026</h2>
-    <p>Resumen del día en curso · Última actualización: 11:58 am</p>
-    <div class="day-banner-status"><span class="dot"></span> Corte Abierto — En Curso</div>
+    <h2 id="bannerFecha">Cargando...</h2>
+    <p>Resumen de ventas del día seleccionado</p>
+    <div class="day-banner-status" id="bannerEstado">
+      <span class="dot" id="bannerDot"></span>
+      <span id="bannerEstadoText">—</span>
+    </div>
   </div>
-  <div class="day-banner-right">
-    <button class="btn btn-outline btn-sm" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:var(--cream);" onclick="openModal('modal-detalle-hoy')">
-      👁️ Ver Detalle
-    </button>
-    <button class="btn btn-primary btn-sm" style="background:rgba(255,255,255,.95);color:var(--brown-dk);font-weight:700;" onclick="openModal('modal-cierre')">
-      🔒 Cerrar Corte del Día
-    </button>
+  <div class="day-banner-right" id="bannerTotal">
+    <div style="text-align:right;">
+      <div style="font-size:11px;color:rgba(255,255,255,.6);font-weight:700;letter-spacing:1px;text-transform:uppercase;">Total vendido</div>
+      <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--cream);" id="bannerMonto">$0.00</div>
+    </div>
   </div>
 </div>
 
-<!-- STATS HOY -->
-<div class="c-stats anim anim-1">
+<!-- ── KPI Stats ── -->
+<div class="c-stats anim anim-2">
+  <div class="c-stat">
+    <div class="c-stat-icon green">🏷️</div>
+    <div><div class="c-stat-val" id="kpiVentas">0</div><div class="c-stat-lbl">Ventas</div></div>
+  </div>
+  <div class="c-stat">
+    <div class="c-stat-icon brown">🥐</div>
+    <div><div class="c-stat-val" id="kpiPiezas">0</div><div class="c-stat-lbl">Piezas</div></div>
+  </div>
   <div class="c-stat">
     <div class="c-stat-icon green">💵</div>
-    <div><div class="c-stat-val">$4,250</div><div class="c-stat-lbl">Total Ventas</div></div>
-  </div>
-  <div class="c-stat">
-    <div class="c-stat-icon brown">🧾</div>
-    <div><div class="c-stat-val">38</div><div class="c-stat-lbl">Tickets</div></div>
-  </div>
-  <div class="c-stat">
-    <div class="c-stat-icon gold">🍞</div>
-    <div><div class="c-stat-val">287</div><div class="c-stat-lbl">Piezas</div></div>
+    <div><div class="c-stat-val" id="kpiEfectivo">$0</div><div class="c-stat-lbl">Efectivo</div></div>
   </div>
   <div class="c-stat">
     <div class="c-stat-icon blue">💳</div>
-    <div><div class="c-stat-val">$112.00</div><div class="c-stat-lbl">Ticket Promedio</div></div>
+    <div><div class="c-stat-val" id="kpiTarjeta">$0</div><div class="c-stat-lbl">Tarjeta</div></div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon rust">↩️</div>
-    <div><div class="c-stat-val">2</div><div class="c-stat-lbl">Cancelaciones</div></div>
+    <div class="c-stat-icon rust">❌</div>
+    <div><div class="c-stat-val" id="kpiCancelaciones">0</div><div class="c-stat-lbl">Cancelaciones</div></div>
   </div>
 </div>
 
-<!-- GRID MEDIO -->
-<div class="main-grid-3 anim anim-2">
+<!-- ── Cuerpo: tabla + aside ── -->
+<div class="c-body anim anim-3">
 
-  <!-- FORMAS DE PAGO -->
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">💳 Ventas por Forma de Pago</div>
+  <!-- Tabla de transacciones -->
+  <div class="card">
+    <div class="card-title">
+       Transacciones
+      <span class="card-title-right" id="labelFechaTabla"></span>
     </div>
-    <div class="panel-body">
-      <div class="pago-row">
-        <div class="pago-icon" style="background:#e2eede">💵</div>
-        <div style="flex:1">
-          <div class="pago-name">Efectivo</div>
-          <div class="pago-count">22 tickets</div>
-          <div class="pago-bar-wrap" style="margin-top:5px"><div class="pago-bar-fill" style="width:58%"></div></div>
-        </div>
-        <div style="text-align:right">
-          <div class="pago-monto">$2,465.00</div>
-          <div style="font-size: var(--text-xs);color:var(--brown-lt)">58%</div>
-        </div>
-      </div>
-      <div class="pago-row">
-        <div class="pago-icon" style="background:#e8f0fe">💳</div>
-        <div style="flex:1">
-          <div class="pago-name">Tarjeta</div>
-          <div class="pago-count">11 tickets</div>
-          <div class="pago-bar-wrap" style="margin-top:5px"><div class="pago-bar-fill" style="width:30%;background:#4a90d9"></div></div>
-        </div>
-        <div style="text-align:right">
-          <div class="pago-monto">$1,275.00</div>
-          <div style="font-size: var(--text-xs);color:var(--brown-lt)">30%</div>
-        </div>
-      </div>
-      <div class="pago-row">
-        <div class="pago-icon" style="background:#fef3d0">🔁</div>
-        <div style="flex:1">
-          <div class="pago-name">Transferencia</div>
-          <div class="pago-count">5 tickets</div>
-          <div class="pago-bar-wrap" style="margin-top:5px"><div class="pago-bar-fill" style="width:12%;background:#c9950a"></div></div>
-        </div>
-        <div style="text-align:right">
-          <div class="pago-monto">$510.00</div>
-          <div style="font-size: var(--text-xs);color:var(--brown-lt)">12%</div>
-        </div>
-      </div>
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--tan);display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size: var(--text-xs);color:var(--brown-lt);font-weight:700;">TOTAL DEL DÍA</span>
-        <span style="font-family:'Playfair Display',serif;font-size: var(--text-lg);font-weight:700;color:var(--brown-dk);">$4,250.00</span>
-      </div>
+
+    <div id="tablaEstado" class="empty-state">
+      <span class="ico">📋</span>
+      <p>Selecciona una fecha y presiona <strong>Consultar</strong>.</p>
+    </div>
+
+    <div id="tablaWrap" style="display:none;overflow-x:auto;">
+      <table class="hist-table" id="tablaTransacciones">
+        <thead>
+          <tr>
+            <th>Folio</th>
+            <th>Origen</th>
+            <th>Hora</th>
+            <th>Método</th>
+            <th>Piezas</th>
+            <th class="text-right">Total</th>
+            <th>Estado</th>
+            <th>Vendedor</th>
+          </tr>
+        </thead>
+        <tbody id="bodyTransacciones"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="text-right">Totales</td>
+            <td id="footPiezas">—</td>
+            <td class="text-right" id="footTotal">—</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   </div>
 
-  <!-- PRODUCTOS TOP -->
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">🏆 Productos Más Vendidos</div>
-    </div>
-    <div class="panel-body">
-      <div class="top-row">
-        <span class="top-rank">1</span>
-        <span class="top-emoji">🍞</span>
-        <div style="flex:1"><div class="top-name">Concha de Vainilla</div><div class="top-qty">96 piezas</div></div>
-        <span class="top-total">$2,112.00</span>
-      </div>
-      <div class="top-row">
-        <span class="top-rank">2</span>
-        <span class="top-emoji">🥖</span>
-        <div style="flex:1"><div class="top-name">Bolillo Relleno</div><div class="top-qty">72 piezas</div></div>
-        <span class="top-total">$1,296.00</span>
-      </div>
-      <div class="top-row">
-        <span class="top-rank">3</span>
-        <span class="top-emoji">🥐</span>
-        <div style="flex:1"><div class="top-name">Cuernito Mantequilla</div><div class="top-qty">48 piezas</div></div>
-        <span class="top-total">$1,344.00</span>
-      </div>
-      <div class="top-row">
-        <span class="top-rank">4</span>
-        <span class="top-emoji">🍫</span>
-        <div style="flex:1"><div class="top-name">Pan de Chocolate</div><div class="top-qty">42 piezas</div></div>
-        <span class="top-total">$1,050.00</span>
-      </div>
-      <div class="top-row">
-        <span class="top-rank">5</span>
-        <span class="top-emoji">🍩</span>
-        <div style="flex:1"><div class="top-name">Dona Glaseada</div><div class="top-qty">29 piezas</div></div>
-        <span class="top-total">$580.00</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- VENDEDORES -->
-  <div class="panel-card">
-    <div class="panel-header">
-      <div class="panel-title">👤 Por Vendedor</div>
-    </div>
-    <div class="panel-body">
-      <div class="vend-row">
-        <div class="vend-avatar">LR</div>
-        <div style="flex:1">
-          <div class="vend-name">Laura Reyes</div>
-          <div class="vend-count">22 tickets</div>
-          <div class="vend-bar-wrap"><div class="vend-bar-fill" style="width:58%"></div></div>
-        </div>
-        <span class="vend-monto">$2,465</span>
-      </div>
-      <div class="vend-row">
-        <div class="vend-avatar" style="background:#9c6f3e">MC</div>
-        <div style="flex:1">
-          <div class="vend-name">Mariana Cortés</div>
-          <div class="vend-count">16 tickets</div>
-          <div class="vend-bar-wrap"><div class="vend-bar-fill" style="width:42%"></div></div>
-        </div>
-        <span class="vend-monto">$1,785</span>
-      </div>
-      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--tan)">
-        <div style="font-size: var(--text-xs);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brown-lt);margin-bottom:10px;">Ticket Promedio</div>
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;background:var(--warm-bg);border-radius:8px;padding:10px;text-align:center;">
-            <div style="font-size: var(--text-xs);color:var(--brown-lt);margin-bottom:3px">Laura R.</div>
-            <div style="font-family:'Playfair Display',serif;font-size: var(--text-md);font-weight:700;color:var(--brown-dk)">$112</div>
-          </div>
-          <div style="flex:1;background:var(--warm-bg);border-radius:8px;padding:10px;text-align:center;">
-            <div style="font-size: var(--text-xs);color:var(--brown-lt);margin-bottom:3px">Mariana C.</div>
-            <div style="font-family:'Playfair Display',serif;font-size: var(--text-md);font-weight:700;color:var(--brown-dk)">$111</div>
-          </div>
+  <!-- Aside: top productos -->
+  <div>
+    <div class="card">
+      <div class="card-title"> Top Productos</div>
+      <div id="topProductos">
+        <div class="empty-state" style="padding:1rem;">
+          <span class="ico" style="font-size:1.4rem;">🥐</span>
+          <p>Sin datos.</p>
         </div>
       </div>
     </div>
   </div>
 
-</div>
+</div><!-- /c-body -->
 
-<!-- HORA A HORA -->
-<div class="panel-card anim anim-3" style="margin-bottom:20px">
-  <div class="panel-header">
-    <div class="panel-title">⏰ Ventas por Hora</div>
-    <span style="font-size: var(--text-xs);color:var(--brown-lt);">Hoy — hora pico resaltada</span>
+<!-- ── Área oculta para impresión ── -->
+<div id="printArea">
+  <div class="pr-header">
+    <h1>Dulce Migaja · Corte de Ventas</h1>
+    <p id="prFecha"></p>
   </div>
-  <div class="panel-body">
-    <div class="hora-row"><span class="hora-lbl">07:00</span><div class="hora-bar-track"><div class="hora-bar-fill" style="width:22%"><span>$285</span></div></div></div>
-    <div class="hora-row"><span class="hora-lbl">08:00</span><div class="hora-bar-track"><div class="hora-bar-fill" style="width:38%"><span>$490</span></div></div></div>
-    <div class="hora-row"><span class="hora-lbl">09:00</span><div class="hora-bar-track"><div class="hora-bar-fill peak" style="width:68%"><span>$878 🔥</span></div></div></div>
-    <div class="hora-row"><span class="hora-lbl">10:00</span><div class="hora-bar-track"><div class="hora-bar-fill peak" style="width:72%"><span>$930 🔥</span></div></div></div>
-    <div class="hora-row"><span class="hora-lbl">11:00</span><div class="hora-bar-track"><div class="hora-bar-fill" style="width:55%"><span>$715</span></div></div></div>
-    <div class="hora-row"><span class="hora-lbl">12:00</span><div class="hora-bar-track"><div class="hora-bar-fill" style="width:29%"><span>$370 (parcial)</span></div></div></div>
-  </div>
-</div>
-
-<!-- HISTORIAL DE CORTES -->
-<div class="panel-card anim anim-3">
-  <div class="panel-header">
-    <div class="panel-title">📅 Historial de Cortes</div>
-  </div>
-  <table class="hist-table">
+  <div class="pr-kpis" id="prKpis"></div>
+  <table class="pr-table">
     <thead>
       <tr>
-        <th>Fecha</th>
-        <th>Tickets</th>
-        <th>Piezas</th>
-        <th>Efectivo</th>
-        <th>Tarjeta</th>
-        <th>Transfer.</th>
-        <th>Total</th>
-        <th>Estado</th>
-        <th></th>
+        <th>Folio</th><th>Origen</th><th>Hora</th>
+        <th>Método</th><th>Piezas</th><th>Total</th><th>Estado</th>
       </tr>
     </thead>
-    <tbody>
-      <tr onclick="openModal('modal-detalle-hist')">
-        <td><strong>03/03/2026</strong> Mar</td>
-        <td>41</td><td>310</td>
-        <td>$2,600</td><td>$1,350</td><td>$410</td>
-        <td><span class="money">$4,360</span></td>
-        <td><span class="badge badge-cerrado">🔒 Cerrado</span></td>
-        <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openModal('modal-detalle-hist')">👁️</button></td>
-      </tr>
-      <tr onclick="openModal('modal-detalle-hist')">
-        <td><strong>02/03/2026</strong> Lun</td>
-        <td>35</td><td>268</td>
-        <td>$2,100</td><td>$980</td><td>$220</td>
-        <td><span class="money">$3,300</span></td>
-        <td><span class="badge badge-cerrado">🔒 Cerrado</span></td>
-        <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openModal('modal-detalle-hist')">👁️</button></td>
-      </tr>
-      <tr onclick="openModal('modal-detalle-hist')">
-        <td><strong>01/03/2026</strong> Dom</td>
-        <td>52</td><td>418</td>
-        <td>$3,200</td><td>$1,800</td><td>$600</td>
-        <td><span class="money">$5,600</span></td>
-        <td><span class="badge badge-cerrado">🔒 Cerrado</span></td>
-        <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openModal('modal-detalle-hist')">👁️</button></td>
-      </tr>
-      <tr onclick="openModal('modal-detalle-hist')">
-        <td><strong>28/02/2026</strong> Sáb</td>
-        <td>60</td><td>480</td>
-        <td>$3,800</td><td>$2,100</td><td>$700</td>
-        <td><span class="money">$6,600</span></td>
-        <td><span class="badge badge-cerrado">🔒 Cerrado</span></td>
-        <td><button class="btn btn-outline btn-sm btn-icon" onclick="event.stopPropagation();openModal('modal-detalle-hist')">👁️</button></td>
-      </tr>
-    </tbody>
+    <tbody id="prBody"></tbody>
   </table>
-  <div class="table-footer">
-    <p>Mostrando 4 de 30 cortes</p>
-    <div class="pagination">
-      <div class="page-btn active">1</div>
-      <div class="page-btn">2</div>
-      <div class="page-btn">3</div>
-      <div class="page-btn">›</div>
-    </div>
-  </div>
+  <p class="pr-footer" id="prFooter"></p>
 </div>
 
-<!-- ══════════════════════════════════════
-     MODAL: CERRAR CORTE
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-cierre">
-  <div class="modal">
-    <div class="modal-header" style="background:#5a7a52">
-      <h2>🔒 Cerrar Corte del Día</h2>
-      <button class="modal-close" onclick="closeModal('modal-cierre')">✕</button>
-    </div>
-    <div class="modal-body">
-
-      <div class="warn-box">
-        <span class="ii">⚠️</span>
-        <span>Una vez cerrado el corte, <strong>no se podrán registrar nuevas ventas</strong> para este día. Esta acción es definitiva.</span>
-      </div>
-
-      <div class="cierre-resumen">
-        <div class="cr-row"><span class="cr-label">Ventas en Efectivo</span><span class="money">$2,465.00</span></div>
-        <div class="cr-row"><span class="cr-label">Ventas con Tarjeta</span><span class="money">$1,275.00</span></div>
-        <div class="cr-row"><span class="cr-label">Ventas por Transferencia</span><span class="money">$510.00</span></div>
-        <div class="cr-row"><span class="cr-label">Cancelaciones (2)</span><span style="color:var(--rust);font-weight:700;">−$44.00</span></div>
-        <div class="cr-row total"><span class="cr-label">TOTAL DEL DÍA</span><span class="money">$4,206.00</span></div>
-      </div>
-
-      <div class="form-row cols-2">
-        <div class="section-divider">Arqueo de Caja</div>
-        <div class="form-group">
-          <label class="form-label">Efectivo contado en caja $</label>
-          <input type="number" class="form-input" placeholder="0.00" step="0.50" id="caja-contado" oninput="calcDiferencia()">
-          <span class="form-hint">Cuenta el efectivo físico</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Diferencia</label>
-          <input type="text" class="form-input" id="caja-diferencia" readonly value="—" style="font-weight:700;background:var(--warm-bg);">
-          <span class="form-hint">Sistema vs físico</span>
-        </div>
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">Observaciones del Corte</label>
-          <textarea class="form-textarea" placeholder="Ej. Sin incidencias, diferencia por cambio de $5…"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Cerrado por</label>
-          <input type="text" class="form-input" value="Salvador Esquivel Torres" readonly style="background:var(--warm-bg);">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Hora de Cierre</label>
-          <input type="time" class="form-input" id="hora-cierre" value="12:00">
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-cierre')">Cancelar</button>
-      <button class="btn btn-primary" style="background:#5a7a52;box-shadow:0 3px 10px rgba(90,122,82,.35)">🔒 Confirmar Cierre</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     MODAL: DETALLE CORTE HISTÓRICO
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-detalle-hist">
-  <div class="modal modal-xl">
+<div id="modalConfirmacion" class="modal-overlay" style="display: none;">
+  <div class="modal-box anim">
     <div class="modal-header">
-      <h2>📋 Detalle del Corte — <span style="opacity:.7;font-size: var(--text-base)">03/03/2026</span></h2>
-      <button class="modal-close" onclick="closeModal('modal-detalle-hist')">✕</button>
+      <span class="modal-icon"></span>
+      <h3>Arqueo de Caja</h3>
     </div>
     <div class="modal-body">
-      <div class="det-corte-grid">
-        <div class="det-corte-item"><label>Fecha</label><span>Martes 3 de Marzo, 2026</span></div>
-        <div class="det-corte-item"><label>Estado</label><span>🔒 Cerrado</span></div>
-        <div class="det-corte-item"><label>Total Tickets</label><span>41</span></div>
-        <div class="det-corte-item"><label>Total Piezas</label><span>310</span></div>
-        <div class="det-corte-item"><label>Ventas Totales</label><span style="font-family:'Playfair Display',serif;font-size: var(--text-lg);color:var(--brown-dk)">$4,360.00</span></div>
-        <div class="det-corte-item"><label>Cerrado por</label><span>Salvador Esquivel — 13:00</span></div>
-      </div>
-      <div class="cierre-resumen">
-        <div class="cr-row"><span class="cr-label">Efectivo</span><span class="money">$2,600.00</span></div>
-        <div class="cr-row"><span class="cr-label">Tarjeta</span><span class="money">$1,350.00</span></div>
-        <div class="cr-row"><span class="cr-label">Transferencia</span><span class="money">$410.00</span></div>
-        <div class="cr-row"><span class="cr-label">Cancelaciones</span><span style="color:var(--rust);font-weight:700;">−$0.00</span></div>
-        <div class="cr-row total"><span class="cr-label">TOTAL</span><span class="money">$4,360.00</span></div>
-      </div>
-      <div style="background:var(--warm-bg);border-radius:8px;padding:12px 14px;font-size: var(--text-sm);color:var(--brown-dk);">
-        <strong>Observaciones:</strong> Sin incidencias. Arqueo cuadrado exacto.
+      <p id="modalConfirmacionText" style="margin-bottom: 12px; font-size: 15px; color: var(--brown-dk);"></p>
+      
+      <p>Ingresa el monto total de <strong>efectivo físico</strong> en caja:</p>
+      <div style="margin-top: 15px;">
+        <div style="position: relative;">
+          <span style="position: absolute; left: 12px; top: 10px; font-weight: bold; color: var(--brown);">$.</span>
+          <input type="number" id="inputEfectivoFisico" step="0.01" min="0" 
+                 placeholder="0.00"
+                 style="width: 100%; padding: 10px 10px 10px 30px; border: 2px solid var(--tan); border-radius: 8px; font-size: 18px; font-weight: bold; font-family: 'Lato';">
+        </div>
+        <p class="modal-sub">El sistema comparará este valor con las ventas registradas.</p>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-detalle-hist')">Cerrar</button>
-      <button class="btn btn-primary">🖨️ Imprimir Corte</button>
+      <button id="btnModalCancelar" class="btn btn-outline">Cancelar</button>
+      <button id="btnModalConfirmar" class="btn btn-rust">Finalizar y Cerrar Caja</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MODAL: DETALLE CORTE DE HOY
-══════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-detalle-hoy">
-  <div class="modal modal-xl">
-    <div class="modal-header">
-      <h2>📊 Corte en Curso — <span style="opacity:.7;font-size: var(--text-base)">Hoy 04/03/2026</span></h2>
-      <button class="modal-close" onclick="closeModal('modal-detalle-hoy')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="det-corte-grid">
-        <div class="det-corte-item"><label>Estado</label><span style="color:#3a6034">🟢 Abierto</span></div>
-        <div class="det-corte-item"><label>Tickets emitidos</label><span>38</span></div>
-        <div class="det-corte-item"><label>Piezas vendidas</label><span>287</span></div>
-        <div class="det-corte-item"><label>Ticket promedio</label><span>$112.00</span></div>
-        <div class="det-corte-item"><label>Cancelaciones</label><span style="color:var(--rust)">2 (−$44.00)</span></div>
-        <div class="det-corte-item"><label>Total acumulado</label><span style="font-family:'Playfair Display',serif;font-size: var(--text-lg);color:var(--brown-dk)">$4,250.00</span></div>
-      </div>
-      <div class="cierre-resumen">
-        <div class="cr-row"><span class="cr-label">Efectivo</span><span class="money">$2,465.00</span></div>
-        <div class="cr-row"><span class="cr-label">Tarjeta</span><span class="money">$1,275.00</span></div>
-        <div class="cr-row"><span class="cr-label">Transferencia</span><span class="money">$510.00</span></div>
-        <div class="cr-row total"><span class="cr-label">TOTAL HASTA AHORA</span><span class="money">$4,250.00</span></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-detalle-hoy')">Cerrar</button>
-      <button class="btn btn-primary" style="background:#5a7a52" onclick="closeModal('modal-detalle-hoy');openModal('modal-cierre')">🔒 Cerrar Corte</button>
-    </div>
-  </div>
-</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<script>
-  function openModal(id)  { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-  });
+{% block extra_scripts %}
+  <script src="{{ url_for('static', filename='js/corteVentas.js') }}"></script>
+{% endblock %}
 
-  function calcDiferencia() {
-    const sistema  = 2465.00; // efectivo del sistema
-    const contado  = parseFloat(document.getElementById('caja-contado').value) || 0;
-    const diff     = contado - sistema;
-    const el       = document.getElementById('caja-diferencia');
-    el.value       = (diff >= 0 ? '+' : '') + '$' + diff.toFixed(2);
-    el.style.color = diff === 0 ? '#3a6034' : diff > 0 ? '#8a6200' : 'var(--rust)';
-  }
-
-  // Set hora cierre to now
-  document.addEventListener('DOMContentLoaded', () => {
-    const now = new Date();
-    const hh  = String(now.getHours()).padStart(2,'0');
-    const mm  = String(now.getMinutes()).padStart(2,'0');
-    const hc  = document.getElementById('hora-cierre');
-    if (hc) hc.value = hh + ':' + mm;
-  });
-</script>
-
-<div style="height:40px"></div>
 {% endblock %}
