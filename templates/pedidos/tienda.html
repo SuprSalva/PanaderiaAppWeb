@@ -148,7 +148,7 @@
     <div class="tx-hero-deco">🥐</div>
     <div class="tx-hero-badge"><span class="tx-hero-badge-dot"></span>Tienda Dulce Migaja</div>
     <h1>Pide tu pan<br>con tiempo</h1>
-    <p>Elige los panes que quieras. Si están en bodega los puedes recoger hoy mismo — los demás los preparamos especialmente para ti.</p>
+    <p>Elige los panes que quieras. Si están en tienda los puedes recoger hoy mismo — los demás los preparamos especialmente para ti.</p>
     <div class="tx-hero-actions">
       <a href="{{ url_for('pedidos.mis_pedidos') }}">📋 Mis Pedidos</a>
     </div>
@@ -168,8 +168,8 @@
       <div class="tx-toolbar-divider"></div>
       <div class="tx-filters">
         <button class="tx-chip active" onclick="setFiltro('todos',this)">Todos</button>
-        <button class="tx-chip" onclick="setFiltro('disponibles',this)">✅ En bodega</button>
-        <button class="tx-chip" onclick="setFiltro('encargo',this)">📅 Por encargo</button>
+        <button class="tx-chip" onclick="setFiltro('disponibles',this)">En tienda</button>
+        <button class="tx-chip" onclick="setFiltro('encargo',this)">Por encargo</button>
       </div>
       <select class="tx-sort" onchange="setOrden(this.value)">
         <option value="">Ordenar…</option>
@@ -197,13 +197,13 @@
             <div class="tx-card-placeholder" style="display:flex;"><span>🥐</span><span style="font-size:11px;">sin imagen</span></div>
           {% endif %}
           {% if p.nivel_stock == 'agotado' %}
-            <div class="tx-stock-badge encargo">📅 Por encargo</div>
+            <div class="tx-stock-badge encargo">Por encargo</div>
           {% elif p.nivel_stock == 'critico' %}
-            <div class="tx-stock-badge critico">🔥 Últimas {{ p.stock_actual|int }} pzas</div>
+            <div class="tx-stock-badge critico">Últimas {{ p.stock_actual|int }} pzas</div>
           {% elif p.nivel_stock == 'bajo' %}
-            <div class="tx-stock-badge bajo">⚠️ Pocas — {{ p.stock_actual|int }} pzas</div>
+            <div class="tx-stock-badge bajo">Pocas — {{ p.stock_actual|int }} pzas</div>
           {% else %}
-            <div class="tx-stock-badge ok">✅ {{ p.stock_actual|int }} en bodega</div>
+            <div class="tx-stock-badge ok">{{ p.stock_actual|int }} en tienda</div>
           {% endif %}
         </div>
         <div class="tx-card-body">
@@ -445,20 +445,20 @@ function actualizarModo(){
   if(conStock){
     // Con stock: puede pedir para HOY o para cuando quiera
     document.getElementById('modoBanner').className  = 'tx-modo-banner tx-modo-inmediato';
-    document.getElementById('modoIco').textContent   = '✅';
-    document.getElementById('modoBannerTitulo').textContent = 'Todo disponible en bodega';
+    document.getElementById('modoIco').textContent   = '';
+    document.getElementById('modoBannerTitulo').textContent = 'Todo disponible en tienda';
     document.getElementById('modoBannerDesc').textContent   =
       'Puedes recoger hoy o elegir cualquier otro día.';
-    document.getElementById('labelFecha').textContent = '📅 ¿Cuándo quieres recoger?';
+    document.getElementById('labelFecha').textContent = '¿Cuándo quieres recoger?';
     fechaInput.min = hoyISO();   // ← permite seleccionar hoy
   } else {
     // Sin stock completo: mínimo 24h
     document.getElementById('modoBanner').className  = 'tx-modo-banner tx-modo-futuro';
-    document.getElementById('modoIco').textContent   = '📅';
+    document.getElementById('modoIco').textContent   = '';
     document.getElementById('modoBannerTitulo').textContent = 'Pedido por encargo';
     document.getElementById('modoBannerDesc').textContent   =
       'Algunos productos se prepararán especialmente. Se requieren mínimo 24 h de anticipación.';
-    document.getElementById('labelFecha').textContent = '📅 Fecha de recogida (+24 h mínimo)';
+    document.getElementById('labelFecha').textContent = 'Fecha de recogida (+24 h mínimo)';
     const min24 = new Date(); min24.setHours(min24.getHours() + 24);
     const min24ISO = `${min24.getFullYear()}-${String(min24.getMonth()+1).padStart(2,'0')}-${String(min24.getDate()).padStart(2,'0')}`;
     fechaInput.min = min24ISO;
