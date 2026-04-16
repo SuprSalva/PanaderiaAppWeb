@@ -5,7 +5,14 @@
 -- ═══════════════════════════════════════════════════════════════
 USE dulce_migaja;
 
-
+ALTER TABLE pedidos
+  ADD COLUMN referencia_pago VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+      DEFAULT NULL
+      COMMENT 'Número de referencia para pagos con tarjeta o transferencia'
+  AFTER metodo_pago;
+ 
+CREATE INDEX idx_pedidos_referencia_pago ON pedidos(referencia_pago);
+ 
 -- ─────────────────────────────────────────────
 --  2. RECREAR sp_pedido_express  (+ p_referencia_pago)
 --     Nuevo param IN entre p_productos_json y los OUT
