@@ -750,7 +750,8 @@ def api_corte_generar():
     Genera (cierra) el corte diario para la fecha indicada.
     Body: fecha=YYYY-MM-DD  +  X-CSRFToken header
     """
-    fecha_str  = request.form.get('fecha', '').strip()
+    fecha_str = request.form.get('fecha', '').strip()
+    efectivo_declarado = request.form.get('efectivo_declarado', 0) # Nuevo
     usuario_id = current_user.id_usuario
  
     try:
@@ -761,13 +762,12 @@ def api_corte_generar():
     try:
         conn = db.session.connection()
         cur  = conn.connection.cursor()
-        cur.callproc('sp_corte_generar', (fecha_str, usuario_id, 0, ''))
+        cur.callproc('sp_corte_generar', (fecha_str, usuario_id, efectivo_declarado, 0, ''))
         cur.close()
  
         out = conn.connection.cursor()
         out.execute(
-            'SELECT @_sp_corte_generar_2 AS p_ok, '
-            '       @_sp_corte_generar_3 AS p_mensaje'
+            'SELECT @_sp_corte_generar_3, @_sp_corte_generar_4'
         )
         row     = out.fetchone()
         out.close()

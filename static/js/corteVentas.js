@@ -1,5 +1,4 @@
 'use strict';
-  // ── Refs ─────────────────────────────────────────────────
   const inputFecha    = document.getElementById('inputFecha');
   const btnBuscar     = document.getElementById('btnBuscar');
   const btnGenerar    = document.getElementById('btnGenerar');
@@ -24,13 +23,11 @@
   const kpiCancelaciones = document.getElementById('kpiCancelaciones');
   const topProductos  = document.getElementById('topProductos');
 
-  // Refs del Modal
   const modalConfirmacion = document.getElementById('modalConfirmacion');
   const modalConfirmacionText = document.getElementById('modalConfirmacionText');
   const btnModalCancelar = document.getElementById('btnModalCancelar');
   const btnModalConfirmar = document.getElementById('btnModalConfirmar');
 
-  // Print area
   const prFecha  = document.getElementById('prFecha');
   const prKpis   = document.getElementById('prKpis');
   const prBody   = document.getElementById('prBody');
@@ -39,10 +36,9 @@
   const CSRF = document.querySelector('meta[name="csrf-token"]')
     ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
 
-  let _datos = null;   // último payload cargado
-  let fechaPendiente = null; // Guardará la fecha mientras el usuario decide en el modal
+  let _datos = null; 
+  let fechaPendiente = null; 
 
-  // ── Helpers ──────────────────────────────────────────────
   function fmt$(n) {
     return '$' + Number(n || 0).toLocaleString('es-MX', {
       minimumFractionDigits: 2, maximumFractionDigits: 2
@@ -62,7 +58,6 @@
     else { alert(msg); }
   }
 
-  // ── Render KPIs ───────────────────────────────────────────
   function renderKpis(k) {
     bannerMonto.textContent      = fmt$(k.total_vendido);
     kpiVentas.textContent        = k.num_ventas;
@@ -72,7 +67,6 @@
     kpiCancelaciones.textContent = k.cancelaciones;
   }
 
-  // ── Render banner estado ──────────────────────────────────
   function renderBannerEstado(fecha, corte) {
     bannerFecha.textContent = labelFecha(fecha);
     if (!corte) {
@@ -93,7 +87,6 @@
     }
   }
 
-  // ── Render tabla de transacciones ────────────────────────
   function renderTabla(ventas) {
     if (!ventas || ventas.length === 0) {
       tablaWrap.style.display  = 'none';
@@ -112,7 +105,7 @@
       if (ok) { sumPiezas += v.total_piezas; sumTotal += v.total; }
       return `<tr>
         <td><span class="folio-tag">${v.folio}</span></td>
-        <td><span class="badge badge-${v.origen}">${v.origen === 'caja' ? '🛒 Caja' : '🌐 Web'}</span></td>
+        <td><span class="badge badge-${v.origen}">${v.origen === 'caja' ? 'Caja' : 'Web'}</span></td>
         <td>${v.hora}</td>
         <td><span class="badge badge-${v.metodo_pago}">${v.metodo_pago}</span></td>
         <td>${ok ? v.total_piezas : '—'}</td>
@@ -126,7 +119,6 @@
     footTotal.textContent  = fmt$(sumTotal);
   }
 
-  // ── Render top productos ──────────────────────────────────
   function renderTop(productos) {
     if (!productos || productos.length === 0) {
       topProductos.innerHTML = `<div class="empty-state" style="padding:.75rem;"><span class="ico" style="font-size:1.2rem;">🥐</span><p>Sin ventas.</p></div>`;
@@ -141,7 +133,6 @@
       </div>`).join('');
   }
 
-  // ── Preparar datos de impresión ───────────────────────────
   function prepararPrint(fecha, data) {
     prFecha.textContent = `Fecha: ${labelFecha(fecha)} · Generado: ${new Date().toLocaleString('es-MX')}`;
     const k = data.kpis;
@@ -162,7 +153,6 @@
     prFooter.textContent = 'Dulce Migaja · Sistema de Gestión';
   }
 
-  // ── Cargar datos del día ──────────────────────────────────
   function cargarResumen(fecha) {
     tablaEstado.style.display = 'flex';
     tablaEstado.innerHTML     = '<div class="spinner-row">Cargando...</div>';
@@ -188,7 +178,6 @@
       .catch(() => toast('Error de conexión.', 'error'));
   }
 
-  // ── 1. Función para ABRIR el modal ──
   function preguntarGenerarCorte() {
     const fecha = inputFecha.value;
     if (!fecha) { toast('Selecciona una fecha.', 'warning'); return; }
@@ -198,17 +187,21 @@
     modalConfirmacion.style.display = 'flex';
   }
 
-  // ── 2. Función para EJECUTAR la acción (Generar Corte) ──
   function ejecutarGenerarCorte() {
-    modalConfirmacion.style.display = 'none'; // Ocultar el modal
-    const fecha = fechaPendiente;
-    if (!fecha) return;
+    const montoFisico = document.getElementById('inputEfectivoFisico').value;
+    
+    if (!montoFisico || parseFloat(montoFisico) < 0) {
+      toast('Por favor, ingresa el monto de efectivo físico en caja.', 'warning');
+      return;
+    }
 
-    btnGenerar.disabled      = true;
-    btnGenerar.textContent   = 'Generando...';
+    const fecha = fechaPendiente;
+    btnModalConfirmar.disabled = true;
+    modalConfirmacion.style.display = 'none'; 
 
     const fd = new FormData();
     fd.append('fecha', fecha);
+    fd.append('efectivo_declarado', montoFisico); // Enviamos el valor declarado
 
     fetch('/ventas/api/corte-ventas/generar', {
       method: 'POST',
@@ -226,26 +219,49 @@
         btnGenerar.disabled = false;
       })
       .finally(() => { 
-        btnGenerar.textContent = '✔ Generar Corte'; 
-        fechaPendiente = null; // Limpiar variable
+        btnGenerar.textContent = 'Generar Corte'; 
+        fechaPendiente = null;
       });
   }
 
-  // ── Eventos ───────────────────────────────────────────────
-  
-  // Controles principales
   btnBuscar.addEventListener('click',  () => { if (inputFecha.value) cargarResumen(inputFecha.value); });
   inputFecha.addEventListener('keydown', e => { if (e.key === 'Enter') btnBuscar.click(); });
   
-  // Asignar el evento para abrir el modal al botón "Generar Corte"
   btnGenerar.addEventListener('click', preguntarGenerarCorte);
   
   btnImprimir.addEventListener('click', () => {
     if (!_datos) { toast('Consulta un día primero.', 'warning'); return; }
-    window.print();
+
+    const fecha = inputFecha.value;
+    const originalText = btnImprimir.innerHTML;
+    
+    btnImprimir.innerHTML = 'Generando PDF...';
+    btnImprimir.disabled = true;
+
+    const element = document.getElementById('printArea');
+    element.style.display = 'block';
+
+    const opt = {
+      margin:       10,
+      filename:     `Corte_Ventas_DulceMigaja_${fecha}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true }, // scale: 2 mejora la calidad del texto
+      jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      element.style.display = 'none';
+      btnImprimir.innerHTML = originalText;
+      btnImprimir.disabled = false;
+      toast('PDF exportado correctamente.', 'success');
+    }).catch(err => {
+      element.style.display = 'none';
+      btnImprimir.innerHTML = originalText;
+      btnImprimir.disabled = false;
+      toast('Hubo un error al generar el PDF.', 'error');
+    });
   });
 
-  // Eventos del Modal
   btnModalCancelar.addEventListener('click', () => {
     modalConfirmacion.style.display = 'none';
     fechaPendiente = null;
@@ -253,5 +269,4 @@
   
   btnModalConfirmar.addEventListener('click', ejecutarGenerarCorte);
 
-  // Carga automática con la fecha de hoy al abrir la página
   if (inputFecha && inputFecha.value) cargarResumen(inputFecha.value);

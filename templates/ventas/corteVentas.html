@@ -18,7 +18,7 @@
     </div>
   </div>
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-    <button id="btnImprimir" class="btn btn-outline btn-sm"> Imprimir</button>
+    <button id="btnImprimir" class="btn btn-outline btn-sm">Exportar PDF</button>
     <button id="btnGenerar"  class="btn btn-rust"> Generar Corte</button>
   </div>
 </div>
@@ -153,18 +153,30 @@
   <div class="modal-box anim">
     <div class="modal-header">
       <span class="modal-icon"></span>
-      <h3>Confirmar Cierre</h3>
+      <h3>Arqueo de Caja</h3>
     </div>
     <div class="modal-body">
-      <p id="modalConfirmacionText">¿Generar corte del día?</p>
-      <p class="modal-sub">Esta acción cerrará la jornada y no se podrá deshacer.</p>
+      <p id="modalConfirmacionText" style="margin-bottom: 12px; font-size: 15px; color: var(--brown-dk);"></p>
+      
+      <p>Ingresa el monto total de <strong>efectivo físico</strong> en caja:</p>
+      <div style="margin-top: 15px;">
+        <div style="position: relative;">
+          <span style="position: absolute; left: 12px; top: 10px; font-weight: bold; color: var(--brown);">$.</span>
+          <input type="number" id="inputEfectivoFisico" step="0.01" min="0" 
+                 placeholder="0.00"
+                 style="width: 100%; padding: 10px 10px 10px 30px; border: 2px solid var(--tan); border-radius: 8px; font-size: 18px; font-weight: bold; font-family: 'Lato';">
+        </div>
+        <p class="modal-sub">El sistema comparará este valor con las ventas registradas.</p>
+      </div>
     </div>
     <div class="modal-footer">
       <button id="btnModalCancelar" class="btn btn-outline">Cancelar</button>
-      <button id="btnModalConfirmar" class="btn btn-rust">Sí, Generar Corte</button>
+      <button id="btnModalConfirmar" class="btn btn-rust">Finalizar y Cerrar Caja</button>
     </div>
   </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 {% block extra_scripts %}
   <script src="{{ url_for('static', filename='js/corteVentas.js') }}"></script>
