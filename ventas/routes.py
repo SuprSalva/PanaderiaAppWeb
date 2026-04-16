@@ -56,68 +56,100 @@ def ventas_caja():
 def api_estadisticas():
     """Estadísticas de ventas unificadas (caja + online)"""
     try:
-        with role_connection() as conn:
-            result = conn.execute(
-                text("""
-                    SELECT
-                        COALESCE(SUM(total), 0) AS total_hoy,
-                        COUNT(*) AS ventas_hoy,
-                        COALESCE(SUM(piezas), 0) AS total_piezas
-                    FROM (
-                        SELECT v.total, SUM(dv.cantidad) AS piezas
-                        FROM ventas v
-                        LEFT JOIN detalle_ventas dv ON dv.id_venta = v.id_venta
-                        WHERE v.estado = 'completada'
-                          AND DATE(v.fecha_venta) = CURDATE()
-                        GROUP BY v.id_venta, v.total
-
-                        UNION ALL
-
-                        SELECT p.total_estimado AS total, SUM(dp.cantidad) AS piezas
-                        FROM pedidos p
-                        LEFT JOIN detalle_pedidos dp ON dp.id_pedido = p.id_pedido
-                        WHERE p.estado = 'entregado'
-                          AND DATE(p.actualizado_en) = CURDATE()
-                        GROUP BY p.id_pedido, p.total_estimado
-                    ) AS ventas_diarias
-                """)
-            )
-            row = result.fetchone()
-
-            result_semana = conn.execute(
-                text("""
-                    SELECT COALESCE(SUM(total), 0) AS total_semana
-                    FROM (
-                        SELECT v.total AS total
-                        FROM ventas v
-                        WHERE v.estado = 'completada'
-                          AND YEARWEEK(v.fecha_venta, 1) = YEARWEEK(CURDATE(), 1)
-
-                        UNION ALL
-
-                        SELECT p.total_estimado AS total
-                        FROM pedidos p
-                        WHERE p.estado = 'entregado'
-                          AND YEARWEEK(p.actualizado_en, 1) = YEARWEEK(CURDATE(), 1)
-                    ) AS ventas_semanales
-                """)
-            )
-            row_semana = result_semana.fetchone()
-
+        # Ventas de hoy (caja + online)
+        result = db.session.execute(
+            text("""
+                SELECT 
+                    COALESCE(SUM(total), 0) AS total_hoy,
+                    COUNT(*) AS ventas_hoy,
+                    COALESCE(SUM(piezas), 0) AS total_piezas
+                FROM (
+                    -- Ventas de caja hoy
+                    SELECT v.total, COALESCE(SUM(dv.cantidad), 0) AS piezas
+                    FROM ventas v
+                    LEFT JOIN detalle_ventas dv ON dv.id_venta = v.id_venta
+                    WHERE v.estado = 'completada'
+                      AND DATE(v.fecha_venta) = CURDATE()
+                    GROUP BY v.id_venta, v.total
+                    
+                    UNION ALL
+                    
+                    -- Pedidos online entregados hoy
+                    SELECT p.total_estimado AS total, COALESCE(SUM(dp.cantidad), 0) AS piezas
+                    FROM pedidos p
+                    LEFT JOIN detalle_pedidos dp ON dp.id_pedido = p.id_pedido
+                    WHERE p.estado = 'entregado'
+                      AND DATE(p.actualizado_en) = CURDATE()
+                    GROUP BY p.id_pedido, p.total_estimado
+                ) AS ventas_diarias
+            """)
+        )
+        
+        row = result.fetchone()
+        
+        # Ventas de la semana
+        result_semana = db.session.execute(
+            text("""
+                SELECT COALESCE(SUM(total), 0) AS total_semana
+                FROM (
+                    SELECT v.total AS total
+                    FROM ventas v
+                    WHERE v.estado = 'completada'
+                      AND YEARWEEK(v.fecha_venta, 1) = YEARWEEK(CURDATE(), 1)
+                    
+                    UNION ALL
+                    
+                    SELECT p.total_estimado AS total
+                    FROM pedidos p
+                    WHERE p.estado = 'entregado'
+                      AND YEARWEEK(p.actualizado_en, 1) = YEARWEEK(CURDATE(), 1)
+                ) AS ventas_semanales
+            """)
+        )
+        row_semana = result_semana.fetchone()
+        
+        # Calcular total de piezas (necesario para el dashboard)
+        result_piezas = db.session.execute(
+            text("""
+                SELECT COALESCE(SUM(piezas), 0) AS total_piezas_semana
+                FROM (
+                    SELECT COALESCE(SUM(dv.cantidad), 0) AS piezas
+                    FROM ventas v
+                    LEFT JOIN detalle_ventas dv ON dv.id_venta = v.id_venta
+                    WHERE v.estado = 'completada'
+                      AND YEARWEEK(v.fecha_venta, 1) = YEARWEEK(CURDATE(), 1)
+                    GROUP BY v.id_venta
+                    
+                    UNION ALL
+                    
+                    SELECT COALESCE(SUM(dp.cantidad), 0) AS piezas
+                    FROM pedidos p
+                    LEFT JOIN detalle_pedidos dp ON dp.id_pedido = p.id_pedido
+                    WHERE p.estado = 'entregado'
+                      AND YEARWEEK(p.actualizado_en, 1) = YEARWEEK(CURDATE(), 1)
+                    GROUP BY p.id_pedido
+                ) AS piezas_semanales
+            """)
+        )
+        row_piezas = result_piezas.fetchone()
+        
+        db.session.commit()
+        
         return jsonify({
             'success': True,
             'estadisticas': {
                 'total_hoy': float(row.total_hoy) if row.total_hoy else 0,
                 'ventas_hoy': int(row.ventas_hoy) if row.ventas_hoy else 0,
                 'total_piezas': float(row.total_piezas) if row.total_piezas else 0,
-                'total_semana': float(row_semana.total_semana) if row_semana.total_semana else 0
+                'total_semana': float(row_semana.total_semana) if row_semana.total_semana else 0,
+                'total_piezas_semana': float(row_piezas.total_piezas_semana) if row_piezas.total_piezas_semana else 0
             }
         })
     except Exception as e:
+        db.session.rollback()
         print(f"Error en api_estadisticas: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
-
-
+    
 # ============================================================
 # API ENDPOINTS - LISTA DE VENTAS (UNIFICADA)
 # ============================================================
@@ -131,84 +163,136 @@ def api_lista_ventas():
     fecha_fin = request.args.get('fecha_fin')
     offset = int(request.args.get('offset', 0))
     limit = int(request.args.get('limit', 20))
-
+    
     try:
-        query = """
-            SELECT
-                id,
-                folio,
-                fecha,
-                total,
-                metodo_pago,
-                estado,
-                responsable AS vendedor_nombre,
-                origen,
-                COUNT(*) OVER () AS total_filas
-            FROM vw_ventas_consolidadas
-            WHERE 1=1
+        # Ventas de caja - con collations estandarizadas
+        query_caja = """
+            SELECT 
+                v.id_venta AS id,
+                v.folio_venta AS folio,
+                v.fecha_venta AS fecha,
+                v.total AS total,
+                CONVERT(v.metodo_pago USING utf8mb4) COLLATE utf8mb4_unicode_ci AS metodo_pago,
+                'completada' AS estado,
+                CONVERT(u.nombre_completo USING utf8mb4) COLLATE utf8mb4_unicode_ci AS vendedor_nombre,
+                'caja' AS origen
+            FROM ventas v
+            JOIN usuarios u ON u.id_usuario = v.vendedor_id
+            WHERE v.estado = 'completada'
         """
-
+        
+        # Pedidos online - con collations estandarizadas
+        query_pedidos = """
+            SELECT 
+                p.id_pedido AS id,
+                CONCAT('PED-', LPAD(p.id_pedido, 4, '0')) AS folio,
+                p.actualizado_en AS fecha,
+                p.total_estimado AS total,
+                CONVERT(p.metodo_pago USING utf8mb4) COLLATE utf8mb4_unicode_ci AS metodo_pago,
+                'entregado' AS estado,
+                CONVERT(u.nombre_completo USING utf8mb4) COLLATE utf8mb4_unicode_ci AS vendedor_nombre,
+                'online' AS origen
+            FROM pedidos p
+            JOIN usuarios u ON u.id_usuario = COALESCE(p.atendido_por, 1)
+            WHERE p.estado = 'entregado'
+        """
+        
         params = {}
-
+        
+        # Agregar filtros de fecha si existen
         if fecha_inicio:
-            query += " AND DATE(fecha) >= :fecha_inicio"
+            query_caja += " AND DATE(v.fecha_venta) >= :fecha_inicio"
+            query_pedidos += " AND DATE(p.actualizado_en) >= :fecha_inicio"
             params['fecha_inicio'] = fecha_inicio
-
+        
         if fecha_fin:
-            query += " AND DATE(fecha) <= :fecha_fin"
+            query_caja += " AND DATE(v.fecha_venta) <= :fecha_fin"
+            query_pedidos += " AND DATE(p.actualizado_en) <= :fecha_fin"
             params['fecha_fin'] = fecha_fin
-
-        query += " ORDER BY fecha DESC LIMIT :limit OFFSET :offset"
+        
+        # Unir ambas consultas
+        full_query = f"""
+            SELECT * FROM (
+                {query_caja}
+                UNION ALL
+                {query_pedidos}
+            ) AS todas_ventas
+            ORDER BY fecha DESC
+            LIMIT :limit OFFSET :offset
+        """
+        
         params['limit'] = limit
         params['offset'] = offset
-
+        
+        result = db.session.execute(text(full_query), params)
+        
         ventas_list = []
-        total_filas = 0
-
-        with role_connection() as conn:
-            result = conn.execute(text(query), params)
-
-            for row in result:
-                prod_result = []
-                if row.origen == 'caja':
-                    prod_result = conn.execute(
-                        text("""
-                            SELECT p.nombre, dv.cantidad
-                            FROM detalle_ventas dv
-                            JOIN productos p ON p.id_producto = dv.id_producto
-                            WHERE dv.id_venta = :id_venta
-                            LIMIT 3
-                        """),
-                        {'id_venta': row.id}
-                    ).fetchall()
+        
+        for row in result:
+            # Obtener productos resumen
+            productos_resumen = ""
+            if row.origen == 'caja':
+                prod_result = db.session.execute(
+                    text("""
+                        SELECT p.nombre, dv.cantidad
+                        FROM detalle_ventas dv
+                        JOIN productos p ON p.id_producto = dv.id_producto
+                        WHERE dv.id_venta = :id_venta
+                        LIMIT 3
+                    """),
+                    {'id_venta': row.id}
+                ).fetchall()
+                if prod_result:
                     productos_resumen = ', '.join([f"{p.nombre} x{int(p.cantidad)}" for p in prod_result])
                 else:
-                    prod_result = conn.execute(
-                        text("""
-                            SELECT p.nombre, dp.cantidad
-                            FROM detalle_pedidos dp
-                            JOIN productos p ON p.id_producto = dp.id_producto
-                            WHERE dp.id_pedido = :id_pedido
-                            LIMIT 3
-                        """),
-                        {'id_pedido': row.id}
-                    ).fetchall()
+                    productos_resumen = "Sin productos"
+            else:
+                prod_result = db.session.execute(
+                    text("""
+                        SELECT p.nombre, dp.cantidad
+                        FROM detalle_pedidos dp
+                        JOIN productos p ON p.id_producto = dp.id_producto
+                        WHERE dp.id_pedido = :id_pedido
+                        LIMIT 3
+                    """),
+                    {'id_pedido': row.id}
+                ).fetchall()
+                if prod_result:
                     productos_resumen = ', '.join([f"{p.nombre} x{int(p.cantidad)}" for p in prod_result])
-
-                ventas_list.append({
-                    'id_venta': row.id,
-                    'folio_venta': row.folio,
-                    'fecha_venta': row.fecha.strftime('%Y-%m-%d %H:%M:%S') if row.fecha else None,
-                    'total': float(row.total) if row.total else 0,
-                    'metodo_pago': row.metodo_pago,
-                    'estado': row.estado,
-                    'vendedor_nombre': row.vendedor_nombre,
-                    'origen': row.origen,
-                    'productos_resumen': productos_resumen if productos_resumen else 'Sin productos',
-                    'num_productos': len(prod_result) if prod_result else 0
-                })
-                total_filas = row.total_filas if hasattr(row, 'total_filas') else total_filas
-
+                else:
+                    productos_resumen = "Sin productos"
+            
+            ventas_list.append({
+                'id_venta': row.id,
+                'folio_venta': row.folio,
+                'fecha_venta': row.fecha.strftime('%Y-%m-%d %H:%M:%S') if row.fecha else None,
+                'total': float(row.total) if row.total else 0,
+                'metodo_pago': row.metodo_pago,
+                'estado': row.estado,
+                'vendedor_nombre': row.vendedor_nombre,
+                'origen': row.origen,
+                'productos_resumen': productos_resumen
+            })
+        
+        # Consulta separada para el total (sin paginación)
+        count_query = f"""
+            SELECT COUNT(*) as total FROM (
+                {query_caja}
+                UNION ALL
+                {query_pedidos}
+            ) AS total_ventas
+        """
+        count_params = {}
+        if fecha_inicio:
+            count_params['fecha_inicio'] = fecha_inicio
+        if fecha_fin:
+            count_params['fecha_fin'] = fecha_fin
+        
+        total_result = db.session.execute(text(count_query), count_params)
+        total_filas = total_result.fetchone().total
+        
+        db.session.commit()
+        
         return jsonify({
             'success': True,
             'ventas': ventas_list,
@@ -217,10 +301,15 @@ def api_lista_ventas():
             'limit': limit
         })
     except Exception as e:
+        db.session.rollback()
         print(f"Error en api_lista_ventas: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    
 # ============================================================
 # API ENDPOINTS - DETALLE DE VENTA (UNIFICADO)
 # ============================================================
