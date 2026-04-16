@@ -8,7 +8,7 @@ from sqlalchemy import text
 
 from models import db, Compra, DetalleCompra, Proveedor, MateriaPrima, UnidadPresentacion, SalidaEfectivo
 from auth import roles_required
-from utils.db_roles import call_sp
+from utils.db_roles import call_sp, role_connection
 from forms import CompraForm
 from . import compras
 
@@ -24,23 +24,26 @@ def _compra_form():
 
 
 def _generar_folio(prefijo='C'):
-    total = db.session.execute(text("SELECT COUNT(*) FROM compras")).scalar() + 1
+    with role_connection() as conn:
+        total = conn.execute(text("SELECT COUNT(*) FROM compras")).scalar() + 1
     return f"{prefijo}-{total:04d}"
 
 
 def _generar_folio_salida():
-    total = db.session.execute(text("SELECT COUNT(*) FROM salidas_efectivo")).scalar() + 1
+    with role_connection() as conn:
+        total = conn.execute(text("SELECT COUNT(*) FROM salidas_efectivo")).scalar() + 1
     return f"SE-{total:04d}"
 
 
 @compras.route("/compras")
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def index_compras():
     current_app.logger.info('Vista de panel de compras accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    lista = db.session.execute(
-        text("SELECT * FROM vw_compras ORDER BY creado_en DESC")
-    ).mappings().all()
+    with role_connection() as conn:
+        lista = conn.execute(
+            text("SELECT * FROM vw_compras ORDER BY creado_en DESC")
+        ).mappings().all()
     proveedores   = Proveedor.query.filter_by(estatus='activo').order_by(Proveedor.nombre).all()
     materias      = MateriaPrima.query.filter_by(estatus='activo').order_by(MateriaPrima.nombre).all()
     total_compras = len(lista)
@@ -66,7 +69,7 @@ def index_compras():
 
 @compras.route("/compras/api/unidades/<int:id_materia>")
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def api_unidades_materia(id_materia):
     unidades = UnidadPresentacion.query.filter_by(
         id_materia=id_materia, activo=True
@@ -81,7 +84,7 @@ def api_unidades_materia(id_materia):
 
 @compras.route("/compras/crear", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def crear_compra():
     form = _compra_form()
     if not form.validate():
@@ -111,44 +114,44 @@ def crear_compra():
     folio = _generar_folio()
 
     try:
-        result = db.session.execute(
-            text("CALL sp_crear_pedido_compra(:folio,:fact,:prov,:fecha,:obs,:creado, @id_out)"),
-            {
-                'folio':  folio,
-                'fact':   folio_factura or None,
-                'prov':   int(id_proveedor),
-                'fecha':  fecha_compra,
-                'obs':    observaciones or None,
-                'creado': current_user.id_usuario,
-            }
-        )
-        db.session.execute(text("COMMIT"))
-        id_compra = db.session.execute(text("SELECT @id_out")).scalar()
-
-        for i in range(len(ids_materia)):
-            if not ids_materia[i]:
-                continue
-            db.session.execute(
-                text("""CALL sp_agregar_detalle_compra(
-                    :id_compra,:id_mat,:id_uni,
-                    :cant,:uni,:factor,:cant_b,:costo)"""),
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_crear_pedido_compra(:folio,:fact,:prov,:fecha,:obs,:creado, @id_out)"),
                 {
-                    'id_compra': id_compra,
-                    'id_mat':    int(ids_materia[i]),
-                    'id_uni':    int(ids_unidad[i]) if ids_unidad[i] else 0,
-                    'cant':      float(cantidades[i]),
-                    'uni':       unidades_str[i],
-                    'factor':    float(factores[i]) if factores[i] else 1.0,
-                    'cant_b':    float(cantidades_b[i]) if cantidades_b[i] else float(cantidades[i]),
-                    'costo':     float(costos[i]),
+                    'folio':  folio,
+                    'fact':   folio_factura or None,
+                    'prov':   int(id_proveedor),
+                    'fecha':  fecha_compra,
+                    'obs':    observaciones or None,
+                    'creado': current_user.id_usuario,
                 }
             )
-            db.session.execute(text("COMMIT"))
+            conn.execute(text("COMMIT"))
+            id_compra = conn.execute(text("SELECT @id_out")).scalar()
+
+            for i in range(len(ids_materia)):
+                if not ids_materia[i]:
+                    continue
+                conn.execute(
+                    text("""CALL sp_agregar_detalle_compra(
+                        :id_compra,:id_mat,:id_uni,
+                        :cant,:uni,:factor,:cant_b,:costo)"""),
+                    {
+                        'id_compra': id_compra,
+                        'id_mat':    int(ids_materia[i]),
+                        'id_uni':    int(ids_unidad[i]) if ids_unidad[i] else 0,
+                        'cant':      float(cantidades[i]),
+                        'uni':       unidades_str[i],
+                        'factor':    float(factores[i]) if factores[i] else 1.0,
+                        'cant_b':    float(cantidades_b[i]) if cantidades_b[i] else float(cantidades[i]),
+                        'costo':     float(costos[i]),
+                    }
+                )
+                conn.execute(text("COMMIT"))
 
         current_app.logger.info('Pedido de compra creado exitosamente | creador: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Pedido {folio} creado en estatus Ordenado.', 'success')
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         current_app.logger.error('Error al crear pedido | creador: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -159,7 +162,7 @@ def crear_compra():
 
 @compras.route("/compras/cancelar/<int:id_compra>", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def cancelar_compra(id_compra):
     motivo = request.form.get('motivo_cancelacion', '').strip()
     if not motivo:
@@ -183,7 +186,7 @@ def cancelar_compra(id_compra):
 
 @compras.route("/compras/finalizar/<int:id_compra>", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def finalizar_compra(id_compra):
     folio_salida = _generar_folio_salida()
     try:
@@ -203,7 +206,7 @@ def finalizar_compra(id_compra):
 
 @compras.route("/compras/editar/<int:id_compra>", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def editar_compra(id_compra):
     form = _compra_form()
     if not form.fecha_compra.data:
@@ -228,39 +231,39 @@ def editar_compra(id_compra):
         return redirect(url_for('compras.index_compras'))
 
     try:
-        db.session.execute(text("CALL sp_limpiar_detalles_compra(:id)"), {'id': id_compra})
-        db.session.execute(text("COMMIT"))
+        with role_connection() as conn:
+            conn.execute(text("CALL sp_limpiar_detalles_compra(:id)"), {'id': id_compra})
+            conn.execute(text("COMMIT"))
 
-        db.session.execute(
-            text("UPDATE compras SET folio_factura=:ff, observaciones=:obs WHERE id_compra=:id"),
-            {'ff': folio_factura or None, 'obs': observaciones or None, 'id': id_compra}
-        )
-        db.session.execute(text("COMMIT"))
-
-        for i in range(len(ids_materia)):
-            if not ids_materia[i]:
-                continue
-            db.session.execute(
-                text("""CALL sp_agregar_detalle_compra(
-                    :id_compra,:id_mat,:id_uni,
-                    :cant,:uni,:factor,:cant_b,:costo)"""),
-                {
-                    'id_compra': id_compra,
-                    'id_mat':    int(ids_materia[i]),
-                    'id_uni':    int(ids_unidad[i]) if ids_unidad[i] else 0,
-                    'cant':      float(cantidades[i]),
-                    'uni':       unidades_str[i],
-                    'factor':    float(factores[i]) if factores[i] else 1.0,
-                    'cant_b':    float(cantidades_b[i]) if cantidades_b[i] else float(cantidades[i]),
-                    'costo':     float(costos[i]),
-                }
+            conn.execute(
+                text("UPDATE compras SET folio_factura=:ff, observaciones=:obs WHERE id_compra=:id"),
+                {'ff': folio_factura or None, 'obs': observaciones or None, 'id': id_compra}
             )
-            db.session.execute(text("COMMIT"))
+            conn.execute(text("COMMIT"))
+
+            for i in range(len(ids_materia)):
+                if not ids_materia[i]:
+                    continue
+                conn.execute(
+                    text("""CALL sp_agregar_detalle_compra(
+                        :id_compra,:id_mat,:id_uni,
+                        :cant,:uni,:factor,:cant_b,:costo)"""),
+                    {
+                        'id_compra': id_compra,
+                        'id_mat':    int(ids_materia[i]),
+                        'id_uni':    int(ids_unidad[i]) if ids_unidad[i] else 0,
+                        'cant':      float(cantidades[i]),
+                        'uni':       unidades_str[i],
+                        'factor':    float(factores[i]) if factores[i] else 1.0,
+                        'cant_b':    float(cantidades_b[i]) if cantidades_b[i] else float(cantidades[i]),
+                        'costo':     float(costos[i]),
+                    }
+                )
+                conn.execute(text("COMMIT"))
 
         current_app.logger.info('Pedido editado correctamente | usuario: %s | id_compra: %s | fecha: %s', current_user.username, id_compra, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Pedido actualizado correctamente.', 'success')
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         current_app.logger.error('Error al editar pedido | usuario: %s | id_compra: %s | error: %s | fecha: %s', current_user.username, id_compra, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -271,7 +274,7 @@ def editar_compra(id_compra):
 
 @compras.route("/compras/corregir-precio/<int:id_compra>", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def corregir_precio_compra(id_compra):
     costos = request.form.getlist('costo_unitario[]')
     ids_detalle = request.form.getlist('id_detalle[]')
@@ -283,22 +286,22 @@ def corregir_precio_compra(id_compra):
 
     folio_salida = _generar_folio_salida()
     try:
-        for id_det, costo in zip(ids_detalle, costos):
-            db.session.execute(
-                text("UPDATE detalle_compras SET costo_unitario = :c WHERE id_detalle_compra = :id"),
-                {'c': float(costo), 'id': int(id_det)}
-            )
-        db.session.execute(text("COMMIT"))
+        with role_connection() as conn:
+            for id_det, costo in zip(ids_detalle, costos):
+                conn.execute(
+                    text("UPDATE detalle_compras SET costo_unitario = :c WHERE id_detalle_compra = :id"),
+                    {'c': float(costo), 'id': int(id_det)}
+                )
+            conn.execute(text("COMMIT"))
 
-        db.session.execute(
-            text("CALL sp_corregir_precio_compra(:id, :folio, :usr)"),
-            {'id': id_compra, 'folio': folio_salida, 'usr': current_user.id_usuario}
-        )
-        db.session.execute(text("COMMIT"))
+            conn.execute(
+                text("CALL sp_corregir_precio_compra(:id, :folio, :usr)"),
+                {'id': id_compra, 'folio': folio_salida, 'usr': current_user.id_usuario}
+            )
+            conn.execute(text("COMMIT"))
         current_app.logger.info('Precio de compra corregido exitosamente | usuario: %s | id_compra: %s | nueva_salida: %s | fecha: %s', current_user.username, id_compra, folio_salida, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Precio corregido. Nueva salida de efectivo enviada para autorización.', 'success')
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
         current_app.logger.error('Error al corregir precio de compra | usuario: %s | id_compra: %s | error: %s | fecha: %s', current_user.username, id_compra, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -309,7 +312,7 @@ def corregir_precio_compra(id_compra):
 
 @compras.route("/compras/api/unidades/nueva", methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def crear_unidad():
     data = request.get_json()
     id_materia    = data.get('id_materia')
@@ -332,16 +335,16 @@ def crear_unidad():
         uso = 'compra'
 
     try:
-        db.session.execute(
-            text("CALL sp_crear_unidad_compra(:mat,:nom,:sim,:fac,:uso, @id_out)"),
-            {'mat': int(id_materia), 'nom': nombre, 'sim': simbolo,
-             'fac': factor, 'uso': uso}
-        )
-        db.session.execute(text("COMMIT"))
-        id_unidad = db.session.execute(text("SELECT @id_out")).scalar()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_crear_unidad_compra(:mat,:nom,:sim,:fac,:uso, @id_out)"),
+                {'mat': int(id_materia), 'nom': nombre, 'sim': simbolo,
+                 'fac': factor, 'uso': uso}
+            )
+            conn.execute(text("COMMIT"))
+            id_unidad = conn.execute(text("SELECT @id_out")).scalar()
         current_app.logger.info('Nueva unidad de compra creada | usuario: %s | id_materia: %s | unidad: %s | fecha: %s', current_user.username, id_materia, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         if orig and hasattr(orig, 'args') and len(orig.args) >= 2:
             msg = orig.args[1] 
@@ -360,7 +363,7 @@ def crear_unidad():
 
 @compras.route("/compras/detalle/<int:id_compra>")
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def detalle_compra(id_compra):
     current_app.logger.info('Acceso a detalle explicito de compra | usuario: %s | id_compra: %s | fecha: %s', current_user.username, id_compra, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     compra = Compra.query.get_or_404(id_compra)

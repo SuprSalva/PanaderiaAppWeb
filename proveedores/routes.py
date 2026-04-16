@@ -8,6 +8,7 @@ from sqlalchemy.exc import OperationalError, IntegrityError
 
 from models import db, Proveedor
 from forms import ProveedorForm
+from utils.db_roles import role_connection
 from . import proveedores
 
 POR_PAGINA = 10
@@ -85,31 +86,30 @@ def proveedores_nuevo():
     rfc_val = (form.rfc.data or '').strip().upper() or None
 
     try:
-        db.session.execute(
-            text("CALL sp_crear_proveedor(:uuid, :nombre, :rfc, :contacto, "
-                ":telefono, :email, :direccion, :creado_por)"),
-            {
-                'uuid':       str(_uuid.uuid4()),
-                'nombre':     form.nombre.data.strip(),
-                'rfc':        rfc_val,
-                'contacto':   (form.contacto.data or '').strip() or None,
-                'telefono':   (form.telefono.data or '').strip() or None,
-                'email':      (form.email.data or '').strip() or None,
-                'direccion':  (form.direccion.data or '').strip() or None,
-                'creado_por': _usuario_actual(),
-            }
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_crear_proveedor(:uuid, :nombre, :rfc, :contacto, "
+                    ":telefono, :email, :direccion, :creado_por)"),
+                {
+                    'uuid':       str(_uuid.uuid4()),
+                    'nombre':     form.nombre.data.strip(),
+                    'rfc':        rfc_val,
+                    'contacto':   (form.contacto.data or '').strip() or None,
+                    'telefono':   (form.telefono.data or '').strip() or None,
+                    'email':      (form.email.data or '').strip() or None,
+                    'direccion':  (form.direccion.data or '').strip() or None,
+                    'creado_por': _usuario_actual(),
+                }
+            )
+            conn.commit()
         current_app.logger.info('Proveedor creado exitosamente | usuario: %s | proveedor: %s | fecha: %s', current_user.username, form.nombre.data.strip(), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Proveedor "{form.nombre.data.strip()}" registrado correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.error('Error db al crear proveedor | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(_msg_error_sp(e), 'danger')
         return redirect(url_for('proveedores.index_proveedores', modal='nuevo'))
     except Exception as e:
-        db.session.rollback()
         current_app.logger.error('Error general al crear proveedor | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Error al crear proveedor.', 'danger')
         return redirect(url_for('proveedores.index_proveedores', modal='nuevo'))
@@ -134,32 +134,31 @@ def proveedores_editar(id_proveedor):
     rfc_val = (form.rfc.data or '').strip().upper() or None
 
     try:
-        db.session.execute(
-            text("CALL sp_editar_proveedor(:id, :nombre, :rfc, :contacto, "
-                ":telefono, :email, :direccion, :ejecutado_por)"),
-            {
-                'id':            id_proveedor,
-                'nombre':        form.nombre.data.strip(),
-                'rfc':           rfc_val,
-                'contacto':      (form.contacto.data or '').strip() or None,
-                'telefono':      (form.telefono.data or '').strip() or None,
-                'email':         (form.email.data or '').strip() or None,
-                'direccion':     (form.direccion.data or '').strip() or None,
-                'ejecutado_por': _usuario_actual(),
-            }
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_editar_proveedor(:id, :nombre, :rfc, :contacto, "
+                    ":telefono, :email, :direccion, :ejecutado_por)"),
+                {
+                    'id':            id_proveedor,
+                    'nombre':        form.nombre.data.strip(),
+                    'rfc':           rfc_val,
+                    'contacto':      (form.contacto.data or '').strip() or None,
+                    'telefono':      (form.telefono.data or '').strip() or None,
+                    'email':         (form.email.data or '').strip() or None,
+                    'direccion':     (form.direccion.data or '').strip() or None,
+                    'ejecutado_por': _usuario_actual(),
+                }
+            )
+            conn.commit()
         current_app.logger.info('Proveedor editado exitosamente | usuario: %s | proveedor: %s | fecha: %s', current_user.username, form.nombre.data.strip(), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Proveedor "{form.nombre.data.strip()}" actualizado correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.error('Error db al editar proveedor | usuario: %s | id_proveedor: %s | error: %s | fecha: %s', current_user.username, id_proveedor, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(_msg_error_sp(e), 'error')
         return redirect(url_for('proveedores.index_proveedores',
                                 modal='editar', id=id_proveedor))
     except Exception as e:
-        db.session.rollback()
         current_app.logger.error('Error general al editar proveedor | usuario: %s | id_proveedor: %s | error: %s | fecha: %s', current_user.username, id_proveedor, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Error al actualizar proveedor.', 'error')
         return redirect(url_for('proveedores.index_proveedores',
@@ -181,15 +180,16 @@ def proveedores_confirmar_toggle(id_proveedor):
 @roles_required('admin', 'empleado')
 def proveedores_toggle(id_proveedor):
     try:
-        result = db.session.execute(
-            text("CALL sp_toggle_proveedor(:id, :ejecutado_por)"),
-            {
-                'id':            id_proveedor,
-                'ejecutado_por': _usuario_actual(),
-            }
-        )
-        row = result.fetchone()
-        db.session.commit()
+        with role_connection() as conn:
+            result = conn.execute(
+                text("CALL sp_toggle_proveedor(:id, :ejecutado_por)"),
+                {
+                    'id':            id_proveedor,
+                    'ejecutado_por': _usuario_actual(),
+                }
+            )
+            row = result.fetchone()
+            conn.commit()
 
         nuevo_estatus = row.nuevo_estatus if row else 'actualizado'
         nombre_prov   = row.nombre        if row else ''
@@ -198,11 +198,9 @@ def proveedores_toggle(id_proveedor):
         flash(f'Proveedor "{nombre_prov}" {accion} correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.error('Error db al cambiar estatus de proveedor | usuario: %s | id_proveedor: %s | error: %s | fecha: %s', current_user.username, id_proveedor, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(_msg_error_sp(e), 'error')
     except Exception as e:
-        db.session.rollback()
         current_app.logger.error('Error general al cambiar estatus de proveedor | usuario: %s | id_proveedor: %s | error: %s | fecha: %s', current_user.username, id_proveedor, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Error al cambiar estatus.', 'error')
 

@@ -7,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, IntegrityError
 
 from models import db
+from utils.db_roles import role_connection
 from . import materias_primas_bp
 
 POR_PAGINA = 10
@@ -62,36 +63,35 @@ def index_materias_primas():
 
     where_sql = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
-    # ── Conteo para paginación ───────────────────────────────────────
-    total_filtrado = db.session.execute(
-        text(f"SELECT COUNT(*) FROM vw_materias_primas {where_sql}"),
-        params
-    ).scalar()
+    # ── Conteo, filas y estadísticas ─────────────────────────────────
+    with role_connection() as conn:
+        total_filtrado = conn.execute(
+            text(f"SELECT COUNT(*) FROM vw_materias_primas {where_sql}"),
+            params
+        ).scalar()
 
-    # ── Filas de la página actual ────────────────────────────────────
-    offset = (pagina - 1) * POR_PAGINA
-    params_pag = {**params, 'limit': POR_PAGINA, 'offset': offset}
-    lista = db.session.execute(
-        text(f"SELECT * FROM vw_materias_primas {where_sql} "
-             "ORDER BY nombre LIMIT :limit OFFSET :offset"),
-        params_pag
-    ).fetchall()
+        offset = (pagina - 1) * POR_PAGINA
+        params_pag = {**params, 'limit': POR_PAGINA, 'offset': offset}
+        lista = conn.execute(
+            text(f"SELECT * FROM vw_materias_primas {where_sql} "
+                 "ORDER BY nombre LIMIT :limit OFFSET :offset"),
+            params_pag
+        ).fetchall()
+
+        stats = conn.execute(
+            text("""
+                SELECT
+                    COUNT(*)                                          AS total,
+                    SUM(estatus = 'activo')                           AS total_activos,
+                    SUM(estatus = 'inactivo')                         AS total_inactivos,
+                    SUM(nivel_stock = 'normal')                       AS stat_normal,
+                    SUM(nivel_stock = 'bajo')                         AS stat_bajo,
+                    SUM(nivel_stock = 'critico')                      AS stat_critico
+                FROM vw_materias_primas
+            """)
+        ).fetchone()
 
     paginacion = _Paginacion(pagina, POR_PAGINA, total_filtrado)
-
-    # ── Estadísticas globales (sin filtro) ───────────────────────────
-    stats = db.session.execute(
-        text("""
-            SELECT
-                COUNT(*)                                          AS total,
-                SUM(estatus = 'activo')                           AS total_activos,
-                SUM(estatus = 'inactivo')                         AS total_inactivos,
-                SUM(nivel_stock = 'normal')                       AS stat_normal,
-                SUM(nivel_stock = 'bajo')                         AS stat_bajo,
-                SUM(nivel_stock = 'critico')                      AS stat_critico
-            FROM vw_materias_primas
-        """)
-    ).fetchone()
 
     return render_template(
         'materiasPrimas/materiasPrimas.html',
@@ -112,7 +112,7 @@ def index_materias_primas():
 
 @materias_primas_bp.route('/materias-primas/nueva', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def materias_primas_nueva():
     nombre      = request.form.get('nombre', '').strip()
     categoria   = request.form.get('categoria', '').strip() or None
@@ -132,21 +132,22 @@ def materias_primas_nueva():
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
 
     try:
-        db.session.execute(
-            text("CALL sp_crear_materia_prima("
-                 ":uuid, :nombre, :categoria, :unidad_base, "
-                 ":stock_minimo, :estatus, :creado_por)"),
-            {
-                'uuid':         str(_uuid.uuid4()),
-                'nombre':       nombre,
-                'categoria':    categoria,
-                'unidad_base':  unidad_base,
-                'stock_minimo': stock_min_f,
-                'estatus':      estatus if estatus in ('activo', 'inactivo') else 'activo',
-                'creado_por':   _usuario_actual(),
-            }
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_crear_materia_prima("
+                     ":uuid, :nombre, :categoria, :unidad_base, "
+                     ":stock_minimo, :estatus, :creado_por)"),
+                {
+                    'uuid':         str(_uuid.uuid4()),
+                    'nombre':       nombre,
+                    'categoria':    categoria,
+                    'unidad_base':  unidad_base,
+                    'stock_minimo': stock_min_f,
+                    'estatus':      estatus if estatus in ('activo', 'inactivo') else 'activo',
+                    'creado_por':   _usuario_actual(),
+                }
+            )
+            conn.commit()
         current_app.logger.info(
             'Materia prima creada exitosamente | usuario: %s | materia: %s | fecha: %s',
             current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -154,7 +155,6 @@ def materias_primas_nueva():
         flash(f'Materia prima "{nombre}" creada correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.warning(
             'Creacion de materia prima fallida (db) | usuario: %s | materia: %s | error: %s | fecha: %s',
             current_user.username, nombre, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -162,7 +162,6 @@ def materias_primas_nueva():
         flash(_msg_error_sp(e), 'error')
         return redirect(url_for('materias_primas.index_materias_primas', modal='nueva'))
     except Exception as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error general al crear materia prima | usuario: %s | materia: %s | error: %s | fecha: %s',
             current_user.username, nombre, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -175,7 +174,7 @@ def materias_primas_nueva():
 
 @materias_primas_bp.route('/materias-primas/editar/<int:id_materia>', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def materias_primas_editar(id_materia):
     nombre      = request.form.get('nombre', '').strip()
     categoria   = request.form.get('categoria', '').strip() or None
@@ -194,21 +193,22 @@ def materias_primas_editar(id_materia):
                                     modal='editar', id=id_materia))
 
     try:
-        db.session.execute(
-            text("CALL sp_editar_materia_prima("
-                 ":id_materia, :nombre, :categoria, :unidad_base, "
-                 ":stock_minimo, :estatus, :ejecutado_por)"),
-            {
-                'id_materia':   id_materia,
-                'nombre':       nombre,
-                'categoria':    categoria,
-                'unidad_base':  unidad_base,
-                'stock_minimo': stock_min_f,
-                'estatus':      estatus if estatus in ('activo', 'inactivo') else None,
-                'ejecutado_por': _usuario_actual(),
-            }
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_editar_materia_prima("
+                     ":id_materia, :nombre, :categoria, :unidad_base, "
+                     ":stock_minimo, :estatus, :ejecutado_por)"),
+                {
+                    'id_materia':   id_materia,
+                    'nombre':       nombre,
+                    'categoria':    categoria,
+                    'unidad_base':  unidad_base,
+                    'stock_minimo': stock_min_f,
+                    'estatus':      estatus if estatus in ('activo', 'inactivo') else None,
+                    'ejecutado_por': _usuario_actual(),
+                }
+            )
+            conn.commit()
         current_app.logger.info(
             'Materia prima actualizada exitosamente | usuario: %s | materia: %s | fecha: %s',
             current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -216,7 +216,6 @@ def materias_primas_editar(id_materia):
         flash(f'Materia prima "{nombre}" actualizada correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.warning(
             'Edicion de materia prima fallida (db) | usuario: %s | id: %s | error: %s | fecha: %s',
             current_user.username, id_materia, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -225,7 +224,6 @@ def materias_primas_editar(id_materia):
         return redirect(url_for('materias_primas.index_materias_primas',
                                 modal='editar', id=id_materia))
     except Exception as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error general al editar materia prima | usuario: %s | id: %s | error: %s | fecha: %s',
             current_user.username, id_materia, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -239,18 +237,19 @@ def materias_primas_editar(id_materia):
 
 @materias_primas_bp.route('/materias-primas/toggle/<int:id_materia>', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def materias_primas_toggle(id_materia):
     try:
-        result = db.session.execute(
-            text("CALL sp_toggle_materia_prima(:id_materia, :ejecutado_por)"),
-            {
-                'id_materia':    id_materia,
-                'ejecutado_por': _usuario_actual(),
-            }
-        )
-        row = result.fetchone()
-        db.session.commit()
+        with role_connection() as conn:
+            result = conn.execute(
+                text("CALL sp_toggle_materia_prima(:id_materia, :ejecutado_por)"),
+                {
+                    'id_materia':    id_materia,
+                    'ejecutado_por': _usuario_actual(),
+                }
+            )
+            row = result.fetchone()
+            conn.commit()
 
         nuevo_estatus = row.nuevo_estatus if row else 'actualizado'
         nombre_mp     = row.nombre        if row else ''
@@ -263,14 +262,12 @@ def materias_primas_toggle(id_materia):
         flash(f'Materia prima "{nombre_mp}" {accion}.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error db al cambiar estatus de materia prima | usuario: %s | id: %s | error: %s | fecha: %s',
             current_user.username, id_materia, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
         flash(_msg_error_sp(e), 'error')
     except Exception as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error general al cambiar estatus de materia prima | usuario: %s | id: %s | error: %s | fecha: %s',
             current_user.username, id_materia, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

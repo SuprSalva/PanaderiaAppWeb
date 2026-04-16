@@ -19,6 +19,7 @@ from flask_migrate import Migrate
 from extensions import mail
 from flask_mail import Message
 import forms
+from utils.db_roles import role_connection
 
 from dashboard import dashboard_bp
 from compras.routes import compras
@@ -546,34 +547,35 @@ def debug_usuario_bd():
 
 @app.route("/api/mermas/materias", methods=['GET'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_mermas_materias():
     """Obtener lista de materias primas para mermas"""
     busqueda = request.args.get('busqueda', '')
     
     try:
-        result = db.session.execute(
-            text("CALL sp_mermas_materias_primas(:busqueda)"),
-            {'busqueda': busqueda}
-        )
-        
-        materias = []
-        for row in result:
-            materias.append({
-                'id_materia': row.id_materia,
-                'nombre': row.nombre,
-                'unidad_base': row.unidad_base,
-                'stock_actual': float(row.stock_actual) if row.stock_actual else 0,
-                'stock_minimo': float(row.stock_minimo) if row.stock_minimo else 0
-            })
-        
-        db.session.commit()
-        
+        with role_connection() as conn:
+            result = conn.execute(
+                text("CALL sp_mermas_materias_primas(:busqueda)"),
+                {'busqueda': busqueda}
+            )
+
+            materias = []
+            for row in result:
+                materias.append({
+                    'id_materia': row.id_materia,
+                    'nombre': row.nombre,
+                    'unidad_base': row.unidad_base,
+                    'stock_actual': float(row.stock_actual) if row.stock_actual else 0,
+                    'stock_minimo': float(row.stock_minimo) if row.stock_minimo else 0
+                })
+
+            conn.commit()
+
         return jsonify({
             'success': True,
             'materias': materias
         })
     except Exception as e:
-        db.session.rollback()
         print(f"Error en api_mermas_materias: {str(e)}")
         return jsonify({
             'success': False,
@@ -583,6 +585,7 @@ def api_mermas_materias():
 
 @app.route("/api/mermas/registrar", methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_registrar_merma():
     """Registrar una nueva merma"""
     try:
@@ -618,79 +621,79 @@ def api_registrar_merma():
         if causa not in causas_validas:
             return jsonify({'success': False, 'error': 'Causa inválida'}), 400
         
-        # Obtener datos de la materia prima
-        materia = db.session.execute(
-            text("SELECT nombre, unidad_base, stock_actual FROM materias_primas WHERE id_materia = :id_materia AND estatus = 'activo'"),
-            {'id_materia': id_materia}
-        ).fetchone()
-        
-        if not materia:
-            return jsonify({'success': False, 'error': 'Materia prima no encontrada o inactiva'}), 400
-        
-        # Validar stock suficiente
-        stock_actual = float(materia.stock_actual)
-        if stock_actual < cantidad:
-            return jsonify({
-                'success': False, 
-                'error': f'Stock insuficiente. Disponible: {stock_actual} {materia.unidad_base}'
-            }), 400
-        
-        # Insertar registro de merma
-        db.session.execute(
-            text("""
-                INSERT INTO mermas (
-                    tipo_objeto, id_referencia, cantidad, unidad, 
-                    causa, descripcion, registrado_por, fecha_merma, creado_en
-                ) VALUES (
-                    'materia_prima', :id_materia, :cantidad, :unidad,
-                    :causa, :descripcion, :registrado_por, NOW(), NOW()
-                )
-            """),
-            {
-                'id_materia': id_materia,
-                'cantidad': cantidad,
-                'unidad': materia.unidad_base,
-                'causa': causa,
-                'descripcion': descripcion,
-                'registrado_por': current_user.id_usuario
-            }
-        )
-        
-        # Descontar del inventario
-        db.session.execute(
-            text("""
-                UPDATE materias_primas 
-                SET stock_actual = stock_actual - :cantidad,
-                    actualizado_en = NOW()
-                WHERE id_materia = :id_materia
-            """),
-            {'cantidad': cantidad, 'id_materia': id_materia}
-        )
-        
-        # Registrar en logs
-        db.session.execute(
-            text("""
-                INSERT INTO logs_sistema (tipo, nivel, id_usuario, modulo, accion, descripcion, creado_en)
-                VALUES ('ajuste_inv', 'WARNING', :usuario_id, 'mermas', 'registrar_merma',
-                        :desc_log, NOW())
-            """),
-            {
-                'usuario_id': current_user.id_usuario,
-                'desc_log': f'Merma registrada: {materia.nombre} - Cantidad: {cantidad} {materia.unidad_base} - Causa: {causa}'
-            }
-        )
-        
-        db.session.commit()
-        
+        with role_connection() as conn:
+            # Obtener datos de la materia prima
+            materia = conn.execute(
+                text("SELECT nombre, unidad_base, stock_actual FROM materias_primas WHERE id_materia = :id_materia AND estatus = 'activo'"),
+                {'id_materia': id_materia}
+            ).fetchone()
+
+            if not materia:
+                return jsonify({'success': False, 'error': 'Materia prima no encontrada o inactiva'}), 400
+
+            # Validar stock suficiente
+            stock_actual = float(materia.stock_actual)
+            if stock_actual < cantidad:
+                return jsonify({
+                    'success': False,
+                    'error': f'Stock insuficiente. Disponible: {stock_actual} {materia.unidad_base}'
+                }), 400
+
+            # Insertar registro de merma
+            conn.execute(
+                text("""
+                    INSERT INTO mermas (
+                        tipo_objeto, id_referencia, cantidad, unidad,
+                        causa, descripcion, registrado_por, fecha_merma, creado_en
+                    ) VALUES (
+                        'materia_prima', :id_materia, :cantidad, :unidad,
+                        :causa, :descripcion, :registrado_por, NOW(), NOW()
+                    )
+                """),
+                {
+                    'id_materia': id_materia,
+                    'cantidad': cantidad,
+                    'unidad': materia.unidad_base,
+                    'causa': causa,
+                    'descripcion': descripcion,
+                    'registrado_por': current_user.id_usuario
+                }
+            )
+
+            # Descontar del inventario
+            conn.execute(
+                text("""
+                    UPDATE materias_primas
+                    SET stock_actual = stock_actual - :cantidad,
+                        actualizado_en = NOW()
+                    WHERE id_materia = :id_materia
+                """),
+                {'cantidad': cantidad, 'id_materia': id_materia}
+            )
+
+            # Registrar en logs
+            conn.execute(
+                text("""
+                    INSERT INTO logs_sistema (tipo, nivel, id_usuario, modulo, accion, descripcion, creado_en)
+                    VALUES ('ajuste_inv', 'WARNING', :usuario_id, 'mermas', 'registrar_merma',
+                            :desc_log, NOW())
+                """),
+                {
+                    'usuario_id': current_user.id_usuario,
+                    'desc_log': f'Merma registrada: {materia.nombre} - Cantidad: {cantidad} {materia.unidad_base} - Causa: {causa}'
+                }
+            )
+
+            conn.commit()
+
         app.logger.info(f'Merma registrada | usuario: {current_user.username} | materia: {id_materia} | cantidad: {cantidad}')
-        
+
         return jsonify({
             'success': True,
             'message': 'Merma registrada exitosamente'
         })
-        
+
     except Exception as e:
-        db.session.rollback()
         app.logger.error(f"Error en api_registrar_merma: {str(e)}")
         import traceback
         traceback.print_exc()
@@ -701,6 +704,7 @@ def api_registrar_merma():
 
 @app.route("/api/mermas/listar", methods=['GET'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_listar_mermas():
     """Listar mermas registradas"""
     fecha_inicio = request.args.get('fecha_inicio')
@@ -745,47 +749,46 @@ def api_listar_mermas():
         params['limit'] = limit
         params['offset'] = offset
         
-        result = db.session.execute(text(query), params)
-        
-        mermas = []
-        for row in result:
-            mermas.append({
-                'id_merma': row.id_merma,
-                'materia_nombre': row.materia_nombre,
-                'cantidad': float(row.cantidad) if row.cantidad else 0,
-                'unidad': row.unidad,
-                'causa': row.causa,
-                'descripcion': row.descripcion or '',
-                'fecha_merma': row.fecha_merma.strftime('%Y-%m-%d %H:%M:%S') if row.fecha_merma else None,
-                'registrado_por_nombre': row.registrado_por_nombre
-            })
-        
-        # Consulta separada para el total
-        count_query = """
-            SELECT COUNT(*) as total
-            FROM mermas m
-            JOIN materias_primas mp ON mp.id_materia = m.id_referencia
-            WHERE m.tipo_objeto = 'materia_prima'
-        """
-        count_params = {}
-        
-        if fecha_inicio and fecha_inicio != '':
-            count_query += " AND DATE(m.fecha_merma) >= :fecha_inicio"
-            count_params['fecha_inicio'] = fecha_inicio
-        
-        if fecha_fin and fecha_fin != '':
-            count_query += " AND DATE(m.fecha_merma) <= :fecha_fin"
-            count_params['fecha_fin'] = fecha_fin
-        
-        if causa and causa != '':
-            count_query += " AND m.causa = :causa"
-            count_params['causa'] = causa
-        
-        total_result = db.session.execute(text(count_query), count_params)
-        total_filas = total_result.fetchone().total
-        
-        db.session.commit()
-        
+        with role_connection() as conn:
+            result = conn.execute(text(query), params)
+
+            mermas = []
+            for row in result:
+                mermas.append({
+                    'id_merma': row.id_merma,
+                    'materia_nombre': row.materia_nombre,
+                    'cantidad': float(row.cantidad) if row.cantidad else 0,
+                    'unidad': row.unidad,
+                    'causa': row.causa,
+                    'descripcion': row.descripcion or '',
+                    'fecha_merma': row.fecha_merma.strftime('%Y-%m-%d %H:%M:%S') if row.fecha_merma else None,
+                    'registrado_por_nombre': row.registrado_por_nombre
+                })
+
+            # Consulta separada para el total
+            count_query = """
+                SELECT COUNT(*) as total
+                FROM mermas m
+                JOIN materias_primas mp ON mp.id_materia = m.id_referencia
+                WHERE m.tipo_objeto = 'materia_prima'
+            """
+            count_params = {}
+
+            if fecha_inicio and fecha_inicio != '':
+                count_query += " AND DATE(m.fecha_merma) >= :fecha_inicio"
+                count_params['fecha_inicio'] = fecha_inicio
+
+            if fecha_fin and fecha_fin != '':
+                count_query += " AND DATE(m.fecha_merma) <= :fecha_fin"
+                count_params['fecha_fin'] = fecha_fin
+
+            if causa and causa != '':
+                count_query += " AND m.causa = :causa"
+                count_params['causa'] = causa
+
+            total_result = conn.execute(text(count_query), count_params)
+            total_filas = total_result.fetchone().total
+
         return jsonify({
             'success': True,
             'mermas': mermas,
@@ -794,7 +797,6 @@ def api_listar_mermas():
             'limit': limit
         })
     except Exception as e:
-        db.session.rollback()
         print(f"Error en api_listar_mermas: {str(e)}")
         import traceback
         traceback.print_exc()
@@ -854,30 +856,29 @@ def generar_html_correo(nombre, titulo, mensaje_principal, codigo, mensaje_secun
     
 @app.route("/api/mermas/estadisticas", methods=['GET'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_estadisticas_mermas():
     """Obtener estadísticas de mermas"""
     try:
-        # Total hoy
-        result_hoy = db.session.execute(
-            text("SELECT COALESCE(SUM(cantidad), 0) AS total FROM mermas WHERE tipo_objeto = 'materia_prima' AND DATE(fecha_merma) = CURDATE()")
-        )
-        total_hoy = result_hoy.fetchone().total
-        
-        # Total semana
-        result_semana = db.session.execute(
-            text("SELECT COALESCE(SUM(cantidad), 0) AS total FROM mermas WHERE tipo_objeto = 'materia_prima' AND YEARWEEK(fecha_merma, 1) = YEARWEEK(CURDATE(), 1)")
-        )
-        total_semana = result_semana.fetchone().total
-        
-        db.session.commit()
-        
+        with role_connection() as conn:
+            # Total hoy
+            result_hoy = conn.execute(
+                text("SELECT COALESCE(SUM(cantidad), 0) AS total FROM mermas WHERE tipo_objeto = 'materia_prima' AND DATE(fecha_merma) = CURDATE()")
+            )
+            total_hoy = result_hoy.fetchone().total
+
+            # Total semana
+            result_semana = conn.execute(
+                text("SELECT COALESCE(SUM(cantidad), 0) AS total FROM mermas WHERE tipo_objeto = 'materia_prima' AND YEARWEEK(fecha_merma, 1) = YEARWEEK(CURDATE(), 1)")
+            )
+            total_semana = result_semana.fetchone().total
+
         return jsonify({
             'success': True,
             'total_hoy': float(total_hoy) if total_hoy else 0,
             'total_semana': float(total_semana) if total_semana else 0
         })
     except Exception as e:
-        db.session.rollback()
         print(f"Error en api_estadisticas_mermas: {str(e)}")
         return jsonify({
             'success': False,
@@ -891,35 +892,36 @@ def api_estadisticas_mermas():
 
 @app.route("/api/mermas/productos", methods=['GET'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_mermas_productos():
     """Obtener lista de productos terminados para mermas"""
     busqueda = request.args.get('busqueda', '')
     
     try:
-        result = db.session.execute(
-            text("CALL sp_mermas_productos_terminados(:busqueda)"),
-            {'busqueda': busqueda}
-        )
-        
-        productos = []
-        for row in result:
-            productos.append({
-                'id_producto': row.id_producto,
-                'nombre': row.nombre,
-                'precio_venta': float(row.precio_venta) if row.precio_venta else 0,
-                'stock_actual': float(row.stock_actual) if row.stock_actual else 0,
-                'stock_minimo': float(row.stock_minimo) if row.stock_minimo else 0,
-                'imagen_url': row.imagen_url
-            })
-        
-        db.session.commit()
-        
+        with role_connection() as conn:
+            result = conn.execute(
+                text("CALL sp_mermas_productos_terminados(:busqueda)"),
+                {'busqueda': busqueda}
+            )
+
+            productos = []
+            for row in result:
+                productos.append({
+                    'id_producto': row.id_producto,
+                    'nombre': row.nombre,
+                    'precio_venta': float(row.precio_venta) if row.precio_venta else 0,
+                    'stock_actual': float(row.stock_actual) if row.stock_actual else 0,
+                    'stock_minimo': float(row.stock_minimo) if row.stock_minimo else 0,
+                    'imagen_url': row.imagen_url
+                })
+
+            conn.commit()
+
         return jsonify({
             'success': True,
             'productos': productos
         })
     except Exception as e:
-        db.session.rollback()
         print(f"Error en api_mermas_productos: {str(e)}")
         return jsonify({
             'success': False,
@@ -929,6 +931,7 @@ def api_mermas_productos():
 
 @app.route("/api/mermas/registrar-producto", methods=['POST'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_registrar_merma_producto():
     """Registrar una merma de producto terminado"""
     try:
@@ -963,83 +966,83 @@ def api_registrar_merma_producto():
         if causa not in causas_validas:
             return jsonify({'success': False, 'error': 'Causa inválida'}), 400
         
-        # Obtener datos del producto
-        producto = db.session.execute(
-            text("""
-                SELECT p.nombre, COALESCE(i.stock_actual, 0) AS stock_actual
-                FROM productos p
-                LEFT JOIN inventario_pt i ON i.id_producto = p.id_producto
-                WHERE p.id_producto = :id_producto AND p.estatus = 'activo'
-            """),
-            {'id_producto': id_producto}
-        ).fetchone()
-        
-        if not producto:
-            return jsonify({'success': False, 'error': 'Producto no encontrado o inactivo'}), 400
-        
-        # Validar stock suficiente
-        stock_actual = float(producto.stock_actual)
-        if stock_actual < cantidad:
-            return jsonify({
-                'success': False, 
-                'error': f'Stock insuficiente. Disponible: {stock_actual} piezas'
-            }), 400
-        
-        # Insertar registro de merma
-        db.session.execute(
-            text("""
-                INSERT INTO mermas (
-                    tipo_objeto, id_referencia, cantidad, unidad, 
-                    causa, descripcion, registrado_por, fecha_merma, creado_en
-                ) VALUES (
-                    'producto_terminado', :id_producto, :cantidad, 'piezas',
-                    :causa, :descripcion, :registrado_por, NOW(), NOW()
-                )
-            """),
-            {
-                'id_producto': id_producto,
-                'cantidad': cantidad,
-                'causa': causa,
-                'descripcion': descripcion,
-                'registrado_por': current_user.id_usuario
-            }
-        )
-        
-        # Descontar del inventario de productos terminados
-        db.session.execute(
-            text("""
-                UPDATE inventario_pt 
-                SET stock_actual = stock_actual - :cantidad,
-                    ultima_actualizacion = NOW()
-                WHERE id_producto = :id_producto
-            """),
-            {'cantidad': cantidad, 'id_producto': id_producto}
-        )
-        
-        # Registrar en logs
-        db.session.execute(
-            text("""
-                INSERT INTO logs_sistema (tipo, nivel, id_usuario, modulo, accion, descripcion, creado_en)
-                VALUES ('ajuste_inv', 'WARNING', :usuario_id, 'mermas', 'registrar_merma_producto',
-                        :desc_log, NOW())
-            """),
-            {
-                'usuario_id': current_user.id_usuario,
-                'desc_log': f'Merma de producto registrada: {producto.nombre} - Cantidad: {cantidad} piezas - Causa: {causa}'
-            }
-        )
-        
-        db.session.commit()
-        
+        with role_connection() as conn:
+            # Obtener datos del producto
+            producto = conn.execute(
+                text("""
+                    SELECT p.nombre, COALESCE(i.stock_actual, 0) AS stock_actual
+                    FROM productos p
+                    LEFT JOIN inventario_pt i ON i.id_producto = p.id_producto
+                    WHERE p.id_producto = :id_producto AND p.estatus = 'activo'
+                """),
+                {'id_producto': id_producto}
+            ).fetchone()
+
+            if not producto:
+                return jsonify({'success': False, 'error': 'Producto no encontrado o inactivo'}), 400
+
+            # Validar stock suficiente
+            stock_actual = float(producto.stock_actual)
+            if stock_actual < cantidad:
+                return jsonify({
+                    'success': False,
+                    'error': f'Stock insuficiente. Disponible: {stock_actual} piezas'
+                }), 400
+
+            # Insertar registro de merma
+            conn.execute(
+                text("""
+                    INSERT INTO mermas (
+                        tipo_objeto, id_referencia, cantidad, unidad,
+                        causa, descripcion, registrado_por, fecha_merma, creado_en
+                    ) VALUES (
+                        'producto_terminado', :id_producto, :cantidad, 'piezas',
+                        :causa, :descripcion, :registrado_por, NOW(), NOW()
+                    )
+                """),
+                {
+                    'id_producto': id_producto,
+                    'cantidad': cantidad,
+                    'causa': causa,
+                    'descripcion': descripcion,
+                    'registrado_por': current_user.id_usuario
+                }
+            )
+
+            # Descontar del inventario de productos terminados
+            conn.execute(
+                text("""
+                    UPDATE inventario_pt
+                    SET stock_actual = stock_actual - :cantidad,
+                        ultima_actualizacion = NOW()
+                    WHERE id_producto = :id_producto
+                """),
+                {'cantidad': cantidad, 'id_producto': id_producto}
+            )
+
+            # Registrar en logs
+            conn.execute(
+                text("""
+                    INSERT INTO logs_sistema (tipo, nivel, id_usuario, modulo, accion, descripcion, creado_en)
+                    VALUES ('ajuste_inv', 'WARNING', :usuario_id, 'mermas', 'registrar_merma_producto',
+                            :desc_log, NOW())
+                """),
+                {
+                    'usuario_id': current_user.id_usuario,
+                    'desc_log': f'Merma de producto registrada: {producto.nombre} - Cantidad: {cantidad} piezas - Causa: {causa}'
+                }
+            )
+
+            conn.commit()
+
         app.logger.info(f'Merma de producto registrada | usuario: {current_user.username} | producto: {id_producto} | cantidad: {cantidad}')
-        
+
         return jsonify({
             'success': True,
             'message': 'Merma de producto registrada exitosamente'
         })
-        
+
     except Exception as e:
-        db.session.rollback()
         app.logger.error(f"Error en api_registrar_merma_producto: {str(e)}")
         import traceback
         traceback.print_exc()
@@ -1051,6 +1054,7 @@ def api_registrar_merma_producto():
 
 @app.route("/api/mermas/listar-productos", methods=['GET'])
 @login_required
+@roles_required('admin', 'empleado', 'panadero')
 def api_listar_mermas_productos():
     """Listar mermas de productos terminados"""
     fecha_inicio = request.args.get('fecha_inicio')
@@ -1094,47 +1098,46 @@ def api_listar_mermas_productos():
         params['limit'] = limit
         params['offset'] = offset
         
-        result = db.session.execute(text(query), params)
-        
-        mermas = []
-        for row in result:
-            mermas.append({
-                'id_merma': row.id_merma,
-                'producto_nombre': row.producto_nombre,
-                'cantidad': float(row.cantidad) if row.cantidad else 0,
-                'unidad': row.unidad,
-                'causa': row.causa,
-                'descripcion': row.descripcion or '',
-                'fecha_merma': row.fecha_merma.strftime('%Y-%m-%d %H:%M:%S') if row.fecha_merma else None,
-                'registrado_por_nombre': row.registrado_por_nombre
-            })
-        
-        # Consulta para el total
-        count_query = """
-            SELECT COUNT(*) as total
-            FROM mermas m
-            JOIN productos p ON p.id_producto = m.id_referencia
-            WHERE m.tipo_objeto = 'producto_terminado'
-        """
-        count_params = {}
-        
-        if fecha_inicio and fecha_inicio != '':
-            count_query += " AND DATE(m.fecha_merma) >= :fecha_inicio"
-            count_params['fecha_inicio'] = fecha_inicio
-        
-        if fecha_fin and fecha_fin != '':
-            count_query += " AND DATE(m.fecha_merma) <= :fecha_fin"
-            count_params['fecha_fin'] = fecha_fin
-        
-        if causa and causa != '':
-            count_query += " AND m.causa = :causa"
-            count_params['causa'] = causa
-        
-        total_result = db.session.execute(text(count_query), count_params)
-        total_filas = total_result.fetchone().total
-        
-        db.session.commit()
-        
+        with role_connection() as conn:
+            result = conn.execute(text(query), params)
+
+            mermas = []
+            for row in result:
+                mermas.append({
+                    'id_merma': row.id_merma,
+                    'producto_nombre': row.producto_nombre,
+                    'cantidad': float(row.cantidad) if row.cantidad else 0,
+                    'unidad': row.unidad,
+                    'causa': row.causa,
+                    'descripcion': row.descripcion or '',
+                    'fecha_merma': row.fecha_merma.strftime('%Y-%m-%d %H:%M:%S') if row.fecha_merma else None,
+                    'registrado_por_nombre': row.registrado_por_nombre
+                })
+
+            # Consulta para el total
+            count_query = """
+                SELECT COUNT(*) as total
+                FROM mermas m
+                JOIN productos p ON p.id_producto = m.id_referencia
+                WHERE m.tipo_objeto = 'producto_terminado'
+            """
+            count_params = {}
+
+            if fecha_inicio and fecha_inicio != '':
+                count_query += " AND DATE(m.fecha_merma) >= :fecha_inicio"
+                count_params['fecha_inicio'] = fecha_inicio
+
+            if fecha_fin and fecha_fin != '':
+                count_query += " AND DATE(m.fecha_merma) <= :fecha_fin"
+                count_params['fecha_fin'] = fecha_fin
+
+            if causa and causa != '':
+                count_query += " AND m.causa = :causa"
+                count_params['causa'] = causa
+
+            total_result = conn.execute(text(count_query), count_params)
+            total_filas = total_result.fetchone().total
+
         return jsonify({
             'success': True,
             'mermas': mermas,
@@ -1143,7 +1146,6 @@ def api_listar_mermas_productos():
             'limit': limit
         })
     except Exception as e:
-        db.session.rollback()
         print(f"Error en api_listar_mermas_productos: {str(e)}")
         return jsonify({
             'success': False,

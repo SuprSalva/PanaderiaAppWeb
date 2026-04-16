@@ -419,21 +419,5 @@ GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_pd_iniciar      TO rol_panadero;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_pd_finalizar    TO rol_panadero;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_pd_lista        TO rol_panadero;
 
--- rol_cliente: sin acceso a producción
-
-CREATE USER 'dm_admin'@'localhost'    IDENTIFIED BY 'DmAdmin_2026#Seg!';
-CREATE USER 'dm_vendedor'@'localhost' IDENTIFIED BY 'DmVendedor_2026#';
-CREATE USER 'dm_panadero'@'localhost' IDENTIFIED BY 'DmPanadero_2026#';
-CREATE USER 'dm_cliente'@'localhost'  IDENTIFIED BY 'DmCliente_2026#';
-
-GRANT rol_admin    TO 'dm_admin'@'localhost';
-GRANT rol_vendedor TO 'dm_vendedor'@'localhost';
-GRANT rol_panadero TO 'dm_panadero'@'localhost';
-GRANT rol_cliente  TO 'dm_cliente'@'localhost';
-
-SET DEFAULT ROLE rol_admin    TO 'dm_admin'@'localhost';
-SET DEFAULT ROLE rol_vendedor TO 'dm_vendedor'@'localhost';
-SET DEFAULT ROLE rol_panadero TO 'dm_panadero'@'localhost';
-SET DEFAULT ROLE rol_cliente  TO 'dm_cliente'@'localhost';
 
 FLUSH PRIVILEGES;

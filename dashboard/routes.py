@@ -7,6 +7,7 @@ from flask_login import login_required, current_user
 
 from auth import roles_required
 from models import db
+from utils.db_roles import get_role_engine
 from . import dashboard_bp
 from forms import PeriodoForm
 
@@ -14,7 +15,7 @@ from forms import PeriodoForm
 # ── Helpers BD ─────────────────────────────────────────────────
 
 def _call_sp(sp_name, params=()):
-    conn = db.engine.raw_connection()
+    conn = get_role_engine().raw_connection()
     try:
         cursor = conn.cursor()
         cursor.callproc(sp_name, params)
@@ -30,7 +31,7 @@ def _call_sp(sp_name, params=()):
 
 
 def _call_sp_multi(sp_name, params=()):
-    conn = db.engine.raw_connection()
+    conn = get_role_engine().raw_connection()
     try:
         cursor = conn.cursor()
         cursor.callproc(sp_name, params)

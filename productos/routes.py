@@ -16,6 +16,7 @@ from sqlalchemy.exc import OperationalError, IntegrityError
 from auth import roles_required
 from models import db, Producto
 from forms import ProductoForm
+from utils.db_roles import role_connection
 from . import productos_bp
 
 _CARPETA_IMG = os.path.join('uploads', 'productos')
@@ -84,15 +85,16 @@ def index_productos():
     lista = Producto.query.order_by(Producto.nombre).all()
 
     # ── Estadísticas desde la vista ───────────────────────────────────
-    stats = db.session.execute(
-        text("""
-            SELECT
-                COUNT(*)                    AS total,
-                SUM(estatus = 'activo')     AS total_activos,
-                SUM(estatus = 'inactivo')   AS total_inactivos
-            FROM vw_productos
-        """)
-    ).fetchone()
+    with role_connection() as conn:
+        stats = conn.execute(
+            text("""
+                SELECT
+                    COUNT(*)                    AS total,
+                    SUM(estatus = 'activo')     AS total_activos,
+                    SUM(estatus = 'inactivo')   AS total_inactivos
+                FROM vw_productos
+            """)
+        ).fetchone()
 
     form_nueva = ProductoForm()
 
@@ -131,19 +133,20 @@ def productos_nuevo():
         flash('Error al procesar la imagen. El producto se creará sin imagen.', 'warning')
 
     try:
-        db.session.execute(
-            text("CALL sp_crear_producto("
-                 ":uuid, :nombre, :descripcion, :precio_venta, :imagen_url, :creado_por)"),
-            {
-                'uuid':         str(_uuid.uuid4()),
-                'nombre':       form.nombre.data.strip(),
-                'descripcion':  (form.descripcion.data or '').strip() or None,
-                'precio_venta': float(form.precio_venta.data),
-                'imagen_url':   imagen_url,
-                'creado_por':   _usuario_actual(),
-            }
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_crear_producto("
+                     ":uuid, :nombre, :descripcion, :precio_venta, :imagen_url, :creado_por)"),
+                {
+                    'uuid':         str(_uuid.uuid4()),
+                    'nombre':       form.nombre.data.strip(),
+                    'descripcion':  (form.descripcion.data or '').strip() or None,
+                    'precio_venta': float(form.precio_venta.data),
+                    'imagen_url':   imagen_url,
+                    'creado_por':   _usuario_actual(),
+                }
+            )
+            conn.commit()
         nombre = form.nombre.data.strip()
         current_app.logger.info(
             'Producto creado | usuario: %s | producto: %s | fecha: %s',
@@ -153,7 +156,6 @@ def productos_nuevo():
         flash(f'Producto "{nombre}" creado correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         _eliminar_imagen_fisica(imagen_url)
         current_app.logger.warning(
             'Creacion de producto fallida (db) | usuario: %s | error: %s | fecha: %s',
@@ -162,7 +164,6 @@ def productos_nuevo():
         flash(_msg_error_sp(e), 'error')
         return redirect(url_for('productos_bp.index_productos', modal='nuevo'))
     except Exception as exc:
-        db.session.rollback()
         _eliminar_imagen_fisica(imagen_url)
         current_app.logger.error('Error al crear producto | %s', exc)
         flash('Error al guardar el producto. Intenta de nuevo.', 'error')
@@ -196,26 +197,23 @@ def productos_editar(id_producto):
             flash('Error al procesar la imagen. Se mantiene la imagen anterior.', 'warning')
 
     try:
-        # SP actualiza nombre, descripción y precio
-        db.session.execute(
-            text("CALL sp_editar_producto(:id, :nombre, :descripcion, :precio_venta, :ejecutado_por)"),
-            {
-                'id':            id_producto,
-                'nombre':        form.nombre.data.strip(),
-                'descripcion':   (form.descripcion.data or '').strip() or None,
-                'precio_venta':  float(form.precio_venta.data),
-                'ejecutado_por': _usuario_actual(),
-            }
-        )
-
-        # SP de imagen solo si se subió una nueva
-        if nueva_imagen:
-            db.session.execute(
-                text("CALL sp_actualizar_imagen_producto(:id, :url)"),
-                {'id': id_producto, 'url': nueva_imagen}
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_editar_producto(:id, :nombre, :descripcion, :precio_venta, :ejecutado_por)"),
+                {
+                    'id':            id_producto,
+                    'nombre':        form.nombre.data.strip(),
+                    'descripcion':   (form.descripcion.data or '').strip() or None,
+                    'precio_venta':  float(form.precio_venta.data),
+                    'ejecutado_por': _usuario_actual(),
+                }
             )
-
-        db.session.commit()
+            if nueva_imagen:
+                conn.execute(
+                    text("CALL sp_actualizar_imagen_producto(:id, :url)"),
+                    {'id': id_producto, 'url': nueva_imagen}
+                )
+            conn.commit()
 
         if nueva_imagen and imagen_vieja:
             _eliminar_imagen_fisica(imagen_vieja)
@@ -228,7 +226,6 @@ def productos_editar(id_producto):
         flash(f'Producto "{form.nombre.data.strip()}" actualizado.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         _eliminar_imagen_fisica(nueva_imagen)
         current_app.logger.warning(
             'Edicion de producto fallida (db) | usuario: %s | id: %d | error: %s | fecha: %s',
@@ -237,7 +234,6 @@ def productos_editar(id_producto):
         )
         flash(_msg_error_sp(e), 'error')
     except Exception as exc:
-        db.session.rollback()
         _eliminar_imagen_fisica(nueva_imagen)
         current_app.logger.error('Error al editar producto | %s', exc)
         flash('Error al actualizar el producto.', 'error')
@@ -268,11 +264,12 @@ def imagen_subir(id_producto):
         nueva_url    = _guardar_imagen(archivo)
         imagen_vieja = producto.imagen_url
 
-        db.session.execute(
-            text("CALL sp_actualizar_imagen_producto(:id, :url)"),
-            {'id': id_producto, 'url': nueva_url}
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_actualizar_imagen_producto(:id, :url)"),
+                {'id': id_producto, 'url': nueva_url}
+            )
+            conn.commit()
         _eliminar_imagen_fisica(imagen_vieja)
 
         current_app.logger.info(
@@ -283,7 +280,6 @@ def imagen_subir(id_producto):
         return jsonify({'ok': True, 'msg': 'Imagen actualizada.',
                         'url': url_for('static', filename=nueva_url)})
     except Exception as exc:
-        db.session.rollback()
         current_app.logger.error('Error al subir imagen | %s', exc)
         return jsonify({'ok': False, 'msg': 'Error interno al procesar la imagen.'}), 500
 
@@ -298,11 +294,12 @@ def imagen_quitar(id_producto):
         return jsonify({'ok': False, 'msg': 'Este producto no tiene imagen.'}), 400
 
     try:
-        db.session.execute(
-            text("CALL sp_actualizar_imagen_producto(:id, :url)"),
-            {'id': id_producto, 'url': None}
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_actualizar_imagen_producto(:id, :url)"),
+                {'id': id_producto, 'url': None}
+            )
+            conn.commit()
         _eliminar_imagen_fisica(imagen_actual)
 
         current_app.logger.info(
@@ -312,7 +309,6 @@ def imagen_quitar(id_producto):
         )
         return jsonify({'ok': True, 'msg': 'Imagen eliminada.'})
     except Exception as exc:
-        db.session.rollback()
         current_app.logger.error('Error al quitar imagen | %s', exc)
         return jsonify({'ok': False, 'msg': 'Error interno al eliminar la imagen.'}), 500
 
@@ -322,15 +318,16 @@ def imagen_quitar(id_producto):
 @roles_required('admin', 'empleado')
 def productos_toggle(id_producto):
     try:
-        result = db.session.execute(
-            text("CALL sp_toggle_producto(:id, :ejecutado_por)"),
-            {
-                'id':            id_producto,
-                'ejecutado_por': _usuario_actual(),
-            }
-        )
-        row    = result.fetchone()
-        db.session.commit()
+        with role_connection() as conn:
+            result = conn.execute(
+                text("CALL sp_toggle_producto(:id, :ejecutado_por)"),
+                {
+                    'id':            id_producto,
+                    'ejecutado_por': _usuario_actual(),
+                }
+            )
+            row = result.fetchone()
+            conn.commit()
 
         nuevo_estatus = row.nuevo_estatus if row else 'actualizado'
         nombre_p      = row.nombre        if row else ''
@@ -342,7 +339,6 @@ def productos_toggle(id_producto):
         flash(f'Producto "{nombre_p}" marcado como {nuevo_estatus}.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error db al cambiar estatus de producto | usuario: %s | id: %d | error: %s | fecha: %s',
             current_user.username, id_producto, str(e),
@@ -350,7 +346,6 @@ def productos_toggle(id_producto):
         )
         flash(_msg_error_sp(e), 'error')
     except Exception as exc:
-        db.session.rollback()
         current_app.logger.error('Error al cambiar estatus | %s', exc)
         flash('Error al cambiar el estatus.', 'error')
 

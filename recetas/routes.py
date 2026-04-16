@@ -8,6 +8,7 @@ from sqlalchemy.exc import OperationalError, IntegrityError
 
 from models import db, Receta, MateriaPrima, Producto, UnidadPresentacion
 from forms import RecetaForm
+from utils.db_roles import role_connection
 from . import recetas_bp
 
 
@@ -76,15 +77,16 @@ def _form_con_productos(form_data=None):
     return form, productos
 
 
-def _cargar_tmp_insumos(insumos):
+def _cargar_tmp_insumos(insumos, conn):
     """
-    Crea la tabla temporal tmp_insumos_receta en la sesión actual
+    Crea la tabla temporal tmp_insumos_receta en la conexión dada
     e inserta los insumos. El SP la lee y la elimina al finalizar.
+    IMPORTANTE: conn debe ser la misma conexión que se usará para el CALL sp_*.
     """
-    db.session.execute(text(
+    conn.execute(text(
         "DROP TEMPORARY TABLE IF EXISTS tmp_insumos_receta"
     ))
-    db.session.execute(text("""
+    conn.execute(text("""
         CREATE TEMPORARY TABLE tmp_insumos_receta (
             id_materia             INT            NOT NULL,
             id_unidad_presentacion INT            DEFAULT NULL,
@@ -94,7 +96,7 @@ def _cargar_tmp_insumos(insumos):
         )
     """))
     for orden, ins in enumerate(insumos, start=1):
-        db.session.execute(text("""
+        conn.execute(text("""
             INSERT INTO tmp_insumos_receta
                 (id_materia, id_unidad_presentacion,
                  cantidad_presentacion, cantidad_requerida, orden)
@@ -132,7 +134,7 @@ def recetas_unidades(id_materia):
 # ── API: crear nueva unidad de presentación (uso receta) ─────────────
 @recetas_bp.route('/recetas/api/unidades/nueva', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def recetas_nueva_unidad():
     data       = request.get_json()
     id_materia = data.get('id_materia')
@@ -153,15 +155,15 @@ def recetas_nueva_unidad():
         uso = 'receta'
 
     try:
-        db.session.execute(
-            text("CALL sp_crear_unidad_compra(:mat, :nom, :sim, :fac, :uso, @id_out)"),
-            {'mat': int(id_materia), 'nom': nombre, 'sim': simbolo,
-             'fac': factor, 'uso': uso}
-        )
-        db.session.execute(text("COMMIT"))
-        id_unidad = db.session.execute(text("SELECT @id_out")).scalar()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_crear_unidad_compra(:mat, :nom, :sim, :fac, :uso, @id_out)"),
+                {'mat': int(id_materia), 'nom': nombre, 'sim': simbolo,
+                 'fac': factor, 'uso': uso}
+            )
+            conn.execute(text("COMMIT"))
+            id_unidad = conn.execute(text("SELECT @id_out")).scalar()
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg  = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2
                 else str(e))
@@ -190,15 +192,16 @@ def index_recetas():
 
     lista = Receta.query.order_by(Receta.nombre).all()
 
-    stats = db.session.execute(
-        text("""
-            SELECT
-                COUNT(*)                  AS total_recetas,
-                SUM(estatus = 'activo')   AS total_activas,
-                SUM(estatus = 'inactivo') AS total_inactivas
-            FROM vw_recetas
-        """)
-    ).fetchone()
+    with role_connection() as conn:
+        stats = conn.execute(
+            text("""
+                SELECT
+                    COUNT(*)                  AS total_recetas,
+                    SUM(estatus = 'activo')   AS total_activas,
+                    SUM(estatus = 'inactivo') AS total_inactivas
+                FROM vw_recetas
+            """)
+        ).fetchone()
 
     materias       = (MateriaPrima.query
                       .filter_by(estatus='activo')
@@ -225,7 +228,7 @@ def index_recetas():
 
 @recetas_bp.route('/recetas/nueva', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def recetas_nueva():
     form, _ = _form_con_productos(request.form)
     insumos = _recopilar_insumos()
@@ -240,27 +243,28 @@ def recetas_nueva():
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
 
     try:
-        _cargar_tmp_insumos(insumos)
+        with role_connection() as conn:
+            _cargar_tmp_insumos(insumos, conn)
 
-        db.session.execute(
-            text("CALL sp_crear_receta("
-                 ":uuid, :id_producto, :nombre, :descripcion, "
-                 ":rendimiento, :unidad_rendimiento, :precio_venta, "
-                 ":creado_por, @id_receta)"),
-            {
-                'uuid':               str(_uuid.uuid4()),
-                'id_producto':        form.id_producto.data or None,
-                'nombre':             form.nombre.data.strip(),
-                'descripcion':        (form.descripcion.data or '').strip() or None,
-                'rendimiento':        float(form.rendimiento.data),
-                'unidad_rendimiento': form.unidad_rendimiento.data,
-                'precio_venta':       float(form.precio_venta.data) if form.precio_venta.data else None,
-                'creado_por':         _usuario_actual(),
-            }
-        )
+            conn.execute(
+                text("CALL sp_crear_receta("
+                     ":uuid, :id_producto, :nombre, :descripcion, "
+                     ":rendimiento, :unidad_rendimiento, :precio_venta, "
+                     ":creado_por, @id_receta)"),
+                {
+                    'uuid':               str(_uuid.uuid4()),
+                    'id_producto':        form.id_producto.data or None,
+                    'nombre':             form.nombre.data.strip(),
+                    'descripcion':        (form.descripcion.data or '').strip() or None,
+                    'rendimiento':        float(form.rendimiento.data),
+                    'unidad_rendimiento': form.unidad_rendimiento.data,
+                    'precio_venta':       float(form.precio_venta.data) if form.precio_venta.data else None,
+                    'creado_por':         _usuario_actual(),
+                }
+            )
 
-        id_receta = db.session.execute(text("SELECT @id_receta")).scalar()
-        db.session.commit()
+            id_receta = conn.execute(text("SELECT @id_receta")).scalar()
+            conn.commit()
 
         nombre = form.nombre.data.strip()
         current_app.logger.info(
@@ -271,7 +275,6 @@ def recetas_nueva():
         flash(f'Receta "{nombre}" creada correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error db al crear receta | usuario: %s | error: %s | fecha: %s',
             current_user.username, str(e),
@@ -280,7 +283,6 @@ def recetas_nueva():
         flash(_msg_error_sp(e), 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='nueva'))
     except Exception as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error general al crear receta | usuario: %s | error: %s | fecha: %s',
             current_user.username, str(e),
@@ -294,7 +296,7 @@ def recetas_nueva():
 
 @recetas_bp.route('/recetas/editar/<int:id_receta>', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def recetas_editar(id_receta):
     form, _ = _form_con_productos(request.form)
     insumos = _recopilar_insumos()
@@ -309,24 +311,25 @@ def recetas_editar(id_receta):
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
 
     try:
-        _cargar_tmp_insumos(insumos)
+        with role_connection() as conn:
+            _cargar_tmp_insumos(insumos, conn)
 
-        db.session.execute(
-            text("CALL sp_editar_receta("
-                 ":id_receta, :id_producto, :nombre, :descripcion, "
-                 ":rendimiento, :unidad_rendimiento, :precio_venta, :ejecutado_por)"),
-            {
-                'id_receta':          id_receta,
-                'id_producto':        form.id_producto.data or None,
-                'nombre':             form.nombre.data.strip(),
-                'descripcion':        (form.descripcion.data or '').strip() or None,
-                'rendimiento':        float(form.rendimiento.data),
-                'unidad_rendimiento': form.unidad_rendimiento.data,
-                'precio_venta':       float(form.precio_venta.data) if form.precio_venta.data else None,
-                'ejecutado_por':      _usuario_actual(),
-            }
-        )
-        db.session.commit()
+            conn.execute(
+                text("CALL sp_editar_receta("
+                     ":id_receta, :id_producto, :nombre, :descripcion, "
+                     ":rendimiento, :unidad_rendimiento, :precio_venta, :ejecutado_por)"),
+                {
+                    'id_receta':          id_receta,
+                    'id_producto':        form.id_producto.data or None,
+                    'nombre':             form.nombre.data.strip(),
+                    'descripcion':        (form.descripcion.data or '').strip() or None,
+                    'rendimiento':        float(form.rendimiento.data),
+                    'unidad_rendimiento': form.unidad_rendimiento.data,
+                    'precio_venta':       float(form.precio_venta.data) if form.precio_venta.data else None,
+                    'ejecutado_por':      _usuario_actual(),
+                }
+            )
+            conn.commit()
 
         nombre = form.nombre.data.strip()
         current_app.logger.info(
@@ -337,7 +340,6 @@ def recetas_editar(id_receta):
         flash(f'Receta "{nombre}" actualizada correctamente.', 'success')
 
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error db al editar receta | usuario: %s | id: %s | error: %s | fecha: %s',
             current_user.username, id_receta, str(e),
@@ -346,7 +348,6 @@ def recetas_editar(id_receta):
         flash(_msg_error_sp(e), 'error')
         return redirect(url_for('recetas_bp.index_recetas', modal='editar', id=id_receta))
     except Exception as e:
-        db.session.rollback()
         current_app.logger.error(
             'Error general al editar receta | usuario: %s | id: %s | error: %s | fecha: %s',
             current_user.username, id_receta, str(e),
@@ -360,7 +361,7 @@ def recetas_editar(id_receta):
 
 @recetas_bp.route('/recetas/confirmar-toggle/<int:id_receta>', methods=['GET'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def recetas_confirmar_toggle(id_receta):
     receta = Receta.query.get_or_404(id_receta)
     return render_template('recetas/recetas_confirmar_toggle.html', receta=receta)
@@ -368,23 +369,22 @@ def recetas_confirmar_toggle(id_receta):
 
 @recetas_bp.route('/recetas/toggle/<int:id_receta>', methods=['POST'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin', 'empleado')
 def recetas_toggle(id_receta):
     try:
-        result = db.session.execute(
-            text("CALL sp_toggle_receta(:id_receta, :ejecutado_por)"),
-            {'id_receta': id_receta, 'ejecutado_por': _usuario_actual()}
-        )
-        row = result.fetchone()
-        db.session.commit()
+        with role_connection() as conn:
+            result = conn.execute(
+                text("CALL sp_toggle_receta(:id_receta, :ejecutado_por)"),
+                {'id_receta': id_receta, 'ejecutado_por': _usuario_actual()}
+            )
+            row = result.fetchone()
+            conn.commit()
         nuevo_estatus = row.nuevo_estatus if row else 'actualizado'
         nombre_r      = row.nombre        if row else ''
         accion        = 'activada' if nuevo_estatus == 'activo' else 'desactivada'
         flash(f'Receta "{nombre_r}" {accion}.', 'success')
     except (OperationalError, IntegrityError) as e:
-        db.session.rollback()
         flash(_msg_error_sp(e), 'error')
     except Exception as e:
-        db.session.rollback()
         flash(f'Error al cambiar estatus: {str(e)}', 'error')
     return redirect(url_for('recetas_bp.index_recetas'))

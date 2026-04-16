@@ -2,6 +2,7 @@ from . import costoUtilidad
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, Response
 from flask_login import login_required
 from models import db
+from utils.db_roles import get_role_engine
 from functools import wraps
 from auth import roles_required
 import forms
@@ -10,7 +11,7 @@ import io
 
 
 def _call_sp(sp_name, params=()):
-    conn = db.engine.raw_connection()
+    conn = get_role_engine().raw_connection()
     try:
         cursor = conn.cursor()
         cursor.callproc(sp_name, params)
@@ -29,7 +30,7 @@ def _call_sp_one(sp_name, params=()):
 
 def _call_sp_multi(sp_name, params=()):
     """Llama un SP y retorna todos los result-sets como lista de listas."""
-    conn = db.engine.raw_connection()
+    conn = get_role_engine().raw_connection()
     try:
         cursor = conn.cursor()
         cursor.callproc(sp_name, params)

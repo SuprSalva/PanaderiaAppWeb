@@ -303,5 +303,13 @@ FROM usuarios u
 LEFT JOIN roles r ON u.id_rol = r.id_rol;
 
 
+DROP PROCEDURE IF EXISTS sp_badge_notifs;
 
-
+DELIMITER ;;
+CREATE PROCEDURE `sp_badge_notifs`(IN p_usuario INT)
+BEGIN
+    SELECT COUNT(*) AS count
+    FROM   notificaciones_pedidos
+    WHERE  id_usuario = p_usuario AND leida = 0;
+END ;;
+DELIMITER ;

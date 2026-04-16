@@ -8,6 +8,7 @@ from sqlalchemy import text
 from models import db, Proveedor
 from auth import roles_required
 from forms import SalidaEfectivoForm
+from utils.db_roles import role_connection
 from . import efectivo
 
 
@@ -22,9 +23,10 @@ def _salida_form():
 
 
 def _gen_folio():
-    total = db.session.execute(
-        text("SELECT COUNT(*) FROM salidas_efectivo")
-    ).scalar() + 1
+    with role_connection() as conn:
+        total = conn.execute(
+            text("SELECT COUNT(*) FROM salidas_efectivo")
+        ).scalar() + 1
     return f"SE-{total:04d}"
 
 
@@ -33,9 +35,10 @@ def _gen_folio():
 @roles_required('admin', 'empleado')
 def index_salida_efectivo():
     current_app.logger.info('Vista de panel de salidas de efectivo accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    lista = db.session.execute(
-        text("SELECT * FROM vw_salidas_efectivo ORDER BY creado_en DESC")
-    ).mappings().all()
+    with role_connection() as conn:
+        lista = conn.execute(
+            text("SELECT * FROM vw_salidas_efectivo ORDER BY creado_en DESC")
+        ).mappings().all()
 
     proveedores = Proveedor.query.filter_by(estatus='activo').order_by(Proveedor.nombre).all()
     form = _salida_form()
@@ -95,23 +98,23 @@ def crear_salida():
     id_proveedor = form.id_proveedor.data or None
     folio = _gen_folio()
     try:
-        db.session.execute(
-            text("CALL sp_registrar_salida_manual(:folio,:prov,:cat,:desc,:monto,:fecha,:usr)"),
-            {
-                'folio': folio,
-                'prov':  int(id_proveedor) if id_proveedor else None,
-                'cat':   form.categoria.data,
-                'desc':  form.descripcion.data.strip(),
-                'monto': float(form.monto.data),
-                'fecha': form.fecha_salida.data,
-                'usr':   current_user.id_usuario,
-            }
-        )
-        db.session.execute(text("COMMIT"))
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_registrar_salida_manual(:folio,:prov,:cat,:desc,:monto,:fecha,:usr)"),
+                {
+                    'folio': folio,
+                    'prov':  int(id_proveedor) if id_proveedor else None,
+                    'cat':   form.categoria.data,
+                    'desc':  form.descripcion.data.strip(),
+                    'monto': float(form.monto.data),
+                    'fecha': form.fecha_salida.data,
+                    'usr':   current_user.id_usuario,
+                }
+            )
+            conn.commit()
         current_app.logger.info('Salida de efectivo registrada exitosamente | usuario: %s | folio: %s | fecha: %s', current_user.username, folio, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Salida {folio} registrada correctamente.', 'success')
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
         current_app.logger.error('Error al registrar salida de efectivo | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -131,16 +134,16 @@ def aprobar_salida(id_salida):
         return redirect(url_for('efectivo.index_salida_efectivo'))
 
     try:
-        db.session.execute(
-            text("CALL sp_aprobar_salida(:id, :dec, :usr)"),
-            {'id': id_salida, 'dec': decision, 'usr': current_user.id_usuario}
-        )
-        db.session.execute(text("COMMIT"))
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_aprobar_salida(:id, :dec, :usr)"),
+                {'id': id_salida, 'dec': decision, 'usr': current_user.id_usuario}
+            )
+            conn.commit()
         accion = 'aprobada' if decision == 'aprobada' else 'rechazada'
         current_app.logger.info('Resolucion de salida de efectivo aplicada | admin: %s | decision: %s | id_salida: %s | fecha: %s', current_user.username, decision, id_salida, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Salida {accion} correctamente.', 'success')
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg = orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e)
         current_app.logger.error('Error al resolver salida de efectivo | admin: %s | id_salida: %s | error: %s | fecha: %s', current_user.username, id_salida, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))

@@ -16,7 +16,7 @@ _PWD_RE = re.compile(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$')
 
 from models import db, Usuario, Rol
 from auth import roles_required
-from utils.db_roles import call_sp
+from utils.db_roles import call_sp, role_connection
 from forms import CrearUsuarioForm, EditarUsuarioForm
 from . import registrar_usuario_bp
 
@@ -141,19 +141,20 @@ def crear_usuario():
     session.pop('_pending_usuario', None)
 
     try:
-        db.session.execute(
-            text("CALL sp_crear_usuario(:uuid, :nombre, :username, :pwd_hash, :id_rol, :estatus, :creado_por)"),
-            {
-                'uuid':       str(uuid.uuid4()),
-                'nombre':     nombre,
-                'username':   username,
-                'pwd_hash':   pwd_hash,
-                'id_rol':     id_rol,
-                'estatus':    estatus,
-                'creado_por': current_user.id_usuario,
-            }
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_crear_usuario(:uuid, :nombre, :username, :pwd_hash, :id_rol, :estatus, :creado_por)"),
+                {
+                    'uuid':       str(uuid.uuid4()),
+                    'nombre':     nombre,
+                    'username':   username,
+                    'pwd_hash':   pwd_hash,
+                    'id_rol':     id_rol,
+                    'estatus':    estatus,
+                    'creado_por': current_user.id_usuario,
+                }
+            )
+            conn.commit()
         current_app.logger.info(
             'Usuario creado exitosamente | creador: %s | nuevo_usuario: %s | id_rol: %s | fecha: %s',
             current_user.username, username, id_rol, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -161,7 +162,6 @@ def crear_usuario():
         flash(f'Usuario "{nombre}" creado exitosamente.', 'success')
         return jsonify({'ok': True})
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg  = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         if 'ya esta en uso' in msg or 'ya está en uso' in msg:
@@ -290,18 +290,19 @@ def editar_usuario(id_usuario):
         pwd_hash = generate_password_hash(password) if password else None
 
     try:
-        db.session.execute(
-            text("CALL sp_editar_usuario(:id, :nombre, :username, :id_rol, :estatus, :pwd_hash)"),
-            {
-                'id':       id_usuario,
-                'nombre':   nombre,
-                'username': username,
-                'id_rol':   id_rol,
-                'estatus':  estatus,
-                'pwd_hash': pwd_hash,
-            }
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_editar_usuario(:id, :nombre, :username, :id_rol, :estatus, :pwd_hash)"),
+                {
+                    'id':       id_usuario,
+                    'nombre':   nombre,
+                    'username': username,
+                    'id_rol':   id_rol,
+                    'estatus':  estatus,
+                    'pwd_hash': pwd_hash,
+                }
+            )
+            conn.commit()
         current_app.logger.info(
             'Usuario actualizado | editor: %s | id: %s | username: %s | fecha: %s',
             current_user.username, id_usuario, username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -309,7 +310,6 @@ def editar_usuario(id_usuario):
         flash(f'Usuario "{nombre}" actualizado correctamente.', 'success')
         return jsonify({'ok': True})
     except Exception as e:
-        db.session.rollback()
         orig = getattr(e, 'orig', None)
         msg  = (orig.args[1] if orig and hasattr(orig, 'args') and len(orig.args) >= 2 else str(e))
         if 'ya esta en uso' in msg or 'ya está en uso' in msg:
@@ -342,20 +342,20 @@ def cambiar_estatus_usuario(id_usuario):
         return redirect(url_for('registrar_usuario.usuarios'))
 
     try:
-        db.session.execute(
-            text("CALL sp_cambiar_estatus_usuario(:id, :estatus, :ejecutado_por)"),
-            {
-                'id':            id_usuario,
-                'estatus':       nuevo_estatus,
-                'ejecutado_por': current_user.id_usuario,
-            }
-        )
-        db.session.commit()
+        with role_connection() as conn:
+            conn.execute(
+                text("CALL sp_cambiar_estatus_usuario(:id, :estatus, :ejecutado_por)"),
+                {
+                    'id':            id_usuario,
+                    'estatus':       nuevo_estatus,
+                    'ejecutado_por': current_user.id_usuario,
+                }
+            )
+            conn.commit()
         accion = 'activado' if nuevo_estatus == 'activo' else 'desactivado'
         current_app.logger.info('Estatus de usuario cambiado | ejecutor: %s | id_afectado: %s | nuevo_estatus: %s | fecha: %s', current_user.username, id_usuario, nuevo_estatus, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Usuario {accion} correctamente.', 'success')
     except Exception as e:
-        db.session.rollback()
         msg = str(e.orig) if hasattr(e, 'orig') else str(e)
         if 'propia cuenta' in msg:
             current_app.logger.warning('Cambio de estatus fallido (propia cuenta) | usuario: %s | id_afectado: %s | fecha: %s', current_user.username, id_usuario, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
