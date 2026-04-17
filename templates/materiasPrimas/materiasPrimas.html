@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
 {% block container %}
 
+{% macro fmt_cantidad(val, unidad) %}{% set v = val | float %}{% if unidad == 'g' and v >= 1000 %}{% set cv = (v / 1000) | round(2) %}{% if cv == cv | int %}{{ cv | int }} kg{% else %}{{ cv }} kg{% endif %}{% elif unidad == 'ml' and v >= 1000 %}{% set cv = (v / 1000) | round(2) %}{% if cv == cv | int %}{{ cv | int }} L{% else %}{{ cv }} L{% endif %}{% elif unidad == 'l' %}{{ '{:,.3f}'.format(v) }} l{% else %}{{ '{:,.0f}'.format(v) }} {{ unidad }}{% endif %}{% endmacro %}
+
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/materiasPrimas.css') }}">
 {% endblock %}
@@ -12,10 +14,14 @@
         height="50" width="50"></animated-icons> Materias Primas</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Inventarios <span>›</span> Materias Primas</div>
   </div>
-  <a href="{{ url_for('materias_primas.index_materias_primas', modal='nueva') }}"
-    class="btn btn-primary"><animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop"
-      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-      height="30" width="30"></animated-icons> Nueva Materia Prima</a>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <a href="{{ url_for('materias_primas.materias_primas_exportar_excel', buscar=buscar, estatus=estatus_sel, nivel_stock=nivel_stock_sel|default('')) }}"
+      class="btn btn-outline btn-sm">Exportar Excel</a>
+    <a href="{{ url_for('materias_primas.index_materias_primas', modal='nueva') }}"
+      class="btn btn-primary"><animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons> Nueva Materia Prima</a>
+  </div>
 </div>
 
 <div class="mp-stats anim anim-1">
@@ -124,23 +130,13 @@
                 <div class="bar-fill {{ bar_class }}" style="width: {{ pct }}%;"></div>
               </div>
               <span class="stock-val">
-                {% if m.unidad_base == 'l' %}
-                {{ '{:,.3f}'.format(stock) }} l
-                {% else %}
-                {{ '{:,.0f}'.format(stock) }} {{ m.unidad_base }}
-                {% endif %}
+                {{ fmt_cantidad(stock, m.unidad_base) }}
                 {% if nivel == 'bajo' %}<span class="badge badge-low">Stock Bajo</span>
                 {% elif nivel == 'critico' %}<span class="badge badge-critical">Sin Stock</span>{% endif %}
               </span>
             </div>
           </td>
-          <td><span class="stock-val">
-              {% if m.unidad_base == 'l' %}
-              {{ '{:,.3f}'.format(minimo) }} l
-              {% else %}
-              {{ '{:,.0f}'.format(minimo) }} {{ m.unidad_base }}
-              {% endif %}
-            </span></td>
+          <td><span class="stock-val">{{ fmt_cantidad(minimo, m.unidad_base) }}</span></td>
           <td>{% if m.estatus == 'activo' %}<span class="badge badge-active">Activo</span>{% else %}<span
               class="badge badge-inactive">Inactivo</span>{% endif %}</td>
           <td class="actions-cell">

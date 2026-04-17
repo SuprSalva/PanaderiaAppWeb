@@ -1,10 +1,14 @@
 import uuid as _uuid
 import datetime
-from flask import render_template, request, redirect, url_for, flash, session, current_app
+import io
+from flask import render_template, request, redirect, url_for, flash, session, current_app, Response
 from flask_login import login_required, current_user
 from auth import roles_required
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError, IntegrityError
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 from models import db
 from utils.db_roles import role_connection
@@ -234,6 +238,105 @@ def materias_primas_editar(id_materia):
                                 modal='editar', id=id_materia))
 
     return redirect(url_for('materias_primas.index_materias_primas'))
+
+
+@materias_primas_bp.route('/materias-primas/exportar-excel')
+@login_required
+@roles_required('admin', 'empleado')
+def materias_primas_exportar_excel():
+    buscar      = request.args.get('buscar', '').strip()
+    estatus     = request.args.get('estatus', 'todos')
+    nivel_stock = request.args.get('nivel_stock', '')
+
+    where_parts = []
+    params = {}
+    if buscar:
+        where_parts.append("(nombre LIKE :buscar OR categoria LIKE :buscar)")
+        params['buscar'] = f'%{buscar}%'
+    if estatus in ('activo', 'inactivo'):
+        where_parts.append("estatus = :estatus")
+        params['estatus'] = estatus
+    if nivel_stock in ('normal', 'bajo', 'critico'):
+        where_parts.append("nivel_stock = :nivel_stock")
+        params['nivel_stock'] = nivel_stock
+
+    where_sql = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
+
+    with role_connection() as conn:
+        filas = conn.execute(
+            text(f"SELECT * FROM vw_materias_primas {where_sql} ORDER BY nombre"),
+            params
+        ).fetchall()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Materias Primas'
+
+    hdr_font  = Font(bold=True, color='FFFFFF', size=11)
+    hdr_fill  = PatternFill('solid', fgColor='6B4423')
+    hdr_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    center    = Alignment(horizontal='center', vertical='center')
+    thin      = Side(style='thin', color='D4B896')
+    border    = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    nivel_label = {'normal': 'Normal', 'bajo': 'Stock Bajo', 'critico': 'Sin Stock'}
+
+    headers    = ['#', 'Nombre', 'Categoría', 'Unidad Base',
+                  'Stock Actual', 'Stock Mínimo', 'Nivel Stock', 'Estatus']
+    col_widths = [5, 30, 20, 14, 14, 14, 14, 12]
+
+    for col, (h, w) in enumerate(zip(headers, col_widths), 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.font      = hdr_font
+        cell.fill      = hdr_fill
+        cell.alignment = hdr_align
+        cell.border    = border
+        ws.column_dimensions[get_column_letter(col)].width = w
+
+    ws.row_dimensions[1].height = 22
+
+    for i, m in enumerate(filas, 1):
+        stock  = float(m.stock_actual or 0)
+        minimo = float(m.stock_minimo or 0)
+        row_vals = [
+            i,
+            m.nombre,
+            m.categoria or 'Sin categoría',
+            m.unidad_base,
+            stock,
+            minimo,
+            nivel_label.get(m.nivel_stock, m.nivel_stock),
+            'Activo' if m.estatus == 'activo' else 'Inactivo',
+        ]
+        nivel = m.nivel_stock
+        row_fill = None
+        if nivel == 'critico':
+            row_fill = PatternFill('solid', fgColor='FDECEA')
+        elif nivel == 'bajo':
+            row_fill = PatternFill('solid', fgColor='FFF8E1')
+
+        for col, val in enumerate(row_vals, 1):
+            cell = ws.cell(row=i + 1, column=col, value=val)
+            cell.border    = border
+            cell.alignment = center if col in (1, 3, 4, 6, 7, 8) else Alignment(vertical='center')
+            if row_fill:
+                cell.fill = row_fill
+
+    fecha_str = datetime.datetime.now().strftime('%Y-%m-%d')
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    current_app.logger.info(
+        'Exportación Excel materias primas | usuario: %s | filas: %d | fecha: %s',
+        current_user.username, len(filas), fecha_str
+    )
+
+    return Response(
+        buf.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f'attachment; filename=MatPrimas_DulceMigaja_{fecha_str}.xlsx'}
+    )
 
 
 @materias_primas_bp.route('/materias-primas/toggle/<int:id_materia>', methods=['POST'])

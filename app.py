@@ -7,7 +7,7 @@ import json
 import urllib.request
 import urllib.parse
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, Response, url_for, flash, jsonify, session
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from auth import roles_required
@@ -1163,7 +1163,120 @@ def api_listar_mermas_productos():
             'success': False,
             'error': str(e)
         }), 500
-     
+
+
+@app.route("/api/mermas/exportar-excel", methods=['GET'])
+@login_required
+@roles_required('admin', 'empleado', 'panadero')
+def api_exportar_mermas_excel():
+    import io
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    tipo        = request.args.get('tipo', 'materia')
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin    = request.args.get('fecha_fin')
+    causa        = request.args.get('causa')
+
+    if tipo == 'producto':
+        query = """
+            SELECT m.id_merma, p.nombre AS nombre_obj, m.cantidad, m.unidad,
+                   m.causa, m.descripcion, m.fecha_merma,
+                   u.nombre_completo AS registrado_por_nombre
+            FROM mermas m
+            JOIN productos p ON p.id_producto = m.id_referencia
+            JOIN usuarios u ON u.id_usuario = m.registrado_por
+            WHERE m.tipo_objeto = 'producto_terminado'
+        """
+    else:
+        query = """
+            SELECT m.id_merma, mp.nombre AS nombre_obj, m.cantidad, m.unidad,
+                   m.causa, m.descripcion, m.fecha_merma,
+                   u.nombre_completo AS registrado_por_nombre
+            FROM mermas m
+            JOIN materias_primas mp ON mp.id_materia = m.id_referencia
+            JOIN usuarios u ON u.id_usuario = m.registrado_por
+            WHERE m.tipo_objeto = 'materia_prima'
+        """
+
+    params = {}
+    if fecha_inicio:
+        query += " AND DATE(m.fecha_merma) >= :fecha_inicio"
+        params['fecha_inicio'] = fecha_inicio
+    if fecha_fin:
+        query += " AND DATE(m.fecha_merma) <= :fecha_fin"
+        params['fecha_fin'] = fecha_fin
+    if causa:
+        query += " AND m.causa = :causa"
+        params['causa'] = causa
+    query += " ORDER BY m.fecha_merma DESC"
+
+    try:
+        with role_connection() as conn:
+            filas = conn.execute(text(query), params).fetchall()
+    except Exception as e:
+        app.logger.error('Error exportar Excel mermas | %s', e)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+    causas_map = {
+        'caducidad': 'Caducidad', 'quemado_horneado': 'Quemado/Horneado',
+        'caida_accidente': 'Caída/Accidente', 'error_produccion': 'Error producción',
+        'rotura_empaque': 'Rotura empaque', 'contaminacion': 'Contaminación', 'otro': 'Otro'
+    }
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Mermas Productos' if tipo == 'producto' else 'Mermas Materias Primas'
+
+    hdr_font  = Font(bold=True, color='FFFFFF', size=11)
+    hdr_fill  = PatternFill('solid', fgColor='6B4423')
+    hdr_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    center    = Alignment(horizontal='center', vertical='center')
+    thin      = Side(style='thin', color='D4B896')
+    border    = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    col2_hdr = 'Producto' if tipo == 'producto' else 'Materia Prima'
+    headers    = ['#', col2_hdr, 'Cantidad', 'Unidad', 'Causa', 'Descripción', 'Fecha', 'Registrado por']
+    col_widths = [5, 28, 12, 10, 20, 30, 18, 24]
+
+    for col, (h, w) in enumerate(zip(headers, col_widths), 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.font = hdr_font; cell.fill = hdr_fill
+        cell.alignment = hdr_align; cell.border = border
+        ws.column_dimensions[get_column_letter(col)].width = w
+    ws.row_dimensions[1].height = 22
+
+    for i, m in enumerate(filas, 1):
+        fecha_str = m.fecha_merma.strftime('%d/%m/%Y %H:%M') if m.fecha_merma else ''
+        row_vals = [
+            i, m.nombre_obj, float(m.cantidad or 0), m.unidad,
+            causas_map.get(m.causa, m.causa), m.descripcion or '', fecha_str,
+            m.registrado_por_nombre
+        ]
+        for col, val in enumerate(row_vals, 1):
+            cell = ws.cell(row=i + 1, column=col, value=val)
+            cell.border = border
+            cell.alignment = center if col in (1, 3, 4, 5, 7) else Alignment(vertical='center')
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    tipo_label = 'Productos' if tipo == 'producto' else 'MatPrimas'
+    fecha_hoy  = datetime.datetime.now().strftime('%Y-%m-%d')
+    filename   = f'Mermas_{tipo_label}_DulceMigaja_{fecha_hoy}.xlsx'
+
+    app.logger.info('Exportación Excel mermas | tipo: %s | usuario: %s | filas: %d',
+                    tipo, current_user.username, len(filas))
+
+    return Response(
+        buf.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

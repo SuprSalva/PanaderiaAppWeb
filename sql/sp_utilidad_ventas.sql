@@ -1,6 +1,7 @@
 -- ============================================================
 -- MÓDULO: UTILIDAD POR VENTAS (HISTÓRICO CON FILTRO DE FECHAS)
 -- Acceso exclusivo: dm_admin (rol admin)
+-- Incluye: ventas en caja (completadas) + pedidos web (entregados)
 -- ============================================================
 -- Metodología de costo (REGLA UNIVERSAL — igual en todos los módulos):
 --   • CPP (Costo Promedio Ponderado) de los ÚLTIMOS 12 MESES.
@@ -9,6 +10,11 @@
 --   • Fallback: si un insumo no tiene compras en 12 meses,
 --     se usa el último precio histórico registrado.
 --   • El costo unitario del producto = costo_lote_receta / rendimiento.
+-- Deduplicación pedidos: se excluyen pedidos que ya generaron una
+--   venta automática en caja (accion = 'venta_automatica' en logs_sistema).
+-- NOTA: No se usan tablas temporales en queries con UNION ALL porque
+--   MySQL error 1137 "Can't reopen table" impide referenciar una temp
+--   table más de una vez en la misma consulta. Se usan subqueries inline.
 -- ============================================================
 
 -- ──────────────────────────────────────────────────────────────
@@ -45,9 +51,14 @@ LEFT JOIN (
 -- ──────────────────────────────────────────────────────────────
 -- SP: sp_reporte_utilidad_ventas
 -- Devuelve 3 result-sets para el período solicitado:
---   SET 1 → KPIs globales del período
+--   SET 1 → KPIs globales del período (ventas caja + pedidos entregados)
 --   SET 2 → Resumen por producto (agrupado)
---   SET 3 → Detalle línea a línea (por venta)
+--   SET 3 → Detalle línea a línea
+--
+-- IMPORTANTE: Se usan subqueries inline para el costo unitario en
+-- lugar de tablas temporales, porque MySQL no permite referenciar una
+-- tabla temporal más de una vez en la misma query (UNION ALL cuenta
+-- como una sola query → error 1137 "Can't reopen table").
 -- ──────────────────────────────────────────────────────────────
 DROP PROCEDURE IF EXISTS sp_reporte_utilidad_ventas;
 
@@ -59,119 +70,253 @@ CREATE PROCEDURE sp_reporte_utilidad_ventas(
 )
 BEGIN
 
-    -- 1. Costo total de lote por receta usando precios PROMEDIO
-    DROP TEMPORARY TABLE IF EXISTS tmp_uv_costo_lote;
-    CREATE TEMPORARY TABLE tmp_uv_costo_lote AS
-    SELECT
-        dr.id_receta,
-        ROUND(
-            SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)),
-        4) AS costo_total_lote
-    FROM detalle_recetas dr
-    LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
-    GROUP BY dr.id_receta;
-
-    -- 2. Costo unitario por producto (se usa la primera receta activa en caso
-    --    de que el producto tenga varias; la de id_tamanio IS NULL tiene prioridad)
-    DROP TEMPORARY TABLE IF EXISTS tmp_uv_costo_unit;
-    CREATE TEMPORARY TABLE tmp_uv_costo_unit AS
-    SELECT
-        r.id_producto,
-        ROUND(
-            COALESCE(tcl.costo_total_lote, 0) / NULLIF(r.rendimiento, 0),
-        4) AS costo_unitario
-    FROM recetas r
-    LEFT JOIN tmp_uv_costo_lote tcl ON tcl.id_receta = r.id_receta
-    WHERE r.estatus = 'activo'
-    ORDER BY r.id_producto, (r.id_tamanio IS NULL) DESC, r.id_receta ASC
-    LIMIT 18446744073709551615;   -- workaround para ORDER BY dentro de subconsulta
-
-    -- Si un producto tiene más de una receta activa conservamos solo la primera
-    DROP TEMPORARY TABLE IF EXISTS tmp_uv_costo_final;
-    CREATE TEMPORARY TABLE tmp_uv_costo_final AS
-    SELECT id_producto, MIN(costo_unitario) AS costo_unitario
-    FROM tmp_uv_costo_unit
-    GROUP BY id_producto;
-
     -- ── SET 1: KPIs del período ─────────────────────────────────
+    -- Combina ventas en caja + pedidos entregados sin duplicar los
+    -- pedidos que ya generaron una venta automática.
     SELECT
-        COUNT(DISTINCT v.id_venta)                                              AS total_ventas,
-        COUNT(DISTINCT dv.id_producto)                                          AS total_productos,
-        ROUND(SUM(dv.subtotal), 2)                                              AS total_ingresos,
-        ROUND(SUM(dv.cantidad * COALESCE(cu.costo_unitario, 0)), 2)            AS total_costo,
+        COUNT(DISTINCT t.origen_key)                                            AS total_ventas,
+        COUNT(DISTINCT t.id_producto)                                           AS total_productos,
+        ROUND(SUM(t.subtotal), 2)                                               AS total_ingresos,
+        ROUND(SUM(t.cantidad * t.costo_unitario), 2)                           AS total_costo,
+        ROUND(SUM(t.subtotal) - SUM(t.cantidad * t.costo_unitario), 2)        AS total_utilidad,
         ROUND(
-            SUM(dv.subtotal)
-            - SUM(dv.cantidad * COALESCE(cu.costo_unitario, 0)),
-        2)                                                                      AS total_utilidad,
-        ROUND(
-            (1 - SUM(dv.cantidad * COALESCE(cu.costo_unitario, 0))
-                   / NULLIF(SUM(dv.subtotal), 0)) * 100,
+            (1 - SUM(t.cantidad * t.costo_unitario) / NULLIF(SUM(t.subtotal), 0)) * 100,
         2)                                                                      AS margen_prom
-    FROM ventas v
-    INNER JOIN detalle_ventas dv ON dv.id_venta    = v.id_venta
-    LEFT  JOIN tmp_uv_costo_final cu ON cu.id_producto = dv.id_producto
-    WHERE DATE(v.fecha_venta) BETWEEN p_fecha_inicio AND p_fecha_fin
-      AND v.estado = 'completada';
+    FROM (
+        -- Ventas en caja
+        SELECT
+            CONVERT(CONCAT('v-', v.id_venta) USING utf8mb4) COLLATE utf8mb4_general_ci AS origen_key,
+            dv.id_producto,
+            dv.cantidad,
+            dv.subtotal,
+            COALESCE(cu.costo_unitario, 0)              AS costo_unitario
+        FROM ventas v
+        INNER JOIN detalle_ventas dv ON dv.id_venta    = v.id_venta
+        LEFT JOIN (
+            SELECT r.id_producto,
+                   MIN(ROUND(COALESCE(lote.costo_total_lote, 0) / NULLIF(r.rendimiento, 0), 4)) AS costo_unitario
+            FROM recetas r
+            LEFT JOIN (
+                SELECT dr.id_receta,
+                       ROUND(SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)), 4) AS costo_total_lote
+                FROM detalle_recetas dr
+                LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
+                GROUP BY dr.id_receta
+            ) lote ON lote.id_receta = r.id_receta
+            WHERE r.estatus = 'activo'
+            GROUP BY r.id_producto
+        ) cu ON cu.id_producto = dv.id_producto
+        WHERE DATE(v.fecha_venta) BETWEEN p_fecha_inicio AND p_fecha_fin
+          AND v.estado = 'completada'
+
+        UNION ALL
+
+        -- Pedidos web entregados (excluir los que ya generaron venta automática en caja)
+        SELECT
+            CONVERT(CONCAT('p-', pe.id_pedido) USING utf8mb4) COLLATE utf8mb4_general_ci AS origen_key,
+            dp.id_producto,
+            dp.cantidad,
+            dp.subtotal,
+            COALESCE(cu.costo_unitario, 0)              AS costo_unitario
+        FROM pedidos pe
+        INNER JOIN detalle_pedidos dp ON dp.id_pedido  = pe.id_pedido
+        LEFT JOIN (
+            SELECT r.id_producto,
+                   MIN(ROUND(COALESCE(lote.costo_total_lote, 0) / NULLIF(r.rendimiento, 0), 4)) AS costo_unitario
+            FROM recetas r
+            LEFT JOIN (
+                SELECT dr.id_receta,
+                       ROUND(SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)), 4) AS costo_total_lote
+                FROM detalle_recetas dr
+                LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
+                GROUP BY dr.id_receta
+            ) lote ON lote.id_receta = r.id_receta
+            WHERE r.estatus = 'activo'
+            GROUP BY r.id_producto
+        ) cu ON cu.id_producto = dp.id_producto
+        WHERE DATE(pe.actualizado_en) BETWEEN p_fecha_inicio AND p_fecha_fin
+          AND pe.estado = 'entregado'
+          AND NOT EXISTS (
+              SELECT 1 FROM logs_sistema l
+              WHERE l.referencia_id   = pe.id_pedido
+                AND l.referencia_tipo = 'pedido'
+                AND l.accion          = 'venta_automatica'
+          )
+    ) t;
 
     -- ── SET 2: Resumen por producto ─────────────────────────────
     SELECT
-        p.id_producto,
-        p.nombre                                                                AS nombre_producto,
-        ROUND(SUM(dv.cantidad), 2)                                             AS total_piezas,
-        ROUND(AVG(dv.precio_unitario), 2)                                      AS precio_prom_venta,
-        ROUND(MAX(COALESCE(cu.costo_unitario, 0)), 4)                          AS costo_unitario,
-        ROUND(AVG(dv.precio_unitario) - MAX(COALESCE(cu.costo_unitario, 0)), 4) AS utilidad_unitaria,
+        t.id_producto,
+        MAX(t.nombre_producto)                                                  AS nombre_producto,
+        ROUND(SUM(t.cantidad), 2)                                               AS total_piezas,
+        ROUND(AVG(t.precio_unitario), 2)                                        AS precio_prom_venta,
+        ROUND(MAX(t.costo_unitario), 4)                                         AS costo_unitario,
+        ROUND(AVG(t.precio_unitario) - MAX(t.costo_unitario), 4)               AS utilidad_unitaria,
         ROUND(
-            CASE WHEN AVG(dv.precio_unitario) > 0 THEN
-                (AVG(dv.precio_unitario) - MAX(COALESCE(cu.costo_unitario, 0)))
-                / AVG(dv.precio_unitario) * 100
+            CASE WHEN AVG(t.precio_unitario) > 0 THEN
+                (AVG(t.precio_unitario) - MAX(t.costo_unitario))
+                / AVG(t.precio_unitario) * 100
             ELSE 0 END,
         2)                                                                      AS margen_pct,
-        ROUND(SUM(dv.subtotal - dv.cantidad * COALESCE(cu.costo_unitario, 0)), 2) AS utilidad_total,
-        ROUND(SUM(dv.subtotal), 2)                                             AS ingresos_total
-    FROM ventas v
-    INNER JOIN detalle_ventas dv ON dv.id_venta    = v.id_venta
-    INNER JOIN productos       p  ON p.id_producto  = dv.id_producto
-    LEFT  JOIN tmp_uv_costo_final cu ON cu.id_producto = dv.id_producto
-    WHERE DATE(v.fecha_venta) BETWEEN p_fecha_inicio AND p_fecha_fin
-      AND v.estado = 'completada'
-    GROUP BY p.id_producto, p.nombre
+        ROUND(SUM(t.subtotal - t.cantidad * t.costo_unitario), 2)              AS utilidad_total,
+        ROUND(SUM(t.subtotal), 2)                                               AS ingresos_total
+    FROM (
+        -- Ventas en caja
+        SELECT
+            dv.id_producto,
+            CONVERT(p.nombre USING utf8mb4) COLLATE utf8mb4_general_ci AS nombre_producto,
+            dv.cantidad,
+            dv.precio_unitario,
+            dv.subtotal,
+            COALESCE(cu.costo_unitario, 0)              AS costo_unitario
+        FROM ventas v
+        INNER JOIN detalle_ventas dv ON dv.id_venta    = v.id_venta
+        INNER JOIN productos       p  ON p.id_producto  = dv.id_producto
+        LEFT JOIN (
+            SELECT r.id_producto,
+                   MIN(ROUND(COALESCE(lote.costo_total_lote, 0) / NULLIF(r.rendimiento, 0), 4)) AS costo_unitario
+            FROM recetas r
+            LEFT JOIN (
+                SELECT dr.id_receta,
+                       ROUND(SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)), 4) AS costo_total_lote
+                FROM detalle_recetas dr
+                LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
+                GROUP BY dr.id_receta
+            ) lote ON lote.id_receta = r.id_receta
+            WHERE r.estatus = 'activo'
+            GROUP BY r.id_producto
+        ) cu ON cu.id_producto = dv.id_producto
+        WHERE DATE(v.fecha_venta) BETWEEN p_fecha_inicio AND p_fecha_fin
+          AND v.estado = 'completada'
+
+        UNION ALL
+
+        -- Pedidos web entregados
+        SELECT
+            dp.id_producto,
+            CONVERT(pr.nombre USING utf8mb4) COLLATE utf8mb4_general_ci AS nombre_producto,
+            dp.cantidad,
+            dp.precio_unitario,
+            dp.subtotal,
+            COALESCE(cu.costo_unitario, 0)              AS costo_unitario
+        FROM pedidos pe
+        INNER JOIN detalle_pedidos dp ON dp.id_pedido  = pe.id_pedido
+        INNER JOIN productos       pr ON pr.id_producto = dp.id_producto
+        LEFT JOIN (
+            SELECT r.id_producto,
+                   MIN(ROUND(COALESCE(lote.costo_total_lote, 0) / NULLIF(r.rendimiento, 0), 4)) AS costo_unitario
+            FROM recetas r
+            LEFT JOIN (
+                SELECT dr.id_receta,
+                       ROUND(SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)), 4) AS costo_total_lote
+                FROM detalle_recetas dr
+                LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
+                GROUP BY dr.id_receta
+            ) lote ON lote.id_receta = r.id_receta
+            WHERE r.estatus = 'activo'
+            GROUP BY r.id_producto
+        ) cu ON cu.id_producto = dp.id_producto
+        WHERE DATE(pe.actualizado_en) BETWEEN p_fecha_inicio AND p_fecha_fin
+          AND pe.estado = 'entregado'
+          AND NOT EXISTS (
+              SELECT 1 FROM logs_sistema l
+              WHERE l.referencia_id   = pe.id_pedido
+                AND l.referencia_tipo = 'pedido'
+                AND l.accion          = 'venta_automatica'
+          )
+    ) t
+    GROUP BY t.id_producto
     ORDER BY utilidad_total DESC;
 
-    -- ── SET 3: Detalle por línea de venta ───────────────────────
+    -- ── SET 3: Detalle por línea ────────────────────────────────
     SELECT
-        v.id_venta,
-        v.folio_venta,
-        DATE(v.fecha_venta)                                                     AS fecha_venta,
-        TIME(v.fecha_venta)                                                     AS hora_venta,
-        p.nombre                                                                AS nombre_producto,
-        ROUND(dv.cantidad, 2)                                                  AS cantidad,
-        ROUND(dv.precio_unitario, 2)                                           AS precio_venta,
-        ROUND(COALESCE(cu.costo_unitario, 0), 4)                               AS costo_unitario,
-        ROUND(dv.precio_unitario - COALESCE(cu.costo_unitario, 0), 4)         AS utilidad_unitaria,
-        ROUND(dv.subtotal - dv.cantidad * COALESCE(cu.costo_unitario, 0), 2)  AS utilidad_total,
-        ROUND(dv.subtotal, 2)                                                  AS ingreso_total
-    FROM ventas v
-    INNER JOIN detalle_ventas dv ON dv.id_venta    = v.id_venta
-    INNER JOIN productos       p  ON p.id_producto  = dv.id_producto
-    LEFT  JOIN tmp_uv_costo_final cu ON cu.id_producto = dv.id_producto
-    WHERE DATE(v.fecha_venta) BETWEEN p_fecha_inicio AND p_fecha_fin
-      AND v.estado = 'completada'
-    ORDER BY v.fecha_venta DESC, v.folio_venta, p.nombre;
+        folio_venta,
+        fecha_venta,
+        hora_venta,
+        nombre_producto,
+        cantidad,
+        precio_venta,
+        costo_unitario,
+        utilidad_unitaria,
+        utilidad_total,
+        ingreso_total
+    FROM (
+        -- Ventas en caja
+        SELECT
+            CONVERT(v.folio_venta USING utf8mb4) COLLATE utf8mb4_general_ci    AS folio_venta,
+            DATE(v.fecha_venta)                                                 AS fecha_venta,
+            TIME(v.fecha_venta)                                                 AS hora_venta,
+            CONVERT(p.nombre USING utf8mb4) COLLATE utf8mb4_general_ci         AS nombre_producto,
+            ROUND(dv.cantidad, 2)                                               AS cantidad,
+            ROUND(dv.precio_unitario, 2)                                        AS precio_venta,
+            ROUND(COALESCE(cu.costo_unitario, 0), 4)                           AS costo_unitario,
+            ROUND(dv.precio_unitario - COALESCE(cu.costo_unitario, 0), 4)     AS utilidad_unitaria,
+            ROUND(dv.subtotal - dv.cantidad * COALESCE(cu.costo_unitario, 0), 2) AS utilidad_total,
+            ROUND(dv.subtotal, 2)                                               AS ingreso_total,
+            v.fecha_venta                                                       AS _sort
+        FROM ventas v
+        INNER JOIN detalle_ventas dv ON dv.id_venta    = v.id_venta
+        INNER JOIN productos       p  ON p.id_producto  = dv.id_producto
+        LEFT JOIN (
+            SELECT r.id_producto,
+                   MIN(ROUND(COALESCE(lote.costo_total_lote, 0) / NULLIF(r.rendimiento, 0), 4)) AS costo_unitario
+            FROM recetas r
+            LEFT JOIN (
+                SELECT dr.id_receta,
+                       ROUND(SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)), 4) AS costo_total_lote
+                FROM detalle_recetas dr
+                LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
+                GROUP BY dr.id_receta
+            ) lote ON lote.id_receta = r.id_receta
+            WHERE r.estatus = 'activo'
+            GROUP BY r.id_producto
+        ) cu ON cu.id_producto = dv.id_producto
+        WHERE DATE(v.fecha_venta) BETWEEN p_fecha_inicio AND p_fecha_fin
+          AND v.estado = 'completada'
 
-    -- Limpieza
-    DROP TEMPORARY TABLE IF EXISTS tmp_uv_costo_lote;
-    DROP TEMPORARY TABLE IF EXISTS tmp_uv_costo_unit;
-    DROP TEMPORARY TABLE IF EXISTS tmp_uv_costo_final;
+        UNION ALL
+
+        -- Pedidos web entregados
+        SELECT
+            CONVERT(pe.folio USING utf8mb4) COLLATE utf8mb4_general_ci         AS folio_venta,
+            DATE(pe.actualizado_en)                                             AS fecha_venta,
+            TIME(pe.actualizado_en)                                             AS hora_venta,
+            CONVERT(pr.nombre USING utf8mb4) COLLATE utf8mb4_general_ci        AS nombre_producto,
+            ROUND(dp.cantidad, 2)                                               AS cantidad,
+            ROUND(dp.precio_unitario, 2)                                        AS precio_venta,
+            ROUND(COALESCE(cu.costo_unitario, 0), 4)                           AS costo_unitario,
+            ROUND(dp.precio_unitario - COALESCE(cu.costo_unitario, 0), 4)     AS utilidad_unitaria,
+            ROUND(dp.subtotal - dp.cantidad * COALESCE(cu.costo_unitario, 0), 2) AS utilidad_total,
+            ROUND(dp.subtotal, 2)                                               AS ingreso_total,
+            pe.actualizado_en                                                   AS _sort
+        FROM pedidos pe
+        INNER JOIN detalle_pedidos dp ON dp.id_pedido  = pe.id_pedido
+        INNER JOIN productos       pr ON pr.id_producto = dp.id_producto
+        LEFT JOIN (
+            SELECT r.id_producto,
+                   MIN(ROUND(COALESCE(lote.costo_total_lote, 0) / NULLIF(r.rendimiento, 0), 4)) AS costo_unitario
+            FROM recetas r
+            LEFT JOIN (
+                SELECT dr.id_receta,
+                       ROUND(SUM(dr.cantidad_requerida * COALESCE(cpm.costo_base_promedio, 0)), 4) AS costo_total_lote
+                FROM detalle_recetas dr
+                LEFT JOIN v_costo_promedio_materia cpm ON cpm.id_materia = dr.id_materia
+                GROUP BY dr.id_receta
+            ) lote ON lote.id_receta = r.id_receta
+            WHERE r.estatus = 'activo'
+            GROUP BY r.id_producto
+        ) cu ON cu.id_producto = dp.id_producto
+        WHERE DATE(pe.actualizado_en) BETWEEN p_fecha_inicio AND p_fecha_fin
+          AND pe.estado = 'entregado'
+          AND NOT EXISTS (
+              SELECT 1 FROM logs_sistema l
+              WHERE l.referencia_id   = pe.id_pedido
+                AND l.referencia_tipo = 'pedido'
+                AND l.accion          = 'venta_automatica'
+          )
+    ) combined
+    ORDER BY _sort DESC, folio_venta, nombre_producto;
 
 END$$
 
 DELIMITER ;
-
--- ──────────────────────────────────────────────────────────────
--- PERMISOS
--- ──────────────────────────────────────────────────────────────
-GRANT SELECT    ON dulce_migaja.v_costo_promedio_materia      TO 'dm_admin'@'localhost';
-GRANT EXECUTE   ON PROCEDURE dulce_migaja.sp_reporte_utilidad_ventas TO 'dm_admin'@'localhost';
-
-FLUSH PRIVILEGES;

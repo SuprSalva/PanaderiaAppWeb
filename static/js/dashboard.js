@@ -12,6 +12,13 @@ const DM = {
 /* ── Formato ──────────────────────────────────────────────────── */
 const P  = n => '$' + Number(n || 0).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
 const N  = n => Number(n || 0).toLocaleString('es-MX');
+function fmtCantidad(val, unidad) {
+  function fmt(n) { const r = Math.round(n * 100) / 100; return r % 1 === 0 ? String(Math.round(r)) : String(r); }
+  if (unidad === 'g'  && val >= 1000) return fmt(val / 1000) + ' kg';
+  if (unidad === 'ml' && val >= 1000) return fmt(val / 1000) + ' L';
+  if (unidad === 'l')  return val.toFixed(3) + ' l';
+  return Math.round(val) + ' ' + unidad;
+}
 
 /* ── Colores ─────────────────────────────────────────────────── */
 const C = { brown:'#7c4a1e', rust:'#c0522a', gold:'#c9950a', muted:'#9c7c5c' };
@@ -110,11 +117,11 @@ async function cargarVentas() {
           tooltip: { callbacks: { label: c => ' ' + P(c.parsed.y) } },
         },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45, color: C.muted } },
+          x: { grid: { display: false }, ticks: { font: { size: 15 }, maxRotation: 45, color: C.muted } },
           y: {
             beginAtZero: true, grid: { color: '#f3ede7' },
             ticks: {
-              font: { size: 10 }, color: C.muted,
+              font: { size: 15 }, color: C.muted,
               callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(1)+'k' : v),
             },
           },
@@ -191,7 +198,10 @@ function renderUtilidad() {
     const util    = parseFloat(p.utilidad_unitaria || 0);
     const color   = util >= 0 ? 'var(--brown-dk)' : '#ef4444';
     return `<tr>
-      <td style="font-weight:600;">${p.nombre_producto}</td>
+      <td>
+        <span style="font-weight:600;">${p.nombre_producto}</span>
+        <span style="display:block;font-size:11px;color:var(--brown-lt);">${p.rendimiento} ${p.unidad_rendimiento || 'pza'} por lote</span>
+      </td>
       <td style="text-align:right;">${P(p.precio_venta)}</td>
       <td style="text-align:right;color:var(--rust);">${P(p.costo_unitario)}</td>
       <td style="text-align:right;font-weight:700;color:${color};">${P(util)}</td>
@@ -284,11 +294,11 @@ async function cargarMPCriticas() {
         <td style="font-weight:600;">${mp.nombre}</td>
         <td style="color:var(--brown-lt);">${mp.categoria}</td>
         <td style="text-align:right;">
-          ${Number(mp.stock_actual).toFixed(2)} ${mp.unidad_base}
+          ${fmtCantidad(Number(mp.stock_actual), mp.unidad_base)}
           <span class="dm-stock-bar"><span class="dm-stock-bar-fill ${mp.nivel}" style="width:${w}%;display:block;height:100%;"></span></span>
           <small style="color:var(--brown-lt);margin-left:4px;">${pct}%</small>
         </td>
-        <td style="text-align:right;">${Number(mp.stock_minimo).toFixed(2)} ${mp.unidad_base}</td>
+        <td style="text-align:right;">${fmtCantidad(Number(mp.stock_minimo), mp.unidad_base)}</td>
         <td style="text-align:center;"><span class="chip-estado chip-${mp.nivel}">${labels[mp.nivel]||mp.nivel}</span></td>
       </tr>`;
     }).join('');

@@ -262,6 +262,7 @@ BEGIN
         r.id_receta,
         r.nombre                                                    AS nombre_receta,
         r.rendimiento,
+        r.unidad_rendimiento,
         ROUND(
             COALESCE(tcr.costo_total_lote, 0) / r.rendimiento,
             4
@@ -334,31 +335,3 @@ BEGIN
     LIMIT 20;
 END$$
 DELIMITER ;
-
-
-GRANT SELECT ON dulce_migaja.vw_dash_ventas_consolidadas TO 'dm_admin'@'localhost';
-GRANT SELECT ON dulce_migaja.vw_dash_mp_criticas         TO 'dm_admin'@'localhost';
-GRANT SELECT ON dulce_migaja.vw_dash_piezas_vendidas     TO 'dm_admin'@'localhost';
-
-GRANT SELECT ON dulce_migaja.vw_dash_ventas_consolidadas TO 'dm_vendedor'@'localhost';
-GRANT SELECT ON dulce_migaja.vw_dash_mp_criticas         TO 'dm_vendedor'@'localhost';
-GRANT SELECT ON dulce_migaja.vw_dash_piezas_vendidas     TO 'dm_vendedor'@'localhost';
-
-GRANT SELECT ON dulce_migaja.vw_dash_mp_criticas         TO 'dm_panadero'@'localhost';
-GRANT SELECT ON dulce_migaja.vw_dash_piezas_vendidas     TO 'dm_panadero'@'localhost';
-
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_ventas_totales        TO 'dm_admin'@'localhost';
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_salidas_efectivo       TO 'dm_admin'@'localhost';
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_utilidad_por_producto  TO 'dm_admin'@'localhost';
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_top_productos          TO 'dm_admin'@'localhost';
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_mp_criticas            TO 'dm_admin'@'localhost';
-
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_ventas_totales         TO 'dm_vendedor'@'localhost';
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_salidas_efectivo       TO 'dm_vendedor'@'localhost';
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_top_productos          TO 'dm_vendedor'@'localhost';
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_mp_criticas            TO 'dm_vendedor'@'localhost';
-
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_top_productos          TO 'dm_panadero'@'localhost';
-GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_mp_criticas            TO 'dm_panadero'@'localhost';
-
-FLUSH PRIVILEGES;

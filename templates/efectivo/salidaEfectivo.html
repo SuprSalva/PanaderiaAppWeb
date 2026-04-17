@@ -190,7 +190,9 @@
           data-id="{{ s.id_salida }}" data-folio="{{ s.folio_salida }}" data-desc="{{ s.descripcion | e }}"
           data-monto="{{ s.monto }}" data-registrador="{{ s.nombre_registrador }}"
           data-proveedor="{{ s.nombre_proveedor or '—' }}" data-aprobador="{{ s.nombre_aprobador or '' }}"
-          data-folio-compra="{{ s.folio_compra or '' }}" onclick="openDetalleRow(this)">
+          data-folio-compra="{{ s.folio_compra or '' }}"
+          data-actualizado="{{ s.actualizado_en.strftime('%d/%m/%Y %H:%M') if s.actualizado_en else '' }}"
+          onclick="openDetalleRow(this)">
           <td><span class="folio-chip">{{ s.folio_salida }}</span></td>
           <td>
             {{ s.descripcion }}
@@ -368,6 +370,7 @@
               style="font-family:'Playfair Display',serif;font-size: var(--text-lg);color:var(--rust);">—</span></div>
           <div class="det-item"><label>Solicitó</label><span id="det-user">—</span></div>
           <div class="det-item"><label>Autorizó / Rechazó</label><span id="det-aprobador">—</span></div>
+          <div class="det-item" id="det-fecha-resolucion-wrap" style="display:none"><label>Fecha resolución</label><span id="det-fecha-resolucion">—</span></div>
           <div class="det-item" id="det-compra-wrap" style="grid-column:1/-1;display:none"><label>Compra
               origen</label><span id="det-folio-compra"
               style="font-family:monospace;font-weight:700;color:var(--brown-dk);">—</span></div>

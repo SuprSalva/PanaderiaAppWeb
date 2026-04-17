@@ -305,10 +305,11 @@ def api_reporte_utilidad():
             mimetype='application/json'
         )
     except Exception as exc:
-        import traceback, json
+        import json
+        current_app.logger.error('[api_reporte_utilidad] %s', exc, exc_info=True)
         return Response(
             json.dumps({'ok': False, 'error': str(exc)}, ensure_ascii=False),
-            status=500, mimetype='application/json'
+            status=200, mimetype='application/json'
         )
 
 

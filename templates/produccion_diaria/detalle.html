@@ -106,6 +106,7 @@
 {% endblock %}
 
 {% block container %}
+{% macro fmt_cantidad(val, unidad) %}{% set v = val | float %}{% if unidad == 'g' and v >= 1000 %}{% set cv = (v / 1000) | round(2) %}{% if cv == cv | int %}{{ cv | int }} kg{% else %}{{ cv }} kg{% endif %}{% elif unidad == 'ml' and v >= 1000 %}{% set cv = (v / 1000) | round(2) %}{% if cv == cv | int %}{{ cv | int }} L{% else %}{{ cv }} L{% endif %}{% elif unidad == 'l' %}{{ '{:,.3f}'.format(v) }} l{% else %}{{ '{:,.2f}'.format(v) }} {{ unidad }}{% endif %}{% endmacro %}
 <div class="det-wrap">
 
   <!-- Topbar -->
@@ -279,7 +280,6 @@
         <thead>
           <tr>
             <th>Insumo</th>
-            <th>Unidad</th>
             <th>Requerido</th>
             <th>Descontado</th>
             <th>Stock actual</th>
@@ -290,23 +290,21 @@
           {% for ins in insumos %}
           <tr>
             <td style="font-weight:700;">{{ ins.nombre_materia }}</td>
-            <td style="color:var(--brown-lt);">{{ ins.unidad_base }}</td>
-            <td>{{ '%.2f' | format(ins.cantidad_requerida | float) }}</td>
+            <td>{{ fmt_cantidad(ins.cantidad_requerida, ins.unidad_base) }}</td>
             <td>
               {% if pd.insumos_descontados %}
-              {{ '%.2f' | format(ins.cantidad_descontada | float) }}
+              {{ fmt_cantidad(ins.cantidad_descontada, ins.unidad_base) }}
               {% else %}—{% endif %}
             </td>
-            <td>{{ '%.2f' | format(ins.stock_actual | float) }}</td>
+            <td>{{ fmt_cantidad(ins.stock_actual, ins.unidad_base) }}</td>
             <td>
-              {# Si ya se descontaron los insumos, siempre mostrar OK al panadero #}
               {% if pd.insumos_descontados %}
               <span class="ins-ok">✅ OK</span>
               {% elif ins.stock_suficiente %}
               <span class="ins-ok">✅ OK</span>
               {% else %}
               {% set falta = (ins.cantidad_requerida | float) - (ins.stock_actual | float) %}
-              <span class="ins-ko">⛔ Faltan {{ '%.2f' | format(falta) }}</span>
+              <span class="ins-ko">⛔ Faltan {{ fmt_cantidad(falta, ins.unidad_base) }}</span>
               {% endif %}
               {# Barra solo cuando no hay descuento confirmado #}
               {% if not pd.insumos_descontados %}

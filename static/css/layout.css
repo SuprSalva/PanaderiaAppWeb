@@ -372,6 +372,7 @@
     color: var(--text);
     outline: none;
     width: 200px;
+    height: 45px;
     transition: border .2s, width .3s;
   }
 
@@ -427,8 +428,8 @@
   }
 
   .topbar-btn {
-    width: 36px;
-    height: 36px;
+    width: 45px;
+    height: 45px;
     border-radius: 8px;
     background: var(--warm-bg);
     border: 1px solid var(--tan);
