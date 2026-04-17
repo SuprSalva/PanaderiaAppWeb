@@ -55,24 +55,6 @@ document.addEventListener('click', function (e) {
   }
 });
 
-const iconFullscreen = document.getElementById('iconFullscreen');
-
-const ICON_EXPAND = '⛶';
-const ICON_COMPRESS = '⊡';
-
-function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen?.().catch(() => { });
-  } else {
-    document.exitFullscreen?.();
-  }
-}
-
-document.addEventListener('fullscreenchange', function () {
-  if (iconFullscreen) {
-    iconFullscreen.textContent = document.fullscreenElement ? ICON_COMPRESS : ICON_EXPAND;
-  }
-});
 
 const menuSearchInput = document.getElementById('menuSearch');
 const searchClearBtn = document.getElementById('searchClear');

@@ -447,8 +447,8 @@
                 src="/static/icons/from-deleted-3b251ac0.json"
                 trigger="loop"
                 attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-                height="30"
-                width="30"
+                height="45"
+                width="45"
               ></animated-icons></span>
             </button>
 
@@ -457,15 +457,15 @@
                 src="/static/icons/reports-ff77881b.json"
                 trigger="loop"
                 attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-                height="30"
-                width="30"
+                height="45"
+                width="45"
               ></animated-icons></span>
             </button>
           {% endif %}
         </div>
 
         <div class="topbar-search">
-          <span class="topbar-search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span>
+          <span class="topbar-search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></span>
           <input type="text" id="menuSearch" placeholder="Buscar en menú…" autocomplete="off"
             oninput="filterNav(this.value)">
           <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpiar búsqueda">✕</button>
@@ -474,7 +474,7 @@
         <div class="topbar-actions">
           <div class="topbar-notif-wrapper" style="position: relative;">
             <button class="topbar-btn" id="btnNotificaciones" title="Notificaciones" onclick="toggleNotifDropdown()">
-              <animated-icons src="/static/icons/notification-2a8c285f.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons>
+              <animated-icons src="/static/icons/notification-2a8c285f.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="35" width="35"></animated-icons>
               <span class="notif-dot" id="notifBadge" style="display: none;"></span>
               <span class="notif-count" id="notifCount" style="display: none;">0</span>
             </button>
@@ -491,16 +491,6 @@
               </div>
             </div>
           </div>
-
-          <button class="topbar-btn" id="btnFullscreen" title="Pantalla completa" onclick="toggleFullscreen()">
-            <span id="iconFullscreen"><animated-icons
-              src="/static/icons/fullscreen-defd54f5.json"
-              trigger="loop"
-              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-              height="25"
-              width="25"
-            ></animated-icons></span>
-          </button>
         </div>
 
         <div class="topbar-user" id="userMenu" onclick="toggleUserMenu()">
@@ -756,9 +746,7 @@
 
       // API pública para mostrar toasts desde JS en cualquier módulo:
       // DM.toast('Operación exitosa', 'success')
-      window.DM = window.DM || {};
-      window.DM.toast = function (message, category) {
-        // Si el contenedor aún no existe, crearlo
+      function _dmToastImpl(message, category) {
         if (!document.getElementById('dm-toast-container')) {
           const c = document.createElement('div');
           c.id = 'dm-toast-container';
@@ -766,7 +754,16 @@
           document.body.appendChild(c);
         }
         createToast(category || 'info', message);
-      };
+      }
+      window.DM = window.DM || {};
+      window.DM.toast = _dmToastImpl;
+      // dashboard.js declara `const DM` que no se monta en window —
+      // se parchea aquí después de que los scripts de página carguen.
+      window.addEventListener('load', function() {
+        if (typeof DM !== 'undefined' && !DM.toast) {
+          try { DM.toast = _dmToastImpl; } catch(e) {}
+        }
+      });
     })();
   </script>
 
@@ -871,7 +868,15 @@
         <button class="modal-close" onclick="cerrarModalHistorialMermas()">✕</button>
       </div>
       <div class="modal-body" style="padding: 20px;">
-        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+        <!-- Tabs tipo -->
+        <div style="display:flex; gap:8px; margin-bottom:14px;">
+          <button id="histTipoMateria" class="btn btn-sm"
+            style="background:var(--brown-dk);color:#fff;"
+            onclick="cambiarTipoHistorial('materia')">Materias Primas</button>
+          <button id="histTipoProducto" class="btn btn-sm btn-outline"
+            onclick="cambiarTipoHistorial('producto')">Productos Terminados</button>
+        </div>
+        <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap:wrap;">
           <input type="date" id="historial_fecha_inicio" class="filter-select" placeholder="Fecha inicio">
           <input type="date" id="historial_fecha_fin" class="filter-select" placeholder="Fecha fin">
           <select id="historial_causa" class="filter-select">
@@ -897,7 +902,7 @@
             <thead>
               <tr>
                 <th>Fecha</th>
-                <th>Materia Prima</th>
+                <th id="histColProducto">Materia Prima</th>
                 <th>Cantidad</th>
                 <th>Causa</th>
                 <th>Registrado por</th>
@@ -920,6 +925,7 @@
   height="25"
   width="25"
 ></animated-icons>Actualizar</button>
+        <button class="btn btn-outline" onclick="exportarHistorialMermasExcel()">Exportar Excel</button>
       </div>
     </div>
   </div>
@@ -964,11 +970,23 @@
     function abrirModalHistorialMermas() {
       const modal = document.getElementById('modal-historial-mermas');
       modal.classList.add('open');
-      cargarHistorialMermas();
+      cambiarTipoHistorial(tipoHistorialActual);
     }
 
     function cerrarModalHistorialMermas() {
       document.getElementById('modal-historial-mermas').classList.remove('open');
+    }
+
+    function exportarHistorialMermasExcel() {
+      const tipo       = tipoHistorialActual === 'producto' ? 'producto' : 'materia';
+      const fechaInicio = document.getElementById('historial_fecha_inicio').value;
+      const fechaFin    = document.getElementById('historial_fecha_fin').value;
+      const causa       = document.getElementById('historial_causa').value;
+      const params      = new URLSearchParams({ tipo });
+      if (fechaInicio) params.append('fecha_inicio', fechaInicio);
+      if (fechaFin)    params.append('fecha_fin', fechaFin);
+      if (causa)       params.append('causa', causa);
+      window.location.href = `/api/mermas/exportar-excel?${params}`;
     }
 
     function cambiarTipoMerma(tipo) {
@@ -1146,6 +1164,24 @@
     let historialOffset = 0;
     let historialLimit = 20;
     let historialTotal = 0;
+    let tipoHistorialActual = 'materia';
+
+    function cambiarTipoHistorial(tipo) {
+      tipoHistorialActual = tipo;
+      const btnM = document.getElementById('histTipoMateria');
+      const btnP = document.getElementById('histTipoProducto');
+      const colHdr = document.getElementById('histColProducto');
+      if (tipo === 'materia') {
+        btnM.style.background = 'var(--brown-dk)'; btnM.style.color = '#fff';
+        btnP.style.background = ''; btnP.style.color = '';
+        if (colHdr) colHdr.textContent = 'Materia Prima';
+      } else {
+        btnP.style.background = 'var(--brown-dk)'; btnP.style.color = '#fff';
+        btnM.style.background = ''; btnM.style.color = '';
+        if (colHdr) colHdr.textContent = 'Producto';
+      }
+      cargarHistorialMermas();
+    }
 
     async function cargarHistorialMermas(page = 1) {
       const offset = (page - 1) * historialLimit;
@@ -1153,16 +1189,20 @@
       const fechaFin = document.getElementById('historial_fecha_fin').value;
       const causa = document.getElementById('historial_causa').value;
 
+      const endpoint = tipoHistorialActual === 'producto'
+        ? '/api/mermas/listar-productos'
+        : '/api/mermas/listar';
+
       try {
-        const params = new URLSearchParams({
-          offset: offset,
-          limit: historialLimit
-        });
+        const params = new URLSearchParams({ offset, limit: historialLimit });
         if (fechaInicio) params.append('fecha_inicio', fechaInicio);
         if (fechaFin) params.append('fecha_fin', fechaFin);
         if (causa && causa !== '') params.append('causa', causa);
 
-        const response = await fetch(`/api/mermas/listar?${params}`);
+        document.getElementById('historialMermasBody').innerHTML =
+          '<tr><td colspan="5" style="text-align:center">Cargando...</td></tr>';
+
+        const response = await fetch(`${endpoint}?${params}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -1201,15 +1241,18 @@
         'otro': 'Otro'
       };
 
-      tbody.innerHTML = mermas.map(m => `
-            <tr>
-                <td>${formatearFechaHistorial(m.fecha_merma)}</td>
-                <td>${escapeHtml(m.materia_nombre)}</td>
-                <td>${m.cantidad} ${m.unidad}</td>
-                <td>${causasMap[m.causa] || m.causa}</td>
-                <td>${escapeHtml(m.registrado_por_nombre)}</td>
-            </tr>
-        `).join('');
+      tbody.innerHTML = mermas.map(m => {
+        const nombre = tipoHistorialActual === 'producto'
+          ? escapeHtml(m.producto_nombre)
+          : escapeHtml(m.materia_nombre);
+        return `<tr>
+            <td>${formatearFechaHistorial(m.fecha_merma)}</td>
+            <td>${nombre}</td>
+            <td>${m.cantidad} ${m.unidad}</td>
+            <td>${causasMap[m.causa] || m.causa}</td>
+            <td>${escapeHtml(m.registrado_por_nombre)}</td>
+          </tr>`;
+      }).join('');
     }
 
     function formatearFechaHistorial(fechaStr) {

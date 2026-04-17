@@ -70,7 +70,7 @@ function buildExportUrl() {
 
 function renderKpis(kpis) {
   txt('kpi-ingresos', P(kpis.total_ingresos));
-  txt('kpi-ventas-count', N(kpis.total_ventas) + ' venta(s)');
+  txt('kpi-ventas-count', N(kpis.total_ventas) + ' transacción(es)');
   txt('kpi-costo', P(kpis.total_costo));
   txt('kpi-productos-count', N(kpis.total_productos) + ' producto(s)');
   txt('kpi-utilidad', P(kpis.total_utilidad));
@@ -204,7 +204,7 @@ async function cargarReporte() {
     // Estado final
     const kpis = data.kpis || {};
     txt('uv-estado',
-      `Período: ${inicio} a ${fin} · ${kpis.total_ventas || 0} venta(s) · ${(data.detalle || []).length} líneas`
+      `Período: ${inicio} a ${fin} · ${kpis.total_ventas || 0} transacción(es) · ${(data.detalle || []).length} líneas`
     );
   } catch (err) {
     console.error('[Utilidad]', err);

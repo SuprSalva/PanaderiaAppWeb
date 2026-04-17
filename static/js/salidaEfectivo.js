@@ -57,6 +57,13 @@
     document.getElementById('det-user').textContent      = d.registrador;
     document.getElementById('det-proveedor').textContent = d.proveedor || '—';
     document.getElementById('det-aprobador').textContent = d.aprobador || '—';
+    const resolucionWrap = document.getElementById('det-fecha-resolucion-wrap');
+    if ((d.estado === 'aprobada' || d.estado === 'rechazada') && d.actualizado) {
+      document.getElementById('det-fecha-resolucion').textContent = d.actualizado;
+      resolucionWrap.style.display = '';
+    } else {
+      resolucionWrap.style.display = 'none';
+    }
     const estadoEl = document.getElementById('det-estado');
     estadoEl.textContent = ESTADO_LABELS[d.estado] || d.estado;
     estadoEl.style.color = d.estado === 'aprobada' ? '#3a6034' : d.estado === 'pendiente' ? '#8a6200' : '#888';

@@ -270,4 +270,11 @@
   
   btnModalConfirmar.addEventListener('click', ejecutarGenerarCorte);
 
+  document.getElementById('btnExportXls')?.addEventListener('click', () => {
+    const fecha = inputFecha.value;
+    if (!fecha) { toast('Consulta un día primero.', 'warning'); return; }
+    if (!_datos) { toast('Consulta un día primero.', 'warning'); return; }
+    window.location.href = `/ventas/api/corte-ventas/exportar-excel?fecha=${encodeURIComponent(fecha)}`;
+  });
+
   if (inputFecha && inputFecha.value) cargarResumen(inputFecha.value);

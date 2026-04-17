@@ -425,7 +425,6 @@ def exportar_excel_dashboard():
 
     # ── Generar archivo en memoria ──
     import io
-    import datetime
     buf = io.BytesIO()
     wb.save(buf)
     buf.seek(0)

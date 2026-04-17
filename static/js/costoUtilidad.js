@@ -8,6 +8,13 @@
 /* ── Formato ─────────────────────────────────────────────── */
 const P  = n => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const Pct = n => Number(n || 0).toFixed(1) + '%';
+function fmtCantidad(val, unidad) {
+  function fmt(n) { const r = Math.round(n * 100) / 100; return r % 1 === 0 ? String(Math.round(r)) : String(r); }
+  if (unidad === 'g'  && val >= 1000) return fmt(val / 1000) + ' kg';
+  if (unidad === 'ml' && val >= 1000) return fmt(val / 1000) + ' L';
+  if (unidad === 'l')  return val.toFixed(3) + ' l';
+  return Math.round(val) + ' ' + unidad;
+}
 function esc(s) {
   return String(s || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -149,7 +156,7 @@ function renderIngredientes(detalle) {
     return `<tr>
       <td>
         <div class="cu-ing-nm">${esc(ing.materia_nombre)}</div>
-        <div class="cu-ing-cant">${Number(ing.cantidad_requerida || 0).toFixed(3)} ${esc(ing.unidad_base)}</div>
+        <div class="cu-ing-cant">${fmtCantidad(Number(ing.cantidad_requerida || 0), ing.unidad_base)}</div>
       </td>
       <td style="text-align:right;font-family:'Playfair Display',serif;font-weight:700;color:var(--brown-dk);">
         ${P(ing.subtotal_costo)}

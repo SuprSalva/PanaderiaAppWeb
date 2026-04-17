@@ -6,6 +6,8 @@
 
 {% block container %}
 
+{% macro fmt_cantidad(val, unidad) %}{% set v = val | float %}{% if unidad == 'g' and v >= 1000 %}{% set cv = (v / 1000) | round(2) %}{% if cv == cv | int %}{{ cv | int }} kg{% else %}{{ cv }} kg{% endif %}{% elif unidad == 'ml' and v >= 1000 %}{% set cv = (v / 1000) | round(2) %}{% if cv == cv | int %}{{ cv | int }} L{% else %}{{ cv }} L{% endif %}{% elif unidad == 'l' %}{{ '{:,.3f}'.format(v) }} l{% else %}{{ '{:,.0f}'.format(v) }} {{ unidad }}{% endif %}{% endmacro %}
+
 <script>
   window.__RECETAS_CONFIG__ = {
     urlUnidades:   "{{ url_for('recetas_bp.recetas_unidades', id_materia=0) }}".replace('/0', '/'),
@@ -79,9 +81,9 @@
         <span class="insumo-cant">
           {% if d.cantidad_presentacion and d.unidad_presentacion %}
             {{ d.cantidad_presentacion }} {{ d.unidad_presentacion.simbolo }}
-            <span style="color:var(--brown-lt);font-size: var(--text-xs)">(= {{ d.cantidad_requerida }} {{ d.materia.unidad_base }})</span>
+            <span style="color:var(--brown-lt);font-size: var(--text-xs)">(= {{ fmt_cantidad(d.cantidad_requerida, d.materia.unidad_base) }})</span>
           {% else %}
-            {{ d.cantidad_requerida }} {{ d.materia.unidad_base }}
+            {{ fmt_cantidad(d.cantidad_requerida, d.materia.unidad_base) }}
           {% endif %}
         </span>
       </div>
@@ -385,10 +387,10 @@
               {% if d.cantidad_presentacion and d.unidad_presentacion %}
                 <strong>{{ d.cantidad_presentacion }} {{ d.unidad_presentacion.simbolo }}</strong>
               {% else %}
-                {{ d.cantidad_requerida }} {{ d.materia.unidad_base }}
+                {{ fmt_cantidad(d.cantidad_requerida, d.materia.unidad_base) }}
               {% endif %}
             </td>
-            <td>{{ d.materia.stock_actual }} {{ d.materia.unidad_base }}</td>
+            <td>{{ fmt_cantidad(d.materia.stock_actual, d.materia.unidad_base) }}</td>
             <td>
               {% if stock >= cant %}<span class="stock-ok">✅ Suficiente</span>
               {% else %}<span class="stock-mal">⚠️ Insuficiente</span>{% endif %}

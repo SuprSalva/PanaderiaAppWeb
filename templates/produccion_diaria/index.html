@@ -568,7 +568,7 @@
             <div style="overflow-x:auto;">
               <table class="ins-tbl">
                 <thead>
-                  <tr><th>Insumo</th><th>Unidad</th><th>Requerido</th>
+                  <tr><th>Insumo</th><th>Requerido</th>
                       <th>En stock</th><th>Estado</th></tr>
                 </thead>
                 <tbody id="ins-tbody"></tbody>
@@ -605,6 +605,17 @@
 
 {% block extra_scripts %}
 <script>
+function fmtCantidad(val, unidad) {
+  function fmt(n) {
+    const r = Math.round(n * 100) / 100;
+    return r % 1 === 0 ? String(Math.round(r)) : String(r);
+  }
+  if (unidad === 'g'  && val >= 1000) return fmt(val / 1000) + ' kg';
+  if (unidad === 'ml' && val >= 1000) return fmt(val / 1000) + ' L';
+  if (unidad === 'l')  return val.toFixed(3) + ' l';
+  return Math.round(val) + ' ' + unidad;
+}
+
 function toast(msg, tipo) {
   const container = document.getElementById('toast-container') || (() => {
     const c = document.createElement('div');
@@ -792,12 +803,12 @@ window.verificarInsumos = async () => {
     tbody.innerHTML=d.insumos.map(ins=>{
       const ok=ins.stock_suficiente; const pct=Math.min(ins.pct_disponible||0,100);
       const col=ok?'#10b981':(pct>=50?'#f59e0b':'#ef4444');
+      const falta = ins.cantidad_requerida - ins.stock_actual;
       return `<tr>
         <td style="font-weight:700;">${ins.nombre_materia}</td>
-        <td style="color:var(--brown-lt);">${ins.unidad_base}</td>
-        <td>${ins.cantidad_requerida.toFixed(2)}</td>
-        <td>${ins.stock_actual.toFixed(2)}<span class="bar-mini"><span class="bar-fill" style="width:${pct}%;background:${col};"></span></span></td>
-        <td class="${ok?'ins-ok':'ins-ko'}">${ok?'✅ OK':'⛔ Faltan '+(ins.cantidad_requerida-ins.stock_actual).toFixed(2)}</td></tr>`;
+        <td>${fmtCantidad(ins.cantidad_requerida, ins.unidad_base)}</td>
+        <td>${fmtCantidad(ins.stock_actual, ins.unidad_base)}<span class="bar-mini"><span class="bar-fill" style="width:${pct}%;background:${col};"></span></span></td>
+        <td class="${ok?'ins-ok':'ins-ko'}">${ok?'✅ OK':'⛔ Faltan '+fmtCantidad(falta, ins.unidad_base)}</td></tr>`;
     }).join('');
   } catch(e) {
     load.style.display='none'; res.style.display='block';

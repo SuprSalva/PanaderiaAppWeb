@@ -874,3 +874,174 @@ def api_corte_generar():
     except Exception as exc:
         current_app.logger.error('Error general al generar corte de caja | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'mensaje': str(exc)}), 500
+
+
+@ventas.route("/api/corte-ventas/exportar-excel")
+@login_required
+@roles_required('admin', 'empleado')
+def api_corte_exportar_excel():
+    """Exporta el corte diario a .xlsx usando los mismos datos de sp_corte_resumen."""
+    from flask import Response as FlaskResponse
+    import io
+
+    fecha_str = request.args.get('fecha', date.today().isoformat())
+    try:
+        datetime.strptime(fecha_str, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'ok': False, 'error': 'Fecha inválida.'}), 400
+
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        return jsonify({'ok': False, 'error': 'openpyxl no instalado'}), 500
+
+    try:
+        raw_conn = get_role_engine().raw_connection()
+        try:
+            cur = raw_conn.cursor()
+            cur.callproc('sp_corte_resumen', (fecha_str,))
+            kpis_raw      = fetch_as_dict(cur); cur.nextset()
+            ventas_raw    = fetch_as_dict(cur); cur.nextset()
+            productos_raw = fetch_as_dict(cur); cur.nextset()
+            corte_raw     = fetch_as_dict(cur)
+            cur.close()
+        finally:
+            raw_conn.close()
+    except Exception as exc:
+        current_app.logger.error('Error al exportar excel corte | usuario: %s | error: %s', current_user.username, str(exc))
+        return jsonify({'ok': False, 'error': str(exc)}), 500
+
+    kpi   = kpis_raw[0]  if kpis_raw   else {}
+    corte = corte_raw[0] if corte_raw  else None
+
+    # ── Estilos ──────────────────────────────────────────────────
+    hdr_fill = PatternFill('solid', fgColor='7C4A1E')
+    hdr_font = Font(bold=True, color='FFFFFF', size=10)
+    kpi_fill = PatternFill('solid', fgColor='F5E6D3')
+    pos_font = Font(color='2D6A27', bold=True)
+    neg_font = Font(color='C0522A', bold=True)
+    thin     = Side(style='thin', color='D0B89A')
+    border   = Border(left=thin, right=thin, top=thin, bottom=thin)
+    center   = Alignment(horizontal='center', vertical='center')
+    money    = '#,##0.00'
+
+    def hcell(ws, row, col, val, w=None):
+        c = ws.cell(row=row, column=col, value=val)
+        c.font = hdr_font; c.fill = hdr_fill
+        c.border = border; c.alignment = center
+        if w: ws.column_dimensions[get_column_letter(col)].width = w
+        return c
+
+    def dcell(ws, row, col, val, fmt=None, fnt=None):
+        c = ws.cell(row=row, column=col, value=val)
+        c.border = border
+        if fmt: c.number_format = fmt
+        if fnt: c.font = fnt
+        return c
+
+    wb = Workbook()
+
+    # ══ HOJA 1: KPIs ════════════════════════════════════════════
+    ws1 = wb.active
+    ws1.title = 'Resumen'
+
+    ws1.merge_cells('A1:F1')
+    t = ws1['A1']
+    t.value = f'Corte de Ventas Diario — {fecha_str}'
+    t.font  = Font(bold=True, size=13, color='7C4A1E')
+    t.alignment = center
+    ws1.row_dimensions[1].height = 28
+
+    if corte:
+        ws1.merge_cells('A2:F2')
+        s = ws1['A2']
+        cerrado_en = corte.get('cerrado_en') or ''
+        cerrado_en_str = cerrado_en.strftime('%d/%m/%Y %H:%M') if hasattr(cerrado_en, 'strftime') else str(cerrado_en)
+        s.value = f'Corte cerrado — {cerrado_en_str}  ·  {corte.get("cerrado_por_nombre", "")}'
+        s.font  = Font(bold=True, size=10, color='3a6034')
+        s.alignment = center
+
+    kpi_labels = [
+        ('Ventas',         int(kpi.get('num_ventas', 0) or 0),          '#,##0'),
+        ('Total vendido',  float(kpi.get('total_vendido', 0) or 0),     money),
+        ('Piezas',         float(kpi.get('total_piezas', 0) or 0),      '#,##0'),
+        ('Efectivo',       float(kpi.get('efectivo', 0) or 0),          money),
+        ('Tarjeta',        float(kpi.get('tarjeta', 0) or 0),           money),
+        ('Transferencia',  float(kpi.get('transferencia', 0) or 0),     money),
+    ]
+    for i, (lbl, val, fmt) in enumerate(kpi_labels, start=1):
+        lc = ws1.cell(row=4, column=i, value=lbl)
+        lc.font = Font(bold=True, size=9, color='9C7C5C')
+        lc.alignment = center; lc.fill = kpi_fill; lc.border = border
+        vc = ws1.cell(row=5, column=i, value=val)
+        vc.number_format = fmt; vc.alignment = center
+        vc.font = Font(bold=True, size=11, color='7C4A1E')
+        vc.fill = kpi_fill; vc.border = border
+        ws1.column_dimensions[get_column_letter(i)].width = 18
+
+    # Tabla transacciones
+    cols_tx = [('Folio',14),('Origen',12),('Hora',10),('Método',12),('Piezas',10),('Total',14),('Estado',12),('Vendedor',22)]
+    R = 7
+    for ci, (lbl, w) in enumerate(cols_tx, 1):
+        hcell(ws1, R, ci, lbl, w)
+    ws1.row_dimensions[R].height = 18
+
+    sum_piezas = sum_total = 0
+    for v in ventas_raw:
+        R += 1
+        ok  = str(v.get('estado', '')).lower() == 'completada'
+        tot = float(v.get('total', 0) or 0)
+        pzs = int(v.get('total_piezas', 0) or 0)
+        if ok: sum_piezas += pzs; sum_total += tot
+        hora = v.get('hora', '')
+        hora_str = str(hora)[:5] if hora else ''
+        dcell(ws1, R, 1, str(v.get('folio', '')))
+        dcell(ws1, R, 2, str(v.get('origen', '')))
+        dcell(ws1, R, 3, hora_str)
+        dcell(ws1, R, 4, str(v.get('metodo_pago', '')))
+        dcell(ws1, R, 5, pzs if ok else 0)
+        dcell(ws1, R, 6, tot if ok else 0, money, pos_font if ok else neg_font)
+        dcell(ws1, R, 7, str(v.get('estado', '')))
+        dcell(ws1, R, 8, str(v.get('vendedor', '')))
+        ws1.row_dimensions[R].height = 15
+
+    R += 1
+    tf = ws1.cell(row=R, column=5, value=sum_piezas)
+    tf.font = Font(bold=True); tf.border = border
+    tt = ws1.cell(row=R, column=6, value=sum_total)
+    tt.font = Font(bold=True); tt.number_format = money; tt.border = border
+    for ci in [1,2,3,4,7,8]:
+        ws1.cell(row=R, column=ci).border = border
+
+    ws1.freeze_panes = 'A8'
+
+    # ══ HOJA 2: Top Productos ════════════════════════════════════
+    ws2 = wb.create_sheet('Top Productos')
+    ws2.merge_cells('A1:C1')
+    t2 = ws2['A1']
+    t2.value = f'Top Productos — {fecha_str}'
+    t2.font  = Font(bold=True, size=13, color='7C4A1E')
+    t2.alignment = center
+    ws2.row_dimensions[1].height = 24
+
+    for ci, (lbl, w) in enumerate([('Producto',30),('Piezas',14),('Ingresos',16)], 1):
+        hcell(ws2, 3, ci, lbl, w)
+
+    for i, p in enumerate(productos_raw, 4):
+        dcell(ws2, i, 1, str(p.get('producto', '')))
+        dcell(ws2, i, 2, int(p.get('piezas_vendidas', 0) or 0))
+        dcell(ws2, i, 3, float(p.get('total_generado', 0) or 0), money, pos_font)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    nombre = f'corte_{fecha_str}.xlsx'
+    current_app.logger.info('Excel corte exportado | usuario: %s | fecha: %s', current_user.username, fecha_str)
+    return FlaskResponse(
+        buf.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f'attachment; filename="{nombre}"'}
+    )

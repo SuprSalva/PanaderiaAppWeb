@@ -180,7 +180,7 @@
         <tr>
           <th>Producto</th>
           <th style="text-align:right;">Costo / pza</th>
-          <th style="text-align:right;">Precio venta</th>
+          <th style="text-align:right;">Precio prom. venta</th>
           <th style="text-align:right;">Ganancia / pza</th>
           <th>Margen</th>
         </tr>
@@ -202,7 +202,12 @@
           <td>
             <div class="cu-prod-cell">
               <div class="cu-prod-icon">🍞</div>
-              <span class="cu-prod-nm">{{ p.nombre_producto }}</span>
+              <div>
+                <span class="cu-prod-nm">{{ p.nombre_producto }}</span>
+                <span style="display:block;font-size:11px;color:var(--brown-lt);">
+                  {{ p.rendimiento }} {{ p.unidad_rendimiento }} por lote
+                </span>
+              </div>
             </div>
           </td>
           <td style="text-align:right;">
