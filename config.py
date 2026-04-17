@@ -44,3 +44,4 @@ class DevelopmentConfig(Config):
 
     RECAPTCHA_SITE_KEY   = '6Ld6HLAsAAAAANxYuQKKmqGtSt3MfYSwuybC4AO-'  # Google test key
     RECAPTCHA_SECRET_KEY = '6Ld6HLAsAAAAABTmV-h4-sv1F_p6nE3dp7rxeZ04'  # Google test key
+    

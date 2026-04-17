@@ -1,5 +1,5 @@
 from . import ventas
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
 from auth import roles_required
 from sqlalchemy import text
@@ -35,6 +35,7 @@ def fetch_as_dict(cursor):
 @roles_required('admin', 'empleado')
 def index_ventas():
     """Vista de ventas online (pedidos entregados)"""
+    current_app.logger.info('Vista de registro general de ventas accesada | usuario: %s | fecha: %s', current_user.username, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return render_template("ventas/ventas.html")
 
 
@@ -43,6 +44,7 @@ def index_ventas():
 @roles_required('admin', 'empleado')
 def ventas_caja():
     """NUEVO: Vista de punto de venta en caja"""
+    current_app.logger.info('Vista de punto de venta en caja accesada | usuario: %s | fecha: %s', current_user.username, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return render_template("ventas/ventas_caja.html")
 
 
@@ -147,7 +149,7 @@ def api_estadisticas():
         })
     except Exception as e:
         db.session.rollback()
-        print(f"Error en api_estadisticas: {str(e)}")
+        current_app.logger.error('Error al consultar estadisticas de ventas | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'success': False, 'error': str(e)}), 500
     
 # ============================================================
@@ -302,9 +304,7 @@ def api_lista_ventas():
         })
     except Exception as e:
         db.session.rollback()
-        print(f"Error en api_lista_ventas: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        current_app.logger.error('Error al consutar lista de ventas | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({
             'success': False,
             'error': str(e)
@@ -450,7 +450,7 @@ def api_detalle_venta(id_venta):
         })
 
     except Exception as e:
-        print(f"Error en api_detalle_venta: {str(e)}")
+        current_app.logger.error('Error al consultar detalle de venta | usuario: %s | id_venta: %s | error: %s | fecha: %s', current_user.username, id_venta, str(e), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -496,7 +496,7 @@ def api_productos_stock():
         return jsonify({'success': True, 'productos': productos})
 
     except Exception as e:
-        print(f"Error en api_productos_stock: {str(e)}")
+        current_app.logger.error('Error al consultar productos en stock (api ventas) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @ventas.route("/api/estadisticas-caja")
@@ -535,7 +535,7 @@ def api_estadisticas_caja():
             }
         })
     except Exception as e:
-        print(f"Error en api_estadisticas_caja: {str(e)}")
+        current_app.logger.error('Error al consultar estadisticas de caja | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -607,6 +607,7 @@ def api_registrar_venta_caja():
 
             conn.commit()
 
+        current_app.logger.info('Venta en caja registrada | usuario: %s | folio: %s | total: %s | fecha: %s', current_user.username, output.folio_venta, output.total, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({
             'success': True,
             'venta': {
@@ -618,7 +619,7 @@ def api_registrar_venta_caja():
         })
 
     except Exception as e:
-        print(f"Error en api_registrar_venta_caja: {str(e)}")
+        current_app.logger.error('Error general al registrar venta en caja | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -710,10 +711,11 @@ def api_generar_ticket(id_venta):
 
             conn.commit()
 
+        current_app.logger.info('Ticket generado | usuario: %s | folio_venta: %s | fecha: %s', current_user.username, ticket_content['folio'], datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'success': True, 'ticket': ticket_content})
 
     except Exception as e:
-        print(f"Error en api_generar_ticket: {str(e)}")
+        current_app.logger.error('Error general al generar ticket | usuario: %s | id_venta: %s | error: %s | fecha: %s', current_user.username, id_venta, str(e), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ─── FUNCIONES DEL CORTE ───────
@@ -723,6 +725,7 @@ def api_generar_ticket(id_venta):
 @roles_required('admin', 'empleado')
 def corte_ventas():
     """Página del corte de ventas diario."""
+    current_app.logger.info('Vista de panel de corte de caja accesada | usuario: %s | fecha: %s', current_user.username, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     hoy = date.today().isoformat()
     return render_template("ventas/corteVentas.html", hoy=hoy)
 
@@ -815,6 +818,7 @@ def api_corte_resumen():
         })
 
     except Exception as exc:
+        current_app.logger.error('Error general al obtener resumen de corte | usuario: %s | fecha_objetivo: %s | error: %s | fecha: %s', current_user.username, fecha_str, str(exc), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'error': str(exc)}), 500
 
 
@@ -861,7 +865,12 @@ def api_corte_generar():
         finally:
             raw_conn.close()
 
+        if ok:
+            current_app.logger.info('Corte de caja generado exitosamente | usuario: %s | fecha_objetivo: %s | efectivo_declarado: %s | fecha: %s', current_user.username, fecha_str, efectivo_declarado, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        else:
+            current_app.logger.warning('Generacion de corte fallida | usuario: %s | fecha_objetivo: %s | error: %s | fecha: %s', current_user.username, fecha_str, mensaje, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': bool(ok), 'mensaje': mensaje})
 
     except Exception as exc:
+        current_app.logger.error('Error general al generar corte de caja | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'mensaje': str(exc)}), 500

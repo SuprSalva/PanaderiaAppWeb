@@ -60,7 +60,7 @@ def _eliminar_imagen_fisica(imagen_url: str | None):
         if os.path.isfile(ruta):
             os.remove(ruta)
     except Exception as exc:
-        current_app.logger.warning('No se pudo eliminar imagen física: %s | %s', imagen_url, exc)
+        current_app.logger.warning('No se pudo eliminar imagen fisica de producto | archivo: %s | error: %s', imagen_url, exc)
 
 
 def _form_con_archivos():
@@ -129,7 +129,7 @@ def productos_nuevo():
     try:
         imagen_url = _guardar_imagen(form.imagen.data)
     except Exception as exc:
-        current_app.logger.error('Error al guardar imagen | %s', exc)
+        current_app.logger.error('Error al guardar imagen de producto nuevo | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Error al procesar la imagen. El producto se creará sin imagen.', 'warning')
 
     try:
@@ -165,7 +165,7 @@ def productos_nuevo():
         return redirect(url_for('productos_bp.index_productos', modal='nuevo'))
     except Exception as exc:
         _eliminar_imagen_fisica(imagen_url)
-        current_app.logger.error('Error al crear producto | %s', exc)
+        current_app.logger.error('Error general al crear producto | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Error al guardar el producto. Intenta de nuevo.', 'error')
         return redirect(url_for('productos_bp.index_productos', modal='nuevo'))
 
@@ -193,7 +193,7 @@ def productos_editar(id_producto):
         try:
             nueva_imagen = _guardar_imagen(archivo)
         except Exception as exc:
-            current_app.logger.error('Error al procesar imagen en edición | %s', exc)
+            current_app.logger.error('Error al alterar imagen de producto | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Error al procesar la imagen. Se mantiene la imagen anterior.', 'warning')
 
     try:
@@ -235,7 +235,7 @@ def productos_editar(id_producto):
         flash(_msg_error_sp(e), 'error')
     except Exception as exc:
         _eliminar_imagen_fisica(nueva_imagen)
-        current_app.logger.error('Error al editar producto | %s', exc)
+        current_app.logger.error('Error general al editar producto | usuario: %s | id: %d | error: %s | fecha: %s', current_user.username, id_producto, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Error al actualizar el producto.', 'error')
 
     return redirect(url_for('productos_bp.index_productos'))
@@ -280,7 +280,7 @@ def imagen_subir(id_producto):
         return jsonify({'ok': True, 'msg': 'Imagen actualizada.',
                         'url': url_for('static', filename=nueva_url)})
     except Exception as exc:
-        current_app.logger.error('Error al subir imagen | %s', exc)
+        current_app.logger.error('Error general al subir imagen | usuario: %s | producto: %d | error: %s | fecha: %s', current_user.username, id_producto, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'msg': 'Error interno al procesar la imagen.'}), 500
 
 @productos_bp.route('/productos/<int:id_producto>/imagen/quitar', methods=['POST'])
@@ -309,7 +309,7 @@ def imagen_quitar(id_producto):
         )
         return jsonify({'ok': True, 'msg': 'Imagen eliminada.'})
     except Exception as exc:
-        current_app.logger.error('Error al quitar imagen | %s', exc)
+        current_app.logger.error('Error general al quitar imagen | usuario: %s | producto: %d | error: %s | fecha: %s', current_user.username, id_producto, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'msg': 'Error interno al eliminar la imagen.'}), 500
 
 
@@ -346,7 +346,7 @@ def productos_toggle(id_producto):
         )
         flash(_msg_error_sp(e), 'error')
     except Exception as exc:
-        current_app.logger.error('Error al cambiar estatus | %s', exc)
+        current_app.logger.error('Error general al cambiar estatus | usuario: %s | id: %d | error: %s | fecha: %s', current_user.username, id_producto, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Error al cambiar el estatus.', 'error')
 
     return redirect(url_for('productos_bp.index_productos'))

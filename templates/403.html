@@ -1,18 +1,41 @@
 {% extends "layout.html" %}
 
-{% block container %}
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/403.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/errores.css') }}">
 {% endblock %}
 
-<div class="err-wrap">
-  <div class="err-code">403</div>
-  <div class="err-icon">🔒</div>
-  <div class="err-title">Acceso denegado</div>
-  <p class="err-msg">No tienes permiso para ver esta sección.<br>Si crees que esto es un error, contacta al
-    administrador.</p>
-  <a href="{{ url_volver }}" class="btn btn-primary" style="margin-top:8px">
-    ← Volver
-  </a>
+{% block container %}
+<div class="error-page">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="error-container">
+        <span class="error-icon">
+          <animated-icons
+            src="/static/icons/lock-926b8ba3.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="100"
+            width="100"
+          ></animated-icons>
+        </span>
+        <h1 class="error-code">403</h1>
+        <h2 class="error-title">Acceso denegado</h2>
+        <p class="error-msg">
+            No tienes permiso para entrar a esta área de la panadería.<br>
+            Si crees que esto es un error, contacta al administrador.
+        </p>
+        <a href="{{ url_for('dashboard') }}" class="btn-home">
+            <animated-icons
+                src="/static/icons/login-e611dfb8.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="40"
+                width="40"
+            ></animated-icons>
+            Volver al inicio
+        </a>
+    </div>
 </div>
 {% endblock %}

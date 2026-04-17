@@ -165,7 +165,7 @@ def crear_pedido():
 @roles_required('admin', 'empleado', 'panadero')
 def gestion_pedidos():
     current_app.logger.info(
-        'Vista gestión pedidos | usuario: %s | fecha: %s',
+        'Vista gestion de pedidos accesada | usuario: %s | fecha: %s',
         current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     )
     estado = request.args.get('estado', '') or None
@@ -238,7 +238,7 @@ def gestion_pedidos():
 @roles_required('cliente')
 def mis_pedidos():
     current_app.logger.info(
-        'Vista de mis pedidos | usuario: %s | fecha: %s',
+        'Vista de mis pedidos accesada | usuario: %s | fecha: %s',
         current_user.username,
         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     )
@@ -1198,7 +1198,7 @@ def crear_pedido_futuro():
         p_folio = row[1]
         n_pzas  = sum(item['qty'] for item in carrito_data)
 
-        tipo_msg = 'del día' if es_inmediato_int else 'programado'
+        tipo_msg = 'del dia' if es_inmediato_int else 'programado'
         current_app.logger.info(
             'Pedido %s creado | usuario: %s | folio: %s | piezas: %d | entrega: %s | fecha: %s',
             tipo_msg, current_user.username, p_folio, int(n_pzas), fecha_dt_str,

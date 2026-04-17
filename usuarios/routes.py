@@ -95,12 +95,12 @@ def verificar_email_usuario():
         )
         mail.send(msg)
         current_app.logger.info(
-            'Código de verificación enviado | destino: %s | creador: %s | fecha: %s',
+            'Codigo de verificacion enviado | destino: %s | creador: %s | fecha: %s',
             username, current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
     except Exception as e:
         session.pop('_pending_usuario', None)
-        current_app.logger.error('Error al enviar correo de verificación | error: %s', str(e))
+        current_app.logger.error('Error al enviar correo de verificacion | error: %s', str(e))
         return jsonify({'ok': False, 'error': 'No se pudo enviar el correo. Verifica la dirección o la configuración de correo.'}), 500
 
     return jsonify({'ok': True})
@@ -124,7 +124,7 @@ def crear_usuario():
     if codigo_ingresado != pending['codigo']:
         pending['intentos'] = pending.get('intentos', 0) + 1
         current_app.logger.warning(
-            'Código de verificación incorrecto | creador: %s | correo: %s | intento: %s | fecha: %s',
+            'Codigo de verificacion incorrecto | creador: %s | correo: %s | intento: %s | fecha: %s',
             current_user.username, pending.get('username','?'), pending['intentos'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
         if pending['intentos'] >= 5:
@@ -228,12 +228,12 @@ def verificar_email_editar(id_usuario):
         )
         mail.send(msg)
         current_app.logger.info(
-            'Código de verificación (editar) enviado | destino: %s | editor: %s | fecha: %s',
+            'Codigo de verificacion (editar) enviado | destino: %s | editor: %s | fecha: %s',
             username, current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
     except Exception as e:
         session.pop('_pending_editar_usuario', None)
-        current_app.logger.error('Error al enviar correo de verificación (editar) | error: %s', str(e))
+        current_app.logger.error('Error al enviar correo de verificacion (editar) | error: %s', str(e))
         return jsonify({'ok': False, 'error': 'No se pudo enviar el correo de verificación.'}), 500
 
     return jsonify({'ok': True})
@@ -256,7 +256,7 @@ def editar_usuario(id_usuario):
         if codigo_ingresado != pending['codigo']:
             pending['intentos'] = pending.get('intentos', 0) + 1
             current_app.logger.warning(
-                'Código de verificación (editar) incorrecto | editor: %s | correo: %s | intento: %s | fecha: %s',
+                'Codigo de verificacion (editar) incorrecto | editor: %s | correo: %s | intento: %s | fecha: %s',
                 current_user.username, pending.get('username', '?'), pending['intentos'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             )
             if pending['intentos'] >= 5:
@@ -383,15 +383,15 @@ def verificar_cambio_password():
 
     from werkzeug.security import check_password_hash
     if not check_password_hash(usuario.password_hash, actual):
-        current_app.logger.warning('Cambio de contraseña fallido (actual incorrecta) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        current_app.logger.warning('Cambio de contrasena fallido (actual incorrecta) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'error': 'La contraseña actual es incorrecta.'})
 
     if not _PWD_RE.match(nueva):
-        current_app.logger.warning('Cambio de contraseña fallido (requisitos no cumplidos) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        current_app.logger.warning('Cambio de contrasena fallido (requisitos no cumplidos) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'error': 'La nueva contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&_).'})
 
     if nueva != confirmar:
-        current_app.logger.warning('Cambio de contraseña fallido (no coinciden) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        current_app.logger.warning('Cambio de contrasena fallido (no coinciden) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'error': 'Las contraseñas no coinciden.'})
 
     codigo = str(random.randint(100000, 999999))
@@ -414,10 +414,10 @@ def verificar_cambio_password():
             )
         )
         mail.send(msg)
-        current_app.logger.info('Código de verificación (pwd) enviado | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        current_app.logger.info('Codigo de verificacion (pwd) enviado | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     except Exception as e:
         session.pop('_pending_pwd', None)
-        current_app.logger.error('Error al enviar correo de verificación (pwd) | error: %s', str(e))
+        current_app.logger.error('Error al enviar correo de verificacion (pwd) | error: %s', str(e))
         return jsonify({'ok': False, 'error': 'No se pudo enviar el correo de verificación. Intenta de nuevo.'})
 
     return jsonify({'ok': True, 'correo': current_user.username})
@@ -440,7 +440,7 @@ def cambiar_password():
 
         if codigo_ingresado != pending['codigo']:
             pending['intentos'] = pending.get('intentos', 0) + 1
-            current_app.logger.warning('Código de verificación (pwd) incorrecto | usuario: %s | intento: %s | fecha: %s', current_user.username, pending['intentos'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            current_app.logger.warning('Codigo de verificacion (pwd) incorrecto | usuario: %s | intento: %s | fecha: %s', current_user.username, pending['intentos'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             if pending['intentos'] >= 5:
                 session.pop('_pending_pwd', None)
                 return jsonify({'ok': False, 'error': 'Demasiados intentos incorrectos. El código ha expirado. Vuelve a iniciar el proceso.'})
@@ -455,12 +455,12 @@ def cambiar_password():
                 "CALL sp_cambiar_password(:id, :pwd_hash)",
                 {'id': current_user.id_usuario, 'pwd_hash': pwd_hash}
             )
-            current_app.logger.info('Contraseña actualizada correctamente | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            current_app.logger.info('Contrasena actualizada correctamente | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash('Contraseña actualizada correctamente.', 'success')
             return jsonify({'ok': True})
         except Exception as e:
             msg = str(e.orig) if hasattr(e, 'orig') else str(e)
-            current_app.logger.error('Error general al cambiar contraseña | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            current_app.logger.error('Error general al cambiar contrasena | usuario: %s | error: %s | fecha: %s', current_user.username, msg, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             return jsonify({'ok': False, 'error': f'Error al cambiar la contraseña: {msg}'})
 
     return render_template("usuarios/cambiar_password.html")
@@ -509,12 +509,12 @@ def mi_perfil_verificar_email():
         )
         mail.send(msg)
         current_app.logger.info(
-            'Código de verificación (perfil) enviado | destino: %s | usuario: %s | fecha: %s',
+            'Codigo de verificacion (perfil) enviado | destino: %s | usuario: %s | fecha: %s',
             username, current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
     except Exception as e:
         session.pop('_pending_perfil', None)
-        current_app.logger.error('Error al enviar correo verificación perfil | error: %s', str(e))
+        current_app.logger.error('Error al enviar correo verificacion perfil | error: %s', str(e))
         return jsonify({'ok': False, 'error': 'No se pudo enviar el correo de verificación. Intenta de nuevo.'})
 
     return jsonify({'ok': True, 'correo': username})
@@ -540,7 +540,7 @@ def mi_perfil():
             if codigo_ingresado != pending['codigo']:
                 pending['intentos'] = pending.get('intentos', 0) + 1
                 current_app.logger.warning(
-                    'Código perfil incorrecto | usuario: %s | intento: %s | fecha: %s',
+                    'Codigo perfil incorrecto | usuario: %s | intento: %s | fecha: %s',
                     current_user.username, pending['intentos'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 )
                 if pending['intentos'] >= 5:

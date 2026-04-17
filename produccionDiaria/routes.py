@@ -36,6 +36,7 @@ def _log(msg):
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def index_pd():
+    current_app.logger.info(_log('Vista de lista general de produccion diaria accesada'))
     estado    = request.args.get('estado', '')
     fecha_ini = request.args.get('fecha_ini', '')
     fecha_fin = request.args.get('fecha_fin', '')
@@ -212,12 +213,13 @@ def nueva_pd():
                      {'pd': id_pd, 'nm': nombre_pl, 'desc': None,
                       'usr': current_user.id_usuario})
 
+        current_app.logger.info(_log(f'Nueva produccion diaria creada | folio: {folio}'))
         flash(out2.get('mensaje', f'Producción {folio} creada.'),
               'success' if out2.get('ok') else 'warning')
         return redirect(url_for('produccion_diaria.detalle_pd', id_pd=id_pd))
 
     except Exception as exc:
-        current_app.logger.error(_log(f'Error nueva pd: {exc}'))
+        current_app.logger.error(_log(f'Error al crear nueva produccion diaria: {exc}'))
         flash(f'Error al crear la producción: {exc}', 'error')
         return redirect(url_for('produccion_diaria.index_pd'))
 
@@ -270,8 +272,13 @@ def iniciar_pd(id_pd):
         out = _call_sp("CALL sp_pd_iniciar(:pd,:usr,@ok,@msg)",
                        "SELECT @ok AS ok,@msg AS mensaje",
                        {'pd': id_pd, 'usr': current_user.id_usuario})
+        if out['ok']:
+            current_app.logger.info(_log(f'Produccion diaria iniciada | id_pd: {id_pd}'))
+        else:
+            current_app.logger.warning(_log(f'Intento de iniciar produccion diaria fallido | id_pd: {id_pd} | error: {out["mensaje"]}'))
         flash(out['mensaje'], 'success' if out['ok'] else 'error')
     except Exception as exc:
+        current_app.logger.error(_log(f'Error general al iniciar produccion diaria | id_pd: {id_pd} | error: {exc}'))
         flash(f'Error al iniciar: {exc}', 'error')
     return redirect(url_for('produccion_diaria.detalle_pd', id_pd=id_pd))
 
@@ -289,8 +296,13 @@ def finalizar_pd(id_pd):
         out = _call_sp("CALL sp_pd_finalizar(:pd,:usr,@ok,@msg)",
                        "SELECT @ok AS ok,@msg AS mensaje",
                        {'pd': id_pd, 'usr': current_user.id_usuario})
+        if out['ok']:
+            current_app.logger.info(_log(f'Produccion diaria finalizada | id_pd: {id_pd}'))
+        else:
+            current_app.logger.warning(_log(f'Intento de finalizar produccion diaria fallido | id_pd: {id_pd} | error: {out["mensaje"]}'))
         flash(out['mensaje'], 'success' if out['ok'] else 'error')
     except Exception as exc:
+        current_app.logger.error(_log(f'Error general al finalizar produccion diaria | id_pd: {id_pd} | error: {exc}'))
         flash(f'Error al finalizar: {exc}', 'error')
     return redirect(url_for('produccion_diaria.detalle_pd', id_pd=id_pd))
 
@@ -306,8 +318,13 @@ def cancelar_pd(id_pd):
         out = _call_sp("CALL sp_pd_cancelar(:pd,:usr,:mot,@ok,@msg)",
                        "SELECT @ok AS ok,@msg AS mensaje",
                        {'pd': id_pd, 'usr': current_user.id_usuario, 'mot': motivo})
+        if out['ok']:
+            current_app.logger.info(_log(f'Produccion diaria cancelada | id_pd: {id_pd}'))
+        else:
+            current_app.logger.warning(_log(f'Intento de cancelar produccion diaria fallido | id_pd: {id_pd} | error: {out["mensaje"]}'))
         flash(out['mensaje'], 'success' if out['ok'] else 'error')
     except Exception as exc:
+        current_app.logger.error(_log(f'Error general al cancelar produccion diaria | id_pd: {id_pd} | error: {exc}'))
         flash(f'Error al cancelar: {exc}', 'error')
     return redirect(url_for('produccion_diaria.detalle_pd', id_pd=id_pd))
 
@@ -327,8 +344,13 @@ def guardar_plantilla_pd(id_pd):
                        {'pd': id_pd, 'nm': form.nombre.data.strip(),
                         'desc': (form.descripcion.data or '').strip() or None,
                         'usr': current_user.id_usuario})
+        if out['ok']:
+            current_app.logger.info(_log(f'Plantilla de produccion guardada | id_pd: {id_pd} | nombre: {form.nombre.data.strip()}'))
+        else:
+            current_app.logger.warning(_log(f'Intento de guardar plantilla fallido | id_pd: {id_pd} | error: {out["mensaje"]}'))
         flash(out['mensaje'], 'success' if out['ok'] else 'error')
     except Exception as exc:
+        current_app.logger.error(_log(f'Error general al guardar plantilla de produccion | id_pd: {id_pd} | error: {exc}'))
         flash(f'Error al guardar plantilla: {exc}', 'error')
     return redirect(url_for('produccion_diaria.detalle_pd', id_pd=id_pd))
 

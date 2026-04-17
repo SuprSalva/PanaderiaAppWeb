@@ -628,6 +628,7 @@ GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_catalogo_pedido           TO rol_clie
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_detalle_pedido            TO rol_cliente;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_pedido              TO rol_cliente;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_pedido_caja         TO rol_cliente;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_pedido_futuro 			TO rol_cliente;
 
 -- Notificaciones
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_badge_notifs              TO rol_cliente;

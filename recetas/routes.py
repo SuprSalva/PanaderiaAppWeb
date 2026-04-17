@@ -382,9 +382,24 @@ def recetas_toggle(id_receta):
         nuevo_estatus = row.nuevo_estatus if row else 'actualizado'
         nombre_r      = row.nombre        if row else ''
         accion        = 'activada' if nuevo_estatus == 'activo' else 'desactivada'
+        current_app.logger.info(
+            'Estatus de receta cambiado | usuario: %s | receta: %s | estatus: %s | id: %s | fecha: %s',
+            current_user.username, nombre_r, nuevo_estatus, id_receta,
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(f'Receta "{nombre_r}" {accion}.', 'success')
     except (OperationalError, IntegrityError) as e:
+        current_app.logger.error(
+            'Error db al cambiar estatus de receta | usuario: %s | id: %s | error: %s | fecha: %s',
+            current_user.username, id_receta, str(e),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(_msg_error_sp(e), 'error')
     except Exception as e:
+        current_app.logger.error(
+            'Error general al cambiar estatus de receta | usuario: %s | id: %s | error: %s | fecha: %s',
+            current_user.username, id_receta, str(e),
+            datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        )
         flash(f'Error al cambiar estatus: {str(e)}', 'error')
     return redirect(url_for('recetas_bp.index_recetas'))

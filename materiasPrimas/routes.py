@@ -40,6 +40,7 @@ class _Paginacion:
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def index_materias_primas():
+    current_app.logger.info('Vista de panel de materias primas accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     buscar     = request.args.get('buscar', '').strip()
     estatus    = request.args.get('estatus', 'todos')
     nivel_stock = request.args.get('nivel_stock', '')

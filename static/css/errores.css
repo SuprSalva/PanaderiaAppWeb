@@ -98,7 +98,7 @@
 /* Tipografía de Error */
 .error-code {
   font-family: 'Playfair Display', serif;
-  font-size: var(--text-5xl);
+  font-size: 30px;
   font-weight: 900;
   color: var(--rust, #c0522a);
   line-height: 1;
@@ -107,10 +107,13 @@
 }
 
 .error-icon {
-  font-size: var(--text-5xl);
-  display: block;
+  font-size: 40px;
+  display: flex;
   margin-bottom: 20px;
   animation: bounce 2s infinite ease-in-out;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 @keyframes bounce {
@@ -127,7 +130,7 @@
 
 .error-title {
   font-family: 'Playfair Display', serif;
-  font-size: var(--text-2xl);
+  font-size:  30px;
   font-weight: 700;
   color: var(--brown-dk, #6b4423);
   margin: 20px 0 10px;

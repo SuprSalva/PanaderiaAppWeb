@@ -1,6 +1,6 @@
 from . import costoUtilidad
-from flask import render_template, request, redirect, url_for, flash, session, jsonify, Response
-from flask_login import login_required
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, Response, current_app
+from flask_login import login_required, current_user
 from models import db
 from utils.db_roles import get_role_engine
 from functools import wraps
@@ -79,6 +79,7 @@ def _serial(obj):
 @login_required
 @roles_required('admin')
 def index_costo_utilidad():
+    current_app.logger.info('Vista de Costo y Utilidad accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     form   = forms.CostoUtilidadFiltroForm(request.args)
     buscar = request.args.get('buscar', '').strip()
     orden  = request.args.get('orden', 'nombre_asc')
@@ -111,6 +112,7 @@ def index_costo_utilidad():
         kpis_raw = _call_sp_one('sp_kpi_costo_utilidad', ())
         kpis = {**_kpis_default, **(kpis_raw or {})}
     except Exception as e:
+        current_app.logger.error('Error al consultar datos de costo utilidad | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error al obtener datos: {e}', 'error')
         productos = []
         kpis = _kpis_default
@@ -131,11 +133,13 @@ def index_costo_utilidad():
 @login_required
 @roles_required('admin')
 def exportar_excel_costo():
+    current_app.logger.info('Reporte excel Costo Utilidad solicitado | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     try:
         from openpyxl import Workbook
         from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
         from openpyxl.utils import get_column_letter
-    except ImportError:
+    except ImportError as e:
+        current_app.logger.error('Fallo al exportar excel costo utilidad (Libreria openpyxl faltante) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'error': 'openpyxl no instalado'}), 500
 
     buscar   = request.args.get('buscar', '').strip() or None
@@ -153,6 +157,7 @@ def exportar_excel_costo():
         productos = _call_sp('sp_reporte_costo_utilidad',
                              (buscar, orden_sp or None, util_min, util_max))
     except Exception as e:
+        current_app.logger.error('Fallo de DB al exportar excel costo utilidad | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'error': str(e)}), 500
 
     # ── Estilos ──────────────────────────────────────────
@@ -229,6 +234,7 @@ def exportar_excel_costo():
     buf.seek(0)
 
     nombre = f'costo_utilidad_{datetime.date.today().isoformat()}.xlsx'
+    current_app.logger.info('Reporte excel Costo Utilidad generado exitosamente | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return Response(
         buf.getvalue(),
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -253,6 +259,7 @@ def api_detalle_costo(id_receta):
 @login_required
 @roles_required('admin')
 def index_utilidad():
+    current_app.logger.info('Vista de Utilidad Diaria accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     hoy   = datetime.date.today()
     hace30 = hoy - datetime.timedelta(days=30)
     return render_template(
@@ -314,11 +321,13 @@ def exportar_excel_utilidad():
       Hoja 1 → Resumen por producto
       Hoja 2 → Detalle por venta
     """
+    current_app.logger.info('Reporte excel Utilidad Diaria solicitado | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     try:
         from openpyxl import Workbook
         from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
         from openpyxl.utils import get_column_letter
-    except ImportError:
+    except ImportError as e:
+        current_app.logger.error('Fallo al exportar excel utilidad diaria (Libreria openpyxl faltante) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'error': 'openpyxl no instalado. Ejecuta: pip install openpyxl'}), 500
 
     hoy       = datetime.date.today()
@@ -338,6 +347,7 @@ def exportar_excel_utilidad():
         productos = sets[1]    if len(sets) > 1 else []
         detalle   = sets[2]    if len(sets) > 2 else []
     except Exception as exc:
+        current_app.logger.error('Fallo de DB al exportar excel utilidad diaria | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({'ok': False, 'error': str(exc)}), 500
 
     # ── Estilos ────────────────────────────────────────────────
@@ -502,6 +512,7 @@ def exportar_excel_utilidad():
     buf.seek(0)
 
     nombre = f'utilidad_{fecha_ini.isoformat()}_a_{fecha_fin.isoformat()}.xlsx'
+    current_app.logger.info('Reporte excel Utilidad Diaria generado exitosamente | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return Response(
         buf.getvalue(),
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

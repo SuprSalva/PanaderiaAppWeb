@@ -20,7 +20,7 @@ from flask import (
     Blueprint, render_template, redirect, url_for,
     flash, send_file, request, current_app
 )
-from flask_login import login_required
+from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from auth import roles_required
 from models import db
@@ -104,6 +104,7 @@ def _tamaño_legible(bytes_):
 @login_required
 @roles_required('admin')
 def index():
+    current_app.logger.info('Vista de respaldos accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     backups = _list_backups()
     for b in backups:
         b['tamaño_fmt'] = _tamaño_legible(b['tamaño'])
@@ -149,6 +150,7 @@ def crear():
             lineas_error = [l for l in stderr.splitlines()
                             if 'password' not in l.lower() and l.strip()]
             if lineas_error:
+                current_app.logger.error('Error al crear respaldo | usuario: %s | error: %s | fecha: %s', current_user.username, " | ".join(lineas_error[:3]), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 flash(f'Error al crear el respaldo: {" | ".join(lineas_error[:3])}', 'error')
                 return redirect(url_for('backup.index'))
 
@@ -157,13 +159,17 @@ def crear():
             gz.write(resultado.stdout)
 
         tamaño = _tamaño_legible(os.path.getsize(ruta_out))
+        current_app.logger.info('Respaldo de base de datos generado | usuario: %s | nombre: %s | tamano: %s | fecha: %s', current_user.username, nombre, tamaño, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Respaldo creado exitosamente: {nombre} ({tamaño})', 'success')
 
-    except FileNotFoundError:
+    except FileNotFoundError as e:
+        current_app.logger.error('Error general de respaldo (mysqldump no encontrado) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('No se encontró mysqldump en el sistema. Verifica que MySQL esté instalado.', 'error')
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as e:
+        current_app.logger.error('Error general de respaldo (timeout expirado) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('El respaldo tardó demasiado tiempo y fue cancelado.', 'error')
     except Exception as e:
+        current_app.logger.error('Error general de respaldo | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error inesperado: {e}', 'error')
 
     return redirect(url_for('backup.index'))
@@ -178,8 +184,10 @@ def descargar(nombre):
     nombre = secure_filename(nombre)
     ruta   = _backup_path(nombre)
     if not os.path.isfile(ruta):
+        current_app.logger.warning('Intento de descargar respaldo fallido (no existe) | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Archivo no encontrado.', 'error')
         return redirect(url_for('backup.index'))
+    current_app.logger.info('Descargando archivo de respaldo | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return send_file(ruta, as_attachment=True, download_name=nombre)
 
 
@@ -189,9 +197,11 @@ def descargar(nombre):
 @login_required
 @roles_required('admin')
 def restaurar(nombre):
+    current_app.logger.info('Iniciando proceso de restauracion de base de datos desde listado | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     nombre = secure_filename(nombre)
     ruta   = _backup_path(nombre)
     if not os.path.isfile(ruta):
+        current_app.logger.warning('Restauracion fallida (no existe) | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Archivo no encontrado.', 'error')
         return redirect(url_for('backup.index'))
 
@@ -205,8 +215,10 @@ def restaurar(nombre):
 @login_required
 @roles_required('admin')
 def subir():
+    current_app.logger.info('Iniciando proceso de restauracion de base de datos via archivo externo | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     archivo = request.files.get('archivo')
     if not archivo or archivo.filename == '':
+        current_app.logger.warning('Subida de restauracion fallida (archivo no recibido) | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('No se seleccionó ningún archivo.', 'error')
         return redirect(url_for('backup.index'))
 
@@ -216,6 +228,7 @@ def subir():
         # también aceptar .sql.gz
         pass
     elif ext != '.sql':
+        current_app.logger.warning('Subida de restauracion fallida (formato invalido) | usuario: %s | archivo: %s | extension: %s | fecha: %s', current_user.username, nombre_seguro, ext, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Solo se aceptan archivos .sql o .sql.gz', 'error')
         return redirect(url_for('backup.index'))
 
@@ -224,6 +237,7 @@ def subir():
     tamaño = archivo.tell()
     archivo.seek(0)
     if tamaño > MAX_UPLOAD:
+        current_app.logger.warning('Subida de restauracion fallida (limite de tamaño excedido) | usuario: %s | archivo: %s | size: %s | fecha: %s', current_user.username, nombre_seguro, tamaño, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'El archivo supera el límite de {_tamaño_legible(MAX_UPLOAD)}.', 'error')
         return redirect(url_for('backup.index'))
 
@@ -252,8 +266,10 @@ def eliminar(nombre):
     ruta   = _backup_path(nombre)
     if os.path.isfile(ruta):
         os.remove(ruta)
+        current_app.logger.info('Archivo de respaldo eliminado | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Respaldo "{nombre}" eliminado.', 'success')
     else:
+        current_app.logger.warning('Intento de eliminar respaldo fallido (archivo no encontado) | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Archivo no encontrado.', 'error')
     return redirect(url_for('backup.index'))
 
@@ -331,6 +347,7 @@ def _ejecutar_restauracion(ruta_archivo, comprimido):
         ]
 
         if resultado.returncode != 0 and lineas_error:
+            current_app.logger.error('Error al restaurar base de datos | usuario: %s | error: %s | fecha: %s', current_user.username, " | ".join(lineas_error[:3]), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             flash(f'Error al restaurar: {" | ".join(lineas_error[:3])}', 'error')
             return
 
@@ -344,14 +361,19 @@ def _ejecutar_restauracion(ruta_archivo, comprimido):
             pass
 
         nombre = os.path.basename(ruta_archivo)
+        current_app.logger.info('Restauracion completada con exito | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Base de datos restaurada exitosamente desde "{nombre}".', 'success')
 
-    except FileNotFoundError:
+    except FileNotFoundError as e:
+        current_app.logger.error('Error general de restauracion (mysql runtime no detectado) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('No se encontró el cliente mysql en el sistema. '
               'Verifica que MySQL esté instalado y en el PATH.', 'error')
-    except gzip.BadGzipFile:
+    except gzip.BadGzipFile as e:
+        current_app.logger.error('Error general de restauracion (gz corrupto) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('El archivo .gz está corrupto o no es un gzip válido.', 'error')
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as e:
+        current_app.logger.error('Error general de restauracion (timeout expirado) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('La restauración tardó demasiado tiempo y fue cancelada.', 'error')
     except Exception as e:
+        current_app.logger.error('Error general de restauracion | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash(f'Error inesperado durante la restauración: {e}', 'error')

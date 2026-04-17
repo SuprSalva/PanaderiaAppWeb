@@ -68,13 +68,15 @@ app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
 csrf = CSRFProtect(app)
 
+from logging.handlers import RotatingFileHandler
+
 LOG_FILENAME = 'app.log'
-logging.basicConfig(
-    filename=LOG_FILENAME,
-    level=logging.DEBUG,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+file_handler = RotatingFileHandler(LOG_FILENAME, maxBytes=10*1024*1024, backupCount=5, encoding='utf-8')
+file_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+
+logging.basicConfig(level=logging.DEBUG, handlers=[file_handler])
+app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.DEBUG)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -320,7 +322,7 @@ def cliente_recuperar_solicitar():
         'Código de recuperación – Dulce Migaja',
         html_recuperacion
     )
-    app.logger.info('Código de recuperación enviado | id: %s | username: %s | fecha: %s',
+    app.logger.info('Codigo de recuperacion enviado | id: %s | username: %s | fecha: %s',
                     usuario.id_usuario, usuario.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return jsonify(ok=True)
 
@@ -363,13 +365,13 @@ def cliente_recuperar_cambiar():
         )
         db.session.commit()
         session.pop('_pending_recovery', None)
-        app.logger.info('Contraseña recuperada | id: %s | fecha: %s',
+        app.logger.info('Contrasena recuperada | id: %s | fecha: %s',
                         pending['id_usuario'], datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         flash('Contraseña actualizada correctamente. Ya puedes iniciar sesión.', 'success')
         return jsonify(ok=True, redirect=url_for('login_cliente'))
     except Exception as e:
         db.session.rollback()
-        app.logger.error('Error al cambiar contraseña (recuperación) | id: %s | error: %s', pending['id_usuario'], e)
+        app.logger.error('Error al cambiar contrasena (recuperacion) | id: %s | error: %s', pending['id_usuario'], e)
         return jsonify(ok=False, error='Error al actualizar la contraseña. Intenta de nuevo.')
 
 
@@ -425,7 +427,7 @@ def registrar_cliente_verificar():
         'Código de verificación – Dulce Migaja',
         html_registro
     )
-    app.logger.info('Código de registro enviado | username: %s | fecha: %s',
+    app.logger.info('Codigo de registro enviado | username: %s | fecha: %s',
                     correo, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return jsonify(ok=True)
 
@@ -588,7 +590,7 @@ def api_mermas_materias():
             'materias': materias
         })
     except Exception as e:
-        print(f"Error en api_mermas_materias: {str(e)}")
+        app.logger.error('Error al consultar mermas de materias primas | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({
             'success': False,
             'error': str(e)
@@ -809,9 +811,7 @@ def api_listar_mermas():
             'limit': limit
         })
     except Exception as e:
-        print(f"Error en api_listar_mermas: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        app.logger.error('Error al consultar lista de mermas | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({
             'success': False,
             'error': str(e)
@@ -891,7 +891,7 @@ def api_estadisticas_mermas():
             'total_semana': float(total_semana) if total_semana else 0
         })
     except Exception as e:
-        print(f"Error en api_estadisticas_mermas: {str(e)}")
+        app.logger.error('Error al consultar estadisticas de mermas | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({
             'success': False,
             'error': str(e)
@@ -934,7 +934,7 @@ def api_mermas_productos():
             'productos': productos
         })
     except Exception as e:
-        print(f"Error en api_mermas_productos: {str(e)}")
+        app.logger.error('Error al consultar mermas de productos | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({
             'success': False,
             'error': str(e)
@@ -1158,7 +1158,7 @@ def api_listar_mermas_productos():
             'limit': limit
         })
     except Exception as e:
-        print(f"Error en api_listar_mermas_productos: {str(e)}")
+        app.logger.error('Error al listar mermas de productos terminados | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return jsonify({
             'success': False,
             'error': str(e)

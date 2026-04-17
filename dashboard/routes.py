@@ -80,6 +80,7 @@ PERIODOS_VALIDOS = ('hoy', 'semanal', 'mensual', 'anual')
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def index():
+    current_app.logger.info('Vista de dashboard principal accesada | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     form = PeriodoForm(request.args)
     now  = datetime.datetime.now()
     return render_template('dashboard.html', form=form, now=now)
@@ -114,7 +115,7 @@ def api_ventas():
             'serie':            serie,
         })
     except Exception as exc:
-        current_app.logger.error('dashboard.api_ventas | %s', exc)
+        current_app.logger.error('Error en API de ventas (dashboard) | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return _json({'ok': False, 'error': str(exc)}, 500)
 
 
@@ -146,7 +147,7 @@ def api_salidas():
             'por_categoria':        cats,
         })
     except Exception as exc:
-        current_app.logger.error('dashboard.api_salidas | %s', exc)
+        current_app.logger.error('Error en API de salidas (dashboard) | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return _json({'ok': False, 'error': str(exc)}, 500)
 
 
@@ -163,7 +164,7 @@ def api_utilidad():
         rows = _call_sp('sp_dash_utilidad_por_producto')
         return _json({'ok': True, 'productos': rows})
     except Exception as exc:
-        current_app.logger.error('dashboard.api_utilidad | %s', exc)
+        current_app.logger.error('Error en API de utilidad (dashboard) | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return _json({'ok': False, 'error': str(exc)}, 500)
 
 
@@ -180,7 +181,7 @@ def api_top_productos():
         rows = _call_sp('sp_dash_top_productos')
         return _json({'ok': True, 'productos': rows})
     except Exception as exc:
-        current_app.logger.error('dashboard.api_top_productos | %s', exc)
+        current_app.logger.error('Error en API top productos (dashboard) | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return _json({'ok': False, 'error': str(exc)}, 500)
 
 
@@ -201,7 +202,7 @@ def api_mp_criticas():
             'criticas': sum(1 for r in rows if r.get('nivel') == 'critico'),
         })
     except Exception as exc:
-        current_app.logger.error('dashboard.api_mp_criticas | %s', exc)
+        current_app.logger.error('Error en API de insumos criticos (dashboard) | usuario: %s | error: %s | fecha: %s', current_user.username, str(exc), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return _json({'ok': False, 'error': str(exc)}, 500)
 
 
@@ -209,11 +210,13 @@ def api_mp_criticas():
 @login_required
 @roles_required('admin', 'empleado', 'panadero')
 def exportar_excel_dashboard():
+    current_app.logger.info('Reporte excel de dashboard solicitado | usuario: %s | fecha: %s', current_user.username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     try:
         from openpyxl import Workbook
         from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
         from openpyxl.utils import get_column_letter
-    except ImportError:
+    except ImportError as e:
+        current_app.logger.error('Fallo al exportar excel dashboard (Libreria openpyxl faltante) | usuario: %s | error: %s | fecha: %s', current_user.username, str(e), datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         return _json({'ok': False, 'error': 'openpyxl no instalado'}), 500
 
     periodo = request.args.get('periodo', 'semanal')
@@ -428,6 +431,7 @@ def exportar_excel_dashboard():
     buf.seek(0)
 
     nombre = f'dashboard_{periodo}_{datetime.date.today().isoformat()}.xlsx'
+    current_app.logger.info('Reporte excel de dashboard generado exitosamente | usuario: %s | archivo: %s | fecha: %s', current_user.username, nombre, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     return Response(
         buf.getvalue(),
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
