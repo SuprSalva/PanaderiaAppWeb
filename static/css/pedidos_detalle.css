@@ -12,8 +12,8 @@
 }
 
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.info-item label { font-size: var(--text-xs); font-weight: 700; color: var(--brown-lt); display: block; text-transform: uppercase; }
-.info-item span  { font-size: var(--text-md); font-weight: 600; color: var(--brown-dk); }
+.info-item label { font-size: 15px; font-weight: 700; color: var(--brown-lt); display: block; text-transform: uppercase; }
+.info-item span  { font-size: 15px; font-weight: 600; color: var(--brown-dk); }
 
 /* ── CAJA DESTACADA ── */
 .caja-banner {
@@ -35,11 +35,11 @@
 /* ── TABLA DE PANES ── */
 .tbl-det { width: 100%; border-collapse: collapse; font-size: var(--text-base); }
 .tbl-det thead th {
-  padding: 8px 12px; text-align: left; font-size: var(--text-sm); font-weight: 700;
+  padding: 8px 12px; text-align: left; font-size: var(--text-base); font-weight: 700;
   color: var(--brown-lt); border-bottom: 1.5px solid var(--tan); text-transform: uppercase;
 }
 .tbl-det tbody td { padding: 12px; border-bottom: 1px solid var(--warm-bg); color: var(--brown-dk); }
-.tbl-det tfoot td { padding: 12px; font-weight: 800; color: var(--brown-dk); border-top: 2px solid var(--tan); font-size: var(--text-md); }
+.tbl-det tfoot td { padding: 12px; font-weight: 800; color: var(--brown-dk); border-top: 2px solid var(--tan); font-size: var(--text-base); }
 
 /* ── TIMELINE ── */
 .timeline { list-style: none; padding: 0; margin: 0; }
@@ -57,7 +57,7 @@
 
 /* ── PANEL ACCIONES ── */
 .accion-panel { background: var(--white); border: 1.5px solid var(--tan); border-radius: 14px; padding: 22px; position: sticky; top: 20px; box-shadow: 0 4px 20px var(--shadow); }
-.accion-panel h3 { font-family: 'Playfair Display', serif; font-size: var(--text-lg); color: var(--brown-dk); margin-bottom: 15px; }
+.accion-panel h3 { font-family: 'Playfair Display', serif; font-size: var(--text-base); color: var(--brown-dk); margin-bottom: 15px;  font-weight: 700;}
 
 .badge-estado { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: var(--text-base); font-weight: 700; margin-bottom: 20px; }
 

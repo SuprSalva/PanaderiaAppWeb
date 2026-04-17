@@ -375,8 +375,8 @@
     } catch (e) {
       _setMiniError('Error de conexión. Intenta de nuevo.');
     } finally {
-      btnGuardar.disabled    = false;
-      btnGuardar.textContent = 'Guardar unidad';
+      btnGuardar.disabled   = false;
+      btnGuardar.innerHTML  = '<animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FFFFFF","background":"#FFFFFF"}}\' height="20" width="20"></animated-icons> Guardar unidad';
     }
   };
 
@@ -385,6 +385,62 @@
     if (overlay && e.target === overlay) {
       window.cerrarMiniModal();
     }
+
+    var toggleOverlay = document.getElementById('modal-toggle');
+    if (toggleOverlay && e.target === toggleOverlay) {
+      _closeToggle();
+    }
+
+    if (e.target.closest('#toggle-close-btn') || e.target.closest('#toggle-cancel-btn')) {
+      _closeToggle();
+    }
+
+    var btn = e.target.closest('.btn-toggle-receta');
+    if (btn) {
+      _openToggle(btn.dataset.id, btn.dataset.nombre, btn.dataset.estatus);
+    }
   });
+
+  var TOGGLE_ICONS = {
+    danger:  '<animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}\' height="22" width="22"></animated-icons>',
+    success: '<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="22" width="22"></animated-icons>',
+  };
+
+  function _openToggle(id, nombre, estatus) {
+    var desactivar = (estatus === 'activo');
+    var overlay    = document.getElementById('modal-toggle');
+    var form       = document.getElementById('form-toggle');
+    if (!overlay || !form) return;
+
+    form.action = CFG.urlToggleBase + id;
+
+    if (desactivar) {
+      document.getElementById('toggle-header').style.background     = 'var(--rust)';
+      document.getElementById('toggle-header-title').innerHTML       = TOGGLE_ICONS.danger + ' Desactivar Receta';
+      document.getElementById('toggle-title').textContent            = '¿Desactivar esta receta?';
+      document.getElementById('toggle-msg').innerHTML                =
+        'La receta <strong>' + nombre + '</strong> no podrá usarse en nuevas órdenes de producción.<br>El historial se conserva.';
+      document.getElementById('toggle-confirm-btn').innerHTML        = TOGGLE_ICONS.danger + ' Desactivar';
+      document.getElementById('toggle-confirm-btn').className        = 'btn btn-danger';
+    } else {
+      document.getElementById('toggle-header').style.background     = '#5a7a52';
+      document.getElementById('toggle-header-title').innerHTML       = TOGGLE_ICONS.success + ' Activar Receta';
+      document.getElementById('toggle-title').textContent            = '¿Activar esta receta?';
+      document.getElementById('toggle-msg').innerHTML                =
+        'La receta <strong>' + nombre + '</strong> volverá a estar disponible para producción.';
+      document.getElementById('toggle-confirm-btn').innerHTML        = TOGGLE_ICONS.success + ' Activar';
+      document.getElementById('toggle-confirm-btn').className        = 'btn btn-primary';
+    }
+
+    overlay.classList.add('open');
+    overlay.style.display = 'flex';
+  }
+
+  function _closeToggle() {
+    var overlay = document.getElementById('modal-toggle');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
 
 })();

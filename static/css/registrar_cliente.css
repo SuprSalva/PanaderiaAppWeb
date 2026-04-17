@@ -88,19 +88,22 @@
     padding: 26px 36px;
     display: flex;
     align-items: center;
+    text-align: center;
+    justify-content: center;
     gap: 14px;
   }
 
   .reg-header-icon {
-    font-size: var(--text-2xl);
+    font-size: var(--text-3xl);
   }
 
   .reg-header h1 {
     font-family: 'Playfair Display', serif;
-    font-size: var(--text-lg);
+    font-size: var(--text-3xl);
     font-weight: 700;
     color: var(--cream);
     line-height: 1.2;
+    text-align: center;
   }
 
   .reg-header p {
@@ -197,6 +200,7 @@
     font-size: var(--text-base);
     color: var(--brown-lt);
     line-height: 1.7;
+    text-align: center;
   }
 
   .pwd-rules strong {
@@ -220,7 +224,7 @@
     border: none;
     border-radius: 50px;
     font-family: 'Lato', sans-serif;
-    font-size: var(--text-md);
+    font-size: 18px;
     font-weight: 700;
     cursor: pointer;
     transition: background .2s, transform .15s;

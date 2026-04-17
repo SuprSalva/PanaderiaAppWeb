@@ -151,7 +151,7 @@
                 <button class="qty-btn" onclick="modificarCantidad(${idx}, 1)">+</button>
             </div>
             <div class="cart-item-total">$${item.subtotal.toFixed(2)}</div>
-            <div class="cart-remove" onclick="eliminarDelCarrito(${idx})">🗑️</div>
+            <div class="cart-remove" onclick="eliminarDelCarrito(${idx})"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
         </div>
     `).join('');
 

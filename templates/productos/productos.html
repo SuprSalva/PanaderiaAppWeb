@@ -7,10 +7,20 @@
 
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title">🏷️ Catálogo de Productos</div>
+    <div class="db-page-title">
+      <animated-icons src="/static/icons/product-64f0cb11.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="50" width="50"></animated-icons>
+      Catálogo de Productos
+    </div>
     <div class="db-breadcrumb">Inicio <span>›</span> Catálogo <span>›</span> Productos</div>
   </div>
-  <a href="?modal=nuevo" class="btn btn-primary">＋ Nuevo Producto</a>
+  <a href="?modal=nuevo" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+    <animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30" width="30"></animated-icons>
+    Nuevo Producto
+  </a>
 </div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -25,21 +35,33 @@
 
 <div class="p-stats anim anim-1">
   <div class="p-stat">
-    <div class="p-stat-icon brown">🏷️</div>
+    <div class="p-stat-icon brown">
+      <animated-icons src="/static/icons/product-64f0cb11.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons>
+    </div>
     <div>
       <div class="p-stat-val">{{ total }}</div>
       <div class="p-stat-lbl">Productos Registrados</div>
     </div>
   </div>
   <div class="p-stat">
-    <div class="p-stat-icon green">✅</div>
+    <div class="p-stat-icon green">
+      <animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons>
+    </div>
     <div>
       <div class="p-stat-val">{{ total_activos }}</div>
       <div class="p-stat-lbl">Activos</div>
     </div>
   </div>
   <div class="p-stat">
-    <div class="p-stat-icon rust">🚫</div>
+    <div class="p-stat-icon rust">
+      <animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons>
+    </div>
     <div>
       <div class="p-stat-val">{{ total_inactivos }}</div>
       <div class="p-stat-lbl">Inactivos</div>
@@ -49,7 +71,11 @@
 
 <div class="toolbar anim anim-2">
   <div class="search-wrap">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon">
+      <animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons>
+    </span>
     <input type="text"
            id="searchInput"
            placeholder="Buscar por nombre o descripción…"
@@ -81,7 +107,6 @@
     </thead>
     <tbody>
       {% for p in productos %}
-      {# data-* para filtrado client-side #}
       <tr data-nombre="{{ p.nombre | lower }}"
           data-desc="{{ (p.descripcion or '') | lower }}"
           data-estatus="{{ p.estatus }}">
@@ -90,7 +115,6 @@
           <span class="row-num">{{ loop.index }}</span>
         </td>
 
-        {# Foto #}
         <td class="td-img">
           {% if p.imagen_url %}
             <img src="{{ url_for('static', filename=p.imagen_url) }}"
@@ -102,7 +126,6 @@
           {% endif %}
         </td>
 
-        {# Nombre + descripción #}
         <td>
           <div class="prod-cell">
             <div>
@@ -119,11 +142,11 @@
         <td>
           {% set n = p.recetas|length %}
           {% if n > 0 %}
-            <span style="font-size: var(--text-xs);font-weight:700;color:var(--brown)">
+            <span style="font-size: var(--text-base);font-weight:700;color:var(--brown)">
               {{ n }} receta{{ 's' if n > 1 else '' }}
             </span>
           {% else %}
-            <span style="color:var(--brown-lt);font-size: var(--text-xs)">Sin recetas</span>
+            <span style="color:var(--brown-lt);font-size: var(--text-base)">Sin recetas</span>
           {% endif %}
         </td>
 
@@ -135,18 +158,27 @@
 
         <td>
           <div class="actions-cell">
-            {# Editar — abre modal pasando el id como query param #}
             <a href="?modal=editar&id={{ p.id_producto }}"
-               class="btn btn-outline btn-sm btn-icon" title="Editar">✏️</a>
+               class="btn btn-outline btn-sm btn-icon" title="Editar">
+              <animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+            </a>
 
-            {# Toggle estatus #}
             <button class="btn btn-outline btn-sm btn-icon"
                     title="{{ 'Desactivar' if p.estatus=='activo' else 'Activar' }}"
                     onclick="abrirToggleProd({{ p.id_producto }}, '{{ p.nombre|replace("'","\\'")|replace('"','\\"') }}', '{{ p.estatus }}')">
-              {{ '🚫' if p.estatus=='activo' else '✅' }}
+              {% if p.estatus == 'activo' %}
+              <animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+              {% else %}
+              <animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+              {% endif %}
             </button>
 
-            {# Imagen — data-* evita conflicto de comillas con url_for en onclick #}
             <button type="button"
                     class="btn btn-outline btn-sm btn-icon btn-img"
                     title="{{ 'Cambiar imagen' if p.imagen_url else 'Subir imagen' }}"
@@ -154,7 +186,11 @@
                     data-nombre="{{ p.nombre | e }}"
                     data-url="{{ url_for('static', filename=p.imagen_url) if p.imagen_url else '' }}"
                     onclick="abrirModalImagen(this.dataset.id, this.dataset.nombre, this.dataset.url)">
-              📷
+              <animated-icons
+                src="/static/icons/camera-46faf108.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
             </button>
           </div>
         </td>
@@ -174,14 +210,19 @@
     <div id="pag-controles" class="pag-controles"></div>
   </div>
 
-</div>{# fin .table-card #}
+</div>
 
+<!-- ══ MODAL: NUEVO ══ -->
 <div class="modal-overlay {% if request.args.get('modal')=='nuevo' %}open{% endif %}" id="modal-nuevo">
   <div class="modal">
     <div class="modal-header">
-      <h2>➕ Nuevo Producto</h2>
-      <a href="{{ url_for('productos_bp.index_productos') }}"
-         class="modal-close-link">✕</a>
+      <h2 style="display:inline-flex;align-items:center;gap:8px;">
+        <animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons>
+        Nuevo Producto
+      </h2>
+      <a href="{{ url_for('productos_bp.index_productos') }}" class="modal-close-link">✕</a>
     </div>
     <form method="POST"
           action="{{ url_for('productos_bp.productos_nuevo') }}"
@@ -219,14 +260,19 @@
         </div>
       </div>
       <div class="modal-footer">
-        <a href="{{ url_for('productos_bp.index_productos') }}"
-           class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Guardar Producto</button>
+        <a href="{{ url_for('productos_bp.index_productos') }}" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+          <animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30" width="30"></animated-icons>
+          Guardar Producto
+        </button>
       </div>
     </form>
   </div>
 </div>
 
+<!-- ══ MODAL: EDITAR ══ -->
 {% set edit_id = request.args.get('id', 0)|int %}
 {% set prod_edit = namespace(obj=None) %}
 {% for p in productos %}
@@ -236,9 +282,13 @@
 <div class="modal-overlay {% if request.args.get('modal')=='editar' and prod_edit.obj %}open{% endif %}" id="modal-editar">
   <div class="modal">
     <div class="modal-header">
-      <h2>✏️ Editar Producto</h2>
-      <a href="{{ url_for('productos_bp.index_productos') }}"
-         class="modal-close-link">✕</a>
+      <h2 style="display:inline-flex;align-items:center;gap:8px;">
+        <animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons>
+        Editar Producto
+      </h2>
+      <a href="{{ url_for('productos_bp.index_productos') }}" class="modal-close-link">✕</a>
     </div>
 
     {% if prod_edit.obj %}{% set pe = prod_edit.obj %}
@@ -269,21 +319,25 @@
         </div>
       </div>
       <div class="modal-footer">
-        <a href="{{ url_for('productos_bp.index_productos') }}"
-           class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a href="{{ url_for('productos_bp.index_productos') }}" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+          <animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="22" width="22"></animated-icons>
+          Guardar Cambios
+        </button>
       </div>
     </form>
     {% endif %}
   </div>
 </div>
 
-
+<!-- ══ MODAL: TOGGLE ESTATUS ══ -->
 <div class="modal-overlay" id="modal-toggle-prod">
   <div class="modal" style="max-width:420px">
     <div class="modal-header" id="toggle-prod-header" style="background:var(--rust);">
-      <h2>
-        <span id="toggle-prod-icon">🚫</span>
+      <h2 style="display:inline-flex;align-items:center;gap:8px;">
+        <span id="toggle-prod-icon"></span>
         <span id="toggle-prod-title">Desactivar Producto</span>
       </h2>
       <button type="button" onclick="cerrarToggleProd()"
@@ -299,29 +353,39 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="cerrarToggleProd()">Cancelar</button>
-        <button type="submit" id="toggle-prod-btn" class="btn btn-danger">Confirmar</button>
+        <button type="submit" id="toggle-prod-btn" class="btn btn-danger"
+                style="display:inline-flex;align-items:center;gap:6px;">Confirmar</button>
       </div>
     </form>
   </div>
 </div>
+
+<!-- ══ MODAL: IMAGEN ══ -->
 <div class="modal-overlay" id="modalImagen">
-  <div class="modal" style="max-width:440px;">
+  <div class="modal" style="max-width:500px;">
     <div class="modal-header" style="background:var(--brown-dk);">
-      <h2>📷 Imagen del Producto</h2>
+      <h2 style="display:inline-flex;align-items:center;gap:8px;">
+        <animated-icons
+          src="/static/icons/camera-46faf108.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#FFFFFF","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons>
+        Imagen del Producto
+      </h2>
       <button type="button" onclick="cerrarModalImagen()" class="modal-close-link"
               style="background:rgba(255,255,255,.15);border:none;cursor:pointer;">✕</button>
     </div>
     <div class="modal-body">
       <p id="img-nombre-prod"
-         style="font-weight:700;color:var(--brown-dk);margin:0 0 14px;font-size: var(--text-base);"></p>
-      <div style="text-align:center;margin-bottom:18px;">
+         style="font-weight:700;color:var(--brown-dk);margin:0 0 14px;font-size: var(--text-md);"></p>
+      <div style="text-align:center;margin-bottom:18px; align-items: center; justify-content: center; display: flex; flex-direction: column; gap: 12px;">
         <img id="img-preview-actual" src="" alt="Vista previa"
              style="max-width:100%;max-height:200px;border-radius:10px;
                     border:2px solid var(--tan);display:none;object-fit:cover;">
         <div id="img-sin-imagen"
              style="background:var(--warm-bg);border:2px dashed var(--tan);
                     border-radius:10px;padding:36px 20px;
-                    color:var(--brown-lt);font-size: var(--text-sm);font-weight:600;">
+                    color:var(--brown-lt);font-size: var(--text-base);font-weight:600;">
           Sin imagen
         </div>
       </div>
@@ -340,11 +404,20 @@
               style="display:none;color:#dc2626;border:1.5px solid #dc2626;
                      background:transparent;border-radius:8px;padding:8px 16px;
                      font-family:'Lato',sans-serif;font-size: var(--text-sm);
-                     font-weight:700;cursor:pointer;">
-        🗑 Quitar imagen
+                     font-weight:700;cursor:pointer;align-items:center;gap:6px;">
+        <animated-icons src="/static/icons/from-deleted-3b251ac0.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons>
+        Quitar imagen
       </button>
       <button type="button" class="btn btn-outline" onclick="cerrarModalImagen()">Cancelar</button>
-      <button type="button" class="btn btn-primary" onclick="subirImagen()">💾 Guardar imagen</button>
+      <button type="button" class="btn btn-primary" onclick="subirImagen()"
+              style="display:inline-flex;align-items:center;gap:6px;">
+        <animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons>
+        Guardar imagen
+      </button>
     </div>
   </div>
 </div>

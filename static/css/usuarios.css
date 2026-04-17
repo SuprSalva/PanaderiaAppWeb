@@ -59,7 +59,7 @@
 .usr-stat-icon.green { background: #e2eede; }
 .usr-stat-icon.rust  { background: #fce8df; }
 .usr-stat-icon.tan   { background: #f7f0e5; }
-.usr-stat-val { font-family: 'Playfair Display', serif; font-size: var(--text-2xl); font-weight: 700; color: var(--brown-dk); line-height: 1; }
+.usr-stat-val {   font-family: Lato, sans-serif; font-size: var(--text-2xl); font-weight: 700; color: var(--brown-dk); line-height: 1; }
 .usr-stat-lbl { font-size: var(--text-sm); color: var(--brown-lt); margin-top: 3px; font-weight: 600; letter-spacing: .3px; }
 
 /* ── TOOLBAR ── */
@@ -155,13 +155,13 @@ tbody td:first-child { padding-left: 22px; }
   padding: 20px 26px; background: var(--brown-dk);
 }
 .modal-header h2 {
-  font-family: 'Playfair Display', serif; font-size: var(--text-md); color: var(--cream);
+  font-family: 'Playfair Display', serif; font-size: 20px; color: var(--cream);
   display: flex; align-items: center; gap: 10px;
 }
 .modal-close {
   width: 28px; height: 28px; border-radius: 6px;
   background: rgba(255,255,255,.15); border: none; cursor: pointer;
-  color: var(--cream); font-size: var(--text-md);
+  color: var(--cream); font-size: 20px;
   display: flex; align-items: center; justify-content: center; transition: background .2s;
 }
 .modal-close:hover { background: rgba(255,255,255,.25); }

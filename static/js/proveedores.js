@@ -19,10 +19,10 @@ function abrirToggleProv(id, nombre, estatus) {
   document.getElementById('toggle-prov-title').innerHTML =
     act ? ICONS.danger + ' Desactivar Proveedor' : ICONS.success + ' Activar Proveedor';
   document.getElementById('toggle-prov-msg').innerHTML = act
-    ? 'El proveedor <strong>' + nombre + '</strong> quedará inactivo y no podrá seleccionarse en nuevas compras.<br>El historial de compras se conserva.'
-    : 'El proveedor <strong>' + nombre + '</strong> volverá a estar disponible para registrar compras.';
+    ? 'El proveedor <strong>' + nombre + '</strong> quedará inactivo y no podrá seleccionarse en nuevas compras.<br>El historial de compras se conserva.<br><br>'
+    : 'El proveedor <strong>' + nombre + '</strong> volverá a estar disponible para registrar compras.<br><br>';
   var btn = document.getElementById('toggle-prov-btn');
-  btn.innerHTML = act ? ICONS.danger + ' Sí, desactivar' : ICONS.success + ' Sí, activar';
+  btn.innerHTML = act ? ICONS.danger + ' Desactivar' : ICONS.success + ' Activar';
   btn.className = act ? 'btn btn-danger' : 'btn btn-primary';
   document.getElementById('toggle-prov-header').style.background =
     act ? 'var(--rust)' : '#5a7a52';

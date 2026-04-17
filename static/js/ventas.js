@@ -99,8 +99,8 @@ function renderVentasTable(ventas) {
     
     tbody.innerHTML = ventas.map(venta => {
         const origenBadge = venta.origen === 'caja' 
-            ? '<span class="badge" style="background:#e2eede; color:#2c5f2d;">🏪 Caja</span>'
-            : '<span class="badge" style="background:#fef3d0; color:#8a6200;">📱 Online</span>';
+            ? '<span class="badge" style="background:#e2eede; color:#2c5f2d;"> Caja</span>'
+            : '<span class="badge" style="background:#fef3d0; color:#8a6200;"> Online</span>';
         
         return `
         <tr>
@@ -110,7 +110,10 @@ function renderVentasTable(ventas) {
             <td><span class="items-pill" title="${escapeHtml(venta.productos_resumen)}">${escapeHtml(resumirProductos(venta.productos_resumen, 40))}</span></td>
             <td><span class="money">$${venta.total.toFixed(2)}</span></td>
             <td>${escapeHtml(venta.vendedor_nombre)}</td>
-            <td><div class="actions-cell"><button class="btn btn-outline btn-sm btn-icon" onclick="verDetalleVenta(${venta.id_venta})">🧾</button></div></td>
+            <td><div class="actions-cell"><button title="Ver detalle" class="btn btn-outline btn-sm btn-icon" onclick="verDetalleVenta(${venta.id_venta})"><animated-icon><animated-icons src="/static/icons/newspaper-b3a68157.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons></button></div></td>
         </tr>
     `}).join('');
     

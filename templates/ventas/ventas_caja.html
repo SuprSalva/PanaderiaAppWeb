@@ -13,40 +13,40 @@
 
 <div class="db-topbar anim">
     <div>
-        <div class="db-page-title">💰 Punto de Venta</div>
+        <div class="db-page-title" style="display:inline-flex;align-items:center;gap:10px;"><animated-icons src="/static/icons/small-business-13011e87.json" trigger="loop" attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}' height="50" width="50"></animated-icons> Punto de Venta</div>
         <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Punto de Venta</div>
     </div>
     <div class="mode-switcher">
-        <button class="mode-btn" onclick="location.href='/ventas/ventas'">📱 Ventas en Línea</button>
-        <button class="mode-btn active">🏪 Ventas en Caja</button>
+        <button class="mode-btn" onclick="location.href='/ventas/ventas'" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/internet-banking-a93fff45.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Ventas en Línea</button>
+        <button class="mode-btn active" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/small-business-13011e87.json" trigger="loop" attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}' height="22" width="22"></animated-icons> Ventas en Caja</button>
     </div>
 </div>
 
 <!-- STATS -->
 <div class="stats-grid anim">
     <div class="stat-card">
-        <div class="stat-icon primary">💰</div>
+        <div class="stat-icon primary"><animated-icons src="/static/icons/small-business-13011e87.json" trigger="loop" attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}' height="30" width="30"></animated-icons></div>
         <div class="stat-info">
             <h3 id="totalHoy">$0</h3>
             <p>VENTAS HOY</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon success">🧾</div>
+        <div class="stat-icon success"><animated-icons src="/static/icons/note-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
         <div class="stat-info">
             <h3 id="ventasHoy">0</h3>
             <p>TRANSACCIONES</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon warning">🥐</div>
+        <div class="stat-icon warning"><animated-icons src="/static/icons/product-64f0cb11.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
         <div class="stat-info">
             <h3 id="piezasHoy">0</h3>
             <p>PIEZAS VENDIDAS</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon info">📊</div>
+        <div class="stat-icon info"><animated-icons src="/static/icons/report-v2-1869947d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
         <div class="stat-info">
             <h3 id="totalSemana">$0</h3>
             <p>ESTA SEMANA</p>
@@ -60,7 +60,7 @@
     <div class="pos-products anim">
         <div class="search-bar">
             <div class="search-wrapper">
-                <span class="search-icon">🔍</span>
+                <span class="search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span>
                 <input type="text" class="search-input" id="searchProducto" placeholder="Buscar producto por nombre...">
             </div>
         </div>
@@ -73,7 +73,7 @@
     <div class="pos-cart anim">
         <div class="cart-container">
             <div class="cart-header">
-                <h3>🛒 Carrito de Ventas</h3>
+                <h3 style="display:inline-flex;align-items:center;gap:8px;"><animated-icons src="/static/icons/cart-v1-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="25" width="25"></animated-icons> Carrito de Ventas</h3>
                 <span id="itemCount">0 items</span>
             </div>
             <div class="cart-items" id="cartItems">
@@ -85,17 +85,14 @@
                 <div class="total-row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
 
                 <div class="payment-methods">
-                    <button class="payment-btn" data-metodo="efectivo" onclick="seleccionarMetodoPago('efectivo')">💵
-                        Efectivo</button>
-                    <button class="payment-btn" data-metodo="tarjeta" onclick="seleccionarMetodoPago('tarjeta')">💳
-                        Tarjeta</button>
-                    <button class="payment-btn" data-metodo="transferencia"
-                        onclick="seleccionarMetodoPago('transferencia')">📱 Transferencia</button>
+                    <button class="payment-btn" data-metodo="efectivo" onclick="seleccionarMetodoPago('efectivo')" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/dollar-symbol-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Efectivo</button>
+                    <button class="payment-btn" data-metodo="tarjeta" onclick="seleccionarMetodoPago('tarjeta')" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/credit-card-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Tarjeta</button>
+                    <button class="payment-btn" data-metodo="transferencia" onclick="seleccionarMetodoPago('transferencia')" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/internet-banking-a93fff45.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Transferencia</button>
                 </div>
 
                 <div id="cashSection" style="display:none;">
                     <div class="cash-section">
-                        <label class="cash-label">💵 Efectivo recibido</label>
+                        <label class="cash-label">Efectivo recibido</label>
                         <input type="number" id="efectivoRecibido" class="cash-input" placeholder="$0.00" step="0.01"
                             min="0" oninput="calcularCambio()">
                         <div id="cambioInfo" class="change-info"></div>
@@ -104,10 +101,10 @@
 
                 <div class="total-row grand-total"><span>TOTAL</span><strong id="total">$0.00</strong></div>
 
-                <button class="btn-charge" id="btnCobrar" onclick="procesarVenta()" disabled>
-                    💳 Cobrar
+                <button class="btn-charge" id="btnCobrar" onclick="procesarVenta()" disabled style="display:inline-flex;align-items:center;gap:8px;justify-content:center;">
+                    <animated-icons src="/static/icons/credit-card-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FFFFFF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Cobrar
                 </button>
-                <button class="btn-clear" onclick="limpiarCarrito()">🗑️ Limpiar carrito</button>
+                <button class="btn-clear" onclick="limpiarCarrito()" style="display:inline-flex;align-items:center;gap:8px;justify-content:center;"><animated-icons src="/static/icons/from-deleted-3b251ac0.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Limpiar carrito</button>
             </div>
         </div>
     </div>
@@ -117,13 +114,12 @@
 <div class="modal-overlay" id="modalTicket">
     <div class="modal">
         <div class="modal-header">
-            <h4>🧾 Ticket de Venta</h4>
+            <h4 style="display:inline-flex;align-items:center;gap:8px;"><animated-icons src="/static/icons/note-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="28" width="28"></animated-icons> Ticket de Venta</h4>
             <button class="modal-close" onclick="cerrarModalTicket()">✕</button>
         </div>
         <div class="modal-body" id="ticketContent"></div>
         <div class="modal-footer">
-            <button class="btn-charge" style="margin:0; width:auto; padding:10px 20px;" onclick="imprimirTicket()">🖨️
-                Imprimir</button>
+            <button class="btn-charge" style="margin:0; width:auto; padding:10px 20px; display:inline-flex;align-items:center;gap:8px;" onclick="imprimirTicket()"><animated-icons src="/static/icons/printer-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FFFFFF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Imprimir</button>
             <button class="btn-clear" style="margin:0; width:auto;" onclick="cerrarModalTicket()">Cerrar</button>
         </div>
     </div>
@@ -154,11 +150,11 @@
 <div id="customAlertModal" class="custom-modal-overlay">
     <div class="custom-modal">
         <div class="custom-modal-header" id="alertHeader">
-            <span id="alertIcon">ℹ️</span>
+            <span id="alertIcon"><animated-icons src="/static/icons/alert-4ff92fe8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></span>
             <h3 id="alertTitle">Aviso</h3>
         </div>
         <div class="custom-modal-body">
-            <p id="alertMessage"></p>
+            <p id="alertMessage" style="font-size: var(--text-base);"></p>
         </div>
         <div class="custom-modal-footer">
             <button class="btn-modal btn-modal-primary" id="alertOkBtn">Entendido</button>

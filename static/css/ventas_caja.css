@@ -325,6 +325,7 @@
     .cart-item-info {
         flex: 1;
         min-width: 0;
+        overflow-wrap: anywhere;
     }
 
     .cart-item-name {
@@ -332,9 +333,10 @@
         font-size: var(--text-base);
         color: var(--brown-dk);
         margin-bottom: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
     }
 
     .cart-item-price {
@@ -430,12 +432,14 @@
     /* MÉTODOS DE PAGO */
     .payment-methods {
         display: flex;
+        flex-wrap: wrap;
         gap: 10px;
         margin: 16px 0;
     }
 
     .payment-btn {
-        flex: 1;
+        flex: 1 1 120px;
+        min-width: 120px;
         padding: 12px;
         border-radius: 10px;
         border: 1.5px solid var(--tan);
@@ -444,10 +448,11 @@
         font-weight: 600;
         font-size: var(--text-base);
         transition: all .2s;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
+        white-space: normal;
     }
 
     .payment-btn:hover {

@@ -16,7 +16,7 @@
   margin-bottom:22px; gap:12px; flex-wrap:wrap;
 }
 .db-page-title {
-  font-family:'Playfair Display',serif; font-size: var(--text-xl);
+  font-family:'Playfair Display',serif; font-size: var(--text-2xl);
   font-weight:700; color:var(--brown-dk);
   display:flex; align-items:center; gap:10px; line-height:1.2;
 }
@@ -24,7 +24,7 @@
   font-size: var(--text-base); color:var(--brown-lt); margin-top:4px;
   display:flex; align-items:center; gap:5px;
 }
-.db-breadcrumb span { color:var(--tan); }
+.db-breadcrumb span { color:#7d5c29; }
 
 /* ── Filtro de periodo ───────────────────────────────────────── */
 .dm-filtro-periodo {
@@ -46,7 +46,7 @@
 /* ── Etiqueta de sección ─────────────────────────────────────── */
 .dm-sec-label {
   font-size: var(--text-base); font-weight:700; text-transform:uppercase;
-  letter-spacing:1px; color:var(--brown-lt);
+  letter-spacing:1px; color:#735f44;
   margin:24px 0 12px; display:flex; align-items:center; gap:8px;
 }
 .dm-sec-label::after {
@@ -88,16 +88,16 @@
   font-size: var(--text-lg); flex-shrink:0;
 }
 .sc-val {
-  font-family:'Playfair Display',serif; font-size: var(--text-2xl);
+  font-family:'Lato', sans-serif; font-size: var(--text-2xl);
   font-weight:700; color:var(--brown-dk); line-height:1;
 }
-.sc-lbl { font-size: var(--text-base); color:var(--brown-lt); margin-top:5px; font-weight:600; }
-.sc-sub { font-size: var(--text-sm); color:var(--brown-lt); margin-top:3px; }
+.sc-lbl { font-size: 15px; color:var(--brown-lt); margin-top:5px; font-weight:600; }
+.sc-sub { font-size: 15px; color:var(--brown-lt); margin-top:3px; }
 
 /* Badge de cambio % */
 .dm-badge {
   display:inline-flex; align-items:center; padding:2px 9px;
-  border-radius:999px; font-size: var(--text-sm); font-weight:700;
+  border-radius:999px; font-size: 15px; font-weight:700;
 }
 .dm-badge.up      { background:#d1fae5; color:#065f46; }
 .dm-badge.down    { background:#fee2e2; color:#991b1b; }
@@ -143,7 +143,7 @@
 .chip-estado {
   padding:3px 10px; border-radius:999px;
   font-size: var(--text-sm); font-weight:700; display: inline-flex; justify-content: center !important; 
-  text-align: center !important; align-items: center;
+  text-align: center !important; align-items: center; 
 }
 .chip-critico     { background:#fee2e2; color:#991b1b; }
 .chip-bajo        { background:#fef3c7; color:#92400e; }

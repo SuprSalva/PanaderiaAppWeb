@@ -158,7 +158,7 @@ function renderIngredientes(detalle) {
         <div class="cu-ing-nm">${esc(ing.materia_nombre)}</div>
         <div class="cu-ing-cant">${fmtCantidad(Number(ing.cantidad_requerida || 0), ing.unidad_base)}</div>
       </td>
-      <td style="text-align:right;font-family:'Playfair Display',serif;font-weight:700;color:var(--brown-dk);">
+      <td style="text-align:right;font-family: Lato, sans-serif;font-weight:700;color:var(--brown-dk);">
         ${P(ing.subtotal_costo)}
       </td>
       <td style="min-width:100px;">

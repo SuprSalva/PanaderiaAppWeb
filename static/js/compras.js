@@ -112,7 +112,7 @@ function addRenglon() {
       <button type="button" title="Nueva unidad de compra"
         style="flex-shrink:0;width:28px;height:28px;border-radius:6px;background:#f3e8d8;border:1.5px solid var(--tan);color:var(--brown);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;padding:0;"
         onmouseover="this.style.background='var(--tan)'" onmouseout="this.style.background='#f3e8d8'"
-        onclick="abrirModalNuevaUnidad(${n})"><animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></button>
+        onclick="abrirModalNuevaUnidad(${n})"><animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></button>
     </div>
     <input type="number" class="det-input" name="costo_unitario[]"
            placeholder="$0.00" min="0" step="0.01" id="costo-${n}" oninput="calcSubtotal(${n})" required>
@@ -121,7 +121,9 @@ function addRenglon() {
     <input type="hidden" name="unidad_compra[]"     id="unidad-str-${n}" value="">
     <input type="hidden" name="factor_conversion[]" id="factor-${n}"     value="1">
     <input type="hidden" name="cantidad_base[]"     id="cant-base-${n}"  value="0">
-    <button type="button" class="btn-remove" onclick="removeRenglon(${n})">✕</button>
+    <button type="button" class="btn-remove" onclick="removeRenglon(${n})"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons</button>
   `;
   container.appendChild(div);
 }
@@ -305,9 +307,9 @@ function verDetalle(id) {
     .then(d => {
       document.getElementById('det-folio').textContent = d.folio;
       const estatusBadge = {
-        ordenado: '<span class="badge badge-ordenado" style="display:inline-flex;align-items:center;gap:4px"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="14" width="14"></animated-icons> Ordenado</span>',
-        finalizado: '<span class="badge badge-finalizado" style="display:inline-flex;align-items:center;gap:4px"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="14" width="14"></animated-icons> Finalizado</span>',
-        cancelado: '<span class="badge badge-cancelado" style="display:inline-flex;align-items:center;gap:4px"><animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}\' height="14" width="14"></animated-icons> Cancelado</span>',
+        ordenado: '<span class="badge badge-ordenado" style="display:inline-flex;align-items:center;gap:4px"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons> Ordenado</span>',
+        finalizado: '<span class="badge badge-finalizado" style="display:inline-flex;align-items:center;gap:4px"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons> Finalizado</span>',
+        cancelado: '<span class="badge badge-cancelado" style="display:inline-flex;align-items:center;gap:4px"><animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}\' height="30" width="30"></animated-icons> Cancelado</span>',
       }[d.estatus] || d.estatus;
 
       const cancelBox = d.estatus === 'cancelado'
@@ -317,7 +319,7 @@ function verDetalle(id) {
         <tr>
           <td><strong>${det.materia}</strong></td>
           <td>${det.cantidad_comprada} ${det.unidad_compra}</td>
-          <td style="color:var(--brown-lt);font-size:11px">${det.cantidad_comprada} × ${det.factor} = <strong>${det.cantidad_base} ${det.unidad_base}</strong></td>
+          <td style="color:var(--brown-lt);font-size:12px">${det.cantidad_comprada} × ${det.factor} = <strong style="color:var(--brown-dk)">${det.cantidad_base} ${det.unidad_base}</strong></td>
           ${d.estatus === 'finalizado' ? `<td>+${det.cantidad_base} ${det.unidad_base}</td>` : '<td style="color:var(--brown-lt)">—</td>'}
           <td>$${det.costo_unitario.toFixed(2)}</td>
           <td><strong>$${det.subtotal.toFixed(2)}</strong></td>
@@ -325,7 +327,7 @@ function verDetalle(id) {
 
       document.getElementById('det-body').innerHTML = `
         <div class="detail-section">
-          <h4 style="display:flex;align-items:center;gap:6px"><animated-icons src="/static/icons/shopping-1a426870.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons> Cabecera</h4>
+          <h4 style="display:flex;align-items:center;gap:6px"><animated-icons src="/static/icons/shopping-1a426870.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Cabecera</h4>
           <div class="detail-grid-2">
             <div class="detail-item"><label>Folio</label><span>${d.folio}</span></div>
             <div class="detail-item"><label>Estatus</label><span>${estatusBadge}</span></div>
@@ -350,8 +352,8 @@ function verDetalle(id) {
           </table>
         </div>
         <div style="background:var(--brown-dk);color:var(--cream);padding:12px 18px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:13px;opacity:.8">Total del Pedido</span>
-          <strong style="font-family:'Playfair Display',serif;font-size:22px">$${d.total.toFixed(2)}</strong>
+          <span style="font-size:var(--text-md);opacity:.8">Total del Pedido</span>
+          <strong style="font-family: Lato, sans-serif; font-size:22px">$${d.total.toFixed(2)}</strong>
         </div>`;
     })
     .catch(() => {
@@ -400,7 +402,7 @@ function abrirModalNuevaUnidad(n) {
   _nuRenglon = n;
   const mat = MATERIAS[matInput.value];
   document.getElementById('nu-materia-nombre').textContent = mat ? `${mat.nombre} (${mat.unidad_base})` : '';
-  document.getElementById('nu-hint').textContent = `Cuántas ${mat?.unidad_base || 'unidades base'} equivale 1 de esta unidad.`;
+  document.getElementById('nu-hint').innerHTML = `Cuántas <strong style="color:var(--brown-dk)">${mat?.unidad_base || 'unidades base'}</strong> equivale <strong style="color:var(--brown-dk)">1</strong> de esta unidad.`;
   document.getElementById('nu-nombre').value = '';
   document.getElementById('nu-simbolo').value = '';
   document.getElementById('nu-factor').value = '';
@@ -439,7 +441,7 @@ function guardarNuevaUnidad() {
   })
     .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
     .then(({ ok, data }) => {
-      btn.disabled = false; btn.textContent = '💾 Guardar Unidad';
+      btn.disabled = false; btn.innerHTML = `<animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Guardar Unidad`;
       if (!ok) { _nuErr('⚠️ ' + (data.error || 'Error al guardar.')); return; }
       const uSel = document.getElementById('usel-' + n);
       const opt = document.createElement('option');
@@ -460,7 +462,7 @@ function guardarNuevaUnidad() {
       setTimeout(() => { msgEl.style.display = 'none'; msgEl.style.background = ''; msgEl.style.color = ''; msgEl.style.borderColor = ''; }, 4000);
     })
     .catch(() => {
-      btn.disabled = false; btn.textContent = '💾 Guardar Unidad';
+      btn.disabled = false; btn.innerHTML = `<animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Guardar Unidad`;
       _nuErr('⚠️ Error de red al guardar.');
     });
 }

@@ -20,6 +20,7 @@
   const kpiPiezas     = document.getElementById('kpiPiezas');
   const kpiEfectivo   = document.getElementById('kpiEfectivo');
   const kpiTarjeta    = document.getElementById('kpiTarjeta');
+  const kpiTransferencia = document.getElementById('kpiTransferencia');
   const kpiCancelaciones = document.getElementById('kpiCancelaciones');
   const topProductos  = document.getElementById('topProductos');
 
@@ -92,7 +93,7 @@
     if (!ventas || ventas.length === 0) {
       tablaWrap.style.display  = 'none';
       tablaEstado.style.display = 'flex';
-      tablaEstado.innerHTML = `<span class="ico">🗒️</span><p>No hay transacciones para este día.</p>`;
+      tablaEstado.innerHTML = `<span class="ico"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="36" width="36"></animated-icons></span><p>No hay transacciones para este día.</p>`;
       footPiezas.textContent = '—';
       footTotal.textContent  = '—';
       return;
@@ -104,15 +105,26 @@
     bodyTrans.innerHTML = ventas.map(v => {
       const ok = v.estado === 'completada';
       if (ok) { sumPiezas += v.total_piezas; sumTotal += v.total; }
+      const origenBadge = v.origen === 'caja'
+        ? `<span class="badge badge-caja" style="display:inline-flex;align-items:center;gap:4px; font-size:var(--text-base);">Caja</span>`
+        : `<span class="badge badge-pedido_web" style="display:inline-flex;align-items:center;gap:4px; font-size:var(--text-base);"> Online</span>`;
+      const metodoBadge = {
+        efectivo: `<span class="badge badge-efectivo" style="display:inline-flex;align-items:center;gap:4px;">Efectivo</span>`,
+        tarjeta: `<span class="badge badge-tarjeta" style="display:inline-flex;align-items:center;gap:4px;">Tarjeta</span>`,
+        transferencia: `<span class="badge badge-transferencia" style="display:inline-flex;align-items:center;gap:4px;">Transferencia</span>`
+      }[v.metodo_pago] || `<span class="badge badge-otro">${v.metodo_pago}</span>`;
+      const estadoBadge = v.estado === 'completada'
+        ? `<span class="badge badge-completada" style="display:inline-flex;align-items:center;gap:4px;"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Completada</span>`
+        : `<span class="badge badge-cancelada" style="display:inline-flex;align-items:center;gap:4px;"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> ${v.estado}</span>`;
       return `<tr>
         <td><span class="folio-tag">${v.folio}</span></td>
-        <td><span class="badge badge-${v.origen}">${v.origen === 'caja' ? 'Caja' : 'Web'}</span></td>
+        <td>${origenBadge}</td>
         <td>${v.hora}</td>
-        <td><span class="badge badge-${v.metodo_pago}">${v.metodo_pago}</span></td>
+        <td>${metodoBadge}</td>
         <td>${ok ? v.total_piezas : '—'}</td>
         <td class="text-right">${ok ? fmt$(v.total) : `<s style="color:#aaa">${fmt$(v.total)}</s>`}</td>
-        <td><span class="badge badge-${v.estado}">${v.estado}</span></td>
-        <td style="font-size:12px;color:var(--brown-lt);">${v.vendedor}</td>
+        <td>${estadoBadge}</td>
+        <td style="font-size:var(--text-base);color:var(--brown-lt);">${v.vendedor}</td>
       </tr>`;
     }).join('');
 
@@ -122,7 +134,7 @@
 
   function renderTop(productos) {
     if (!productos || productos.length === 0) {
-      topProductos.innerHTML = `<div class="empty-state" style="padding:.75rem;"><span class="ico" style="font-size:1.2rem;">🥐</span><p>Sin ventas.</p></div>`;
+      topProductos.innerHTML = `<div class="empty-state" style="padding:.75rem;"><span class="ico" style="font-size:1.2rem;"><animated-icons src="/static/icons/report-v2-1869947d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></span><p>Sin ventas.</p></div>`;
       return;
     }
     topProductos.innerHTML = productos.map((p, i) => `

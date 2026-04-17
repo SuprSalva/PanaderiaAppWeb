@@ -105,13 +105,32 @@ BEGIN
 
     SELECT
         p.nombre                        AS producto,
-        ROUND(SUM(dv.cantidad), 0)      AS piezas_vendidas,
-        ROUND(SUM(dv.subtotal), 2)      AS total_generado
-    FROM ventas v
-    JOIN detalle_ventas dv ON dv.id_venta   = v.id_venta
-    JOIN productos      p  ON p.id_producto = dv.id_producto
-    WHERE DATE(v.fecha_venta) = p_fecha
-      AND v.estado = 'completada'
+        ROUND(SUM(det.cantidad), 0)     AS piezas_vendidas,
+        ROUND(SUM(det.subtotal), 2)     AS total_generado
+    FROM (
+      SELECT dv.id_producto, dv.cantidad, dv.subtotal
+      FROM ventas v
+      JOIN detalle_ventas dv ON dv.id_venta = v.id_venta
+      WHERE DATE(v.fecha_venta) = p_fecha
+        AND v.estado = 'completada'
+
+      UNION ALL
+
+      SELECT dp.id_producto, dp.cantidad, dp.subtotal
+      FROM pedidos p
+      JOIN detalle_pedidos dp ON dp.id_pedido = p.id_pedido
+      WHERE DATE(p.actualizado_en) = p_fecha
+        AND CONVERT(p.estado USING utf8mb4)
+            COLLATE utf8mb4_0900_ai_ci = 'entregado'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM logs_sistema l
+            WHERE l.referencia_id   = p.id_pedido
+              AND l.referencia_tipo = 'pedido'
+              AND l.accion          = 'venta_automatica'
+        )
+    ) AS det
+    JOIN productos p ON p.id_producto = det.id_producto
     GROUP BY p.id_producto, p.nombre
     ORDER BY piezas_vendidas DESC
     LIMIT 5;
