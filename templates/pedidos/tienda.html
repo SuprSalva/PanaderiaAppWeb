@@ -61,7 +61,9 @@
         <div class="tx-card-img">
           {% if p.imagen_url %}
             <img src="{{ url_for('static',filename=p.imagen_url) }}" alt="{{ p.nombre }}"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" style="display:block;">
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                 style="display:block;cursor:zoom-in;"
+                 onclick="abrirLightbox('/static/{{ p.imagen_url }}','{{ p.nombre|e }}')">
             <div class="tx-card-placeholder" style="display:none;"><span>🥐</span><span style="font-size: var(--text-xs);">sin imagen</span></div>
           {% else %}
             <div class="tx-card-placeholder" style="display:flex;"><span>🥐</span><span style="font-size: var(--text-xs);">sin imagen</span></div>
@@ -100,6 +102,13 @@
       <p>No hay panes que coincidan con tu búsqueda.</p>
     </div>
   </div>
+</div>
+
+<!-- Lightbox -->
+<div class="tx-lightbox" id="txLightbox" onclick="cerrarLightbox(event)">
+  <button class="tx-lb-close" onclick="cerrarLightbox(event)">✕</button>
+  <img id="txLbImg" src="" alt="">
+  <div class="tx-lb-caption" id="txLbCaption"></div>
 </div>
 
 <button class="tx-cart-fab" id="fabCarrito" onclick="abrirDrawer()">

@@ -127,3 +127,69 @@
   .tx-toolbar-divider{display:none}
   .tx-cart-fab{bottom:20px;right:16px;padding:12px 18px 12px 14px}
 }
+/* ══════════════════════════════════════════════════════════════
+   LIGHTBOX — agregar al final de pedidos_tienda.css
+   ══════════════════════════════════════════════════════════════ */
+
+.tx-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, .85);
+  display: none;
+  place-items: center;
+  padding: 1.5rem;
+  cursor: zoom-out;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.tx-lightbox.open {
+  display: grid;
+  animation: lbFadeIn .25s ease;
+}
+
+@keyframes lbFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.tx-lightbox img {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, .5);
+  cursor: default;
+  animation: lbZoomIn .25s ease;
+}
+
+@keyframes lbZoomIn {
+  from { transform: scale(.9); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+
+.tx-lb-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  background: rgba(255, 255, 255, .15);
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background .2s;
+}
+.tx-lb-close:hover {
+  background: rgba(255, 255, 255, .3);
+}
+
+.tx-lb-caption {
+  color: #fff;
+  text-align: center;
+  margin-top: .75rem;
+  font-size: .95rem;
+  opacity: .9;
+}

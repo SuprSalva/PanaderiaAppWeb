@@ -5,6 +5,24 @@ PRODS.forEach(p => { STOCK_MAP[p.id] = p.stock; });
 const carrito = {};
 let filtroActivo = 'todos', busqueda = '', ordenActivo = '';
 
+/* ── Lightbox ────────────────────────────────────────────────── */
+function abrirLightbox(src, nombre){
+  const lb = document.getElementById('txLightbox');
+  document.getElementById('txLbImg').src = src;
+  document.getElementById('txLbCaption').textContent = nombre;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarLightbox(e){
+  if(e && e.target.tagName === 'IMG') return;
+  const lb = document.getElementById('txLightbox');
+  lb.classList.remove('open');
+  if(!document.getElementById('txDrawer').classList.contains('open')){
+    document.body.style.overflow = '';
+  }
+}
+
 /* ── Drawer ─────────────────────────────────────────────────── */
 function abrirDrawer(){
   document.getElementById('txDrawer').classList.add('open');
@@ -17,7 +35,17 @@ function cerrarDrawer(){
   document.getElementById('txOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
-document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarDrawer(); });
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    // Cerrar lightbox primero si está abierto, si no cerrar drawer
+    const lb = document.getElementById('txLightbox');
+    if(lb.classList.contains('open')){
+      cerrarLightbox(e);
+    } else {
+      cerrarDrawer();
+    }
+  }
+});
 
 /* ── Pago ───────────────────────────────────────────────────── */
 function seleccionarPago(m){
@@ -135,16 +163,14 @@ function actualizarModo(){
   const fechaActual = fechaInput.value;
 
   if(conStock){
-    // Con stock: puede pedir para HOY o para cuando quiera
     document.getElementById('modoBanner').className  = 'tx-modo-banner tx-modo-inmediato';
     document.getElementById('modoIco').textContent   = '';
     document.getElementById('modoBannerTitulo').textContent = 'Todo disponible en tienda';
     document.getElementById('modoBannerDesc').textContent   =
       'Puedes recoger hoy o elegir cualquier otro día.';
     document.getElementById('labelFecha').textContent = '¿Cuándo quieres recoger?';
-    fechaInput.min = hoyISO();   // ← permite seleccionar hoy
+    fechaInput.min = hoyISO();
   } else {
-    // Sin stock completo: mínimo 24h
     document.getElementById('modoBanner').className  = 'tx-modo-banner tx-modo-futuro';
     document.getElementById('modoIco').textContent   = '';
     document.getElementById('modoBannerTitulo').textContent = 'Pedido por encargo';
@@ -154,7 +180,6 @@ function actualizarModo(){
     const min24 = new Date(); min24.setHours(min24.getHours() + 24);
     const min24ISO = `${min24.getFullYear()}-${String(min24.getMonth()+1).padStart(2,'0')}-${String(min24.getDate()).padStart(2,'0')}`;
     fechaInput.min = min24ISO;
-    // Si ya tenían hoy seleccionado, limpiar
     if(fechaActual && fechaActual < min24ISO){
       fechaInput.value = '';
       document.getElementById('hFecha').value = '';
@@ -175,8 +200,6 @@ function poblarHoras(conStock){
 
   sel.innerHTML = '<option value="">— Hora —</option>';
 
-  // Si es hoy y hay stock: empezar desde próxima hora disponible (+30 min)
-  // En cualquier otro caso: todas las horas de 9 a 21
   let horaMin = 9;
   if(esHoy && conStock){
     const ahora = new Date();
@@ -194,7 +217,6 @@ function poblarHoras(conStock){
   }
 
   if(sel.options.length === 1){
-    // No hay horarios disponibles hoy — sugerir mañana
     sel.innerHTML = '<option value="">Sin horarios disponibles hoy</option>';
     if(esHoy){
       const manana = new Date(); manana.setDate(manana.getDate() + 1);
@@ -204,7 +226,6 @@ function poblarHoras(conStock){
     return;
   }
 
-  // Restaurar selección previa si sigue siendo válida
   if(prevVal && [...sel.options].some(o => o.value === prevVal)) sel.value = prevVal;
 }
 
@@ -217,7 +238,6 @@ function onFechaChange(){
   const warn   = document.getElementById('fechaWarn');
   warn.style.display = 'none';
 
-  // Limpiar campos ocultos primero
   document.getElementById('hFecha').value = '';
   document.getElementById('hHora').value  = '';
   document.getElementById('hEsInmediato').value = '0';
@@ -230,14 +250,12 @@ function onFechaChange(){
   let valido   = true;
 
   if(esHoy && conStock){
-    // Compra del día: solo verificar que la hora no haya pasado
     if(selDt <= ahora){
       warn.style.display = 'block';
       warn.textContent   = '⚠️ Esa hora ya pasó. Elige una hora disponible.';
       valido = false;
     }
   } else {
-    // Pedido futuro: mínimo 24h desde ahora
     const minDt = new Date(); minDt.setHours(minDt.getHours() + 24);
     if(selDt < minDt){
       warn.style.display = 'block';
@@ -249,7 +267,6 @@ function onFechaChange(){
   if(valido){
     document.getElementById('hFecha').value        = fecha;
     document.getElementById('hHora').value         = hora;
-    // es_inmediato = 1 solo si la fecha es hoy Y hay stock suficiente
     document.getElementById('hEsInmediato').value  = (esHoy && conStock) ? '1' : '0';
   }
   actualizarBtn();
