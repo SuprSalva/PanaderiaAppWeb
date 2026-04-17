@@ -10,10 +10,10 @@
 <!-- ── Encabezado ─────────────────────────────────────────── -->
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
   <div>
-    <h1 style="font-family:'Playfair Display',serif; color:var(--brown-dk); font-size: var(--text-xl); margin:0 0 4px;">
+    <h1 style="font-family:'Playfair Display',serif; color:var(--brown-dk); font-size: var(--text-xl); margin:0 0 4px; font-weight: 700;">
       📦 Mis Pedidos
     </h1>
-    <p style="font-size: var(--text-sm); color:var(--brown-lt); margin:0;">
+    <p style="font-size: var(--text-base); color:var(--brown-lt); margin:0;">
       Sigue el estado de tus pedidos en tiempo real
     </p>
   </div>
@@ -46,7 +46,7 @@
     {% for p in pedidos %}
 
     {# Íconos de pago #}
-    {% set pago_ico = {'efectivo':'💵','tarjeta':'💳','transferencia':'🏦'} %}
+    {% set pago_ico = {'efectivo':'','tarjeta':'','transferencia':''} %}
 
     <div class="ped-card {{ p.estado }}">
       <div class="ped-card-inner">
