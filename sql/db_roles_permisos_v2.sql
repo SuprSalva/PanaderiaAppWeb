@@ -444,6 +444,10 @@ GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_estadisticas_mermas       TO rol_empl
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_badge_notifs              TO rol_empleado;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_marcar_notifs_leidas      TO rol_empleado;
 
+-- Dashboard
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_top_productos 		 TO rol_empleado;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_mp_criticas 		 TO rol_empleado;
+
 -- ── Vistas — empleado ─────────────────────────────────────────────────────────
 
 GRANT SELECT ON dulce_migaja.vw_usuarios                  TO rol_empleado;
@@ -571,6 +575,10 @@ GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_mermas_materias_primas      TO rol_pa
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_mermas_productos_terminados TO rol_panadero;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_estadisticas_mermas         TO rol_panadero;
 
+-- Dashboard
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_top_productos 		   TO rol_panadero;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_dash_mp_criticas 		   TO rol_panadero;
+
 -- ── Vistas — panadero ─────────────────────────────────────────────────────────
 
 GRANT SELECT ON dulce_migaja.vw_compras                  TO rol_panadero;
@@ -578,6 +586,8 @@ GRANT SELECT ON dulce_migaja.vw_produccion_diaria        TO rol_panadero;
 GRANT SELECT ON dulce_migaja.vw_materias_primas          TO rol_panadero;
 GRANT SELECT ON dulce_migaja.vw_productos                TO rol_panadero;
 GRANT SELECT ON dulce_migaja.vw_recetas                  TO rol_panadero;
+GRANT SELECT ON dulce_migaja.vw_dash_piezas_vendidas 	 TO rol_panadero;
+GRANT SELECT ON dulce_migaja.vw_dash_mp_criticas 		 TO rol_panadero;
 GRANT SELECT ON dulce_migaja.v_recetas_explosion         TO rol_panadero;
 GRANT SELECT ON dulce_migaja.v_recetas_por_tamanio       TO rol_panadero;
 GRANT SELECT ON dulce_migaja.v_costo_promedio_materia    TO rol_panadero;
@@ -622,6 +632,7 @@ GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_registrar_cliente         TO rol_clie
 
 -- Pedidos y catálogo
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_pedido_express            TO rol_cliente;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_pedido_futuro 			 TO rol_cliente;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_mis_pedidos_cliente       TO rol_cliente;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_catalogo_tienda           TO rol_cliente;
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_catalogo_pedido           TO rol_cliente;

@@ -71,7 +71,7 @@ def _pct(actual, anterior):
     return round((a - b) / b * 100, 1)
 
 
-PERIODOS_VALIDOS = ('hoy', 'semanal', 'mensual', 'anual')
+PERIODOS_VALIDOS = ('hoy', 'semanal', 'mensual')
 
 
 # ── Ruta principal ──────────────────────────────────────────────
@@ -91,7 +91,7 @@ def index():
 
 @dashboard_bp.route('/dashboard/api/ventas')
 @login_required
-@roles_required('admin', 'empleado')
+@roles_required('admin')
 def api_ventas():
     periodo = request.args.get('periodo', 'semanal')
     if periodo not in PERIODOS_VALIDOS:
@@ -207,7 +207,7 @@ def api_mp_criticas():
 
 @dashboard_bp.route('/dashboard/exportar-excel', methods=['GET'])
 @login_required
-@roles_required('admin', 'empleado', 'panadero')
+@roles_required('admin')
 def exportar_excel_dashboard():
     try:
         from openpyxl import Workbook
