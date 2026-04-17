@@ -97,14 +97,12 @@
 
         {# ══════════════════════════════════════
         SECCIÓN: PRINCIPAL
-        Dashboard → admin
-        Dashboard Ventas → admin, empleado
+        Dashboard → admin, empleado, panadero
         ══════════════════════════════════════ #}
-        {% if rol in ['admin', 'empleado'] %}
+        {% if rol in ['admin', 'empleado', 'panadero'] %}
         <div class="nav-section" id="section-principal">
           <div class="nav-section-label">Principal</div>
 
-          {% if rol == 'admin' %}
           <a href="{{ url_for('dashboard') }}"
             class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}" data-label="Dashboard" title="Dashboard">
             <span class="nav-icon"><animated-icons
@@ -115,7 +113,6 @@
             <span class="nav-label">Dashboard</span>
             <span class="nav-tooltip">Dashboard</span>
           </a>
-          {% endif %}
 
         {% endif %}
 
@@ -1411,9 +1408,9 @@
     color:rgba(255,255,255,.55); font-weight:700;
   }
   #dm-modal-content .dm-info-tag {
-    display:inline-block; padding:3px 10px; border-radius:999px;
-    background:rgba(255,255,255,.15); font-size: var(--text-xs); font-weight:700;
-    margin-bottom:10px;
+    display:inline-block; padding:4px 12px; border-radius:999px;
+    background:rgba(255,255,255,.15); font-size: var(--text-sm); font-weight:700;
+    margin-bottom:12px;
   }
   #dm-modal-content ul { margin:8px 0 0; padding-left:18px; }
   #dm-modal-content ul li { margin-bottom:6px; }

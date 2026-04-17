@@ -41,7 +41,7 @@ function renderBadge(elId, pct) {
 
 /* ── Etiqueta legible del periodo ────────────────────────────── */
 function labelPeriodo(p) {
-  return {hoy:'Hoy', semanal:'Esta semana', mensual:'Este mes', anual:'Este año'}[p] || p;
+  return {hoy:'Hoy', semanal:'Esta semana', mensual:'Este mes'}[p] || p;
 }
 
 /* ── Cambio de periodo ───────────────────────────────────────── */
@@ -64,6 +64,9 @@ function setPeriodo(p) {
    SP: sp_dash_ventas_totales(periodo)  · vw_dash_ventas_consolidadas
 ══════════════════════════════════════════════════════════════ */
 async function cargarVentas() {
+  const kpiTotal = el('kpi-ventas-total');
+  if (!kpiTotal) return;
+  
   txt('kpi-ventas-total',    '…');
   txt('kpi-ventas-anterior', '…');
   try {

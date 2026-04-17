@@ -12,247 +12,238 @@
 <div class="db-topbar anim">
   <div>
     <div class="db-page-title">
-      <animated-icons
-                src="/static/icons/report-v2-1869947d.json"
-                trigger="loop"
-                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-                height="50" width="50">
+      <animated-icons src="/static/icons/report-v2-1869947d.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="50" width="50">
       </animated-icons>
-    Dashboard</div>
+      Dashboard
+    </div>
     <div class="db-breadcrumb">
       Inicio <span>›</span> Panel de indicadores &nbsp;·&nbsp;
       <span style="font-size: var(--text-base);" id="ult-actualizacion">—</span>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <a href="/dashboard/exportar-excel?periodo=semanal" id="btn-export-excel" class="btn btn-outline" style="font-size: var(--text-xs);display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center; font-size: var(--text-base);" title="Exportar a Excel">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-right: 5px;">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <polyline points="10 9 9 9 8 9"/>
+    {% if current_user.rol.clave_rol == 'admin' %}
+    <a href="/dashboard/exportar-excel?periodo=semanal" id="btn-export-excel" class="btn btn-outline"
+      style="font-size: var(--text-xs);display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center; font-size: var(--text-base);"
+      title="Exportar a Excel">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-right: 5px;">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
       </svg>
       Exportar Excel
     </a>
-    <button id="btn-refresh" class="btn btn-outline" style="font-size: var(--text-xs);display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center; font-size: var(--text-base);">
+    {% endif %}
+    <button id="btn-refresh" class="btn btn-outline"
+      style="font-size: var(--text-xs);display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center; font-size: var(--text-base);">
       <span id="ico-refresh">
-        <animated-icons
-          src="/static/icons/sync-e9dea012.json"
-          trigger="loop"
+        <animated-icons src="/static/icons/sync-e9dea012.json" trigger="loop"
           attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-          height="25"
-          width="25"
-        ></animated-icons>
+          height="25" width="25"></animated-icons>
       </span> Actualizar
     </button>
   </div>
 </div>
 
 {# ══════════════════════════════════════════════════════════════
-   BLOQUE A — VENTAS TOTALES  (admin + empleado)
-   Filtro propio: Hoy / Semanal / Mensual / Anual
-   KPIs: total período actual + comparación vs período anterior
-   Gráfica: serie diaria del período seleccionado
+BLOQUE A — VENTAS TOTALES (admin)
+Filtro propio: Hoy / Semanal / Mensual / Anual
+KPIs: total período actual + comparación vs período anterior
+Gráfica: serie diaria del período seleccionado
 ══════════════════════════════════════════════════════════════ #}
-{% if current_user.rol.clave_rol in ('admin', 'empleado') %}
-<div class="dm-sec-label anim anim-1"> 
-  <animated-icons
-    src="/static/icons/marketplace-64371c87.json"
-    trigger="loop"
-    attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-    height="30"
-    width="30"
-  ></animated-icons>
-  Ventas Totales
-</div>
+{% if current_user.rol.clave_rol in ('admin') %}
+<div class="dm-filtered-zone">
+  <div class="dm-sec-label anim anim-1">
+    <animated-icons src="/static/icons/marketplace-64371c87.json" trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30" width="30"></animated-icons>
+    Métricas por Período
+  </div>
 
-{# Filtro de periodo — compartido con salidas #}
-<div class="dm-filtro-periodo anim anim-1" id="filtro-periodo">
-  <button class="dm-p-btn" data-periodo="hoy">Hoy</button>
-  <button class="dm-p-btn active" data-periodo="semanal">Semanal</button>
-  <button class="dm-p-btn" data-periodo="mensual">Mensual</button>
-  <button class="dm-p-btn" data-periodo="anual">Anual</button>
-</div>
+  {# Filtro de periodo #}
+  <div class="dm-filtro-periodo anim anim-1" id="filtro-periodo">
+    <button class="dm-p-btn" data-periodo="hoy">Hoy</button>
+    <button class="dm-p-btn active" data-periodo="semanal">Semanal</button>
+    <button class="dm-p-btn" data-periodo="mensual">Mensual</button>
+  </div>
 
-<div class="stats-grid anim anim-1" style="grid-template-columns: repeat({% if current_user.rol.clave_rol == 'admin' %}3{% else %}2{% endif %},1fr);">
+  <div class="stats-grid anim anim-1"
+    style="grid-template-columns: repeat({% if current_user.rol.clave_rol == 'admin' %}3{% else %}2{% endif %},1fr);">
 
-  {# Card: Ventas período actual #}
-  <div class="stat-card-v2 accent-brown">
-    <div class="sc-top">
-      <div class="sc-icon" style="background:#f5e6d3;">
-        <animated-icons
-          src="/static/icons/conversion-rate-fd11b837.json"
-          trigger="loop"
-          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-          height="40" width="40"
-        ></animated-icons>
+    {# Card: Ventas período actual #}
+    <div class="stat-card-v2 accent-brown">
+      <div class="sc-top">
+        <div class="sc-icon" style="background:#f5e6d3;">
+          <animated-icons src="/static/icons/conversion-rate-fd11b837.json" trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="40" width="40"></animated-icons>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="dm-badge neutral" id="badge-ventas">—</span>
+          <div class="dm-info-wrap">
+            <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+            <div class="dm-info-pop">
+              <div class="dm-info-text-lg">
+                <strong>Ingresos del Período</strong>
+                <span class="dm-info-tag">Ventas en mostrador + Pedidos entregados</span>
+                Es el dinero total que entró a la panadería durante el período que tienes seleccionado.
+                <ul>
+                  <li>Incluye tanto las ventas hechas en mostrador como los pedidos que ya fueron entregados.</li>
+                  <li>La flecha indica si se vendió más o menos que en el período anterior.</li>
+                  <li>Puedes cambiar el período con los botones: Hoy, Semanal o Mensual.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <span class="dm-badge neutral" id="badge-ventas">—</span>
+      <div class="sc-val" id="kpi-ventas-total">—</div>
+      <div class="sc-lbl">Ingresos del período seleccionado</div>
+      <div class="sc-sub" id="kpi-ventas-tickets"></div>
+    </div>
+
+    {# Card: Ventas período anterior (comparación) #}
+    <div class="stat-card-v2 accent-gold">
+      <div class="sc-top">
+        <div class="sc-icon" style="background:#fef3d0;">
+          <animated-icons src="/static/icons/income-ca37a84b.json" trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="40" width="40"></animated-icons>
+        </div>
         <div class="dm-info-wrap">
           <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
           <div class="dm-info-pop">
-            <strong>Ingresos del Período</strong>
-            <span class="dm-info-tag">Ventas en mostrador + Pedidos entregados</span>
-            Es el dinero total que entró a la panadería durante el período que tienes seleccionado.
-            <ul>
-              <li>Incluye tanto las ventas hechas en mostrador como los pedidos que ya fueron entregados al cliente.</li>
-              <li>La flecha indica si se vendió más o menos que en el período anterior del mismo tamaño.</li>
-              <li>Puedes cambiar el período con los botones: Hoy, Esta semana, Este mes o Este año.</li>
-            </ul>
+            <div class="dm-info-text-lg">
+              <strong>Período Anterior</strong>
+              <span class="dm-info-tag">Para comparar si estás vendiendo más o menos</span>
+              Muestra cuánto se vendió en el período inmediatamente anterior.
+              <ul>
+                <li><b>Hoy seleccionado:</b> muestra lo de ayer.</li>
+                <li><b>Semanal:</b> muestra la semana pasada.</li>
+                <li><b>Mensual:</b> muestra el mes pasado.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sc-val" id="kpi-ventas-anterior">—</div>
+      <div class="sc-lbl">Ingresos del período anterior seleccionado</div>
+      <div class="sc-sub">Para comparación</div>
+    </div>
+
+    {% if current_user.rol.clave_rol == 'admin' %}
+    {# Card: Salidas de efectivo #}
+    <div class="stat-card-v2 accent-rust">
+      <div class="sc-top">
+        <div class="sc-icon" style="background:#fce8df;">
+          <animated-icons src="/static/icons/withdraw-bbc79435.json" trigger="loop"
+            attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
+            height="40" width="40"></animated-icons>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="dm-badge neutral" id="badge-salidas">—</span>
+          <div class="dm-info-wrap">
+            <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+            <div class="dm-info-pop">
+              <div class="dm-info-text-lg">
+                <strong>Salidas de Efectivo</strong>
+                <span class="dm-info-tag">Solo gastos ya autorizados</span>
+                Es el total de dinero que salió de caja para cubrir gastos de la panadería durante el período.
+                <ul>
+                  <li>Solo se cuentan los gastos que ya fueron autorizados.</li>
+                  <li>La flecha indica si se gastó más o menos que en el período anterior.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sc-val" id="kpi-salidas-total">—</div>
+      <div class="sc-lbl">Salidas de efectivo aprobadas</div>
+      <div class="sc-sub" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+        <span id="kpi-salidas-movs"></span>
+        <span style="color: var(--tan);">|</span>
+        <span>Anterior: <strong id="kpi-salidas-anterior">—</strong></span>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  {# Gráfica de ingresos diarios #}
+  <div class="panel-card anim anim-2" style="margin-bottom:0;">
+    <div class="panel-header">
+      <div class="panel-title">
+        <animated-icons src="/static/icons/prices-continue-to-rise-2df62946.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons>
+        Ingresos por Día
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size: var(--text-base);color:var(--brown-lt);" id="label-periodo-grafica">Esta semana</span>
+        <div class="dm-info-wrap">
+          <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
+          <div class="dm-info-pop">
+            <div class="dm-info-text-lg">
+              <strong>Ingresos por Día</strong>
+              <span class="dm-info-tag">Cuánto entró cada día</span>
+              Cada barra de la gráfica muestra el dinero que ingresó a la panadería en ese día.
+              <ul>
+                <li>Se suman las ventas de mostrador y los pedidos entregados en cada día.</li>
+                <li>Cambia el rango con el filtro de período para ver hoy, la semana o el mes.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="sc-val" id="kpi-ventas-total">—</div>
-    <div class="sc-lbl">Ingresos del período seleccionado</div>
-    <div class="sc-sub" id="kpi-ventas-tickets"></div>
-  </div>
-
-  {# Card: Ventas período anterior (comparación) #}
-  <div class="stat-card-v2 accent-gold">
-    <div class="sc-top">
-      <div class="sc-icon" style="background:#fef3d0;">
-        <animated-icons
-          src="/static/icons/income-ca37a84b.json"
-          trigger="loop"
-          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-          height="40" width="40"
-        ></animated-icons>
-      </div>
-      <div class="dm-info-wrap">
-        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
-        <div class="dm-info-pop">
-          <strong>Período Anterior</strong>
-          <span class="dm-info-tag">Para comparar si estás vendiendo más o menos</span>
-          Muestra cuánto se vendió en el período inmediatamente anterior, para que puedas ver si hay mejoría.
-          <ul>
-            <li><b>Hoy seleccionado:</b> muestra lo de ayer.</li>
-            <li><b>Esta semana:</b> muestra la semana pasada.</li>
-            <li><b>Este mes:</b> muestra el mes pasado.</li>
-            <li><b>Este año:</b> muestra el año pasado.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="sc-val" id="kpi-ventas-anterior">—</div>
-    <div class="sc-lbl">Ingresos del período anterior seleccionado</div>
-    <div class="sc-sub">Para comparación</div>
-  </div>
-
-  {% if current_user.rol.clave_rol == 'admin' %}
-  {# Card: Salidas de efectivo (solo admin, mismo período) #}
-  <div class="stat-card-v2 accent-rust">
-    <div class="sc-top">
-      <div class="sc-icon" style="background:#fce8df;">
-        <animated-icons
-                src="/static/icons/withdraw-bbc79435.json"
-                trigger="loop"
-                attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
-                height="40" width="40">
-        </animated-icons>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <span class="dm-badge neutral" id="badge-salidas">—</span>
-        <div class="dm-info-wrap">
-          <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
-          <div class="dm-info-pop">
-            <strong>Salidas de Efectivo</strong>
-            <span class="dm-info-tag">Solo gastos ya autorizados</span>
-            Es el total de dinero que salió de caja para cubrir gastos de la panadería durante el período.
-            <ul>
-              <li>Solo se cuentan los gastos que ya fueron autorizados. Los pendientes de revisión no aparecen.</li>
-              <li>Puede incluir: pago de servicios, mantenimiento, compras urgentes u otros gastos operativos.</li>
-              <li>La flecha indica si se gastó más o menos que en el período anterior.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="sc-val" id="kpi-salidas-total">—</div>
-    <div class="sc-lbl">Salidas de efectivo aprobadas</div>
-    <div class="sc-sub" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
-      <span id="kpi-salidas-movs"></span>
-      <span style="color: var(--tan);">|</span>
-      <span>Anterior: <strong id="kpi-salidas-anterior">—</strong></span>
-    </div>
-  </div>
-  {% endif %}
-
-</div>
-
-{# Gráfica de ingresos diarios #}
-<div class="panel-card anim anim-2" style="margin-bottom:24px;">
-  <div class="panel-header">
-    <div class="panel-title">
-      <animated-icons
-        src="/static/icons/prices-continue-to-rise-2df62946.json"
-        trigger="loop"
-        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-        height="30"
-        width="30"
-      ></animated-icons>
-      Ingresos por Día
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size: var(--text-base);color:var(--brown-lt);" id="label-periodo-grafica">Esta semana</span>
-      <div class="dm-info-wrap">
-        <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
-        <div class="dm-info-pop">
-          <strong>Ingresos por Día</strong>
-          <span class="dm-info-tag">Cuánto entró cada día</span>
-          Cada barra de la gráfica muestra el dinero que ingresó a la panadería en ese día.
-          <ul>
-            <li>Se suman las ventas de mostrador y los pedidos entregados en cada día.</li>
-            <li>Cambia el rango con el filtro de período para ver hoy, la semana, el mes o el año.</li>
-            <li>Es útil para identificar los días con más y menos movimiento.</li>
-          </ul>
-        </div>
+    <div class="panel-body">
+      <div style="position:relative;height:200px;">
+        <canvas id="chart-ventas"></canvas>
       </div>
     </div>
   </div>
-  <div class="panel-body">
-    <div style="position:relative;height:200px;">
-      <canvas id="chart-ventas"></canvas>
-    </div>
-  </div>
-</div>
-{% endif %}
+</div> {% endif %}
 
 {# ══════════════════════════════════════════════════════════════
-   BLOQUE B — UTILIDAD BRUTA POR PRODUCTO  (solo admin)
-   Costo = promedio últimos 30 días de compras por insumo
-   Tabla paginada (5 por página): Producto | Precio | Costo | Utilidad | Margen %
+BLOQUE B — UTILIDAD BRUTA POR PRODUCTO (solo admin)
+Costo = promedio últimos 30 días de compras por insumo
+Tabla paginada (5 por página): Producto | Precio | Costo | Utilidad | Margen %
 ══════════════════════════════════════════════════════════════ #}
 {% if current_user.rol.clave_rol == 'admin' %}
 <div class="dm-sec-label anim anim-3">
-  <animated-icons
-    src="/static/icons/tax-17427ea4.json"
-    trigger="loop"
+  <animated-icons src="/static/icons/tax-17427ea4.json" trigger="loop"
     attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-    height="30"
-    width="30"
-  ></animated-icons> 
+    height="30" width="30"></animated-icons>
   Utilidad Bruta por Producto
 </div>
 <div class="panel-card anim anim-3">
   <div class="panel-header">
     <div class="panel-title">Rentabilidad por Producto</div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size: var(--text-base);color:var(--brown-lt);">Precio promedio últimos 30 días · Costo promedio anual</span>
+      <span style="font-size: var(--text-base);color:var(--brown-lt);">Precio promedio últimos 30 días · Costo promedio
+        anual</span>
       <div class="dm-info-wrap">
         <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
         <div class="dm-info-pop">
-          <strong>Rentabilidad por Producto</strong>
-          <span class="dm-info-tag">Qué tan rentable es cada producto</span>
-          Aparecen todos los productos activos que tienen receta registrada, hayan tenido ventas recientes o no.
-          <ul>
-            <li><b>Costo:</b> calculado con el precio promedio al que se compraron los ingredientes durante el último año. Si algún ingrediente no tiene compras recientes, se usa el último precio que se registró.</li>
-            <li><b>Precio de venta:</b> promedio de los precios reales de los últimos 30 días. Si el producto no tuvo ventas recientes, se usa el precio actual del catálogo.</li>
-            <li><b>Ganancia por pieza:</b> lo que queda después de restar lo que costó producir el producto.</li>
-            <li><b>Margen:</b> qué porcentaje del precio de venta es ganancia real.</li>
-          </ul>
+          <div class="dm-info-text-lg">
+            <strong>Rentabilidad por Producto</strong>
+            <span class="dm-info-tag">Qué tan rentable es cada producto</span>
+            Aparecen todos los productos activos que tienen receta registrada, hayan tenido ventas recientes o no.
+            <ul>
+              <li><b>Costo:</b> calculado con el precio promedio al que se compraron los ingredientes durante el último
+                año. Si algún ingrediente no tiene compras recientes, se usa el último precio que se registró.</li>
+              <li><b>Precio de venta:</b> promedio de los precios reales de los últimos 30 días. Si el producto no tuvo
+                ventas recientes, se usa el precio actual del catálogo.</li>
+              <li><b>Ganancia por pieza:</b> lo que queda después de restar lo que costó producir el producto.</li>
+              <li><b>Margen:</b> qué porcentaje del precio de venta es ganancia real.</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -269,32 +260,32 @@
         </tr>
       </thead>
       <tbody id="tbody-utilidad">
-        <tr><td colspan="5" class="dm-empty">Cargando…</td></tr>
+        <tr>
+          <td colspan="5" class="dm-empty">Cargando…</td>
+        </tr>
       </tbody>
     </table>
     {# Paginación de la tabla de utilidad #}
     <div class="dm-paginador" id="pag-utilidad" style="display:none;">
-      <button class="btn btn-outline dm-pag-btn" id="pag-util-ant" style="font-size: var(--text-xs);">‹ Anterior</button>
+      <button class="btn btn-outline dm-pag-btn" id="pag-util-ant" style="font-size: var(--text-xs);">‹
+        Anterior</button>
       <span id="pag-util-info" style="font-size: var(--text-xs);color:var(--brown-lt);"></span>
-      <button class="btn btn-outline dm-pag-btn" id="pag-util-sig" style="font-size: var(--text-xs);">Siguiente ›</button>
+      <button class="btn btn-outline dm-pag-btn" id="pag-util-sig" style="font-size: var(--text-xs);">Siguiente
+        ›</button>
     </div>
   </div>
 </div>
 {% endif %}
 
 {# ══════════════════════════════════════════════════════════════
-   BLOQUE C — TOP 5 PRODUCTOS MÁS VENDIDOS  (todos los roles)
-   Fijo: últimos 7 días · ventas por pieza
-   Tabla: Nombre · Piezas vendidas · Ingresos
+BLOQUE C — TOP 5 PRODUCTOS MÁS VENDIDOS (todos los roles)
+Fijo: últimos 7 días · ventas por pieza
+Tabla: Nombre · Piezas vendidas · Ingresos
 ══════════════════════════════════════════════════════════════ #}
 <div class="dm-sec-label anim anim-4">
-  <animated-icons
-    src="/static/icons/advantage-240003ce.json"
-    trigger="loop"
+  <animated-icons src="/static/icons/advantage-240003ce.json" trigger="loop"
     attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-    height="30"
-    width="30"
-  ></animated-icons>
+    height="30" width="30"></animated-icons>
   Top 5 Productos Más Vendidos
 </div>
 <div class="panel-card anim anim-4">
@@ -305,14 +296,16 @@
       <div class="dm-info-wrap">
         <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
         <div class="dm-info-pop">
-          <strong>Top 5 Productos Más Vendidos</strong>
-          <span class="dm-info-tag">Últimos 7 días</span>
-          Los cinco productos que más piezas se vendieron en los últimos 7 días, de mayor a menor.
-          <ul>
-            <li>Se cuentan las ventas en mostrador y los pedidos entregados al cliente.</li>
-            <li>Si un pedido se convirtió en venta, se registra una sola vez para no duplicar.</li>
-            <li>Los ingresos corresponden al dinero real que generó cada producto en esas ventas.</li>
-          </ul>
+          <div class="dm-info-text-lg">
+            <strong>Top 5 Productos Más Vendidos</strong>
+            <span class="dm-info-tag">Últimos 7 días</span>
+            Los cinco productos que más piezas se vendieron en los últimos 7 días, de mayor a menor.
+            <ul>
+              <li>Se cuentan las ventas en mostrador y los pedidos entregados al cliente.</li>
+              <li>Si un pedido se convirtió en venta, se registra una sola vez para no duplicar.</li>
+              <li>Los ingresos corresponden al dinero real que generó cada producto en esas ventas.</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -327,24 +320,22 @@
         </tr>
       </thead>
       <tbody id="tbody-top">
-        <tr><td colspan="3" class="dm-empty">Cargando…</td></tr>
+        <tr>
+          <td colspan="3" class="dm-empty">Cargando…</td>
+        </tr>
       </tbody>
     </table>
   </div>
 </div>
 
 {# ══════════════════════════════════════════════════════════════
-   BLOQUE D — INSUMOS BAJO STOCK MÍNIMO  (todos los roles)
-   Tabla: Materia Prima · Categoría · Stock actual · Stock mínimo · Estado
+BLOQUE D — INSUMOS BAJO STOCK MÍNIMO (todos los roles)
+Tabla: Materia Prima · Categoría · Stock actual · Stock mínimo · Estado
 ══════════════════════════════════════════════════════════════ #}
 <div class="dm-sec-label anim anim-5">
-  <animated-icons
-    src="/static/icons/alert-240003ce.json"
-    trigger="loop"
+  <animated-icons src="/static/icons/alert-240003ce.json" trigger="loop"
     attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
-    height="30"
-    width="30"
-  ></animated-icons> 
+    height="30" width="30"></animated-icons>
   Insumos Bajo Stock Mínimo
 </div>
 <div class="panel-card anim anim-5">
@@ -354,27 +345,26 @@
       <div class="dm-info-wrap">
         <button class="dm-info-btn" onclick="dmToggleInfo(this)" title="¿Cómo se calcula?">i</button>
         <div class="dm-info-pop">
-          <strong>Insumos Bajo Stock Mínimo</strong>
-          <span class="dm-info-tag">Insumos que necesitan reabastecerse</span>
-          Solo aparecen los ingredientes cuya existencia actual está por debajo del mínimo requerido.
-          <ul>
-            <li><b>Crítico:</b> no quedan existencias del insumo.</li>
-            <li><b>Bajo:</b> queda menos de la mitad del mínimo requerido.</li>
-            <li><b>Advertencia:</b> queda entre la mitad y el mínimo requerido — conviene reordenar pronto.</li>
-            <li>La barra de color muestra visualmente qué tan cerca está del agotamiento.</li>
-            <li>Las existencias se actualizan automáticamente cada vez que se registra producción.</li>
-          </ul>
+          <div class="dm-info-text-lg">
+            <strong>Insumos Bajo Stock Mínimo</strong>
+            <span class="dm-info-tag">Insumos que necesitan reabastecerse</span>
+            Solo aparecen los ingredientes cuya existencia actual está por debajo del mínimo requerido.
+            <ul>
+              <li><b>Crítico:</b> no quedan existencias del insumo.</li>
+              <li><b>Bajo:</b> queda menos de la mitad del mínimo requerido.</li>
+              <li><b>Advertencia:</b> queda entre la mitad y el mínimo requerido — conviene reordenar pronto.</li>
+              <li>La barra de color muestra visualmente qué tan cerca está del agotamiento.</li>
+              <li>Las existencias se actualizan automáticamente cada vez que se registra producción.</li>
+            </ul>
+          </div>
         </div>
       </div>
-      <a href="/materias-primas" style="font-size: var(--text-base);color:var(--brown-dk);text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
+      <a href="/materias-primas"
+        style="font-size: var(--text-base);color:var(--brown-dk);text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;">
         Ver inventario completo
-        <animated-icons
-          src="/static/icons/arrow-70afdd31.json"
-          trigger="loop"
+        <animated-icons src="/static/icons/arrow-70afdd31.json" trigger="loop"
           attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-          height="30"
-          width="30"
-        ></animated-icons>
+          height="30" width="30"></animated-icons>
       </a>
     </div>
   </div>
@@ -390,7 +380,9 @@
         </tr>
       </thead>
       <tbody id="tbody-stock">
-        <tr><td colspan="5" class="dm-empty">Cargando…</td></tr>
+        <tr>
+          <td colspan="5" class="dm-empty">Cargando…</td>
+        </tr>
       </tbody>
     </table>
   </div>
