@@ -94,7 +94,7 @@
 .r-stat-icon.green { background: #e2eede; }
 .r-stat-icon.rust  { background: #fce8df; }
 .r-stat-val {
-  font-family: 'Playfair Display', serif;
+  font-family: Lato, sans-serif;
   font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--brown-dk);
@@ -223,7 +223,7 @@
   margin-top: auto;
 }
 .rc-costo {
-  font-family: 'Playfair Display', serif;
+  font-family: Lato, sans-serif;
   font-size: var(--text-md);
   font-weight: 700;
   color: var(--brown-dk);
@@ -284,6 +284,10 @@
   padding: 24px;
 }
 .modal-overlay.open { display: flex; }
+.delete-body          { padding: 32px 26px; text-align: center; }
+.delete-body h3       { font-family: 'Playfair Display', serif; font-size: var(--text-lg); color: var(--brown-dk); margin-bottom: 8px; }
+.delete-body p        { font-size: var(--text-base); color: var(--brown-lt); line-height: 1.6; }
+.delete-body strong   { color: var(--rust); }
 .modal {
   background: var(--white);
   border-radius: 16px;
@@ -336,6 +340,7 @@
   padding: 16px 26px;
   border-top: 1px solid var(--tan);
   background: var(--warm-bg);
+  font-size: var(--text-base);
 }
 
 .form-row        { display: grid; gap: 14px; }
@@ -363,7 +368,7 @@
 .form-hint     { font-size: var(--text-sm); color: var(--brown-lt); }
 .form-textarea { resize: vertical; min-height: 60px; }
 .section-divider {
-  font-size: var(--text-xs);
+  font-size: var(--text-base);
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -561,7 +566,7 @@
 .detalle-table thead     { background: var(--warm-bg); }
 .detalle-table thead th  {
   padding: 10px 14px;
-  font-size: var(--text-xs);
+  font-size: var(--text-base);
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -571,8 +576,8 @@
 .detalle-table tbody tr         { border-top: 1px solid var(--tan); }
 .detalle-table tbody tr:hover   { background: #fdf3e6; }
 .detalle-table tbody td         { padding: 11px 14px; font-size: var(--text-base); }
-.stock-ok  { color: #3a6034; font-weight: 700; }
-.stock-mal { color: var(--rust); font-weight: 700; }
+.stock-ok  { color: #3a6034; font-weight: 700; display: inline-flex; text-align: center; align-items: center; gap: 6px;}
+.stock-mal { color: var(--rust); font-weight: 700; display: inline-flex; text-align: center; align-items: center; gap: 6px;}
 
 .mini-overlay {
   position: fixed;

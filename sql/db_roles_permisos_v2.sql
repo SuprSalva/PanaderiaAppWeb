@@ -123,6 +123,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON dulce_migaja.salidas_efectivo      TO ro
 GRANT SELECT, INSERT ON dulce_migaja.logs_sistema        TO rol_admin;
 GRANT SELECT, INSERT ON dulce_migaja.log_imagen_producto TO rol_admin;
 
+-- ── Tablas temporales (requerido por sp_crear_receta / sp_editar_receta) ──────
+GRANT CREATE TEMPORARY TABLES ON dulce_migaja.* TO rol_admin;
+
 -- ── Stored Procedures — admin ─────────────────────────────────────────────────
 
 -- Usuarios
@@ -323,9 +326,9 @@ GRANT SELECT, INSERT, UPDATE ON dulce_migaja.cajas                 TO rol_emplea
 GRANT SELECT, INSERT, UPDATE ON dulce_migaja.caja_productos        TO rol_empleado;
 GRANT SELECT                 ON dulce_migaja.tamanios_charola      TO rol_empleado;
 
--- ── Recetas: solo lectura ─────────────────────────────────────────────────────
-GRANT SELECT ON dulce_migaja.recetas         TO rol_empleado;
-GRANT SELECT ON dulce_migaja.detalle_recetas TO rol_empleado;
+-- ── Recetas: gestión completa (sin DELETE físico) ────────────────────────────
+GRANT SELECT, INSERT, UPDATE, DELETE ON dulce_migaja.recetas               TO rol_empleado;
+GRANT SELECT, INSERT, UPDATE, DELETE ON dulce_migaja.detalle_recetas       TO rol_empleado;
 
 -- ── Producción diaria: VER + CREAR lote + ver historial/insumos ──────────────
 -- NO puede iniciar, actualizar piezas ni finalizar/cancelar (es del panadero)
@@ -364,10 +367,18 @@ GRANT SELECT                 ON dulce_migaja.notificaciones_pedidos TO rol_emple
 GRANT SELECT, INSERT ON dulce_migaja.logs_sistema        TO rol_empleado;
 GRANT SELECT, INSERT ON dulce_migaja.log_imagen_producto TO rol_empleado;
 
+-- ── Tablas temporales (requerido por sp_crear_receta / sp_editar_receta) ──────
+GRANT CREATE TEMPORARY TABLES ON dulce_migaja.* TO rol_empleado;
+
 -- ── Stored Procedures — empleado ──────────────────────────────────────────────
 
 -- Usuarios (solo cambio de contraseña propia)
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_cambiar_password          TO rol_empleado;
+
+-- Recetas
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_receta              TO rol_empleado;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_editar_receta             TO rol_empleado;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_toggle_receta             TO rol_empleado;
 
 -- Proveedores
 GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_proveedor           TO rol_empleado;
@@ -700,3 +711,16 @@ SHOW GRANTS FOR 'dm_admin'@'localhost';
 SHOW GRANTS FOR 'dm_empleado'@'localhost';
 SHOW GRANTS FOR 'dm_panadero'@'localhost';
 SHOW GRANTS FOR 'dm_cliente'@'localhost';
+
+USE dulce_migaja;
+
+GRANT INSERT, UPDATE ON dulce_migaja.recetas         TO rol_empleado;
+GRANT INSERT, UPDATE ON dulce_migaja.detalle_recetas TO rol_empleado;
+GRANT CREATE TEMPORARY TABLES ON dulce_migaja.*      TO rol_empleado;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_crear_receta  TO rol_empleado;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_editar_receta TO rol_empleado;
+GRANT EXECUTE ON PROCEDURE dulce_migaja.sp_toggle_receta TO rol_empleado;
+
+GRANT CREATE TEMPORARY TABLES ON dulce_migaja.*      TO rol_admin;
+
+FLUSH PRIVILEGES;

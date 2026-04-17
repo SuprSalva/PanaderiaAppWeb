@@ -9,16 +9,21 @@
 
 <div class="db-topbar anim" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
   <div>
-    <div class="db-page-title" style="font-family:'Playfair Display', serif; font-size: var(--text-xl);">📦 Pedido: {{ pedido.folio }}</div>
-    <div class="db-breadcrumb" style="font-size: var(--text-xs); color:var(--brown-lt);">
-      Producción <span>›</span>
-      <a href="{{ url_for('pedidos.lista') }}" style="color:var(--rust); text-decoration:none; font-weight:700;">Gestión de Pedidos</a>
-      <span>›</span> Detalle
+    <div class="db-page-title" style="font-family:'Playfair Display', serif; font-size: var(--text-2xl); display:inline-flex;align-items:center;gap:10px; font-weight: 700;"><animated-icons src="/static/icons/product-64f0cb11.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="50" width="50"></animated-icons> Pedido: {{ pedido.folio }}</div>
+    <div class="db-breadcrumb" style="font-size: var(--text-base); color:var(--brown-lt); display: flex; align-items: center; gap: 5px;">
+      Producción <span>›</span>Gestión de Pedidos<span>›</span> Detalle
     </div>
   </div>
   <a href="{{ url_for('pedidos.gestion_pedidos') }}" class="btn btn-outline"
-     style="border:1.5px solid var(--tan); padding:8px 16px; border-radius:8px; text-decoration:none; color:var(--brown-dk); font-weight:700; font-size: var(--text-sm);">
-    ← Volver a la lista
+     style="border:1.5px solid var(--tan); padding:8px 16px; border-radius:8px; text-decoration:none; color:var(--brown-dk); font-weight:700; font-size: var(--text-base);">
+    <animated-icons
+      src="/static/icons/arrow-left-5be054c1.json"
+      trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30"
+      width="30"
+    ></animated-icons>
+     Volver a la lista
   </a>
 </div>
 
@@ -27,7 +32,7 @@
   <div>
     <!-- DATOS DEL CLIENTE -->
     <div class="card">
-      <div class="card-title">👤 Datos del Cliente</div>
+      <div class="card-title" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/user-profile-defd54f5.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Datos del Cliente</div>
       <div class="info-grid">
         <div class="info-item">
           <label>Nombre Completo</label>
@@ -102,22 +107,22 @@
 
     <!-- HISTORIAL -->
     <div class="card">
-      <div class="card-title">🕒 Historial de Seguimiento</div>
+      <div class="card-title" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/schedule-5be054c1.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Historial de Seguimiento</div>
       <ul class="timeline">
         {% for h in historial %}
         <li>
           <div class="tl-dot {{ h.estado_despues }}"></div>
           <div class="tl-body">
-            <div style="font-size: var(--text-xs); font-weight:700; color:var(--brown-dk);">
+            <div style="font-size: var(--text-base); font-weight:700; color:var(--brown-dk);">
               {{ h.estado_antes.replace('_',' ').title() if h.estado_antes else 'Nuevo' }}
               → {{ h.estado_despues.replace('_',' ').title() }}
             </div>
-            <div style="font-size: var(--text-xs); color:var(--brown-lt);">
+            <div style="font-size: var(--text-base); color:var(--brown-lt);">
               {{ h.creado_en.strftime('%d/%m/%Y %H:%M') }}
               {% if h.usuario_nombre %}• Atendido por: <strong>{{ h.usuario_nombre }}</strong>{% endif %}
             </div>
             {% if h.nota %}
-            <div style="font-size: var(--text-xs); color:var(--brown-lt); background:var(--warm-bg); padding:6px 10px; border-radius:6px; margin-top:5px; font-style:italic;">
+            <div style="font-size: var(--text-base); color:#85602d; background:var(--warm-bg); padding:6px 10px; border-radius:6px; margin-top:5px; font-style:italic;">
               "{{ h.nota }}"
             </div>
             {% endif %}
@@ -130,7 +135,7 @@
 
   <!-- PANEL LATERAL DE ACCIONES -->
   <div class="accion-panel">
-    <h3>Gestionar Pedido</h3>
+    <div class="card-title" style="display:inline-flex;align-items:center;gap:6px;">Gestionar Pedido</div>
 
     <div style="text-align:center;">
       <span class="badge-estado badge-{{ pedido.estado }}">
@@ -182,7 +187,7 @@
       </form>
 
     {% else %}
-      <div style="text-align:center; padding:20px; color:var(--brown-lt); font-size: var(--text-sm); border-top:1px dashed var(--tan);">
+      <div style="text-align:center; padding:20px; color:var(--brown-lt); font-size: var(--text-mb); border-top:1px dashed var(--tan);">
         {% if pedido.estado == 'entregado' %}
           La caja ya fue entregada exitosamente.
         {% elif pedido.estado == 'rechazado' %}

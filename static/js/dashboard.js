@@ -200,7 +200,7 @@ function renderUtilidad() {
     return `<tr>
       <td>
         <span style="font-weight:600;">${p.nombre_producto}</span>
-        <span style="display:block;font-size:11px;color:var(--brown-lt);">${p.rendimiento} ${p.unidad_rendimiento || 'pza'} por lote</span>
+        <span style="display:block;font-size:14px;color:var(--brown-lt);">${p.rendimiento} ${p.unidad_rendimiento || 'pza'} por lote</span>
       </td>
       <td style="text-align:right;">${P(p.precio_venta)}</td>
       <td style="text-align:right;color:var(--rust);">${P(p.costo_unitario)}</td>
@@ -265,27 +265,9 @@ async function cargarMPCriticas() {
       return;
     }
     const labels = {
-      critico: `<animated-icons
-        src="https://animatedicons.co/get-icon?name=Risk&style=minimalistic&token=240003ce-c76a-49ff-b69a-4123c54f8934"
-        trigger="loop"
-        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
-        height="15"
-        width="15"
-      ></animated-icons> Crítico`,
-      bajo: `<animated-icons
-        src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=240003ce-c76a-49ff-b69a-4123c54f8934"
-        trigger="loop"
-        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
-        height="15"
-        width="15"
-      ></animated-icons> Bajo`,
-      advertencia:`<animated-icons
-        src="https://animatedicons.co/get-icon?name=Alert&style=minimalistic&token=240003ce-c76a-49ff-b69a-4123c54f8934"
-        trigger="loop"
-        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-        height="15"
-        width="15"
-      ></animated-icons> Advertencia`,
+      critico: `Crítico`,
+      bajo: `Bajo`,
+      advertencia:`Advertencia`,
     };
     tbody.innerHTML = d.items.map(mp => {
       const pct = parseFloat(mp.pct_stock || 0);

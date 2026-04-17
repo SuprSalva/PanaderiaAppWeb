@@ -22,7 +22,7 @@
     const btn = document.getElementById('btn-registrar');
     if (btn) {
       btn.disabled = false;
-      btn.textContent = '💾 Registrar Salida';
+      btn.innerHTML = '<animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FFFFFF","background":"#FFFFFF"}}\' height="22" width="22"></animated-icons> Registrar Salida';
     }
 
     const err = document.getElementById('salida-form-error');

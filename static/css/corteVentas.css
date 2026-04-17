@@ -15,12 +15,12 @@
     margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
   }
   .db-page-title {
-    font-family: 'Playfair Display', serif; font-size: 26px;
+    font-family: 'Playfair Display', serif; font-size: 32px;
     font-weight: 700; color: var(--brown-dk);
     display: flex; align-items: center; gap: 10px;
   }
   .db-breadcrumb {
-    font-size: 12px; color: var(--brown-lt);
+    font-size: var(--text-base); color: var(--brown-lt);
     margin-top: 5px; display: flex; align-items: center; gap: 5px;
   }
   .db-breadcrumb span { color: var(--tan); }
@@ -41,7 +41,7 @@
   .btn-rust     { background: var(--rust); color: var(--cream); }
   .btn-rust:hover     { filter: brightness(1.1); }
   .btn-rust:disabled  { opacity: .5; cursor: not-allowed; filter: none; }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-sm { padding: 6px 12px; font-size: var(--text-base); }
 
   /* ── Banner del día ── */
   .day-banner {
@@ -52,14 +52,14 @@
     flex-wrap: wrap; gap: 16px;
   }
   .day-banner-left h2 {
-    font-family: 'Playfair Display', serif; font-size: 20px;
+    font-family: 'Playfair Display', serif; font-size: 24px;
     font-weight: 700; color: var(--cream);
   }
-  .day-banner-left p  { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 4px; }
+  .day-banner-left p  { font-size: var(--text-base); color: rgba(255,255,255,.75); margin-top: 4px; }
   .day-banner-status  {
     display: inline-flex; align-items: center; gap: 6px;
     background: rgba(255,255,255,.15); border-radius: 20px;
-    padding: 4px 12px; font-size: 11px; font-weight: 700;
+    padding: 4px 12px; font-size: var(--text-base); font-weight: 700;
     color: var(--cream); margin-top: 8px;
   }
   .day-banner-status .dot {
@@ -79,7 +79,7 @@
   .date-toolbar input[type="date"] {
     padding: 8px 12px; border: 1.5px solid var(--tan);
     border-radius: 8px; font-family: 'Lato', sans-serif;
-    font-size: 13px; color: var(--text); background: var(--white);
+    font-size: 14px; color: var(--text); background: var(--white);
     outline: none; transition: border .2s;
   }
   .date-toolbar input[type="date"]:focus { border-color: var(--brown); }
@@ -116,10 +116,10 @@
   .c-stat-icon.purple      { background: #ede9fe; }
 
   .c-stat-val {
-    font-family: 'Playfair Display', serif; font-size: 20px;
+    font-family: Lato, sans-serif; font-size: 22px;
     font-weight: 700; color: var(--brown-dk); line-height: 1;
   }
-  .c-stat-lbl { font-size: 11px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
+  .c-stat-lbl { font-size: 12px; color: var(--brown-lt); margin-top: 3px; font-weight: 600; }
 
   /* ── Layout cuerpo ── */
   .c-body {
@@ -136,8 +136,8 @@
     box-shadow: 0 2px 8px var(--shadow);
   }
   .card-title {
-    font-size: 12px; font-weight: 700; letter-spacing: .8px;
-    text-transform: uppercase; color: var(--brown-lt);
+    font-size: 13px; font-weight: 700; letter-spacing: .8px;
+    text-transform: uppercase; color: #85602d;
     margin-bottom: 14px; display: flex; align-items: center; gap: 7px;
     border-bottom: 1px solid var(--warm-bg); padding-bottom: 10px;
   }
@@ -147,7 +147,7 @@
   .hist-table { width: 100%; border-collapse: collapse; }
   .hist-table thead { background: var(--warm-bg); }
   .hist-table thead th {
-    padding: 10px 16px; font-size: 10px; font-weight: 700;
+    padding: 10px 16px; font-size: var(--text-base); font-weight: 700;
     letter-spacing: 1.2px; text-transform: uppercase;
     color: var(--brown); text-align: left;
   }
@@ -158,19 +158,19 @@
   }
   .hist-table tbody tr:hover { background: #fdf3e6; }
   .hist-table tbody td {
-    padding: 11px 16px; font-size: 13px;
+    padding: 11px 16px; font-size: var(--text-base);
     color: var(--text); vertical-align: middle;
   }
   .hist-table tbody td:first-child { padding-left: 20px; }
   .hist-table tfoot td {
-    padding: 10px 16px; font-size: 13px;
+    padding: 10px 16px; font-size: var(--text-base);
     font-weight: 700; color: var(--brown-dk);
     border-top: 2px solid var(--tan); background: var(--warm-bg);
   }
   .hist-table tfoot td:first-child { padding-left: 20px; }
   .text-right { text-align: right; }
   .folio-tag {
-    font-family: 'Lato', monospace; font-size: 12px;
+    font-family: 'Lato', monospace; font-size: var(--text-base);
     font-weight: 700; color: var(--brown-dk);
     background: var(--warm-bg); padding: 2px 7px;
     border-radius: 5px; border: 1px solid var(--tan);
@@ -179,7 +179,7 @@
   /* ── Badges ── */
   .badge {
     display: inline-block; padding: 2px 9px; border-radius: 20px;
-    font-size: 11px; font-weight: 700; text-transform: capitalize;
+    font-size: var(--text-base); font-weight: 700; text-transform: capitalize;
   }
   .badge-efectivo    { background: #e2eede; color: #3a6034; }
   .badge-tarjeta     { background: #dbeafe; color: #1e40af; }
@@ -206,7 +206,7 @@
   .top-name  { font-weight: 700; color: var(--brown-dk); font-size: 13px; flex: 1; }
   .top-qty   { font-size: 11px; color: var(--brown-lt); white-space: nowrap; }
   .top-total {
-    font-family: 'Playfair Display', serif; font-size: 14px;
+    font-family: Lato, sans-serif; font-size: 14px;
     font-weight: 700; color: var(--brown-dk); white-space: nowrap;
   }
 
@@ -215,7 +215,7 @@
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 8px; padding: 2.5rem 1rem;
-    font-size: 13px; color: var(--brown-lt); text-align: center;
+    font-size: 14px; color: var(--brown-lt); text-align: center;
   }
   .empty-state .ico { font-size: 2.2rem; }
 
@@ -262,7 +262,7 @@
 
 .modal-header h3 {
   margin: 0; font-family: 'Playfair Display', serif;
-  font-size: 20px; color: var(--brown-dk);
+  font-size: 21px; color: var(--brown-dk);
 }
 
 .modal-body {

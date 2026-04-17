@@ -122,7 +122,7 @@
           </div>
           <div id="login-captcha-error" style="display:none;color:#9c3a1a;font-size:0.82rem;text-align:center;margin-bottom:6px;"></div>
           <button type="submit" class="btn-login">Iniciar Sesión <animated-icons
-              src="/static/icons/login-e611dfb8.json"
+              src="/static/icons/exit-6e09845f.json"
               trigger="loop"
               attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
               height="30"
@@ -132,7 +132,7 @@
         </form>
 
         <div style="text-align:center; margin-top:10px;">
-          <a href="#" id="link-forgot" style="font-size:0.85rem; color:#a0522d; text-decoration:none;">¿Olvidaste tu contraseña?</a>
+          <a href="#" id="link-forgot" style="font-size:15px; color:#a0522d; text-decoration:none;">¿Olvidaste tu contraseña?</a>
         </div>
 
         <div class="login-footer-link">
@@ -144,16 +144,24 @@
       <!-- ── SECCIÓN 2: Recuperar contraseña — Paso 1 ── -->
       <div id="sec-forgot-1" style="display:none;">
         <div class="card-sub" style="margin-bottom:16px;">Recuperar contraseña — Paso 1 de 2</div>
-        <p style="font-size:0.88rem; color:#555; margin-bottom:16px;">
+        <p style="font-size:15px; color:#555; margin-bottom:16px; text-align: center;">
           Ingresa el correo con el que te registraste y te enviaremos un código de verificación.
         </p>
 
-        <div id="forgot1-error" style="display:none; color:#9c3a1a; font-size:0.85rem; margin-bottom:12px; padding:8px 10px; background:#fff0eb; border-radius:6px; border-left:3px solid #c0392b;"></div>
+        <div id="forgot1-error" style="display:none; color:#9c3a1a; font-size:15px; margin-bottom:12px; padding:8px 10px; background:#fff0eb; border-radius:6px; border-left:3px solid #c0392b;"></div>
 
         <div class="login-form-group">
           <label class="login-label">Correo / Usuario</label>
           <div class="login-input-wrap">
-            <span class="l-icon">✉️</span>
+            <span class="l-icon">
+              <animated-icons
+                src="/static/icons/mail-e55f9897.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30"
+                width="30"
+              ></animated-icons>
+            </span>
             <input type="email" id="forgot-correo" class="" placeholder="tu@correo.com" autocomplete="email">
           </div>
         </div>
@@ -173,7 +181,7 @@
         </button>
 
         <div style="text-align:center; margin-top:12px;">
-          <a href="#" id="link-volver-login" style="font-size:0.85rem; color:#a0522d; text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;"><animated-icons
+          <a href="#" id="link-volver-login" style="font-size:15px; color:#a0522d; text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;"><animated-icons
             src="/static/icons/login-e611dfb8.json"
             trigger="loop"
             attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
@@ -187,11 +195,11 @@
       <!-- ── SECCIÓN 3: Recuperar contraseña — Paso 2 ── -->
       <div id="sec-forgot-2" style="display:none;">
         <div class="card-sub" style="margin-bottom:16px;">Recuperar contraseña — Paso 2 de 2</div>
-        <p id="forgot2-desc" style="font-size:0.88rem; color:#555; margin-bottom:16px;">
+        <p id="forgot2-desc" style="font-size:15px; color:#555; margin-bottom:16px;  text-align: center;">
           Ingresa el código de 6 dígitos que enviamos a tu correo y tu nueva contraseña.
         </p>
 
-        <div id="forgot2-error" style="display:none; color:#9c3a1a; font-size:0.85rem; margin-bottom:12px; padding:8px 10px; background:#fff0eb; border-radius:6px; border-left:3px solid #c0392b;"></div>
+        <div id="forgot2-error" style="display:none; color:#9c3a1a; font-size:15px; margin-bottom:12px; padding:8px 10px; background:#fff0eb; border-radius:6px; border-left:3px solid #c0392b;"></div>
 
         <div class="login-form-group">
           <label class="login-label">Código de verificación</label>
@@ -238,7 +246,7 @@
           <span id="forgot-match-msg" style="font-size:0.82rem;"></span>
         </div>
 
-        <div style="font-size:0.8rem; color:#666; background:#f9f5f0; padding:8px 10px; border-radius:6px; margin-bottom:12px;">
+        <div style="font-size:13px; color:#666; background:#f9f5f0; padding:8px 10px; border-radius:6px; margin-bottom:12px; text-align: center;">
           Mín. 8 caracteres, una mayúscula, un número y un carácter especial <strong>(@$!%*?&_)</strong>
         </div>
 
@@ -253,7 +261,7 @@
         </button>
 
         <div style="text-align:center; margin-top:12px;">
-          <a href="#" id="link-volver-forgot1" style="font-size:0.85rem; color:#a0522d; text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;"><animated-icons
+          <a href="#" id="link-volver-forgot1" style="font-size:15px; color:#a0522d; text-decoration:none; display: inline-flex; justify-content: center !important; text-align: center !important; align-items: center;"><animated-icons
             src="/static/icons/login-e611dfb8.json"
             trigger="loop"
             attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'

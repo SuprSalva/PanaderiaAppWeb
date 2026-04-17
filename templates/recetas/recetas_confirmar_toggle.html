@@ -10,12 +10,12 @@
 
   {% if receta.estatus == 'activo' %}
   <div class="confirm-header hdr-danger">
-    <span class="icon">🚫</span>
+    <span class="icon"><animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></span>
     <h2>Desactivar Receta</h2>
   </div>
   {% else %}
   <div class="confirm-header hdr-success">
-    <span class="icon">✅</span>
+    <span class="icon"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></span>
     <h2>Activar Receta</h2>
   </div>
   {% endif %}
@@ -37,9 +37,9 @@
       <form method="POST" action="{{ url_for('recetas_bp.recetas_toggle', id_receta=receta.id_receta) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% if receta.estatus == 'activo' %}
-        <button type="submit" class="btn btn-danger">🚫 Sí, desactivar</button>
+        <button type="submit" class="btn btn-danger" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Sí, desactivar</button>
         {% else %}
-        <button type="submit" class="btn btn-primary">✅ Sí, activar</button>
+        <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Sí, activar</button>
         {% endif %}
       </form>
     </div>

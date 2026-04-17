@@ -255,9 +255,10 @@ def detalle_pd(id_pd):
             JOIN  materias_primas mp ON mp.id_materia=pdi.id_materia
             WHERE pdi.id_pd=:id ORDER BY mp.nombre
         """), {'id': id_pd}).mappings().all()]
+        hay_faltantes = any(not ins['stock_suficiente'] for ins in insumos)
 
     return render_template('produccion_diaria/detalle.html',
-        pd=pd, lineas=lineas, insumos=insumos,
+        pd=pd, lineas=lineas, insumos=insumos, hay_faltantes=hay_faltantes,
         form_fin=FinalizarProduccionDiariaForm(),
         form_can=CancelarProduccionDiariaForm(),
         form_plant=GuardarPlantillaForm())

@@ -295,7 +295,9 @@
         <button type="submit" class="btn btn-primary"><animated-icons src="/static/icons/save-0c38d9a8.json"
             trigger="loop"
             attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
-            height="30" width="30"></animated-icons>Guardar Cambios</button>
+            height="30" width="30"></animated-icons>
+            Guardar Cambios
+        </button>
       </div>
     </form>
   </div>
@@ -340,17 +342,26 @@
 <div class="modal-overlay" id="modal-verify">
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
-      <h2>✉️ Verificar Correo</h2>
+      <h2>
+        <animated-icons
+            src="/static/icons/mail-e55f9897.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="40"
+            width="40"
+            ></animated-icons>
+        Verificar Correo
+      </h2>
       <button type="button" class="modal-close" onclick="closeModal('modal-verify')">✕</button>
     </div>
     <form id="form-verify" method="POST" action="{{ url_for('registrar_usuario.crear_usuario') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="modal-body">
-        <p id="verify-desc" style="margin-bottom:16px;color:var(--brown-lt);font-size: var(--text-base);">
+        <p id="verify-desc" style="margin-bottom:16px;color:var(--brown-lt);font-size: var(--text-base); text-align: center;">
           Se envió un código de 6 dígitos al correo del nuevo usuario.
           Ingrésalo a continuación para confirmar y crear la cuenta.
         </p>
-        <div class="form-group">
+        <div class="form-group text-center">
           <label class="form-label">Código de verificación</label>
           <input type="text" name="codigo" id="verify-codigo" class="form-input" placeholder="Ej. 482917" maxlength="6"
             autocomplete="off" required style="letter-spacing:6px;font-size: var(--text-lg);text-align:center;">
@@ -358,7 +369,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-verify')">Cancelar</button>
-        <button type="submit" id="verify-btn" class="btn btn-primary">✅ Confirmar y Crear</button>
+        <button type="submit" id="verify-btn" class="btn btn-primary"> Confirmar y Crear</button>
       </div>
     </form>
   </div>

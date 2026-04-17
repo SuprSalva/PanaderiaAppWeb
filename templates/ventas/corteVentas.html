@@ -12,7 +12,7 @@
 <!-- ── Topbar ── -->
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title"> Corte de Ventas Diario</div>
+    <div class="db-page-title" style="display:inline-flex;align-items:center;gap:10px;"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="50" width="50"></animated-icons> Corte de Ventas Diario</div>
     <div class="db-breadcrumb">
       Inicio<span>›</span> Ventas <span>›</span> Corte Diario
     </div>
@@ -39,13 +39,13 @@
     <p>Resumen de ventas del día seleccionado</p>
     <div class="day-banner-status" id="bannerEstado">
       <span class="dot" id="bannerDot"></span>
-      <span id="bannerEstadoText">—</span>
+      <span id="bannerEstadoText" style="font-family: var(--text-base);">—</span>
     </div>
   </div>
   <div class="day-banner-right" id="bannerTotal">
     <div style="text-align:right;">
       <div style="font-size:11px;color:rgba(255,255,255,.6);font-weight:700;letter-spacing:1px;text-transform:uppercase;">Total vendido</div>
-      <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--cream);" id="bannerMonto">$0.00</div>
+      <div style="font-family: Lato, sans-serif;font-size:28px;font-weight:700;color:var(--cream);" id="bannerMonto">$0.00</div>
     </div>
   </div>
 </div>
@@ -53,28 +53,28 @@
 <!-- ── KPI Stats ── -->
 <div class="c-stats anim anim-2">
   <div class="c-stat">
-    <div class="c-stat-icon green">🏷️</div>
+    <div class="c-stat-icon green"><animated-icons src="/static/icons/note-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="c-stat-val" id="kpiVentas">0</div><div class="c-stat-lbl">Ventas</div></div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon brown">🥐</div>
+    <div class="c-stat-icon brown"><animated-icons src="/static/icons/product-64f0cb11.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="c-stat-val" id="kpiPiezas">0</div><div class="c-stat-lbl">Piezas</div></div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon green">💵</div>
+    <div class="c-stat-icon green"><animated-icons src="/static/icons/dollar-symbol-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="c-stat-val" id="kpiEfectivo">$0</div><div class="c-stat-lbl">Efectivo</div></div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon blue">💳</div>
+    <div class="c-stat-icon blue"><animated-icons src="/static/icons/credit-card-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="c-stat-val" id="kpiTarjeta">$0</div><div class="c-stat-lbl">Tarjeta</div></div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon purple">📲</div>
+    <div class="c-stat-icon purple"><animated-icons src="/static/icons/internet-banking-a93fff45.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="c-stat-val" id="kpiTransferencia">$0</div><div class="c-stat-lbl">Transferencia</div>
     </div>
   </div>
   <div class="c-stat">
-    <div class="c-stat-icon rust">❌</div>
+    <div class="c-stat-icon rust"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="c-stat-val" id="kpiCancelaciones">0</div><div class="c-stat-lbl">Cancelaciones</div></div>
   </div>
 </div>
@@ -90,7 +90,7 @@
     </div>
 
     <div id="tablaEstado" class="empty-state">
-      <span class="ico">📋</span>
+      <span class="ico"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="48" width="48"></animated-icons></span>
       <p>Selecciona una fecha y presiona <strong>Consultar</strong>.</p>
     </div>
 
@@ -127,7 +127,7 @@
       <div class="card-title"> Top Productos</div>
       <div id="topProductos">
         <div class="empty-state" style="padding:1rem;">
-          <span class="ico" style="font-size:1.4rem;">🥐</span>
+          <span class="ico" style="font-size:1.4rem;"><animated-icons src="/static/icons/report-v2-1869947d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="34" width="34"></animated-icons></span>
           <p>Sin datos.</p>
         </div>
       </div>

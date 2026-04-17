@@ -131,7 +131,7 @@
 
   .brand-name {
     font-family: 'Playfair Display', serif;
-    font-size: var(--text-2xl);
+    font-size: var(--text-3xl);
     font-weight: 700;
     color: var(--brown-dk);
     line-height: 1.1;
@@ -178,7 +178,7 @@
     background: var(--white);
     border: 1px solid var(--tan);
     border-radius: 50px;
-    font-size: var(--text-base);
+    font-size: var(--text-md);
     color: var(--brown);
     font-weight: 600;
     width: fit-content;
@@ -228,7 +228,7 @@
 
   .card-greeting {
     font-family: 'Playfair Display', serif;
-    font-size: var(--text-2xl);
+    font-size: 36px;
     font-weight: 700;
     color: var(--brown-dk);
     margin-bottom: 6px;
@@ -236,7 +236,7 @@
   }
 
   .card-sub {
-    font-size: var(--text-base);
+    font-size: 18px;
     color: #9c7a55;
     margin-bottom: 32px;
     text-align: center;
@@ -306,7 +306,7 @@
     border: none;
     border-radius: 50px;
     font-family: 'Lato', sans-serif;
-    font-size: var(--text-base);
+    font-size: 18px;
     font-weight: 700;
     cursor: pointer;
     letter-spacing: .5px;
@@ -331,7 +331,7 @@
     padding-top: 20px;
     border-top: 1px solid var(--tan);
     text-align: center;
-    font-size: var(--text-base);
+    font-size: 15px;
     color: #9c7a55;
   }
 
@@ -340,6 +340,7 @@
     font-weight: 700;
     text-decoration: none;
     transition: color .2s;
+    font-size: 15px;
   }
 
   .login-footer-link a:hover {
@@ -385,4 +386,34 @@
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+    :root {
+    --cream: #fdf6ec;
+    --warm-bg: #f5ead8;
+    --tan: #e8d5b7;
+    --brown-dk: #6b4423;
+    --brown: #9c6f3e;
+    --brown-lt: #c8a97e;
+    --rust: #c0522a;
+    --rust-lt: #e07a52;
+    --text: #3b2a1a;
+    --white: #ffffff;
+    --shadow: rgba(107, 68, 35, .15);
+
+    --sidebar-w: 240px;
+    --sidebar-w-coll: 64px;
+    --topbar-h: 60px;
+
+    /* Tipografía Secuencial */
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 15px;
+    --text-md: 18px;
+    --text-lg: 20px;
+    --text-xl: 24px;
+    --text-2xl: 28px;
+    --text-3xl: 36px;
+    --text-4xl: 48px;
+    --text-5xl: 72px;
   }

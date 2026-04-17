@@ -172,7 +172,7 @@
   }
 
   .p-stat-val {
-    font-family: 'Playfair Display', serif;
+    font-family: Lato, sans-serif;
     font-size: var(--text-2xl);
     font-weight: 700;
     color: var(--brown-dk);
@@ -313,7 +313,7 @@
   }
 
   .precio-chip {
-    font-family: 'Playfair Display', serif;
+    font-family: Lato, sans-serif;
     font-size: var(--text-md);
     font-weight: 700;
     color: var(--brown-dk);
@@ -435,7 +435,7 @@
     background: var(--white);
     border-radius: 16px;
     width: 100%;
-    max-width: 560px;
+    max-width: 900px;
     box-shadow: 0 20px 60px rgba(59, 42, 26, .3);
     overflow: hidden;
     animation: fadeUp .25s ease;
@@ -489,6 +489,7 @@
     padding: 16px 26px;
     border-top: 1px solid var(--tan);
     background: var(--warm-bg);
+    font-size: var(--text-base);
   }
 
   .form-grid {

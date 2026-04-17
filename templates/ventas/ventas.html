@@ -12,32 +12,32 @@
 <!-- TOPBAR -->
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title">🏷️ Ventas en Línea</div>
+    <div class="db-page-title" style="display:inline-flex;align-items:center;gap:10px;"><animated-icons src="/static/icons/internet-banking-a93fff45.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="50" width="50"></animated-icons> Ventas en Línea</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Ventas en Línea</div>
   </div>
   <!-- NUEVO: Switcher para ir a Caja -->
   <div class="mode-switcher" style="display: flex; background: var(--warm-bg); border-radius: 40px; padding: 4px; border: 1px solid var(--tan);">
-    <button class="mode-btn active" style="padding: 8px 20px; border-radius: 30px; font-size: var(--text-sm); font-weight: 600; background: var(--brown-dk); color: white; border: none;">📱 Ventas en Línea</button>
-    <button class="mode-btn" onclick="location.href='/ventas/caja'" style="padding: 8px 20px; border-radius: 30px; font-size: var(--text-sm); font-weight: 600; background: transparent; border: none; color: var(--brown-lt); cursor: pointer;">🏪 Ventas en Caja</button>
+    <button class="mode-btn active" style="padding: 8px 20px; border-radius: 30px; font-size: var(--text-sm); font-weight: 600; background: var(--brown-dk); color: white; border: none; display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/internet-banking-a93fff45.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Ventas en Línea</button>
+    <button class="mode-btn" onclick="location.href='/ventas/caja'" style="padding: 8px 20px; border-radius: 30px; font-size: var(--text-sm); font-weight: 600; background: transparent; border: none; color: var(--brown-lt); cursor: pointer; display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/small-business-13011e87.json" trigger="loop" attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}' height="22" width="22"></animated-icons> Ventas en Caja</button>
   </div>
 </div>
 
 <!-- STATS -->
 <div class="v-stats anim anim-1" id="statsContainer">
   <div class="v-stat">
-    <div class="v-stat-icon green">💵</div>
+    <div class="v-stat-icon green"><animated-icons src="/static/icons/dollar-symbol-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="v-stat-val" id="totalHoy">$0</div><div class="v-stat-lbl">Ventas Hoy</div></div>
   </div>
   <div class="v-stat">
-    <div class="v-stat-icon brown">🧾</div>
+    <div class="v-stat-icon brown"><animated-icons src="/static/icons/note-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="v-stat-val" id="ventasHoy">0</div><div class="v-stat-lbl">Pedidos Hoy</div></div>
   </div>
   <div class="v-stat">
-    <div class="v-stat-icon gold">📦</div>
+    <div class="v-stat-icon gold"><animated-icons src="/static/icons/product-64f0cb11.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="v-stat-val" id="piezasVendidas">0</div><div class="v-stat-lbl">Piezas Vendidas</div></div>
   </div>
   <div class="v-stat">
-    <div class="v-stat-icon rust">📅</div>
+    <div class="v-stat-icon rust"><animated-icons src="/static/icons/report-v2-1869947d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="v-stat-val" id="totalSemana">$0</div><div class="v-stat-lbl">Esta Semana</div></div>
   </div>
 </div>
@@ -45,11 +45,14 @@
 <!-- TOOLBAR -->
 <div class="toolbar anim anim-2">
   <div class="search-wrap">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span>
     <input type="text" placeholder="Buscar por folio..." id="searchInput" oninput="filtrarTabla()">
   </div>
   <input type="date" class="filter-select" id="filterFecha" onchange="cargarVentas()">
-  <button class="btn btn-outline btn-sm" onclick="cargarVentas()">🔄 Actualizar</button>
+  <button class="btn btn-outline btn-sm" onclick="cargarVentas()"><animated-icons src="/static/icons/sync-e9dea012.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons> Actualizar</button>
 </div>
 
 <!-- TABLE -->
@@ -80,14 +83,14 @@
 <div class="modal-overlay" id="modal-detalle">
   <div class="modal" style="max-width:800px">
     <div class="modal-header">
-      <h2>📋 Detalle del Pedido</h2>
+      <h2 style="display:inline-flex;align-items:center;gap:8px;"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="28" width="28"></animated-icons> Detalle del Pedido</h2>
       <button class="modal-close" onclick="cerrarModal('modal-detalle')">✕</button>
     </div>
     <div class="modal-body" id="detalleContent">
       <!-- Contenido dinámico -->
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" onclick="imprimirDetalle()">🖨️ Imprimir</button>
+      <button class="btn btn-primary" onclick="imprimirDetalle()" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/printer-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="22" width="22"></animated-icons> Imprimir</button>
       <button class="btn btn-outline" onclick="cerrarModal('modal-detalle')">Cerrar</button>
     </div>
   </div>

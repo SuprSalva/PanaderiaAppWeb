@@ -116,12 +116,17 @@ function abrirToggleProd(id, nombre, estatus) {
   var act = estatus === 'activo';
   document.getElementById('toggle-prod-title').textContent =
     act ? 'Desactivar Producto' : 'Activar Producto';
-  document.getElementById('toggle-prod-icon').textContent  = act ? '🚫' : '✅';
+  document.getElementById('toggle-prod-icon').innerHTML = act
+    ? '<animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}\' height="28" width="28"></animated-icons>'
+    : '<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="28" width="28"></animated-icons>';
   document.getElementById('toggle-prod-msg').innerHTML     = act
     ? 'El producto <strong>' + nombre + '</strong> quedará inactivo y no podrá usarse en nuevas ventas ni producción.'
     : 'El producto <strong>' + nombre + '</strong> volverá a estar disponible para ventas y producción.';
   var btn = document.getElementById('toggle-prod-btn');
-  btn.textContent = act ? 'Sí, desactivar' : 'Sí, activar';
+  btn.innerHTML = act
+    ? '<animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}\' height="22" width="22"></animated-icons> Sí, desactivar'
+    : '<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes=\'{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}\' height="22" width="22"></animated-icons> Sí, activar';
+  btn.style.cssText += ';display:inline-flex;align-items:center;gap:6px;';
   btn.className   = act ? 'btn btn-danger' : 'btn btn-primary';
   document.getElementById('toggle-prod-header').style.background =
     act ? 'var(--rust)' : '#5a7a52';

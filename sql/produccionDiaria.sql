@@ -460,6 +460,19 @@ proc: BEGIN
     LEAVE proc;
   END IF;
 
+  -- Verificar que hay stock suficiente para todos los insumos
+  IF EXISTS (
+    SELECT 1
+    FROM produccion_diaria_insumos pdi
+    JOIN materias_primas mp ON mp.id_materia = pdi.id_materia
+    WHERE pdi.id_pd = p_id_pd
+      AND mp.stock_actual < pdi.cantidad_requerida
+    LIMIT 1
+  ) THEN
+    SET p_mensaje = CONCAT('No hay stock suficiente para iniciar la producción ', v_folio, '. Revisa las materias primas.');
+    LEAVE proc;
+  END IF;
+
   START TRANSACTION;
 
   -- Descontar insumos del almacén y registrar descuento

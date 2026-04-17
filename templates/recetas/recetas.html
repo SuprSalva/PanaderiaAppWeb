@@ -10,33 +10,34 @@
 
 <script>
   window.__RECETAS_CONFIG__ = {
-    urlUnidades:   "{{ url_for('recetas_bp.recetas_unidades', id_materia=0) }}".replace('/0', '/'),
+    urlUnidades:    "{{ url_for('recetas_bp.recetas_unidades', id_materia=0) }}".replace('/0', '/'),
     urlNuevaUnidad: "{{ url_for('recetas_bp.recetas_nueva_unidad') }}",
-    csrfToken:     "{{ csrf_token() }}"
+    urlToggleBase:  "{{ url_for('recetas_bp.recetas_toggle', id_receta=0) }}".replace('/0', '/'),
+    csrfToken:      "{{ csrf_token() }}"
   };
 </script>
 
 {# ── TOPBAR ── #}
 <div class="db-topbar anim">
   <div>
-    <div class="db-page-title">📋 Recetas</div>
+    <div class="db-page-title" style="display:inline-flex;align-items:center;gap:10px;"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="50" width="50"></animated-icons> Recetas</div>
     <div class="db-breadcrumb">Inicio <span>›</span> Operaciones <span>›</span> Recetas</div>
   </div>
-  <a href="?modal=nueva" class="btn btn-primary">＋ Nueva Receta</a>
+  <a href="?modal=nueva" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;"><animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Nueva Receta</a>
 </div>
 
 {# ── STATS (3 tarjetas) ── #}
 <div class="r-stats anim anim-1">
   <div class="r-stat">
-    <div class="r-stat-icon brown">📋</div>
+    <div class="r-stat-icon brown"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="r-stat-val">{{ total_recetas }}</div><div class="r-stat-lbl">Recetas Registradas</div></div>
   </div>
   <div class="r-stat">
-    <div class="r-stat-icon green">✅</div>
+    <div class="r-stat-icon green"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="r-stat-val">{{ total_activas }}</div><div class="r-stat-lbl">Activas</div></div>
   </div>
   <div class="r-stat">
-    <div class="r-stat-icon rust">🚫</div>
+    <div class="r-stat-icon rust"><animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
     <div><div class="r-stat-val">{{ total_inactivas }}</div><div class="r-stat-lbl">Inactivas</div></div>
   </div>
 </div>
@@ -44,7 +45,7 @@
 {# ── TOOLBAR ── #}
 <div class="toolbar anim anim-2">
   <div class="search-wrap">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></span>
     <input type="text" id="buscador-recetas" placeholder="Buscar receta o producto…" autocomplete="off">
   </div>
   <select id="filtro-estatus" class="filter-select">
@@ -63,11 +64,11 @@
        data-estatus="{{ r.estatus }}"
        {% if r.estatus == 'inactivo' %}style="opacity:.65"{% endif %}>
     <div class="rc-header">
-      <div class="rc-emoji"></div>
+      <div class="rc-emoji"><animated-icons src="/static/icons/newspaper-b3a68157.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></div>
       <div>
         <div class="rc-title">{{ r.nombre }}</div>
-        {% if r.producto %}<div class="rc-producto"> {{ r.producto.nombre }}</div>{% endif %}
-        <div class="rc-rendimiento">  {{ r.rendimiento }} {{ r.unidad_rendimiento }} por lote</div>
+        {% if r.producto %}<div class="rc-producto">{{ r.producto.nombre }}</div>{% endif %}
+        <div class="rc-rendimiento">{{ r.rendimiento }} {{ r.unidad_rendimiento }} por lote</div>
         <span class="badge {% if r.estatus == 'activo' %}badge-active{% else %}badge-inactive{% endif %}" style="margin-top:6px;display:inline-block;">
           {{ 'Activa' if r.estatus == 'activo' else 'Inactiva' }}
         </span>
@@ -100,13 +101,17 @@
         {% if r.precio_venta %}${{ "%.2f" | format(r.precio_venta) }} <span>/ pieza</span>{% else %}—{% endif %}
       </div>
       <div style="display:flex;gap:6px;">
-        <a href="?modal=detalle&id={{ r.id_receta }}" class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle">📋</a>
-        <a href="?modal=editar&id={{ r.id_receta }}"  class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar">✏️</a>
-        <a href="{{ url_for('recetas_bp.recetas_confirmar_toggle', id_receta=r.id_receta) }}"
-           class="btn btn-outline btn-sm btn-icon"
-           data-tooltip="{{ 'Desactivar' if r.estatus == 'activo' else 'Activar' }}">
-          {{ '🚫' if r.estatus == 'activo' else '✅' }}
-        </a>
+        <a href="?modal=detalle&id={{ r.id_receta }}" class="btn btn-outline btn-sm btn-icon" data-tooltip="Ver detalle" title="Ver detalle"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></a>
+        <a href="?modal=editar&id={{ r.id_receta }}"  class="btn btn-outline btn-sm btn-icon" data-tooltip="Editar" title="Editar"><animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons></a>
+        <button type="button"
+                class="btn btn-outline btn-sm btn-icon btn-toggle-receta"
+                data-id="{{ r.id_receta }}"
+                data-nombre="{{ r.nombre|e }}"
+                data-estatus="{{ r.estatus }}"
+                data-tooltip="{{ 'Desactivar' if r.estatus == 'activo' else 'Activar' }}"
+                title="{{ 'Desactivar' if r.estatus == 'activo' else 'Activar' }}">
+          {% if r.estatus == 'activo' %}<animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons>{% else %}<animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons>{% endif %}
+        </button>
       </div>
     </div>
   </div>
@@ -130,7 +135,7 @@
 <div class="ins-row" {% if d %}data-id-up="{{ d.id_unidad_presentacion if d.id_unidad_presentacion else '' }}"{% endif %}>
   {# Col 1: buscador de materia prima #}
   <div class="insumo-wrap">
-    <span class="insumo-buscar-icon">🔍</span>
+    <span class="insumo-buscar-icon" style="display:flex;align-items:center"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons></span>
     <span class="insumo-arrow">▾</span>
     <input type="text" class="insumo-buscar"
            value="{% if d %}{{ d.materia.nombre }} ({{ d.materia.unidad_base }}){% endif %}"
@@ -162,17 +167,22 @@
       <option value="">— unidad base —</option>
     </select>
     <button type="button" class="btn-nueva-unidad" title="Agregar nueva unidad"
-            onclick="abrirMiniModal(this)">＋</button>
+            onclick="abrirMiniModal(this)"><animated-icons
+          src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons></button>
   </div>
 
   {# Col 3: cantidad #}
   <input type="number" name="cantidad_presentacion[]" class="det-input inp-cantidad"
-         placeholder="0" min="0" step="0.001"
-         value="{% if d %}{{ d.cantidad_presentacion if d.cantidad_presentacion else d.cantidad_requerida }}{% endif %}"
+         placeholder="0" min="0" step="0.01"
+         value="{% if d %}{{ '%.2f' % (d.cantidad_presentacion if d.cantidad_presentacion else d.cantidad_requerida) }}{% endif %}"
          oninput="actualizarHint(this.closest('.ins-row').querySelector('.sel-unidad'))">
 
   {# Col 4: quitar #}
-  <button type="button" class="btn-remove" onclick="quitarFila(this)">✕</button>
+  <button type="button" class="btn-remove" onclick="quitarFila(this)"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons></button>
 </div>
 <div class="ins-hint hint-row"></div>
 {% endmacro %}
@@ -184,7 +194,7 @@
 <div class="modal-overlay {% if request.args.get('modal') == 'nueva' %}open{% endif %}">
   <div class="modal modal-xl">
     <div class="modal-header">
-      <h2>＋ Nueva Receta</h2>
+      <h2 style="display:inline-flex;align-items:center;gap:8px;"><animated-icons src="/static/icons/plus-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Nueva Receta</h2>
       <a href="{{ url_for('recetas_bp.index_recetas') }}" class="modal-close-link">✕</a>
     </div>
     <form method="POST" action="{{ url_for('recetas_bp.recetas_nueva') }}">
@@ -252,14 +262,19 @@
           {{ fila_insumo() }}
         </div>
         <div style="margin-top:10px;">
-          <button type="button" class="btn btn-outline btn-sm" onclick="agregarFila('insumos-add')">＋ Agregar insumo</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="agregarFila('insumos-add')"> 
+            <animated-icons
+          src="/static/icons/plus-0c38d9a8.json" trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons> 
+            Agregar insumo</button>
         </div>
 
         <template id="tpl-fila">{{ fila_insumo() }}</template>
       </div>
       <div class="modal-footer">
         <a href="{{ url_for('recetas_bp.index_recetas') }}" class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Guardar Receta</button>
+        <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Guardar Receta</button>
       </div>
     </form>
   </div>
@@ -272,7 +287,7 @@
 <div class="modal-overlay {% if request.args.get('modal') == 'editar' and receta_editar %}open{% endif %}">
   <div class="modal modal-xl">
     <div class="modal-header">
-      <h2>✏️ Editar Receta</h2>
+      <h2 style="display:inline-flex;align-items:center;gap:8px;"><animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Editar Receta</h2>
       <a href="{{ url_for('recetas_bp.index_recetas') }}" class="modal-close-link">✕</a>
     </div>
     {% if receta_editar %}{% set re = receta_editar %}
@@ -336,7 +351,7 @@
       </div>
       <div class="modal-footer">
         <a href="{{ url_for('recetas_bp.index_recetas') }}" class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <button type="submit" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Guardar Cambios</button>
       </div>
     </form>
     {% endif %}
@@ -350,7 +365,7 @@
 <div class="modal-overlay {% if request.args.get('modal') == 'detalle' and receta_detalle %}open{% endif %}">
   <div class="modal modal-xl">
     <div class="modal-header">
-      <h2>🔍 Detalle{% if receta_detalle %} — <span style="opacity:.75;font-size: var(--text-base);">{{ receta_detalle.nombre }}</span>{% endif %}</h2>
+      <h2 style="display:inline-flex;align-items:center;gap:8px;"><animated-icons src="/static/icons/search-12e9ffab.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Detalle{% if receta_detalle %} — <span style="font-size: var(--text-base); font-family: 'Playfair Display', serif; font-size: var(--text-md); color: var(--cream);">{{ receta_detalle.nombre }}</span>{% endif %}</h2>
       <a href="{{ url_for('recetas_bp.index_recetas') }}" class="modal-close-link">✕</a>
     </div>
     {% if receta_detalle %}{% set re = receta_detalle %}
@@ -358,16 +373,16 @@
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
         {% if re.producto %}
         <div style="background:var(--warm-bg);border:1px solid var(--tan);border-radius:10px;padding:14px 16px;">
-          <div style="font-size: var(--text-xs);font-weight:700;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Producto</div>
+          <div style="font-size: var(--text-base);font-weight:700;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Producto</div>
           <div style="font-family:'Playfair Display',serif;font-size: var(--text-md);font-weight:700;color:var(--brown-dk);">{{ re.producto.nombre }}</div>
         </div>
         {% endif %}
         <div style="background:var(--warm-bg);border:1px solid var(--tan);border-radius:10px;padding:14px 16px;">
-          <div style="font-size: var(--text-xs);font-weight:700;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Rendimiento</div>
+          <div style="font-size: var(--text-base);font-weight:700;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Rendimiento</div>
           <div style="font-family:'Playfair Display',serif;font-size: var(--text-lg);font-weight:700;color:var(--brown-dk);">{{ re.rendimiento }} {{ re.unidad_rendimiento }} / lote</div>
         </div>
         <div style="background:var(--warm-bg);border:1px solid var(--tan);border-radius:10px;padding:14px 16px;">
-          <div style="font-size: var(--text-xs);font-weight:700;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Precio de Venta</div>
+          <div style="font-size: var(--text-base);font-weight:700;text-transform:uppercase;color:var(--brown-lt);margin-bottom:4px;">Precio de Venta</div>
           <div style="font-family:'Playfair Display',serif;font-size: var(--text-lg);font-weight:700;color:var(--brown-dk);">
             {% if re.precio_venta %}${{ "%.2f" | format(re.precio_venta) }} / pieza{% else %}—{% endif %}
           </div>
@@ -392,8 +407,13 @@
             </td>
             <td>{{ fmt_cantidad(d.materia.stock_actual, d.materia.unidad_base) }}</td>
             <td>
-              {% if stock >= cant %}<span class="stock-ok">✅ Suficiente</span>
-              {% else %}<span class="stock-mal">⚠️ Insuficiente</span>{% endif %}
+              {% if stock >= cant %}<span class="stock-ok"><animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons> Suficiente</span>
+              {% else %}<span class="stock-mal"><animated-icons src="/static/icons/error-0c38d9a8.json" trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E05252FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons> Insuficiente</span>
+              {% endif %}
             </td>
           </tr>
           {% else %}
@@ -404,9 +424,39 @@
     </div>
     <div class="modal-footer">
       <a href="{{ url_for('recetas_bp.index_recetas') }}" class="btn btn-outline">Cerrar</a>
-      <a href="?modal=editar&id={{ re.id_receta }}" class="btn btn-primary">✏️ Editar Receta</a>
+      <a href="?modal=editar&id={{ re.id_receta }}" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/edit-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FFFFFF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Editar Receta</a>
     </div>
     {% endif %}
+  </div>
+</div>
+
+
+{# ══════════════════════════════════════════════════════════════
+   MODAL TOGGLE (Activar / Desactivar Receta)
+══════════════════════════════════════════════════════════════ #}
+<div class="modal-overlay" id="modal-toggle">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header" id="toggle-header">
+      <h2 id="toggle-header-title">Desactivar Receta</h2>
+      <button type="button" class="modal-close" id="toggle-close-btn">✕</button>
+    </div>
+    <form id="form-toggle" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="delete-body">
+        <div class="delete-icon" id="toggle-icon"></div>
+        <h3 id="toggle-title">¿Desactivar esta receta?</h3>
+        <p id="toggle-msg"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="toggle-cancel-btn">Cancelar</button>
+        <button type="submit" class="btn btn-danger" id="toggle-confirm-btn">
+          <animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}'
+            height="22" width="22"></animated-icons>
+          Desactivar
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -460,7 +510,7 @@
     <div class="mini-footer">
       <button type="button" class="btn btn-outline btn-sm" onclick="cerrarMiniModal()">Cancelar</button>
       <button type="button" class="btn btn-primary btn-sm" id="mini-btn-guardar"
-              onclick="guardarNuevaUnidad()">Guardar unidad</button>
+              onclick="guardarNuevaUnidad()" style="display:inline-flex;align-items:center;gap:6px;"><animated-icons src="/static/icons/save-0c38d9a8.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FFFFFF","background":"#FFFFFF"}}' height="20" width="20"></animated-icons> Guardar unidad</button>
     </div>
   </div>
 </div>
