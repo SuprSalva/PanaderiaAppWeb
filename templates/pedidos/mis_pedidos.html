@@ -10,26 +10,46 @@
 <!-- ── Encabezado ─────────────────────────────────────────── -->
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:12px;">
   <div>
-    <h1 style="font-family:'Playfair Display',serif; color:var(--brown-dk); font-size: var(--text-xl); margin:0 0 4px; font-weight: 700;">
-      📦 Mis Pedidos
+    <h1 style="font-family:'Playfair Display',serif; color:var(--brown-dk); font-size: var(--text-xl); margin:0 0 4px; font-weight: 700; display:inline-flex;align-items:center;gap:10px;">
+      <animated-icons
+        src="/static/icons/order-history-b3a68157.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="50" width="50"></animated-icons>
+      Mis Pedidos
     </h1>
     <p style="font-size: var(--text-base); color:var(--brown-lt); margin:0;">
       Sigue el estado de tus pedidos en tiempo real
     </p>
   </div>
-  <a href="{{ url_for('pedidos.tienda') }}" class="btn-nuevo">
-    🥐 Nuevo Pedido
+  <a href="{{ url_for('pedidos.tienda') }}" class="btn-nuevo" style="display:inline-flex;align-items:center;gap:8px;">
+    <animated-icons
+      src="/static/icons/plus-0c38d9a8.json"
+      trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30" width="30"></animated-icons>
+    Nuevo Pedido
   </a>
 </div>
 
 <!-- ── Tabs ───────────────────────────────────────────────── -->
 <div class="tabs">
-  <button class="tab active" onclick="switchTab('pedidos', this)">
-    📦 Mis Pedidos
+  <button  style="display: inline-flex; text-align: center; align-items: center; gap: 10px;" class="tab active" onclick="switchTab('pedidos', this)">
+    <animated-icons
+      src="/static/icons/order-history-b3a68157.json"
+      trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30" width="30"></animated-icons>
+    Mis Pedidos
     <span class="tab-badge">{{ pedidos | length }}</span>
   </button>
-  <button class="tab" onclick="switchTab('notifs', this)" id="tab-notifs">
-    🔔 Notificaciones
+  <button style="display: inline-flex; text-align: center; align-items: center; gap: 10px;" class="tab" onclick="switchTab('notifs', this)" id="tab-notifs">
+    <animated-icons
+      src="/static/icons/notification-2a8c285f.json"
+      trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30" width="30"></animated-icons>
+    Notificaciones
     {% set unread_count = notifs | selectattr('leida', 'equalto', 0) | list | length %}
     {% if unread_count > 0 %}
     <span class="tab-badge" id="badge-notif-count">{{ unread_count }}</span>
@@ -46,7 +66,11 @@
     {% for p in pedidos %}
 
     {# Íconos de pago #}
-    {% set pago_ico = {'efectivo':'','tarjeta':'','transferencia':''} %}
+    {% set pago_icon = {
+      'efectivo': '/static/icons/dollar-symbol-46faf108.json',
+      'tarjeta': '/static/icons/credit-card-46faf108.json',
+      'transferencia': '/static/icons/internet-banking-a93fff45.json'
+    } %}
 
     <div class="ped-card {{ p.estado }}">
       <div class="ped-card-inner">
@@ -57,19 +81,28 @@
           <div class="ped-card-head">
             <span class="ped-folio">{{ p.folio }}</span>
             <span class="badge-estado badge-{{ p.estado }}">
-              {% if p.estado == 'pendiente'  %}⏳ Pendiente
-              {% elif p.estado == 'aprobado' %}✅ Aprobado
-              {% elif p.estado == 'listo'    %}🎉 Listo
-              {% elif p.estado == 'entregado'%}📦 Entregado
-              {% elif p.estado == 'rechazado'%}❌ Rechazado
+              {% if p.estado == 'pendiente'  %}
+                <animated-icons src="/static/icons/loading-cc242f7a.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Pendiente
+              {% elif p.estado == 'aprobado' %}
+                <animated-icons src="/static/icons/success-2cb0da6b.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Aprobado
+              {% elif p.estado == 'listo'    %}
+                <animated-icons src="/static/icons/firecracker-0e6f2ecc.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Listo
+              {% elif p.estado == 'entregado'%}
+                <animated-icons src="/static/icons/magic-box-cc242f7a.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Entregado
+              {% elif p.estado == 'rechazado'%}
+                <animated-icons src="/static/icons/minus-8e4bd16d.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#FF0707FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Rechazado
               {% endif %}
             </span>
           </div>
 
           <!-- Método de pago -->
           <div>
-            <span class="badge-pago {{ p.metodo_pago }}">
-              {{ pago_ico.get(p.metodo_pago, '💰') }}
+            <span class="badge-pago {{ p.metodo_pago }}" style="display:inline-flex;align-items:center;gap:6px;">
+              <animated-icons
+                src="{{ pago_icon.get(p.metodo_pago, '/static/icons/dollar-symbol-46faf108.json') }}"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="18" width="18"></animated-icons>
               {{ p.metodo_pago | capitalize }}
             </span>
           </div>
@@ -77,7 +110,10 @@
           <!-- Productos del pedido -->
           {% if p.panes_resumen %}
           <div class="ped-panes">
-            <div class="ped-panes-title">🥐 PRODUCTOS</div>
+            <div class="ped-panes-title" style="display:inline-flex;align-items:center;gap:8px;">
+              <animated-icons src="/static/icons/product-64f0cb11.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="18" width="18"></animated-icons>
+              PRODUCTOS
+            </div>
             <ul class="ped-panes-list">
               {% for pan in p.panes_resumen.split(',') %}
               <li><span>{{ pan.strip() }}</span></li>
@@ -87,13 +123,16 @@
           {% endif %}
 
           <!-- Meta: hora + fecha -->
-          <div class="ped-meta">
-            🕐 Recoger a las
-            <strong>{{ p.fecha_recogida.strftime('%H:%M') if p.fecha_recogida else '—' }}</strong>
+          <div class="ped-meta" style="display:inline-flex;align-items:center;gap:6px;">
+            <animated-icons src="/static/icons/calendar-v3-e55f9897.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="16" width="16"></animated-icons>
+            <strong>Recoger a las
+            {{ p.fecha_recogida.strftime('%H:%M') if p.fecha_recogida else '—' }}
             — {{ p.fecha_recogida.strftime('%d/%m/%Y') if p.fecha_recogida else '' }}
+            </strong>
           </div>
-          <div class="ped-meta">
-            📅 Pedido el {{ p.creado_en.strftime('%d/%m/%Y %H:%M') if p.creado_en else '—' }}
+          <div class="ped-meta" style="display:inline-flex;align-items:center;gap:6px;">
+            <animated-icons src="/static/icons/calendar-v3-e55f9897.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="16" width="16"></animated-icons>
+            Pedido el {{ p.creado_en.strftime('%d/%m/%Y %H:%M') if p.creado_en else '—' }}
           </div>
 
           <!-- Rechazo -->
@@ -127,10 +166,21 @@
 
   {% else %}
   <div class="empty-state">
-    <div class="ico">📦</div>
+    <div class="ico">
+      <animated-icons
+        src="/static/icons/product-64f0cb11.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="40" width="40"></animated-icons>
+    </div>
     <p>Aún no has realizado ningún pedido.</p>
-    <a href="{{ url_for('pedidos.tienda') }}" class="btn-nuevo">
-      🥐 Ver la tienda del día
+    <a href="{{ url_for('pedidos.tienda') }}" class="btn-nuevo" style="display:inline-flex;align-items:center;gap:8px;">
+      <animated-icons
+        src="/static/icons/plus-0c38d9a8.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="22" width="22"></animated-icons>
+      Ver la tienda del día
     </a>
   </div>
   {% endif %}
@@ -142,8 +192,8 @@
 <div class="tab-content" id="tab-content-notifs">
   {% set unread = notifs | selectattr('leida', 'equalto', 0) | list %}
   {% if unread %}
-  <button class="marcar-leidas-btn" id="btn-marcar-leidas" onclick="marcarLeidas()">
-    ✓ Marcar todas como leídas
+  <button style="display: inline-flex; text-align: center; align-items: center; gap: 10px;" style="display: inline-flex; text-align: center; align-items: center; gap: 10px;"class="marcar-leidas-btn" id="btn-marcar-leidas" onclick="marcarLeidas()">
+    Marcar todas como leídas
   </button>
   {% endif %}
 
@@ -164,7 +214,13 @@
   </div>
   {% else %}
   <div class="empty-state">
-    <div class="ico">🔔</div>
+    <div class="ico">
+      <animated-icons
+        src="/static/icons/notification-2a8c285f.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="40" width="40"></animated-icons>
+    </div>
     <p>No tienes notificaciones por el momento.</p>
   </div>
   {% endif %}

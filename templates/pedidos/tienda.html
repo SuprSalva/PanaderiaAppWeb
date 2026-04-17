@@ -15,12 +15,25 @@
 {% block container %}
 <div class="tx-page">
   <div class="tx-hero">
-    <div class="tx-hero-deco">🥐</div>
+    <div class="tx-hero-deco">
+      <animated-icons
+        src="/static/icons/product-64f0cb11.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="40" width="40"></animated-icons>
+    </div>
     <div class="tx-hero-badge"><span class="tx-hero-badge-dot"></span>Tienda Dulce Migaja</div>
     <h1>Pide tu pan<br>con tiempo</h1>
     <p>Elige los panes que quieras. Si están en tienda los puedes recoger hoy mismo — los demás los preparamos especialmente para ti.</p>
     <div class="tx-hero-actions">
-      <a href="{{ url_for('pedidos.mis_pedidos') }}">📋 Mis Pedidos</a>
+      <a href="{{ url_for('pedidos.mis_pedidos') }}" style="display:inline-flex;align-items:center;gap:8px;">
+        <animated-icons
+          src="/static/icons/order-history-b3a68157.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="30" width="30"></animated-icons>
+        Mis Pedidos
+      </a>
     </div>
     <div class="tx-hero-stats">
       <div class="tx-hero-stat"><span class="tx-hero-stat-num">{{ productos|length }}</span><span class="tx-hero-stat-lbl">Variedades</span></div>
@@ -32,7 +45,13 @@
   <div class="tx-main">
     <div class="tx-toolbar">
       <div class="tx-search">
-        <span class="tx-search-icon">🔍</span>
+        <span class="tx-search-icon">
+          <animated-icons
+            src="/static/icons/search-12e9ffab.json"
+            trigger="loop"
+            attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+            height="30" width="30"></animated-icons>
+        </span>
         <input type="text" id="txSearch" placeholder="Buscar pan…" oninput="filtrar(this.value)">
       </div>
       <div class="tx-toolbar-divider"></div>
@@ -64,9 +83,23 @@
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
                  style="display:block;cursor:zoom-in;"
                  onclick="abrirLightbox('/static/{{ p.imagen_url }}','{{ p.nombre|e }}')">
-            <div class="tx-card-placeholder" style="display:none;"><span>🥐</span><span style="font-size: var(--text-xs);">sin imagen</span></div>
+            <div class="tx-card-placeholder" style="display:none;">
+              <animated-icons
+                src="/static/icons/product-64f0cb11.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+              <span style="font-size: var(--text-sm);">Sin imagen</span>
+            </div>
           {% else %}
-            <div class="tx-card-placeholder" style="display:flex;"><span>🥐</span><span style="font-size: var(--text-xs);">sin imagen</span></div>
+            <div class="tx-card-placeholder" style="display:flex;align-items:center;gap:8px;">
+              <animated-icons
+                src="/static/icons/product-64f0cb11.json"
+                trigger="loop"
+                attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+                height="30" width="30"></animated-icons>
+              <span style="font-size: var(--text-sm);">sin imagen</span>
+            </div>
           {% endif %}
           {% if p.nivel_stock == 'agotado' %}
             <div class="tx-stock-badge encargo">Por encargo</div>
@@ -83,9 +116,18 @@
           <div class="tx-card-desc">{{ p.descripcion or 'Pan recién horneado.' }}</div>
           <div class="tx-card-footer">
             <div class="tx-card-price">${{ "%.2f"|format(p.precio_venta) }}<span>/ pieza</span></div>
-            <div class="tx-stepper" id="step-{{ p.id_producto }}" style="display:none;">
+            <div class="tx-stepper" id="step-{{ p.id_producto }}" style="display:none;align-items:center;gap:6px;">
               <button type="button" onclick="cambiarQty({{ p.id_producto }},-1)">−</button>
-              <span class="qty-val" id="qty-{{ p.id_producto }}">0</span>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value="0"
+                id="qty-{{ p.id_producto }}"
+                class="qty-val"
+                onchange="setCantidad({{ p.id_producto }}, this.value)"
+                style="width:3.2rem;text-align:center;"
+              >
               <button type="button" onclick="cambiarQty({{ p.id_producto }},+1)">+</button>
             </div>
             <button class="btn-tx-add" id="addBtn-{{ p.id_producto }}"
@@ -98,7 +140,13 @@
       {% endfor %}
     </div>
     <div class="tx-empty" id="txEmpty" style="display:none;">
-      <div class="ico">🔍</div>
+      <div class="ico">
+        <animated-icons
+          src="/static/icons/search-12e9ffab.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="40" width="40"></animated-icons>
+      </div>
       <p>No hay panes que coincidan con tu búsqueda.</p>
     </div>
   </div>
@@ -112,7 +160,13 @@
 </div>
 
 <button class="tx-cart-fab" id="fabCarrito" onclick="abrirDrawer()">
-  <span class="tx-cart-fab-ico">🛒</span>
+  <span class="tx-cart-fab-ico">
+    <animated-icons
+      src="/static/icons/cart-v1-46faf108.json"
+      trigger="loop"
+      attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#E07A52FF","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+      height="30" width="30"></animated-icons>
+  </span>
   <span class="tx-cart-fab-qty" id="fabQty">0</span>
   <span class="tx-cart-fab-label" id="fabTotal">Ver pedido</span>
 </button>
@@ -122,7 +176,14 @@
 <div class="tx-drawer" id="txDrawer" role="dialog" aria-modal="true">
   <div class="tx-drawer-handle"></div>
   <div class="tx-drawer-header">
-    <h2 class="tx-drawer-title">🛒 Tu pedido <span id="cartQtyBadge">0</span></h2>
+    <h2 class="tx-drawer-title" style="display:inline-flex;align-items:center;gap:8px;">
+      <animated-icons
+        src="/static/icons/cart-v1-46faf108.json"
+        trigger="loop"
+        attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#E07A52FF","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+        height="30" width="30"></animated-icons>
+      Tu pedido <span id="cartQtyBadge">0</span>
+    </h2>
     <button class="tx-drawer-close" onclick="cerrarDrawer()">✕</button>
   </div>
 
@@ -151,7 +212,14 @@
       <!-- Picker unificado: siempre visible cuando hay items -->
       <div id="seccionFecha" style="display:none;">
         <div class="tx-fecha-wrap">
-          <label id="labelFecha">📅 ¿Cuándo quieres recoger?</label>
+          <label id="labelFecha" style="display:inline-flex;align-items:center;gap:6px;">
+            <animated-icons
+              src="/static/icons/calendar-v3-e55f9897.json"
+              trigger="loop"
+              attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+              height="18" width="18"></animated-icons>
+            ¿Cuándo quieres recoger?
+          </label>
           <div class="tx-fecha-row">
             <input type="date" id="uiFecha" onchange="onFechaChange()">
             <select id="uiHora" onchange="onFechaChange()">
@@ -164,9 +232,18 @@
 
       <span class="tx-foot-label">Método de pago al recoger</span>
       <div class="pago-grid">
-        <div class="pago-opt active" id="pago-efectivo" onclick="seleccionarPago('efectivo')"><span class="pago-ico">💵</span><span class="pago-lbl">Efectivo</span></div>
-        <div class="pago-opt" id="pago-tarjeta" onclick="seleccionarPago('tarjeta')"><span class="pago-ico">💳</span><span class="pago-lbl">Tarjeta</span></div>
-        <div class="pago-opt" id="pago-transferencia" onclick="seleccionarPago('transferencia')"><span class="pago-ico">🏦</span><span class="pago-lbl">Transf.</span></div>
+        <div class="pago-opt active" id="pago-efectivo" onclick="seleccionarPago('efectivo')">
+          <animated-icons src="/static/icons/dollar-symbol-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons>
+          <span class="pago-lbl">Efectivo</span>
+        </div>
+        <div class="pago-opt" id="pago-tarjeta" onclick="seleccionarPago('tarjeta')">
+          <animated-icons src="/static/icons/credit-card-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons>
+          <span class="pago-lbl">Tarjeta</span>
+        </div>
+        <div class="pago-opt" id="pago-transferencia" onclick="seleccionarPago('transferencia')">
+          <animated-icons src="/static/icons/internet-banking-a93fff45.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#559C27FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons>
+          <span class="pago-lbl">Transf.</span>
+        </div>
       </div>
       <div class="pago-info">Pagarás con <strong id="pagoTexto">efectivo</strong> al recoger</div>
 
@@ -176,8 +253,13 @@
         <span class="tx-total-amount" id="cartTotal">$0.00</span>
       </div>
       <button type="button" class="btn-tx-confirm" id="btnConfirmar"
-              disabled onclick="confirmarPedido()">
-        📦 Confirmar pedido →
+              disabled onclick="confirmarPedido()" style="display:inline-flex;align-items:center;gap:8px;">
+        <animated-icons
+          src="/static/icons/magic-box-cc242f7a.json"
+          trigger="loop"
+          attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}'
+          height="35" width="35"></animated-icons>
+        Confirmar pedido →
       </button>
     </div>
   </form>

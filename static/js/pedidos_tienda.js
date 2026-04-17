@@ -61,7 +61,8 @@ function agregarProducto(id, precio, nombre, imgUrl){
   carrito[id] = { id, nombre, imagen_url: imgUrl, precio, qty: 1 };
   document.getElementById('addBtn-'+id).style.display = 'none';
   document.getElementById('step-'+id).style.display   = 'flex';
-  document.getElementById('qty-'+id).textContent      = '1';
+  const qtyInput = document.getElementById('qty-'+id);
+  if(qtyInput){ qtyInput.value = '1'; }
   document.getElementById('txcard-'+id).classList.add('en-carrito');
   renderCarrito();
   actualizarModo();
@@ -77,12 +78,29 @@ function cambiarQty(id, delta){
     delete carrito[id];
     document.getElementById('step-'+id).style.display   = 'none';
     document.getElementById('addBtn-'+id).style.display = 'inline-flex';
-    document.getElementById('qty-'+id).textContent      = '0';
+    const qtyInput = document.getElementById('qty-'+id);
+    if(qtyInput){ qtyInput.value = '0'; }
     document.getElementById('txcard-'+id).classList.remove('en-carrito');
   } else {
     carrito[id].qty = nuevo;
-    document.getElementById('qty-'+id).textContent = nuevo;
+    const qtyInput = document.getElementById('qty-'+id);
+    if(qtyInput){ qtyInput.value = nuevo; }
   }
+  renderCarrito();
+  actualizarModo();
+}
+
+function setCantidad(id, cantidad){
+  const valor = parseInt(cantidad, 10);
+  if(!carrito[id]) return;
+  if(Number.isNaN(valor) || valor <= 0){
+    const qtyInput = document.getElementById('qty-'+id);
+    if(qtyInput){ qtyInput.value = carrito[id].qty; }
+    return;
+  }
+  carrito[id].qty = valor;
+  const qtyInput = document.getElementById('qty-'+id);
+  if(qtyInput){ qtyInput.value = valor; }
   renderCarrito();
   actualizarModo();
 }
@@ -96,6 +114,11 @@ function quitarDelCarrito(id){
   renderCarrito();
   actualizarModo();
 }
+
+const PEDIDOS_TIENDA_ICONS = {
+  cartEmpty: `<animated-icons src="/static/icons/cart-v1-46faf108.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="40" width="40"></animated-icons>`,
+  placeholder: ``
+};
 
 function renderCarrito(){
   const items = Object.values(carrito);
@@ -111,7 +134,7 @@ function renderCarrito(){
 
   const body = document.getElementById('cartBody');
   if(!items.length){
-    body.innerHTML = `<div class="tx-cart-empty"><div class="ico">🛒</div>
+    body.innerHTML = `<div class="tx-cart-empty"><div style="display: inline-flex; text-align: center; align-items: center; gap: 10px;" class="ico">${PEDIDOS_TIENDA_ICONS.cartEmpty}</div>
       <p>Tu carrito está vacío.<br>Elige un pan del catálogo para empezar.</p></div>`;
     return;
   }
@@ -119,8 +142,8 @@ function renderCarrito(){
     <div class="tx-cart-item">
       <div class="tx-cart-thumb">${i.imagen_url
         ? `<img src="/static/${i.imagen_url}" alt="${i.nombre}"
-                onerror="this.style.display='none';this.parentElement.textContent='🥐';">`
-        : '🥐'}</div>
+                onerror="this.style.display='none';this.parentElement.innerHTML=\"${PEDIDOS_TIENDA_ICONS.placeholder}\";">`
+        : PEDIDOS_TIENDA_ICONS.placeholder}</div>
       <div class="tx-cart-info">
         <div class="tx-cart-name">${i.nombre}</div>
         <div class="tx-cart-sub">${i.qty} pza${i.qty>1?'s':''} × $${i.precio.toFixed(2)}</div>
@@ -168,7 +191,7 @@ function actualizarModo(){
     document.getElementById('modoBannerTitulo').textContent = 'Todo disponible en tienda';
     document.getElementById('modoBannerDesc').textContent   =
       'Puedes recoger hoy o elegir cualquier otro día.';
-    document.getElementById('labelFecha').textContent = '¿Cuándo quieres recoger?';
+    document.getElementById('labelFecha').innerHTML = `<animated-icons src="/static/icons/calendar-v3-e55f9897.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> ¿Cuándo quieres recoger?`;
     fechaInput.min = hoyISO();
   } else {
     document.getElementById('modoBanner').className  = 'tx-modo-banner tx-modo-futuro';
@@ -176,7 +199,7 @@ function actualizarModo(){
     document.getElementById('modoBannerTitulo').textContent = 'Pedido por encargo';
     document.getElementById('modoBannerDesc').textContent   =
       'Algunos productos se prepararán especialmente. Se requieren mínimo 24 h de anticipación.';
-    document.getElementById('labelFecha').textContent = 'Fecha de recogida (+24 h mínimo)';
+    document.getElementById('labelFecha').innerHTML = `<animated-icons src="/static/icons/calendar-v3-e55f9897.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="30" width="30"></animated-icons> Fecha de recogida (+24 h mínimo)`;
     const min24 = new Date(); min24.setHours(min24.getHours() + 24);
     const min24ISO = `${min24.getFullYear()}-${String(min24.getMonth()+1).padStart(2,'0')}-${String(min24.getDate()).padStart(2,'0')}`;
     fechaInput.min = min24ISO;
@@ -289,7 +312,7 @@ function confirmarPedido(){
     window.DM && window.DM.toast('Selecciona fecha y hora de recogida.', 'warning'); return;
   }
   document.getElementById('btnConfirmar').disabled  = true;
-  document.getElementById('btnConfirmar').innerHTML = '⏳ Enviando…';
+  document.getElementById('btnConfirmar').innerHTML = `<animated-icons src="/static/icons/loading-a93fff45.json" trigger="loop" attributes='{"variationThumbColour":"#536DFE","variationName":"Two Tone","variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"strokeWidth":1.5,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"}}' height="18" width="18"></animated-icons> Enviando…`;
   document.getElementById('formPedido').submit();
 }
 
