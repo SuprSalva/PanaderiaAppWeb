@@ -110,7 +110,7 @@ def _redirect_por_rol(usuario):
     destinos = {
         'admin':    'dashboard',
         'empleado': 'dashboard',
-        'panadero': 'pedidos.cola_produccion',
+        'panadero': 'dashboard',
         'cliente':  'pedidos.mis_pedidos',
     }
     endpoint = destinos.get(clave, 'dashboard')
@@ -128,7 +128,7 @@ def inject_url_volver():
     destinos = {
         'admin':    'dashboard',
         'empleado': 'dashboard',
-        'panadero': 'pedidos.cola_produccion',
+        'panadero': 'dashboard',
         'cliente':  'pedidos.mis_pedidos',
     }
     endpoint = destinos.get(current_user.rol.clave_rol, 'dashboard')

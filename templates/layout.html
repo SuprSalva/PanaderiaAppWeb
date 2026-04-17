@@ -129,19 +129,6 @@
         <div class="nav-section" id="section-admin">
           <div class="nav-section-label">Administración</div>
 
-          {# Pedidos: admin, empleado, panadero #}
-          <a href="{{ url_for('pedidos.gestion_pedidos') }}"
-            class="nav-item {% if request.endpoint == 'pedidos.gestion_pedidos' %}active{% endif %}" data-label="Pedidos">
-            <span class="nav-icon"><animated-icons
-                src="/static/icons/order-history-b3a68157.json"
-                trigger="loop"
-                attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
-                height="30" width="30"></animated-icons>
-            </span>
-            <span class="nav-label">Pedidos</span>
-            <span class="nav-tooltip">Pedidos</span>
-          </a>
-
           {# Usuarios: solo admin #}
           {% if rol == 'admin' %}
           <a href="{{ url_for('registrar_usuario.usuarios') }}"
@@ -226,6 +213,19 @@
         <div class="nav-section" id="section-produccion">
           <div class="nav-section-label">Producción</div>
 
+          {# Pedidos: admin, empleado, panadero #}
+          <a href="{{ url_for('pedidos.gestion_pedidos') }}"
+            class="nav-item {% if request.endpoint == 'pedidos.gestion_pedidos' %}active{% endif %}" data-label="Pedidos">
+            <span class="nav-icon"><animated-icons
+                src="/static/icons/order-history-b3a68157.json"
+                trigger="loop"
+                attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
+                height="30" width="30"></animated-icons>
+            </span>
+            <span class="nav-label">Pedidos</span>
+            <span class="nav-tooltip">Pedidos</span>
+          </a>
+          
           <a href="{{ url_for('recetas_bp.index_recetas') }}"
             class="nav-item {% if request.endpoint == 'recetas_bp.index_recetas' %}active{% endif %}"
             data-label="Recetas" title="Recetas">
@@ -238,18 +238,6 @@
             </span>
             <span class="nav-label">Recetas</span>
             <span class="nav-tooltip">Recetas</span>
-          </a>
-
-          <a href="{{ url_for('pedidos.cola_produccion') }}"
-            class="nav-item {% if request.endpoint == 'pedidos.cola_produccion' %}active{% endif %}"
-            data-label="Cola Producción" title="Cola Producción">
-            <span class="nav-icon"><animated-icons
-                src="/static/icons/video-timeline-b3a68157.json"
-                trigger="loop"
-                attributes='{"type":"custom","id":1775689336913,"style":"minimalistic","strokeWidth":1.5,"variationNumber":2,"numberOfGroups":2,"backgroundIsGroup":false,"defaultColours":{"group-1":"#000000","group-2":"#E07A52FF","background":"#FFFFFF"},"variationName":"DM"}'
-                height="30" width="30"></animated-icons></span>
-            <span class="nav-label">Cola Producción</span>
-            <span class="nav-tooltip">Cola Producción</span>
           </a>
 
           <a href="{{ url_for('produccion_diaria.index_pd') }}"
