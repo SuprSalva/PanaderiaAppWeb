@@ -64,6 +64,7 @@
     kpiPiezas.textContent        = k.total_piezas;
     kpiEfectivo.textContent      = fmt$(k.efectivo);
     kpiTarjeta.textContent       = fmt$(k.tarjeta);
+    kpiTransferencia.textContent = fmt$(k.transferencia);
     kpiCancelaciones.textContent = k.cancelaciones;
   }
 

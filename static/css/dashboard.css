@@ -172,7 +172,7 @@
 @keyframes dm-spin { to { transform:rotate(360deg); } }
 .spinning { animation:dm-spin .8s linear infinite; }
 
-/* ── Botón de información (ⓘ) ───────────────────────────────── */
+/* ── Botón de información ───────────────────────────────── */
 .dm-info-btn {
   width:20px; height:20px; border-radius:50%;
   border:1.5px solid var(--tan);
@@ -190,5 +190,31 @@
   display:inline-flex; align-items:center;
 }
 
-/* .dm-info-pop actúa solo como contenedor de datos; el modal en layout.html lo muestra */
 .dm-info-pop { display:none !important; }
+
+.dm-filtered-zone {
+  background-color: rgba(245, 230, 211, 0.3); 
+  border: 1px dashed var(--brown-lt); 
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.dm-filtered-zone > .dm-sec-label {
+  margin-top: 0;
+}
+
+
+.dm-info-text-lg {
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+.dm-info-text-lg strong {
+  font-size: 1.15rem;
+}
+.dm-info-text-lg ul {
+  margin-top: 8px;
+  padding-left: 20px;
+}
+.dm-info-text-lg li {
+  margin-bottom: 6px;
+}
