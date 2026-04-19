@@ -27,7 +27,7 @@ DB_ROLE_NAMES = {
 
 class Config(object):
     SECRET_KEY = "DulceMigajaSecretKey"
-    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = True
 
 
 class DevelopmentConfig(Config):
